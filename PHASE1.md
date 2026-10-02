@@ -5,7 +5,7 @@
 ## 1 范围与状态
 
 - **目标**：单词解释通道端到端可用（不含 OCR），UI 各表面完整，未实现功能一律占位、不可触发。
-- **取词**：选区（剪贴板监听，真可用）+ `lens_gtest_unit` 自检。扫描、截图、悬停依赖 OCR，本阶段全部占位。
+- **取词**：选区（低层鼠标钩子监听拖选松手，注入 Ctrl+C 取剪贴板，真可用）+ `lens_gtest_unit` 自检。扫描、截图、悬停依赖 OCR，本阶段全部占位。
 - **LLM**：真模型直连（DeepSeek，OpenAI 兼容，BYOK）。替代 DESIGN 原 “假 LLM 先跑通” 原型路径，取舍记录见 `DESIGN.md`。
 - **状态**：离线内核与 LLM 客户端均已落地——`lens_core`（FilterCore / KnownStore）、`lens_llm`（LlmClient + 纯函数内核）、`lens_gtest_unit`（样例集 + 存储往返 + LLM 纯函数接缝，11 例）均通过，见第 9 节。测试框架已从手写 `CHECK` 迁到 GoogleTest（§4.5）；冒烟走 `lens_gtest_smoke`，需人手动执行。`src/app` 仍为 INTERFACE 占位，AppController 与 QML 表面属后续切片（各片的范围与验收见 §10）。工具链已确认：Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`，preset `vs-qt6`；`data/wordlist.txt` 88,918 行。
 
@@ -19,27 +19,30 @@
 | 句子通道                   | 选区语义             | 不产生句子气泡                                       |
 | 误弹反馈入口               | 反馈闭环             | 浮层不提供该入口（设计见`CONTEXT.md`「误弹反馈」） |
 | 每日预算上限               | 计费统计             | 预算耗尽托盘态不触发                                 |
-| 扫描冷却 / 内容指纹        | 快照管道             | 剪贴板只按「文本不同」防重                           |
+| 扫描冷却 / 内容指纹        | 快照管道             | 选区文本只按「文本不同」防重                         |
 
-UI 上占位项：控件存在但 `enabled: false`——文案转 `faint`、开关降透明度、行内跟 10.5 px 弱文字标注 “阶段二”，不响应输入。规格见 `UI.md` 4.4。
+UI 上占位项：控件存在但 `enabled: false`——文案转 `faint`、开关降透明度、不响应输入，且不加任何文字说明。产品界面上不出现阶段号，也不用 “即将支持” 这类话，用户只看到不可用。规格见 `UI.md` 4.4。
 
 ## 3 单词通道数据流
 
 ```
-剪贴板变化（选中复制）
-  → AppController.onClipboardChanged(text)
-  → FilterCore.filterWords（分词 → 全大写 → 还原 → 词表 → 档位阈值 → known-set）
-  → 候选为空？ 结束。
+拖选松手（低层鼠标钩子 WH_MOUSE_LL：LBUTTONUP 且按下期间确实拖动过，双击 / 三击选词选段同理）
+  → AppController.onSelectionReleased(anchor)：注入 Ctrl+C → 读剪贴板（存还原）→ 选区类型判定
+     （阶段一的类型判定就是单词通道的第一步：FilterCore.filterWords 出候选 = 单词；
+       无候选 = 按句子处理，句子 / 实体通道属阶段二，见 §2）
+  → 选区动作条弹出（翻译 / 解释 / 复制文本。前两项是同一决策的两个入口，见 `UI.md` §4.9）
+  → 复制文本 → 本地结束，不发请求。
+  → 翻译 / 解释 → 同一条路，通道由上面判的类型定；阶段一只有 word 走得通
   → KnownStore 缓存查（lemma + 解释语言）命中？ 直接弹。
   → LlmClient.explainWords（发送前脱敏）
   → [DEV_SEND_CONFIRM 编译开关] 发送预览弹窗确认
   → DeepSeek（一次批量 HTTP，严格 JSON）
   → 响应按 schema 校验 + 回显核对（第三方不可信）
-  → 缓存写 → 浮层弹词
+  → 缓存写 → 浮层弹词（锚点同上）
   → 用户 [已会]/[新词] → KnownStore 回写
 ```
 
-阶段一单次复制最多弹 1 个词（最高频候选），5 秒自动消失；鼠标悬浮时计时挂起、永不消失，移出后重新计时。悬停同时展开反馈按钮——规格见 `UI.md`。（多词错峰属多气泡场景，阶段一单气泡不涉及。）
+阶段一单次复制最多弹 1 个词（最高频候选），5 秒自动消失；鼠标悬浮时计时挂起、永不消失，移出后重新计时。悬停同时展开反馈按钮——规格见 `UI.md`。（多词错峰属多气泡场景，阶段一单气泡不涉及。）无候选时动作条照样弹出，但翻译与解释不发请求——没有可用通道，只有复制文本是通的。
 
 ## 4 模块接口（契约先行）
 
@@ -167,20 +170,29 @@ namespace lens::app {
 class AppController : public QObject {
     Q_OBJECT
 public:
-    Q_INVOKABLE void onClipboardChanged(QString text);   // 剪贴板触发入口
+    void onSelectionReleased(QPoint anchor);            // 选区入口：鼠标钩子在拖选松手时调用
+    Q_INVOKABLE void runSelectionAction(QString action, QString text);  // 动作条回传：translate / explain / copy
     Q_INVOKABLE void mark(QString lemma, bool learned);  // 浮层反馈
     Q_INVOKABLE void setAutoScan(bool on);               // 设置开关 / 全局热键 F8
     Q_PROPERTY(... bubbleModel ...)                       // 当前解释（喂气泡）
     Q_PROPERTY(... settingsModel ...)                     // 档位 / 语言 / API / 触发开关
 signals:
-    void bubbleReady(QVariantMap payload);                // → QML 弹气泡
+    void selectionBarRequested(QVariantMap payload);      // → QML 弹选区动作条：{x, y, kind, text}
+    void bubbleReady(QVariantMap payload);                // → QML 弹气泡：{x, y, ...}
     void confirmSendRequest(QStringList words);           // DEV_SEND_CONFIRM 开关
 };
 
 }
 ```
 
-QML 表面：设置浮层、解释气泡、统计弹窗及其下钻的词汇 / 花费弹窗、发送确认，按 `UI.md` 规格落地；占位项 `enabled: false`。托盘图标（四状态）与托盘菜单用 **C++ `QSystemTrayIcon` + `QMenu`**（QtWidgets，Windows 原生可靠；`Qt.labs.platform` 实验性 QML 类型在 6.9 上右键菜单不生效，弃用）。QML 根为隐藏 0×0 `Window`（`visible: false`、`WindowDoesNotAcceptFocus`）——弹层 Window 需要窗口上下文，隐藏窗口无任何可见足迹，不构成主窗口。
+落地注记（2026-10-02）：
+
+- **触发是选区完成，不是剪贴板变化**：Windows 没有 API 能直接读到别的应用里被选中的文字，所以入口定为低层鼠标钩子（`WH_MOUSE_LL`，落在 `src/app/mouse_selection_hook.{h,cpp}`）：`LBUTTONUP` 且按下期间确实拖动过（双击选词、三击选段同理）即算选区完成，回调 `onSelectionReleased(anchor)`。取文靠 `SendInput` 向当前前台应用注入 Ctrl+C 再读剪贴板——这是覆盖最广的一条路，凡能复制的应用都通（含 PDF 阅读器）。锚点就是松手坐标，不必再拿 `QCursor::pos()` 近似。
+- **两个必须处理的副作用**：一是剪贴板被顶掉——注入前存、读完还原，其间用户恰好复制的东西会被吞（`ponytail:` 竞争窗口，真被投诉再上 UIA TextPattern 绕开剪贴板取文）；二是注入的 Ctrl+C 在终端里就是 SIGINT——按前台进程名排除终端类（Windows Terminal / conhost / PowerShell），与 `DESIGN.md` 的扫描白名单同源。
+- **注入前必须确认前台不是自己**：靠 §4.4 已有的 `WindowDoesNotAcceptFocus`——动作条与气泡都不夺焦点，点它们不会污染下一次注入的目标。
+- **动作条介入数据流**：`onSelectionReleased` 不再直接通向气泡，中间隔着选区动作条。回传的 `action` 取 `translate` / `explain` / `copy`，前两者行为相同（通道由类型定，见 `UI.md` §4.9），故 `action` 只用来区分 “本地复制” 与 “发 LLM 请求” 两条路。
+
+QML 表面：设置浮层、选区动作条、解释气泡、统计弹窗及其下钻的词汇 / 花费弹窗、发送确认，按 `UI.md` 规格落地；占位项 `enabled: false`。托盘图标（四状态）与托盘菜单用 **C++ `QSystemTrayIcon` + `QMenu`**（QtWidgets，Windows 原生可靠；`Qt.labs.platform` 实验性 QML 类型在 6.9 上右键菜单不生效，弃用）。QML 根为隐藏 0×0 `Window`（`visible: false`、`WindowDoesNotAcceptFocus`）——弹层 Window 需要窗口上下文，隐藏窗口无任何可见足迹，不构成主窗口。
 
 ### 4.5 Test（`test/googletest/`，独立目标，不编进 `lens_app`）
 
@@ -301,7 +313,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。三个 `le
 
 ### 切片三：AppController + QML 表面（未开始）
 
-- **范围**：`src/app` 落地。`AppController`（剪贴板入口、候选查缓存、known-set 回写、设置读写、DEV_SEND_CONFIRM 拦截）与 `UI.md` 的全部表面（设置浮层、解释气泡、统计弹窗及其下钻的词汇 / 花费弹窗、发送确认）；托盘图标四状态与菜单用 **C++ `QSystemTrayIcon` + `QMenu`**。
+- **范围**：`src/app` 落地。`AppController`（选区入口：鼠标钩子 + Ctrl+C 取文、选区类型判定与锚点、动作条回传、候选查缓存、known-set 回写、设置读写、DEV_SEND_CONFIRM 拦截）与 `UI.md` 的全部表面（设置浮层、选区动作条、解释气泡、统计弹窗及其下钻的词汇 / 花费弹窗、发送确认）；托盘图标四状态与菜单用 **C++ `QSystemTrayIcon` + `QMenu`**。
 - **含**：§4.2 遗留的 “档位序号 → 词频阈值” 映射，与 `TODO.md` 的词书数据一起做（`minFreqRank` 目前是近似，见 §4.1 落地注记）。
 - **含**：i18n 首次真正生效——QML 目录加入 `lupdate` 扫描，`.qm` 经 CMake 构建、启动时加载（现在 `.ts` 只有 llm 模块的 22 条，加载机制尚未接）。
 - **验收**：复制真实英文句 → 浮层弹词 → [已会] / [新词] 回写 → 复弹不重复；占位项 `enabled: false` 不可触发；界面语言中英切换生效。

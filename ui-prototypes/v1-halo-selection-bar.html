@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 选区动作条</title>
+<style>
+:root{
+  --bg:#f6f6f8; --panel:#fff; --panel2:#fafafb; --line:#e9e9ee; --line2:#f2f2f5;
+  --text:#1a1a1f; --muted:#66666f; --faint:#9d9da8;
+  --ink:#1a1a1f; --on:#fff; --sel:rgba(26,26,31,.16);
+  --r-bar:13px; --r-item:9px;
+  --sh2:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+}
+html[data-theme=dark]{
+  --bg:#131316; --panel:#1c1c20; --panel2:#242429; --line:#2f2f37; --line2:#26262c;
+  --text:#e9e9ee; --muted:#a3a3ae; --faint:#75757f;
+  --ink:#e9e9ee; --on:#16161a; --sel:rgba(233,233,238,.16);
+  --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh;display:flex;flex-direction:column;align-items:center;gap:24px;padding:56px 24px}
+::selection{background:var(--sel)}
+
+/* demo 画布：被选中的文本与它上方的长条 */
+.demo{position:relative;width:560px;padding-top:58px}
+.demo p{width:520px;font-size:15px;line-height:1.8;color:var(--muted)}
+.sel{background:var(--sel);border-radius:3px;color:var(--text)}
+
+.bar{position:absolute;display:none;align-items:center;gap:2px;padding:5px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-bar);box-shadow:var(--sh2);z-index:3}
+.bar.show{display:flex}
+.bar::after{content:"";position:absolute;left:22px;bottom:-6px;width:11px;height:11px;background:var(--panel);border-right:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:0 0 2px 0;transform:rotate(45deg)}
+.act{display:flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid transparent;border-radius:var(--r-item);background:transparent;color:var(--text);font-family:var(--f);font-size:12.5px;font-weight:600;white-space:nowrap;cursor:pointer;transition:.15s}
+.act svg{width:15px;height:15px;color:var(--muted);flex:none}
+.act:hover{background:var(--panel2)}
+.act:active{transform:scale(.97)}
+.hint{font-size:11px;color:var(--faint)}
+
+.themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:var(--f);font-size:11.5px;cursor:pointer}
+.themebtn:hover{color:var(--text)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<button class="themebtn" id="tb">黑夜</button>
+
+<div class="demo" id="demo">
+  <p>She gave a <span class="sel" id="sel">candid</span> answer to a question she had been dreading for weeks, and nobody in the room expected it.</p>
+
+  <div class="bar" id="bar">
+    <button class="act" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5h9"/><path d="M7.5 3.5v2"/><path d="M10.5 5.5c0 4-2.6 7.4-6.5 8.9"/><path d="M5 9.6c1.2 2.3 3.1 4.1 5.3 5.1"/><path d="M12.6 20.5l3.7-9 3.7 9"/><path d="M14 17.4h4.6"/></svg>
+      翻译
+    </button>
+    <button class="act" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.6C10.4 5.2 8.3 4.5 5.5 4.5H4v13h1.5c2.8 0 4.9.7 6.5 2.1"/><path d="M12 6.6c1.6-1.4 3.7-2.1 6.5-2.1H20v13h-1.5c-2.8 0-4.9.7-6.5 2.1"/><path d="M12 6.6v13"/></svg>
+      解释
+    </button>
+    <button class="act" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M15 5.5V5a1.5 1.5 0 0 0-1.5-1.5H5A1.5 1.5 0 0 0 3.5 5v8.5A1.5 1.5 0 0 0 5 15h.5"/></svg>
+      复制文本
+    </button>
+  </div>
+</div>
+
+<div class="hint">拖选页面上任意文本，长条跟随选区弹出</div>
+
+<script>
+const demo = document.getElementById('demo'),
+      bar  = document.getElementById('bar'),
+      sel  = document.getElementById('sel');
+
+function placeTo(r) {
+  bar.classList.add('show');
+  const d = demo.getBoundingClientRect();
+  const left = Math.max(0, Math.min(r.left - d.left, demo.clientWidth - bar.offsetWidth));
+  bar.style.left = left + 'px';
+  bar.style.top = (r.top - d.top - bar.offsetHeight - 8) + 'px';
+}
+placeTo(sel.getBoundingClientRect());
+
+document.addEventListener('mouseup', (e) => {
+  if (bar.contains(e.target)) return;
+  const s = window.getSelection();
+  const rects = s && !s.isCollapsed ? s.getRangeAt(0).getClientRects() : null;
+  placeTo(rects && rects.length ? rects[0] : sel.getBoundingClientRect());
+});
+
+const tb = document.getElementById('tb');
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  tb.textContent = t === 'dark' ? '白天' : '黑夜';
+}
+applyTheme(location.search.includes('theme=dark') ? 'dark' : 'light');
+tb.onclick = () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+</script>
+</body>
+</html>
