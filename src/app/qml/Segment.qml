@@ -44,9 +44,8 @@ Item {
                     anchors.centerIn: parent
                     text: modelData
                     color: index === root.currentIndex ? Tokens.on : Tokens.muted
-                    font.family: Tokens.fontFamily
                     font.pixelSize: 12
-                    font.weight: index === root.currentIndex ? Font.DemiBold : Font.Normal
+                    font.weight: index === root.currentIndex ? Font.Bold : Font.Normal
                 }
 
                 HoverHandler { cursorShape: Qt.PointingHandCursor }

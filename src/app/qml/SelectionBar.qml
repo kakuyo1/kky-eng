@@ -17,8 +17,7 @@ Window {
     visible: false
 
     readonly property int shadowMargin: 26
-    readonly property int tailHeight: 7
-    readonly property int gap: 8 ///< Clearance between the tail tip and the selection.
+    readonly property int gap: 8 ///< Clearance between the bar and the selection.
 
     width: content.implicitWidth + 2 * shadowMargin
     height: content.implicitHeight + 2 * shadowMargin
@@ -31,10 +30,15 @@ Window {
         // The bar hangs above the anchor. Near the top of the screen there is no room, so it
         // flips below — UI.md's open question about the flip rule, resolved as: flip, do not
         // clip.
+        //
+        // Every placement here is by the card, not by the window: the window is `shadowMargin`
+        // bigger than the card on every side, so lining the window up with the anchor left the
+        // card a shadow-margin right of the selection and another one, plus the gap, above it --
+        // which read as the bar not belonging to the text at all.
         const anchorY = payload.y;
-        const above = anchorY - height - gap;
-        bar.y = above >= 0 ? above : anchorY + gap;
-        bar.x = payload.x;
+        const above = anchorY - gap - height + shadowMargin;
+        bar.y = above >= 0 ? above : anchorY + gap - shadowMargin;
+        bar.x = payload.x - shadowMargin;
         visible = true;
     }
 
@@ -43,19 +47,7 @@ Window {
         x: bar.shadowMargin
         y: bar.shadowMargin
         implicitWidth: row.width + 10
-        implicitHeight: row.height + 10 + bar.tailHeight
-
-        Rectangle {
-            id: tail
-            width: 11
-            height: 11
-            x: 17
-            y: row.height + 4
-            color: Tokens.panel
-            border.width: 1
-            border.color: Tokens.line
-            rotation: 45
-        }
+        implicitHeight: row.height + 10
 
         // The shadow is cast from a shape-only copy of the card, never from the card itself.
         // MultiEffect draws its source through an offscreen texture, and at this monitor's
@@ -93,6 +85,39 @@ Window {
             border.width: 1
             border.color: Tokens.line
 
+            // The card is the handle. The three items keep the pointer over themselves, so
+            // pressing one is a press on the item. The timer below does the moving, and the two
+            // reasons it is not the handler's own signal are in ShadowCard.qml.
+            DragHandler {
+                id: mover
+                target: null
+
+                property point grabCursor: Qt.point(0, 0)
+                property point grabWindow: Qt.point(0, 0)
+
+                function place() {
+                    const at = controller.cursorPos();
+                    bar.x = Math.round(grabWindow.x + at.x - grabCursor.x);
+                    bar.y = Math.round(grabWindow.y + at.y - grabCursor.y);
+                }
+
+                onActiveChanged: {
+                    if (active) {
+                        grabCursor = controller.cursorPos();
+                        grabWindow = Qt.point(bar.x, bar.y);
+                    } else {
+                        place();
+                    }
+                }
+            }
+
+            Timer {
+                interval: 16
+                repeat: true
+                running: mover.active
+                onTriggered: mover.place()
+            }
+
             Row {
                 id: row
                 anchors.centerIn: parent
@@ -100,9 +125,9 @@ Window {
 
                 Repeater {
                     model: [
-                        { action: "translate", label: qsTr("Translate"), icon: "M3 5.5h9 M7.5 3.5v2 M10.5 5.5c0 4-2.6 7.4-6.5 8.9 M5 9.6c1.2 2.3 3.1 4.1 5.3 5.1 M12.6 20.5l3.7-9 3.7 9 M14 17.4h4.6" },
-                        { action: "explain", label: qsTr("Explain"), icon: "M12 6.6C10.4 5.2 8.3 4.5 5.5 4.5H4v13h1.5c2.8 0 4.9.7 6.5 2.1 M12 6.6c1.6-1.4 3.7-2.1 6.5-2.1H20v13h-1.5c-2.8 0-4.9.7-6.5 2.1 M12 6.6v13" },
-                        { action: "copy", label: qsTr("Copy text"), icon: "M11.5 9H17.5A2.5 2.5 0 0 1 20 11.5V17.5A2.5 2.5 0 0 1 17.5 20H11.5A2.5 2.5 0 0 1 9 17.5V11.5A2.5 2.5 0 0 1 11.5 9Z M15 5.5V5A1.5 1.5 0 0 0 13.5 3.5H5A1.5 1.5 0 0 0 3.5 5V13.5A1.5 1.5 0 0 0 5 15H5.5" },
+                        { action: "translate", label: qsTr("Translate"), source: "qrc:/icons/ui-translate.svg" },
+                        { action: "explain", label: qsTr("Explain"), source: "qrc:/icons/ui-explain.svg" },
+                        { action: "copy", label: qsTr("Copy text"), source: "qrc:/icons/ui-copy.svg" },
                     ]
 
                     delegate: Rectangle {
@@ -120,16 +145,15 @@ Window {
                             spacing: 7
                             Icon {
                                 anchors.verticalCenter: parent.verticalCenter
-                                path: modelData.icon
+                                source: modelData.source
                                 color: Tokens.muted
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: modelData.label
                                 color: Tokens.text
-                                font.family: Tokens.fontFamily
                                 font.pixelSize: 13
-                                font.weight: Font.DemiBold
+                                font.weight: Font.Bold
                             }
                         }
 

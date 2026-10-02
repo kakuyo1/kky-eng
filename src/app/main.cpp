@@ -8,6 +8,7 @@
  */
 
 #include <QApplication>
+#include <QFont>
 #include <QCoreApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -118,6 +119,18 @@ int main(int argc, char* argv[])
     // as the first surface closed.
     app.setQuitOnLastWindowClosed(false);
     app.setApplicationName(QStringLiteral("Lens"));
+
+    // The UI font, set here and not in QML because QML cannot express it: a Text's font value
+    // type has no families list, and naming a family there replaces the one it would inherit.
+    //
+    // The second entry is Chinese's face, named rather than left to Windows. Microsoft YaHei
+    // UI's regular is a step heavier than Segoe UI Variable's, so at the same weight a Chinese
+    // label reads as bold beside a Latin one -- measured by ink on the real window, and it is
+    // the Light face that lands next to Segoe UI Variable. It is only consulted for glyphs the
+    // first family has no cover for, which is exactly the Chinese.
+    QFont uiFont;
+    uiFont.setFamilies({QStringLiteral("Segoe UI Variable"), QStringLiteral("Microsoft YaHei UI Light")});
+    QGuiApplication::setFont(uiFont);
 
     lens::log::init();
     lens::log::installQtMessageHandler();

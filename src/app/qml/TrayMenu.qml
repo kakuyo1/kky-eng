@@ -55,20 +55,6 @@ Window {
         return Qt.rect(hitLeft, top, hitRight - hitLeft, bottom - top);
     }
 
-    /**
-     * Put the menu up beside the tray icon.
-     * @param iconRect The icon's geometry, in the screen coordinates the shell reports.
-     */
-    function openAt(iconRect) {
-        // Right-aligned with the icon and standing on top of it, which is where a menu on a
-        // bottom-edge taskbar belongs; flipped under the icon when the screen's top is too near.
-        menu.x = iconRect.x + iconRect.width - cardLeft - cardWidth;
-        const above = iconRect.y - gap - height;
-        menu.y = above >= screen.virtualY ? above : iconRect.y + iconRect.height + gap;
-        listVisible = false;
-        visible = true;
-    }
-
     ShadowCard {
         id: card
         x: menu.cardLeft - menu.shadowMargin
@@ -121,9 +107,8 @@ Window {
                     anchors.verticalCenter: parent.verticalCenter
                     text: menu.capturing ? controller.modeLabel : qsTr("Selection capture is off")
                     color: Tokens.text
-                    font.family: Tokens.fontFamily
                     font.pixelSize: 12
-                    font.weight: Font.DemiBold
+                    font.weight: Font.Bold
                 }
             }
 
@@ -132,7 +117,7 @@ Window {
             MenuRow {
                 id: statsRow
                 width: parent.width
-                icon: "M5 19V9M12 19V5M19 19v-6"
+                source: "qrc:/icons/ui-stats.svg"
                 label: qsTr("Today's statistics")
                 note: menu.todayFigures
                 onPicked: {
@@ -144,7 +129,7 @@ Window {
             MenuRow {
                 id: languageRow
                 width: parent.width
-                icon: "M20 12a8 8 0 1 1-16 0a8 8 0 1 1 16 0M4 12h16M12 4c2.6 2.8 2.6 13.2 0 16M12 4c-2.6 2.8-2.6 13.2 0 16"
+                source: "qrc:/icons/ui-language.svg"
                 label: qsTr("Language")
                 note: menu.languageName
 
@@ -162,7 +147,7 @@ Window {
 
             MenuRow {
                 width: parent.width
-                icon: "M4 7h16M4 12h16M4 17h16M11 7h0.01M15 12h0.01M8.5 17h0.01"
+                source: "qrc:/icons/ui-settings.svg"
                 label: qsTr("Settings")
                 onPicked: {
                     menu.visible = false;
@@ -180,7 +165,7 @@ Window {
 
             MenuRow {
                 width: parent.width
-                icon: "M12 3v8M6.3 5.8a8 8 0 1 0 11.4 0"
+                source: "qrc:/icons/ui-quit.svg"
                 label: qsTr("Quit")
                 danger: true
                 onPicked: Qt.quit()
@@ -221,7 +206,6 @@ Window {
                         anchors.verticalCenter: parent.verticalCenter
                         text: modelData.name
                         color: modelData.code === menu.language ? Tokens.on : Tokens.text
-                        font.family: Tokens.fontFamily
                         font.pixelSize: 13
                     }
 

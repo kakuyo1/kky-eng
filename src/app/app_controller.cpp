@@ -5,11 +5,13 @@
 
 #include "app_controller.h"
 
+#include <QClipboard>
 #include <QCoreApplication>
+#include <QCursor>
 #include <QDate>
 #include <QDateTime>
 #include <QGuiApplication>
-#include <QClipboard>
+#include <QSet>
 
 #include <algorithm>
 #include <iterator>
@@ -411,10 +413,8 @@ QVariantMap AppController::stats() const
     int todayLearned = 0;
     int todayFresh = 0;
     double todayCost = 0.0;
-    int allTime = 0;
 
     for (const auto& [date, usage] : daily) {
-        allTime += usage.pops;
         if (date != today.toStdString())
             continue;
         todayPops = usage.pops;
@@ -423,21 +423,42 @@ QVariantMap AppController::stats() const
         todayCost = amountOf(usage);
     }
 
+    // No all-time total here: the statistics panel's last row counts the words the list holds,
+    // and that list is deduplicated, so a tally of pops published alongside it was a second
+    // number for the same words. The pop count itself is still in daily(), and in todayPops.
     return QVariantMap{{"todayPops", todayPops},
                        {"todayLearned", todayLearned},
                        {"todayFresh", todayFresh},
                        {"todayCost", todayCost},
-                       {"historyTotal", allTime},
                        {"currency", currencySymbol(pricing_.currency())}};
+}
+
+QPoint AppController::cursorPos() const
+{
+    // Already device-independent: Qt 6's global screen coordinates are, in the same units the
+    // surfaces are placed in. Dividing by the scale factor as though it were the hook's raw
+    // pixel report made every drag travel 1/ratio of the way it should.
+    return QCursor::pos();
 }
 
 QVariantList AppController::words() const
 {
     const QDate today = QDate::currentDate();
 
+    // One row per word. The history keeps a line for every pop, so a word shown twice listed
+    // twice with the same verdict and the two lines read as a bug rather than as a record.
+    // The newest one wins -- the history is newest first, so it is the first one seen. What is
+    // dropped is the display of a repeat, not the pop: todayPops still counts both.
+    QSet<QString> seen;
+
     QVariantList out;
     out.reserve(static_cast<qsizetype>(stats_.history().size()));
     for (const core::HistoryEntry& entry : stats_.history()) {
+        const QString shown = QString::fromStdString(entry.lemma);
+        if (seen.contains(shown))
+            continue;
+        seen.insert(shown);
+
         const QDateTime moment = QDateTime::fromString(QString::fromStdString(entry.minute),
                                                        QStringLiteral("yyyy-MM-dd HH:mm"));
         QString when;
@@ -457,7 +478,7 @@ QVariantList AppController::words() const
         else if (entry.verdict == "new")
             status = tr("New");
 
-        out.append(QVariantMap{{"word", QString::fromStdString(entry.lemma)},
+        out.append(QVariantMap{{"word", shown},
                                {"when", when},
                                {"verdict", QString::fromStdString(entry.verdict)},
                                {"status", status}});

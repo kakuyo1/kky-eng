@@ -87,7 +87,12 @@ bool Tray::show()
 
 QRect Tray::geometry() const
 {
-    return icon_->geometry();
+    // Kept, not just read: see the note on the declaration. The icon does not move, and a
+    // stale answer is a panel in the right place rather than one on the wrong screen.
+    const QRect live = icon_->geometry();
+    if (live.width() > 0)
+        lastGeometry_ = live;
+    return lastGeometry_;
 }
 
 Tray::State Tray::state() const

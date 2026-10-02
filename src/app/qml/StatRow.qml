@@ -34,7 +34,6 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         text: root.label
         color: Tokens.muted
-        font.family: Tokens.fontFamily
         font.pixelSize: 13
     }
 
@@ -47,7 +46,7 @@ Item {
         color: Tokens.text
         font.family: Tokens.monoFamily
         font.pixelSize: 13
-        font.weight: Font.DemiBold
+        font.weight: Font.Bold
     }
 
     Icon {
@@ -58,8 +57,7 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         width: 13
         height: 13
-        path: "M9 6l6 6-6 6"
-        strokeWidth: 1.8
+        source: "qrc:/icons/ui-chevron-right.svg"
         color: Tokens.faint
     }
 

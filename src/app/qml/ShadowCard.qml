@@ -18,6 +18,64 @@ Item {
     property real radius: Tokens.radiusCard
     property color color: Tokens.panel
 
+    /// Whether the reader may drag the card to move the window it is in.
+    property bool movable: false
+
+    /// True while a drag is moving the window. Surfaces that time out watch it: a card being
+    /// held is not on its way out.
+    readonly property alias dragging: mover.active
+
+    /**
+     * The handle a drag moves the window by.
+     *
+     * @note Neither the system's move loop nor the handler's own translation can do this, both
+     *       for a reason measured on the real window. startSystemMove() left the window exactly
+     *       where it was for the whole drag and put it down on release -- a jump, not a drag.
+     *       `activeTranslation` is measured *inside* the window, so moving the window changes
+     *       the translation that decided the move: at hand speed the panel went from x=1116 to
+     *       x=-3688 within a few dozen events. What is left is the pointer's own screen
+     *       position, which does not move when the window does.
+     */
+    DragHandler {
+        id: mover
+        enabled: root.movable
+        target: null
+
+        /// Where the pointer was on screen, and where the window was, when the drag began.
+        property point grabCursor: Qt.point(0, 0)
+        property point grabWindow: Qt.point(0, 0)
+
+        /// @brief Put the window where the pointer says it should be, from this drag's grab.
+        function place() {
+            const at = controller.cursorPos();
+            root.Window.window.x = Math.round(grabWindow.x + at.x - grabCursor.x);
+            root.Window.window.y = Math.round(grabWindow.y + at.y - grabCursor.y);
+        }
+
+        onActiveChanged: {
+            if (active) {
+                grabCursor = controller.cursorPos();
+                grabWindow = Qt.point(root.Window.window.x, root.Window.window.y);
+            } else {
+                // Once more on the way out, so the movement after the last tick is not left
+                // behind: the pointer stops moving when the button comes up, not when the
+                // timer last looked.
+                place();
+            }
+        }
+    }
+
+    /// Sampled on a timer rather than driven by the handler's change signal: once the window
+    /// keeps up with the pointer the translation stops changing, so the signal stops, and the
+    /// rest of the drag would never be applied -- measured as a drag that covered only 104 of
+    /// its 144 device-independent pixels.
+    Timer {
+        interval: 16
+        repeat: true
+        running: mover.active
+        onTriggered: mover.place()
+    }
+
     /// The card's rectangle inside this item, for anchoring content to.
     readonly property alias card: card
 

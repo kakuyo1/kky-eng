@@ -69,7 +69,6 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             text: root.current ? root.current.label : ""
             color: Tokens.text
-            font.family: Tokens.fontFamily
             font.pixelSize: 13
         }
 
@@ -79,8 +78,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             width: 14
             height: 14
-            path: "M6 9l6 6 6-6"
-            strokeWidth: 1.8
+            source: "qrc:/icons/ui-chevron-down.svg"
             color: Tokens.faint
         }
 
@@ -140,7 +138,6 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: modelData.label
                                 color: modelData.value === root.currentValue ? Tokens.on : Tokens.text
-                                font.family: Tokens.fontFamily
                                 font.pixelSize: 13
                             }
 
@@ -151,7 +148,6 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: modelData.note
                                 color: modelData.value === root.currentValue ? Qt.rgba(1, 1, 1, 0.62) : Tokens.faint
-                                font.family: Tokens.fontFamily
                                 font.pixelSize: 11
                             }
 

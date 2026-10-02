@@ -23,14 +23,9 @@ Window {
     signal costRequested()
     signal wordsRequested()
 
-    function openNear(anchor) {
-        stats.x = Math.max(8, anchor.x - width + 60);
-        stats.y = Math.max(8, anchor.y - height);
-        visible = true;
-    }
-
     ShadowCard {
         anchors.fill: parent
+        movable: true
 
         Column {
             id: column
@@ -39,19 +34,27 @@ Window {
             width: stats.cardWidth - 40
             spacing: 0
 
-            Row {
+            // The close icon is anchored to the right edge rather than pushed there by a
+            // spacer: a spacer sized around the English title lands the glyph past the card
+            // the moment the title is a different width, which is every translation of it.
+            Item {
                 width: parent.width
+                height: title.height
+
                 Text {
+                    id: title
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
                     text: qsTr("Today")
                     color: Tokens.text
-                    font.family: Tokens.fontFamily
                     font.pixelSize: 14
-                    font.weight: Font.DemiBold
+                    font.weight: Font.Bold
                 }
-                Item { width: parent.width - 40; height: 1 }
+
                 Icon {
+                    anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    path: "M5 5l14 14M19 5L5 19"
+                    source: "qrc:/icons/ui-close.svg"
                     color: Tokens.faint
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                     TapHandler { onTapped: stats.visible = false }
@@ -64,14 +67,13 @@ Window {
                 color: Tokens.text
                 font.family: Tokens.monoFamily
                 font.pixelSize: 32
-                font.weight: Font.DemiBold
+                font.weight: Font.Bold
             }
 
             Text {
                 topPadding: 4
                 text: qsTr("Words explained today")
                 color: Tokens.faint
-                font.family: Tokens.fontFamily
                 font.pixelSize: 12
             }
 
@@ -99,7 +101,10 @@ Window {
             StatRow {
                 width: parent.width
                 label: qsTr("All time")
-                value: qsTr("%1 words").arg(controller.stats.historyTotal)
+                // The same count the words panel shows, from the same source: the rows are
+                // deduplicated, so a tally of pops labelled "words" reads as a bug beside a
+                // panel that lists fewer of them.
+                value: qsTr("%1 words").arg(controller.words.length)
                 clickable: true
                 onTapped: stats.wordsRequested()
             }

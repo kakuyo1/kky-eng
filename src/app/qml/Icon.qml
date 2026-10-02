@@ -1,35 +1,40 @@
 import QtQuick
-import QtQuick.Shapes
+import QtQuick.Window
+import QtQuick.Effects
 
 /**
- * One stroked glyph, drawn from the path data the prototypes carry.
+ * One glyph, drawn from the SVG file of the same name under icons/.
  *
- * The prototypes in ui-prototypes/ are the source of these paths: they are 24x24 outlines
- * with no fill, scaled down to whatever size the surface asks for.
+ * The art is a 24x24 outline with no fill, stroked in white and scaled to whatever size the
+ * surface asks for. The colour comes from the colorization below rather than from the file, so
+ * one file serves the faint, muted and danger roles and the theme switches all of them at once.
  */
 Item {
     id: root
 
-    property string path: ""
-    property real strokeWidth: 1.6
+    property string source: ""
     property color color: Tokens.muted
 
     implicitWidth: 15
     implicitHeight: 15
 
-    Shape {
-        width: 24
-        height: 24
-        scale: Math.min(root.width, root.height) / 24
-        transformOrigin: Item.TopLeft
+    // The source of the effect, never drawn itself, for the reason ShadowCard.qml gives: a
+    // MultiEffect renders its source through an offscreen texture.
+    Image {
+        id: glyph
+        anchors.fill: parent
+        source: root.source
+        // Rasterised at the size it is drawn at and at the screen's own scale. The 24x24 the
+        // file declares is a coordinate space, not a size to hand to the renderer.
+        sourceSize: Qt.size(Math.max(1, Math.round(width * Screen.devicePixelRatio)),
+                            Math.max(1, Math.round(height * Screen.devicePixelRatio)))
+        visible: false
+    }
 
-        ShapePath {
-            strokeColor: root.color
-            strokeWidth: root.strokeWidth
-            fillColor: "transparent"
-            capStyle: ShapePath.RoundCap
-            joinStyle: ShapePath.RoundJoin
-            PathSvg { path: root.path }
-        }
+    MultiEffect {
+        anchors.fill: glyph
+        source: glyph
+        colorizationColor: root.color
+        colorization: 1.0
     }
 }

@@ -39,8 +39,15 @@ public:
     /// @return False when the shell has no tray; the reason is logged.
     bool show();
 
-    /// @return Where the icon sits on screen, for anchoring the menu and the panels. May be
-    ///         null when the shell does not report it, which the caller has to handle.
+    /// @return Where the icon sits on screen, for anchoring the menu and the panels.
+    ///
+    /// @note The last place the shell reported it, in device-independent pixels, and empty only
+    ///       until the icon has been seen once. A live rectangle is empty whenever the taskbar
+    ///       is down, and with the taskbar auto-hidden it is down by the time a panel is opened
+    ///       from the menu -- which is how every panel was landing on the hard-coded corner
+    ///       instead of beside the icon. Measured on this machine: (1313, 816, 32, 48) beside a
+    ///       notification area whose left edge is 1641 physical, the 48 being the 60-pixel
+    ///       taskbar. Device-independent, so nothing here is divided by the scale factor.
     QRect geometry() const;
 
 signals:
@@ -64,6 +71,8 @@ private:
 
     AppController& controller_;
     QSystemTrayIcon* icon_ = nullptr;
+    /// The last non-empty rectangle the shell reported; see the note on geometry().
+    mutable QRect lastGeometry_;
 };
 
 }

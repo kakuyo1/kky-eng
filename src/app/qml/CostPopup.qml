@@ -21,14 +21,9 @@ Window {
     /// The reader asked for the panel this one was opened from.
     signal backRequested()
 
-    function openNear(anchor) {
-        cost.x = Math.max(8, anchor.x - width + 60);
-        cost.y = Math.max(8, anchor.y - height);
-        visible = true;
-    }
-
     ShadowCard {
         anchors.fill: parent
+        movable: true
 
         Column {
             id: column
@@ -37,32 +32,45 @@ Window {
             width: cost.cardWidth - 40
             spacing: 0
 
-            Row {
+            // The icons are anchored to the right edge rather than pushed there by a spacer:
+            // a spacer sized around the English title lands the glyphs past the card the
+            // moment the title is a different width, which is every translation of it.
+            Item {
                 width: parent.width
+                height: title.height
+
                 Text {
+                    id: title
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
                     text: qsTr("Cost")
                     color: Tokens.text
-                    font.family: Tokens.fontFamily
                     font.pixelSize: 14
-                    font.weight: Font.DemiBold
+                    font.weight: Font.Bold
                 }
-                Item { width: parent.width - 61; height: 1 }
-                // Back to the statistics panel, which is where this one opens from. This panel
-                // replaces it rather than stacking on it, so the way up has to be visible.
-                Icon {
+
+                Row {
+                    anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    path: "M19 12H5 M12 5l-7 7 7 7"
-                    color: Tokens.faint
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                    TapHandler { onTapped: cost.backRequested() }
-                }
-                Item { width: 6; height: 1 }
-                Icon {
-                    anchors.verticalCenter: parent.verticalCenter
-                    path: "M5 5l14 14M19 5L5 19"
-                    color: Tokens.faint
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                    TapHandler { onTapped: cost.visible = false }
+                    spacing: 6
+
+                    // Back to the statistics panel, which is where this one opens from. This
+                    // panel replaces it rather than stacking on it, so the way up has to be
+                    // visible.
+                    Icon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        source: "qrc:/icons/ui-back.svg"
+                        color: Tokens.faint
+                        HoverHandler { cursorShape: Qt.PointingHandCursor }
+                        TapHandler { onTapped: cost.backRequested() }
+                    }
+                    Icon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        source: "qrc:/icons/ui-close.svg"
+                        color: Tokens.faint
+                        HoverHandler { cursorShape: Qt.PointingHandCursor }
+                        TapHandler { onTapped: cost.visible = false }
+                    }
                 }
             }
 
@@ -72,14 +80,13 @@ Window {
                 color: Tokens.text
                 font.family: Tokens.monoFamily
                 font.pixelSize: 32
-                font.weight: Font.DemiBold
+                font.weight: Font.Bold
             }
 
             Text {
                 topPadding: 4
                 text: qsTr("Spent this month")
                 color: Tokens.faint
-                font.family: Tokens.fontFamily
                 font.pixelSize: 12
             }
 

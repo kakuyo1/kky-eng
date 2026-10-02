@@ -39,7 +39,7 @@ LLM.md 0
 PHASE1.md 0
 TEST.md 0
 TODO.md 12
-UI.md 31'
+UI.md 27'
 
 staged=$(git diff --cached --name-only --diff-filter=ACM)
 

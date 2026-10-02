@@ -58,7 +58,11 @@ void init(spdlog::level::level_enum level, const std::filesystem::path& logDir)
     auto logger = std::make_shared<spdlog::logger>("lens", sinks.begin(), sinks.end());
     logger->set_level(levelFromEnvironment(level));
     logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] [t:%t] [%s:%#] %v");
-    logger->flush_on(spdlog::level::warn);
+    // Every line, not just from a warning up: the file is meant to be watched while the app
+    // runs (`tail -f logs/lens.log`), and a reader who has to wait for the next warning to see
+    // what just happened is not watching a log. The volume is a tray app's, so the write costs
+    // nothing worth measuring.
+    logger->flush_on(spdlog::level::trace);
     spdlog::set_default_logger(std::move(logger));
 
     if (!fileError.empty()) LENS_WARN("file logging disabled: {}", fileError);

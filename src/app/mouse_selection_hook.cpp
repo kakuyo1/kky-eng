@@ -39,9 +39,24 @@ struct GestureTracker {
     std::uint32_t lastPressTick = 0;
     int lastPressX = 0;
     int lastPressY = 0;
+    bool overOwnWindow = false; ///< The press landed on a surface of this process.
 
-    void onPress(int x, int y, std::uint32_t tick)
+    void onPress(int x, int y, std::uint32_t tick, bool own)
     {
+        downX = x;
+        downY = y;
+        overOwnWindow = own;
+
+        // A press on one of our own surfaces is neither the start of a selection nor the first
+        // half of a double click: the reader is dragging a panel or working a control, and the
+        // text the pipeline would go on to copy is whatever the application behind it has
+        // selected. So the run is reset rather than counted.
+        if (own) {
+            clickRun = 1;
+            lastPressTick = 0;
+            return;
+        }
+
         // Unsigned subtraction, so the wrap of GetTickCount every 49 days compares correctly
         // instead of reporting a 49-day gap.
         const std::uint32_t sinceLast = tick - lastPressTick;
@@ -56,18 +71,35 @@ struct GestureTracker {
         lastPressTick = tick;
         lastPressX = x;
         lastPressY = y;
-        downX = x;
-        downY = y;
     }
 
     /// @return Where the button came up, when the gesture was a selection.
     std::optional<QPoint> onRelease(int x, int y) const
     {
+        if (overOwnWindow) return std::nullopt;
+
         const Gesture gesture{downX, downY, x, y, clickRun};
         if (!isSelectionGesture(gesture, dragSlopPx)) return std::nullopt;
         return QPoint(x, y);
     }
 };
+
+/// @return True when the point is over a window this process owns.
+///
+/// @note Deliberately the window and not the card: a surface's transparent shadow margin counts
+///       as ours too, so a selection started within 26 pixels of a panel is dropped as well. The
+///       alternative -- asking the surfaces for their card rectangles -- would put the geometry
+///       in two places, and the cost of this is one missed action bar in a place the reader was
+///       already reaching past a panel to begin with.
+bool overOurWindow(POINT pt)
+{
+    const HWND under = WindowFromPoint(pt);
+    if (under == nullptr) return false;
+
+    DWORD pid = 0;
+    GetWindowThreadProcessId(under, &pid);
+    return pid == GetCurrentProcessId();
+}
 
 GestureTracker g_tracker;
 MouseSelectionHook* g_owner = nullptr;
@@ -93,7 +125,9 @@ LRESULT CALLBACK lowLevelMouseProc(int code, WPARAM wParam, LPARAM lParam)
         const auto* info = reinterpret_cast<const MSLLHOOKSTRUCT*>(lParam);
         switch (wParam) {
             case WM_LBUTTONDOWN:
-                g_tracker.onPress(info->pt.x, info->pt.y, GetTickCount());
+                // WindowFromPoint is a single lookup, on the one message where the answer is
+                // needed; the callback's budget is the reason the rest of the work is deferred.
+                g_tracker.onPress(info->pt.x, info->pt.y, GetTickCount(), overOurWindow(info->pt));
                 emitPressedLater(info->pt);
                 break;
 

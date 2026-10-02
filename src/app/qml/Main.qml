@@ -30,31 +30,95 @@ Window {
         value: controller.settings.theme
     }
 
-    /// @return Where to hang a panel: beside the tray icon, or the screen's corner when the
-    ///         shell does not say where the icon is.
+    /// @return The tray icon's rectangle, for anchoring the menu and the panels. Empty only
+    ///         until the icon has been seen once: the shell reports nothing while the taskbar
+    ///         is down, and an auto-hidden taskbar is down whenever a panel is opened from the
+    ///         menu. Tray::geometry() remembers the last place it did report.
     function trayAnchor() {
         const g = tray.geometry;
-        if (g && g.width > 0)
-            return Qt.point(g.x, g.y);
-        return Qt.point(screen.virtualX + screen.width - 24, screen.virtualY + screen.height - 48);
+        if (g.width > 0)
+            return g;
+        return Qt.rect(screen.virtualX + screen.width - 56,
+                       screen.virtualY + screen.height - 48, 56, 48);
+    }
+
+    /// @return The screen a point falls on, or this window's own when it falls on none.
+    function screenFor(point) {
+        for (const s of Qt.application.screens)
+            if (point.x >= s.virtualX && point.x < s.virtualX + s.width
+                && point.y >= s.virtualY && point.y < s.virtualY + s.height)
+                return s;
+        return screen;
+    }
+
+    /// @return Where a window of this size goes to sit beside the icon, whole.
+    ///
+    /// The card's bottom-right corner starts at the icon's centre: a flyout on a bottom-edge
+    /// taskbar opens up and to the left of the icon that opened it. The 26 is the shadow margin
+    /// every surface carries, so it is the card rather than the transparent window around it
+    /// that meets the icon; the clamp is what keeps the card on screen, since the panel is
+    /// wider than the icon's distance from the edge.
+    function placeBeside(anchor, width, height) {
+        const target = root.screenFor(anchor);
+        const margin = 8;
+        const left = target.virtualX + margin;
+        const top = target.virtualY + margin;
+        const right = target.virtualX + target.width - margin;
+        const bottom = target.virtualY + target.height - margin;
+
+        const x = Math.max(left, Math.min(anchor.x + anchor.width / 2 - width + 26, right - width));
+        let y = anchor.y + anchor.height / 2 - height + 26;
+        if (y < top)
+            y = anchor.y + anchor.height + 8;
+        return Qt.point(Math.round(x), Math.max(top, Math.min(y, bottom - height)));
+    }
+
+    /// @brief Put a surface up beside the tray icon, on whichever screen that is.
+    function placePanel(panel, anchor) {
+        const at = root.placeBeside(anchor, panel.width, panel.height);
+        panel.x = at.x;
+        panel.y = at.y;
+        panel.visible = true;
+    }
+
+    /**
+     * Take down every panel but the one being opened.
+     *
+     * The bubble and the action bar are not panels: they arrive on their own when a selection
+     * is made, and shutting them because the reader opened a menu would close what they were
+     * looking at.
+     */
+    function hidePanels(except) {
+        const panels = [trayMenu, settingsPopup, statsPopup, wordsPopup, costPopup];
+        for (const panel of panels)
+            if (panel !== except)
+                panel.visible = false;
     }
 
     /// Bring the statistics panel up on its own. It is the one of its three the tray menu opens;
     /// the other two are reached from it and go back through the arrow in their own corner.
     function showStats() {
-        settingsPopup.visible = false;
-        wordsPopup.visible = false;
-        costPopup.visible = false;
-        statsPopup.openNear(root.trayAnchor());
+        root.hidePanels(statsPopup);
+        root.placePanel(statsPopup, root.trayAnchor());
     }
 
     /// And the settings panel, the same way: the menu is one entry point, and picking from it
     /// should leave one thing on screen rather than stack another beside what is already there.
     function showSettings() {
-        statsPopup.visible = false;
-        wordsPopup.visible = false;
-        costPopup.visible = false;
-        settingsPopup.openNear(root.trayAnchor());
+        root.hidePanels(settingsPopup);
+        root.placePanel(settingsPopup, root.trayAnchor());
+    }
+
+    /// The two the statistics panel drills down into, placed the same way so that following the
+    /// arrow to one and back to the other does not move the card.
+    function showCost() {
+        root.hidePanels(costPopup);
+        root.placePanel(costPopup, root.trayAnchor());
+    }
+
+    function showWords() {
+        root.hidePanels(wordsPopup);
+        root.placePanel(wordsPopup, root.trayAnchor());
     }
 
     /**
@@ -92,7 +156,7 @@ Window {
         if (child) {
             if (contains(child, point))
                 return;
-            settingsPopup.levelField.closeList();
+            settingsPopup.closeChild();
         }
 
         const surfaces = [bar, settingsPopup, statsPopup, wordsPopup, costPopup, trayMenu];
@@ -129,14 +193,8 @@ Window {
         id: statsPopup
         // One of the three at a time: the two below replace the panel they are opened from,
         // and each carries a back arrow that brings it back.
-        onCostRequested: {
-            statsPopup.visible = false;
-            costPopup.openNear(root.trayAnchor());
-        }
-        onWordsRequested: {
-            statsPopup.visible = false;
-            wordsPopup.openNear(root.trayAnchor());
-        }
+        onCostRequested: root.showCost()
+        onWordsRequested: root.showWords()
     }
 
     CostPopup {
@@ -184,7 +242,11 @@ Window {
         target: tray
 
         function onMenuRequested() {
-            trayMenu.openAt(tray.geometry);
+            // Opening the menu is one of the reader's own gestures, so it takes the screen the
+            // same way picking a row from it does.
+            root.hidePanels(trayMenu);
+            trayMenu.listVisible = false;
+            root.placePanel(trayMenu, root.trayAnchor());
         }
     }
 }

@@ -22,7 +22,6 @@ Row {
         anchors.verticalCenter: parent.verticalCenter
         text: root.label
         color: root.interactive ? Tokens.text : Tokens.faint
-        font.family: Tokens.fontFamily
         font.pixelSize: 13
     }
 

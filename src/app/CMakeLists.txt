@@ -87,9 +87,11 @@ qt_add_qml_module(lens
     qml/SendConfirm.qml
 )
 
-# The tray art, addressed as :/icons/tray-<state>-<taskbar>.svg. BASE strips the source
-# directory so the names stay as written on disk.
-set(LENS_TRAY_ICONS
+# The icon art, addressed as :/icons/<name>.svg. BASE strips the source directory so the names
+# stay as written on disk. The tray-<state>-<taskbar> files are the shell's bitmap states, each
+# carrying its own two colours; the ui- files are the surfaces' outlines, stroked in white and
+# tinted from QML, so one file serves every surface and both themes.
+set(LENS_ICONS
   ${CMAKE_SOURCE_DIR}/icons/tray-auto-ondark.svg
   ${CMAKE_SOURCE_DIR}/icons/tray-auto-onlight.svg
   ${CMAKE_SOURCE_DIR}/icons/tray-busy-ondark.svg
@@ -98,11 +100,22 @@ set(LENS_TRAY_ICONS
   ${CMAKE_SOURCE_DIR}/icons/tray-off-onlight.svg
   ${CMAKE_SOURCE_DIR}/icons/tray-budget-ondark.svg
   ${CMAKE_SOURCE_DIR}/icons/tray-budget-onlight.svg
+  ${CMAKE_SOURCE_DIR}/icons/ui-back.svg
+  ${CMAKE_SOURCE_DIR}/icons/ui-chevron-down.svg
+  ${CMAKE_SOURCE_DIR}/icons/ui-chevron-right.svg
+  ${CMAKE_SOURCE_DIR}/icons/ui-close.svg
+  ${CMAKE_SOURCE_DIR}/icons/ui-copy.svg
+  ${CMAKE_SOURCE_DIR}/icons/ui-explain.svg
+  ${CMAKE_SOURCE_DIR}/icons/ui-language.svg
+  ${CMAKE_SOURCE_DIR}/icons/ui-quit.svg
+  ${CMAKE_SOURCE_DIR}/icons/ui-settings.svg
+  ${CMAKE_SOURCE_DIR}/icons/ui-stats.svg
+  ${CMAKE_SOURCE_DIR}/icons/ui-translate.svg
 )
-qt_add_resources(lens "tray_icons"
+qt_add_resources(lens "icons"
   PREFIX "/icons"
   BASE ${CMAKE_SOURCE_DIR}/icons
-  FILES ${LENS_TRAY_ICONS}
+  FILES ${LENS_ICONS}
 )
 
 # The .ts files, run through lrelease and embedded at :/i18n/. Rebuilding after a string

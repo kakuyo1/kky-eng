@@ -18,7 +18,6 @@ Window {
     visible: false
 
     readonly property int shadowMargin: 26
-    readonly property int tailHeight: 7
     readonly property int gap: 10
     readonly property int dismissAfterMs: 5000
 
@@ -33,22 +32,37 @@ Window {
 
     property bool hovering: false
 
+    /// True while the reader is moving the card with the pointer.
+    property bool dragging: false
+
     function show(payload) {
+        dragging = false; // a fresh bubble is never mid-drag
         word = payload.word;
         english = payload.en;
         chinese = payload.zh;
         status = payload.status;
-        // Below the anchor, and lifted above it when there is no room underneath.
-        const below = payload.y + gap;
-        bubble.y = below + height <= screen.height ? below : payload.y - height - gap;
-        bubble.x = payload.x - 34; // the tail sits 34px in from the card's left edge
+        // Below the anchor, and lifted above it when there is no room underneath. Placement is
+        // by the card, not by the window: the window carries `shadowMargin` of transparent
+        // shadow on every side, so lining the window up with the word left the card a margin
+        // right of it and another one, plus the gap, below it.
+        const below = payload.y + gap - shadowMargin;
+        bubble.y = below + height <= screen.height ? below : payload.y - gap - height + shadowMargin;
+        bubble.x = payload.x - shadowMargin;
         visible = true;
         countdown.restart();
     }
 
     onHoveringChanged: {
         controller.bubbleHoverChanged(hovering);
-        if (hovering)
+        updateCountdown();
+    }
+
+    onDraggingChanged: updateCountdown()
+
+    /// The countdown stands still while the reader is holding the bubble, under the pointer or
+    /// in the middle of a drag, and picks up again when they let go of it.
+    function updateCountdown() {
+        if (hovering || dragging)
             countdown.stop();
         else if (visible)
             countdown.restart();
@@ -68,7 +82,7 @@ Window {
         x: bubble.shadowMargin
         y: bubble.shadowMargin
         implicitWidth: 270
-        implicitHeight: card.height + bubble.tailHeight
+        implicitHeight: card.height
 
         // The shadow is cast from a shape-only copy of the card, never from the card itself:
         // MultiEffect draws its source through an offscreen texture, and at this monitor's
@@ -95,19 +109,6 @@ Window {
         }
 
         Rectangle {
-            id: tail
-            width: 14
-            height: 14
-            x: 28
-            y: -7
-            radius: 3
-            color: Tokens.bubbleBg
-            border.width: 1
-            border.color: Tokens.bubbleBorder
-            rotation: 45
-        }
-
-        Rectangle {
             id: card
             width: parent.implicitWidth
             height: column.height + 26
@@ -115,6 +116,44 @@ Window {
             color: Tokens.bubbleBg
             border.width: 1
             border.color: Tokens.bubbleBorder
+
+            // The card is the handle, through the system's own move loop. The verdict buttons
+            // keep the pointer where they are, so a drag that begins on one of them is a press
+            // on the button rather than a move of the window.
+            // The handle a drag moves the window by; the timer below does the moving, and the
+            // two reasons it is not the handler's own signal are in ShadowCard.qml. The flag
+            // brackets the drag on both edges: setting it only on the way in left the countdown
+            // stopped for good, and the bubble never went away again.
+            DragHandler {
+                id: mover
+                target: null
+
+                property point grabCursor: Qt.point(0, 0)
+                property point grabWindow: Qt.point(0, 0)
+
+                function place() {
+                    const at = controller.cursorPos();
+                    bubble.x = Math.round(grabWindow.x + at.x - grabCursor.x);
+                    bubble.y = Math.round(grabWindow.y + at.y - grabCursor.y);
+                }
+
+                onActiveChanged: {
+                    bubble.dragging = active;
+                    if (active) {
+                        grabCursor = controller.cursorPos();
+                        grabWindow = Qt.point(bubble.x, bubble.y);
+                    } else {
+                        place();
+                    }
+                }
+            }
+
+            Timer {
+                interval: 16
+                repeat: true
+                running: mover.active
+                onTriggered: mover.place()
+            }
 
             // Leaving takes effect only if it lasts: a pointer sitting on the edge of the
             // card can read as an exit for a frame or two while the verdict row animates open,
@@ -140,6 +179,26 @@ Window {
                 onTriggered: bubble.hovering = false
             }
 
+            // The way out for a reader who does not want to wait the countdown out. It takes
+            // the same two steps the countdown takes on its own, so the controller hears about
+            // the dismissal the same way either way.
+            Icon {
+                anchors.right: parent.right
+                anchors.rightMargin: 12
+                anchors.top: parent.top
+                anchors.topMargin: 15
+                source: "qrc:/icons/ui-close.svg"
+                color: Tokens.faint
+                HoverHandler { cursorShape: Qt.PointingHandCursor }
+                TapHandler {
+                    onTapped: {
+                        countdown.stop();
+                        bubble.visible = false;
+                        controller.dismissBubble();
+                    }
+                }
+            }
+
             Column {
                 id: column
                 x: 16
@@ -161,9 +220,8 @@ Window {
                         anchors.centerIn: parent
                         text: bubble.status === "known" ? qsTr("Known") : qsTr("New")
                         color: bubble.status === "known" ? Tokens.muted : Tokens.okText
-                        font.family: Tokens.fontFamily
                         font.pixelSize: 11
-                        font.weight: Font.DemiBold
+                        font.weight: Font.Bold
                     }
                 }
 
@@ -172,9 +230,8 @@ Window {
                     topPadding: 8
                     text: bubble.word
                     color: Tokens.text
-                    font.family: Tokens.fontFamily
                     font.pixelSize: 20
-                    font.weight: 650
+                    font.weight: Font.Bold
                     elide: Text.ElideRight
                 }
 
@@ -184,7 +241,6 @@ Window {
                     topPadding: 6
                     text: bubble.english
                     color: Tokens.muted
-                    font.family: Tokens.fontFamily
                     font.pixelSize: 13
                     lineHeight: 1.55
                     wrapMode: Text.Wrap
@@ -196,7 +252,6 @@ Window {
                     topPadding: 5
                     text: bubble.chinese
                     color: Tokens.text
-                    font.family: Tokens.fontFamily
                     font.pixelSize: 12
                     lineHeight: 1.5
                     wrapMode: Text.Wrap
@@ -238,9 +293,8 @@ Window {
                                 anchors.centerIn: parent
                                 text: qsTr("Known")
                                 color: Tokens.text
-                                font.family: Tokens.fontFamily
                                 font.pixelSize: 12
-                                font.weight: Font.DemiBold
+                                font.weight: Font.Bold
                             }
                             HoverHandler { cursorShape: Qt.PointingHandCursor }
                             TapHandler {
@@ -260,9 +314,8 @@ Window {
                                 anchors.centerIn: parent
                                 text: qsTr("New")
                                 color: Tokens.on
-                                font.family: Tokens.fontFamily
                                 font.pixelSize: 12
-                                font.weight: Font.DemiBold
+                                font.weight: Font.Bold
                             }
                             HoverHandler { cursorShape: Qt.PointingHandCursor }
                             TapHandler {
@@ -278,9 +331,9 @@ Window {
                     topPadding: 9
                     text: qsTr("Disappears in %1s").arg(bubble.dismissAfterMs / 1000)
                     color: Tokens.faint
-                    font.family: Tokens.fontFamily
                     font.pixelSize: 11
                 }
+
             }
         }
     }

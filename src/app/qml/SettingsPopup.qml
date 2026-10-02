@@ -23,25 +23,35 @@ Window {
     /// outside-press rule reads it: a press that lands on the level list belongs to the list.
     readonly property var openChildRect: levelField.openChildRect
 
+    /// @brief Take down the window this panel opened, if any.
+    ///
+    /// main.qml's outside-press rule reaches this through the panel rather than through the
+    /// field: `levelField` is an id inside this file, and an id is not visible from another
+    /// one. Naming it from there threw, and the throw took the rest of that rule -- the closing
+    /// of the panels themselves -- down with it.
+    function closeChild() {
+        levelField.closeList();
+    }
+
     /// The list outlives this panel otherwise: it is a window of its own, and nothing else
-    /// knows the panel has gone.
-    onVisibleChanged: if (!visible) levelField.closeList()
+    /// knows the panel has gone. Coming up clears the key field, which is never read back.
+    onVisibleChanged: {
+        levelField.closeList();
+        if (visible)
+            apiField.text = "";
+    }
 
     width: cardWidth + 2 * shadowMargin
     height: column.implicitHeight + 36 + 2 * shadowMargin
 
-    /// Put the panel up beside the tray icon, or at the screen's bottom-right corner when the
-    /// shell does not say where the icon is.
-    function openNear(anchor) {
-        settings.x = Math.max(8, anchor.x - width + 60);
-        settings.y = Math.max(8, anchor.y - height);
-        visible = true;
-        apiField.text = "";
-    }
-
     ShadowCard {
         anchors.fill: parent
         radius: Tokens.radiusCard
+        movable: true
+
+        // The level list is a window of its own and cannot follow the panel, so a drag takes
+        // it down rather than leaving it behind.
+        onDraggingChanged: if (dragging) levelField.closeList()
 
         Column {
             id: column
@@ -50,19 +60,27 @@ Window {
             width: settings.cardWidth - 40
             spacing: 15
 
-            Row {
+            // The close icon is anchored to the right edge rather than pushed there by a
+            // spacer: a spacer sized around the English title lands the glyph past the card
+            // the moment the title is a different width, which is every translation of it.
+            Item {
                 width: parent.width
+                height: title.height
+
                 Text {
+                    id: title
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
                     text: qsTr("Settings")
                     color: Tokens.text
-                    font.family: Tokens.fontFamily
                     font.pixelSize: 14
-                    font.weight: Font.DemiBold
+                    font.weight: Font.Bold
                 }
-                Item { width: parent.width - 40; height: 1 }
+
                 Icon {
+                    anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    path: "M5 5l14 14M19 5L5 19"
+                    source: "qrc:/icons/ui-close.svg"
                     color: Tokens.faint
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                     TapHandler { onTapped: settings.visible = false }
@@ -75,7 +93,6 @@ Window {
                 Text {
                     text: qsTr("Vocabulary level")
                     color: Tokens.muted
-                    font.family: Tokens.fontFamily
                     font.pixelSize: 12
                 }
                 DropdownField {
@@ -93,7 +110,6 @@ Window {
                 Text {
                     text: qsTr("Explanation language")
                     color: Tokens.muted
-                    font.family: Tokens.fontFamily
                     font.pixelSize: 12
                 }
                 Segment {
@@ -111,7 +127,6 @@ Window {
                 Text {
                     text: qsTr("Theme")
                     color: Tokens.muted
-                    font.family: Tokens.fontFamily
                     font.pixelSize: 12
                 }
                 Segment {
@@ -129,7 +144,6 @@ Window {
                 Text {
                     text: qsTr("API")
                     color: Tokens.muted
-                    font.family: Tokens.fontFamily
                     font.pixelSize: 12
                 }
                 Rectangle {
@@ -148,7 +162,6 @@ Window {
                         verticalAlignment: TextInput.AlignVCenter
                         echoMode: TextInput.Password
                         color: Tokens.text
-                        font.family: Tokens.fontFamily
                         font.pixelSize: 13
                         selectByMouse: true
                         // The stored key is never read back, so the field starts empty and
@@ -172,7 +185,6 @@ Window {
                 Text {
                     text: qsTr("Capture")
                     color: Tokens.muted
-                    font.family: Tokens.fontFamily
                     font.pixelSize: 12
                 }
 
@@ -219,7 +231,6 @@ Window {
                 Text {
                     text: qsTr("Global hotkey")
                     color: Tokens.muted
-                    font.family: Tokens.fontFamily
                     font.pixelSize: 12
                 }
                 Rectangle {
@@ -237,7 +248,6 @@ Window {
                         anchors.verticalCenter: parent.verticalCenter
                         text: qsTr("Toggle auto scan")
                         color: Tokens.faint
-                        font.family: Tokens.fontFamily
                         font.pixelSize: 13
                     }
                     Rectangle {
@@ -254,7 +264,6 @@ Window {
                             anchors.centerIn: parent
                             text: "F8"
                             color: Tokens.muted
-                            font.family: Tokens.fontFamily
                             font.pixelSize: 11
                         }
                     }
@@ -276,9 +285,8 @@ Window {
                         anchors.centerIn: parent
                         text: qsTr("Save")
                         color: Tokens.on
-                        font.family: Tokens.fontFamily
                         font.pixelSize: 12
-                        font.weight: Font.DemiBold
+                        font.weight: Font.Bold
                     }
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                     TapHandler {
@@ -302,9 +310,8 @@ Window {
                         anchors.centerIn: parent
                         text: qsTr("Restore defaults")
                         color: Tokens.muted
-                        font.family: Tokens.fontFamily
                         font.pixelSize: 12
-                        font.weight: Font.DemiBold
+                        font.weight: Font.Bold
                     }
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                     TapHandler {

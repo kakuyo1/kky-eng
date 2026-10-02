@@ -277,6 +277,17 @@ signals:
 - **捕获组件是两个文件**：`mouse_selection_hook.{h,cpp}`（低层钩子与手势规则）与 `selection_text_grabber.{h,cpp}`（注入 Ctrl+C、剪贴板存还原）。终端排除与前台自查都落在取文那一步——危险发生在注入处，那也才是查得到前台进程的地方；`selectionReleased` 只带 `QPoint`，不带进程名。两条纯谓词 `isSelectionGesture` / `isExcludedProcess` 收普通参数，可离线断言。
 - **锚点是物理像素，窗口坐标不是**：钩子拿到的 `pt` 从不虚拟化，而 QML 窗口落在设备无关像素上，两者差一个 `devicePixelRatio`（本机 125% 实测：物理 x=275 的松手位置，窗口坐标是 220）；按 1:1 直接用，动作条会偏出选区四分之一屏，渲染循环还会记 “矩形不与屏幕相交”。Qt 会把 `QGuiApplication` 设成 per-monitor aware（实测进程感知级别 = 2），这一条只决定渲染清晰度，不改变上面的换算——交给动作条与气泡之前必须先除。
 
+落地注记（2026-10-03，表面第二轮）：
+
+- **`QSystemTrayIcon::geometry()` 给的是设备无关像素，不是物理像素**，而且任务栏自动隐藏时不报值。实测：把任务栏勾出来时返回 `(1313, 816, 32, 48)`——1313 DIP 对应物理 1641，正是通知区左缘，48 DIP 是那 60 物理像素的任务栏厚度。任务栏一收回去它就变 0，而弹窗都是从托盘菜单点开的，点的那一刻任务栏已经收回，于是每个面板都落到硬编的右下角、再被 `- width + 60` 推出屏外。`Tray` 现在记住最后一次非空的值：窗口不动，过期的答案也是答案。
+- **定位与边缘检测合成一处**：`Main.qml` 的 `placeBeside()` 把卡片的右下角放在图标**中心**，按锚点所在那屏把窗口整块夹进屏内，上方放不下就翻到下方。四张面板的 `openNear` 与 `TrayMenu.openAt` 因此全部删掉，菜单与面板走同一条路。
+- **贴合按卡片算，不按窗口**：每个表面都是卡片加四边各 26 px 透明阴影边距的窗口，早先拿窗口去贴锚点，卡片实际偏出一个边距（气泡纵向还多偏一个 gap），看着就是没贴住选区。气泡与动作条的 `openAt` 现在把 `shadowMargin` 减掉再算。
+- **钩子必须认自己的窗口**：按下落在本进程的窗口上时，这次按下既不是选区手势，也不算双击的第一击（`WindowFromPoint` + `GetWindowThreadProcessId` 比对 PID）。否则在面板上拖动会被当成拖选，松开时注入 Ctrl+C，把背后应用里的选中内容当作读者选的词弹出来。代价写在函数注释里：透明的阴影边距也算自己的窗口，贴着面板 26 px 内起手的真选区会被放掉。
+- **主屏的任务栏是自动隐藏的**，`GetSystemMetrics(0/1)` 只给主屏尺寸；要整块虚拟桌面得用 76 / 77 / 78 / 79 四个索引。
+- **标题行的图标贴右锚定，不用固定占位**：原先的 `Item { width: parent.width - 40 }` 是按英文标题估的，中文标题一变宽就把关闭按钮整个挤出卡片外（放大实测）。改成左锚标题、右锚图标行。
+- **字体族设一次，设在 `main.cpp`，不设在 QML**：QML 的 `font.family` 只收一个名字（原先写的是三段逗号串，Qt 当成一个名字找，找不到就整站落到 Tahoma——`Text.fontInfo` 在真窗口上读回来的就是这个），而列表属性 `font.families` 在 QML 的 font 值类型上根本不存在（赋值即 `Cannot assign to non-existent property "families"`）。所以 `QGuiApplication::setFont` 收一个 `QFont::setFamilies({"Segoe UI Variable", "Microsoft YaHei UI Light"})`，QML 侧**不再写字体族**，靠继承。中文必须点名落到 Light：Microsoft YaHei UI 的常规体比 Segoe UI Variable 重一档，同权重下中文标签看着像加了粗，按墨量实测才定的案。代价是等宽那几个 `Text` 一旦写 `font.family: Tokens.monoFamily` 就丢掉这条回落，字符串里的中文（128 词的那个单位）走系统回落、比周围略重，只有三处。
+- **拖动用指针自己的屏幕位置**：`controller.cursorPos()`，也就是 `QCursor::pos()`。另外两条路都实测过、都不行。系统移动循环（`startSystemMove()`）在整个拖动过程里没动过窗口，松手才落位，那是跳不是拖；handler 的 `activeTranslation` 更糟，它量的是**窗口内**的偏移，移动窗口就改变了决定这次移动的那个值——按手速拖几十个事件，面板从 x=1116 被甩到 x=-3688。两个坑记在这里：`QCursor::pos()` **返回的已经是 DIP**，照着钩子那套再除一次 1.25 会让拖动只走 1/1.25 的距离（实测少走 27%）；节拍用 16 ms 定时器而不是 `activeTranslationChanged`，因为窗口一旦跟上指针偏移就不再变化、信号随之停止，剩下那段位移永远不会被应用。松手那一拍再补一次定位。
+
 QML 表面：设置浮层、选区动作条、解释气泡、统计弹窗及其下钻的词汇 / 花费弹窗、发送确认，按 `UI.md` 规格落地；占位项 `enabled: false`。托盘图标（四状态）用 **C++ `QSystemTrayIcon`**：那是 shell 的东西，没有 QML 对应物。**菜单不是原生的**——`Menu` 曾按 “Windows 原生可靠” 选过 `QMenu`（`Qt.labs.platform` 的实验性 QML 类型在 6.9 上右键菜单不生效，仍弃用），代价是画不成 `UI.md` §4.2 的卡片；现改为一个普通表面（`qml/TrayMenu.qml`），`Tray` 只在图标被点时发一个 `menuRequested`。QML 根为隐藏 0×0 `Window`（`visible: false`、`WindowDoesNotAcceptFocus`）——弹层 Window 需要窗口上下文，隐藏窗口无任何可见足迹，不构成主窗口。
 
 ### 4.5 Test（`test/googletest/`，独立目标，不编进 `lens_app`）

@@ -35,6 +35,7 @@ Window {
 
     ShadowCard {
         anchors.fill: parent
+        movable: true
 
         Column {
             id: column
@@ -46,9 +47,8 @@ Window {
             Text {
                 text: qsTr("Send to the model?")
                 color: Tokens.text
-                font.family: Tokens.fontFamily
                 font.pixelSize: 14
-                font.weight: Font.DemiBold
+                font.weight: Font.Bold
             }
 
             Text {
@@ -66,7 +66,6 @@ Window {
                 width: parent.width
                 text: qsTr("Development build: every request is shown before it is sent.")
                 color: Tokens.faint
-                font.family: Tokens.fontFamily
                 font.pixelSize: 11
                 wrapMode: Text.Wrap
             }
@@ -88,9 +87,8 @@ Window {
                         anchors.centerIn: parent
                         text: qsTr("Send")
                         color: Tokens.on
-                        font.family: Tokens.fontFamily
                         font.pixelSize: 12
-                        font.weight: Font.DemiBold
+                        font.weight: Font.Bold
                     }
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                     TapHandler {
@@ -113,9 +111,8 @@ Window {
                         anchors.centerIn: parent
                         text: qsTr("Cancel")
                         color: Tokens.muted
-                        font.family: Tokens.fontFamily
                         font.pixelSize: 12
-                        font.weight: Font.DemiBold
+                        font.weight: Font.Bold
                     }
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                     TapHandler {

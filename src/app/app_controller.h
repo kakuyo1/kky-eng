@@ -57,6 +57,16 @@ public:
      */
     void onSelectionReleased(QPoint anchor);
 
+    /**
+     * @brief Where the pointer is on screen, in device-independent pixels.
+     *
+     * For dragging a surface by hand, and it is the only source a drag can use: the translation
+     * a QML pointer handler reports is measured *inside* the window, so moving that window
+     * changes the translation, and feeding it back diverges -- measured on the real window, a
+     * drag at hand speed threw the panel from x=1116 to x=-3688 in a few dozen events.
+     */
+    Q_INVOKABLE QPoint cursorPos() const;
+
     /// @brief The action bar's answer: "translate", "explain", or "copy".
     /// @param text  The selection, echoed back by the surface.
     Q_INVOKABLE void runSelectionAction(QString action, QString text);

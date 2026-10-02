@@ -43,6 +43,20 @@ QtObject {
     readonly property int radiusField: 9
     readonly property int radiusPill: 999
 
-    readonly property string fontFamily: "Segoe UI Variable, Segoe UI, Microsoft YaHei UI"
-    readonly property string monoFamily: "Cascadia Code, Consolas, Courier New"
+    /**
+     * The figures' face. The UI face is not here: it is the application font, set in main.cpp,
+     * because QML cannot express what it needs to be.
+     *
+     * A Text names at most one family, and naming one replaces whatever it would have
+     * inherited. The UI font has to be a *list* -- Segoe UI Variable, then Microsoft YaHei UI
+     * Light for the Chinese it has no glyphs for -- and only QFont can carry that. Bold and
+     * regular Chinese then come from real faces rather than from Windows' default, which is a
+     * step too heavy beside the Latin.
+     *
+     * Naming a family here costs this Text that fallback, so the Chinese inside a figure --
+     * the unit in "128 词 · ¥0.42" -- is drawn in Windows' own fallback and reads heavier than
+     * the Chinese around it. ponytail: three strings, and splitting the unit out of the run
+     * is the fix if it ever shows.
+     */
+    readonly property string monoFamily: "Cascadia Code"
 }

@@ -8,7 +8,7 @@ import QtQuick
 Item {
     id: root
 
-    property string icon: ""
+    property string source: ""
     property string label: ""
     property string note: ""
     property bool danger: false
@@ -40,7 +40,7 @@ Item {
 
         Icon {
             anchors.verticalCenter: parent.verticalCenter
-            path: root.icon
+            source: root.source
             color: root.danger ? Tokens.danger : Tokens.muted
         }
 
@@ -48,7 +48,6 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             text: root.label
             color: root.danger ? Tokens.danger : Tokens.text
-            font.family: Tokens.fontFamily
             font.pixelSize: 13
         }
     }

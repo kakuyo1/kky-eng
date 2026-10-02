@@ -25,12 +25,6 @@ Window {
     /// The reader asked for the panel this one was opened from.
     signal backRequested()
 
-    function openNear(anchor) {
-        words.x = Math.max(8, anchor.x - width + 60);
-        words.y = Math.max(8, anchor.y - height);
-        visible = true;
-    }
-
     ShadowCard {
         anchors.fill: parent
 
@@ -41,40 +35,91 @@ Window {
             width: words.cardWidth - 40
             spacing: 0
 
-            Row {
+            // The icons are anchored to the right edge rather than pushed there by a spacer:
+            // a spacer sized around the English title lands the glyphs past the card the
+            // moment the title is a different width, which is every translation of it.
+            Item {
                 width: parent.width
+                height: title.height
+
                 Text {
+                    id: title
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
                     text: qsTr("Words")
                     color: Tokens.text
-                    font.family: Tokens.fontFamily
                     font.pixelSize: 14
-                    font.weight: Font.DemiBold
+                    font.weight: Font.Bold
                 }
-                Item { width: parent.width - 61; height: 1 }
-                // Back to the statistics panel, which is where this one opens from. This panel
-                // replaces it rather than stacking on it, so the way up has to be visible.
-                Icon {
-                    anchors.verticalCenter: parent.verticalCenter
-                    path: "M19 12H5 M12 5l-7 7 7 7"
-                    color: Tokens.faint
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                    TapHandler { onTapped: words.backRequested() }
+
+                // The title row is the handle rather than the card, because the card holds the
+                // list: a drag inside a list is a scroll, and a handler covering it would be
+                // competing with the flick for the same gesture. The timer below does the
+                // moving, and the two reasons it is not the handler's own signal are in
+                // ShadowCard.qml.
+                DragHandler {
+                    id: mover
+                    target: null
+
+                    property point grabCursor: Qt.point(0, 0)
+                    property point grabWindow: Qt.point(0, 0)
+
+                    function place() {
+                        const at = controller.cursorPos();
+                        words.x = Math.round(grabWindow.x + at.x - grabCursor.x);
+                        words.y = Math.round(grabWindow.y + at.y - grabCursor.y);
+                    }
+
+                    onActiveChanged: {
+                        if (active) {
+                            grabCursor = controller.cursorPos();
+                            grabWindow = Qt.point(words.x, words.y);
+                        } else {
+                            place();
+                        }
+                    }
                 }
-                Item { width: 6; height: 1 }
-                Icon {
+
+                Timer {
+                    interval: 16
+                    repeat: true
+                    running: mover.active
+                    onTriggered: mover.place()
+                }
+
+                Row {
+                    anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    path: "M5 5l14 14M19 5L5 19"
-                    color: Tokens.faint
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                    TapHandler { onTapped: words.visible = false }
+                    spacing: 6
+
+                    // Back to the statistics panel, which is where this one opens from. This
+                    // panel replaces it rather than stacking on it, so the way up has to be
+                    // visible.
+                    Icon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        source: "qrc:/icons/ui-back.svg"
+                        color: Tokens.faint
+                        HoverHandler { cursorShape: Qt.PointingHandCursor }
+                        TapHandler { onTapped: words.backRequested() }
+                    }
+                    Icon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        source: "qrc:/icons/ui-close.svg"
+                        color: Tokens.faint
+                        HoverHandler { cursorShape: Qt.PointingHandCursor }
+                        TapHandler { onTapped: words.visible = false }
+                    }
                 }
             }
 
             Text {
                 topPadding: 3
-                text: qsTr("%1 words").arg(controller.stats.historyTotal)
+                // The list's own count, not the all-time tally the statistics panel shows:
+                // the rows below are deduplicated, so a word explained twice counts once here
+                // and twice there. A number that disagrees with the list under it reads as a
+                // bug, whichever of the two meanings it was meant to carry.
+                text: qsTr("%1 words").arg(controller.words.length)
                 color: Tokens.faint
-                font.family: Tokens.fontFamily
                 font.pixelSize: 12
             }
 
@@ -122,7 +167,6 @@ Window {
                             width: parent.width - 130
                             text: modelData.word
                             color: Tokens.text
-                            font.family: Tokens.fontFamily
                             font.pixelSize: 13
                             elide: Text.ElideRight
                         }
@@ -151,8 +195,10 @@ Window {
                                 anchors.centerIn: parent
                                 text: modelData.status
                                 color: Tokens.muted
-                                font.family: Tokens.fontFamily
                                 font.pixelSize: 11
+                                // The same pill the bubble shows over the same verdict, so
+                                // it carries the same weight UI.md 3.2 gives a tag.
+                                font.weight: Font.Bold
                             }
                         }
                     }
