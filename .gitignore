@@ -7,3 +7,7 @@ CMakePresets.json
 # API and settings
 settings.local.json
 
+# Runtime logs: keep the directory, ignore its contents
+logs/*
+!logs/.gitkeep
+

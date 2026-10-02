@@ -1,4 +1,5 @@
 add_library(lens_llm STATIC
+  qt_log.cpp
   llm_pure.cpp
   llm_client.cpp
 )

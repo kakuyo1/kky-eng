@@ -248,6 +248,7 @@ lens/
 ├── settings.local.json       # 本地密钥与设置，gitignored
 ├── scripts/build.bat         # 进 VS 环境后驱动 ninja（首配一次，之后纯增量）
 ├── data/wordlist.txt         # 静态词表（top-100k，词频序，第 8 节）
+├── logs/                     # 运行期日志（轮转，gitignored，只留 .gitkeep）
 ├── third_party/              # 供应商源码：nlohmann/json（header-only）、spdlog（编译成静态库）
 ├── i18n/                     # 每种语言一套 .ts / .qm（待填）
 ├── icons/                    # 托盘图标，按主题两套（待填）
@@ -263,7 +264,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。`lens_test
 
 构建：首选 `ninja-qt6` preset（单配置，增量重编一个源文件约 6 秒），由 `scripts/build.bat` 先进 MSVC 环境再驱动，命令与并行度上限见 `CLAUDE.md`。`vs-qt6` 保留给 IDE。
 
-日志：全项目走 spdlog（`third_party/spdlog`，编译成静态库）。`src/core/log.h` 的 `lens::log::init()` 装默认 logger，`LENS_LOG_LEVEL` 环境变量可覆盖级别；trace 记管线级细节，info 记生命周期节点，error / critical 记失败。密钥永不进日志（第 6 节）。
+日志：全项目走 spdlog（`third_party/spdlog`，编译成静态库），模块只用 `src/core/log.h` 的 `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_ERROR` / `LENS_CRITICAL` 宏。`SPDLOG_ACTIVE_LEVEL` 由 CMake 挂在 `lens_core` 上（Debug = trace，Release = info），低于它的调用整条编译掉——不能写在 `log.h` 里，spdlog 自己的 `common.h` 一旦被包含就会抢先定义成 info。`lens::log::init()` 写 `logs/lens.log`（10 MB 一轮，留 3 个备份）并镜像到 stderr，级别可用 `LENS_LOG_LEVEL` 覆盖。Qt 自身的 qDebug / qWarning / qCritical 等由 `src/llm/qt_log.h` 的 `installQtMessageHandler()` 折进同一个 logger，源位置指向 Qt 调用点而非桥接处。密钥永不进日志（第 6 节）。
 
 现状：`lens_core` 为 STATIC（`log.cpp` + `filter_core.cpp` + `known_store.cpp`），`lens_llm` 亦已转 STATIC（`llm_pure.cpp` + `llm_client.cpp`），`lens_test` 链接两者。`src/app` 仍为 INTERFACE 占位（零文件、只挂 Qt 依赖），落地时改成 STATIC 并加源文件即可，`lens_test` 的链接行不用动。
 
@@ -271,7 +272,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。`lens_test
 
 | 项                  | 状态                                                                                                                                                                                                                                                                  |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Qt 6 + CMake 工具链 | **已完成**：Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`，preset `ninja-qt6`（首选）/ `vs-qt6`（备选）                                                                                                                                                  |
+| Qt 6 + CMake 工具链 | **已完成**：Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`，preset `ninja-qt6`（首选）/ `vs-qt6`（备选）                                                                                                                                               |
 | 静态词表            | **已完成**：`data/wordlist.txt` 已落盘                                                                                                                                                                                                                        |
 | 密钥注入            | **已完成**：`settings.local.json` 已在仓库根且已 gitignore                                                                                                                                                                                                    |
 | DeepSeek API 核验   | **已完成**（2026-10-02）：模型名 `deepseek-flash` / `deepseek-v4-pro`；`response_format: {"type":"json_object"}` 支持，且要求 prompt 含 `json` 字样与格式示例；OpenAI 格式端点为 `{baseUrl}/chat/completions`。结论与落地细节见 §4.3 落地注记、§5。 |

@@ -20,6 +20,7 @@ lens/
 ├── third_party       # vendored: nlohmann/json, spdlog
 ├── i18n              # .qm/ts files
 ├── icons
+├── logs              # runtime logs, rotating, gitignored but for .gitkeep
 ├── src
 ├── test              # self-check: offline corpus + real-model smoke, separate from src/
 └── ui-prototypes/
@@ -28,20 +29,14 @@ lens/
 
 ## Build
 
-Toolchain (verified): cmake 4.0.1 · Ninja 1.12.1 · MSVC 19.44 (VS 2022 @ `D:\VS 2022`) · Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`.
+Toolchain (verified): cmake 4.0.1 · Ninja 1.12.1 · MSVC 19.44
 
 ```
 ./scripts/build.bat                      # configure once, then incremental
 ./scripts/build.bat --target lens_test
 ```
 
-Ninja cannot find MSVC on its own, so `scripts/build.bat` enters the Visual Studio environment (`vswhere` → `vcvars64.bat`) before driving CMake. Running `cmake --preset ninja-qt6` then `cmake --build --preset ninja-qt6` by hand works from a VS developer command prompt. `preset vs-qt6` (Visual Studio generator, `build/`) stays for IDE work.
-
-The build preset caps Ninja at 4 parallel jobs. At 16 jobs the concurrent `cl.exe` processes exhaust the machine's memory and every translation unit dies with `C1060: compiler is out of heap space`; raise the cap via `CMAKE_BUILD_PARALLEL_LEVEL` only when the machine has headroom. A changed source file rebuilds in ~6 s.
-
 ## Test
-
-Put the Qt bin directory on `PATH` first or the exe cannot find `Qt6Core.dll`, and set `QT_FORCE_STDERR_LOGGING=1` or Qt swallows its own logs — a clean exit code does not mean it worked.
 
 ```
 PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
@@ -68,9 +63,7 @@ Comments are English and Doxygen-style. `///` with `@brief`, `@param`, `@return`
 std::string lemmatize(std::string_view token);
 ```
 
-Chinese stays where a human or the model reads it: the model prompt, user-facing messages (exception texts, `lens_test` diagnostics), and the `*.md` design docs.
-
-Log through spdlog — `spdlog::trace` for per-call pipeline detail, `info` for lifecycle milestones, `error` or `critical` for failures. Every module logs; `src/core/log.h` installs the logger.
+Log through the `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_ERROR` / `LENS_CRITICAL` macros in `src/core/log.h` — trace for per-call pipeline detail, info for lifecycle milestones, error or critical for failures. A call below the build's level compiles away, so Release carries no trace cost. `lens::log::init()` writes `logs/lens.log` (10 MB, 3 rotated backups) and mirrors to stderr; `lens::log::installQtMessageHandler()` in `src/llm/qt_log.h` folds Qt's own messages into the same stream.
 
 ## Reference Documents
 

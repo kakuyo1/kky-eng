@@ -1,8 +1,6 @@
 #include "core/filter_core.h"
 #include "core/log.h"
 
-#include <spdlog/spdlog.h>
-
 #include <chrono>
 #include <fstream>
 #include <stdexcept>
@@ -105,11 +103,11 @@ bool hasVowel(const std::string& s) {
 
 void loadWordlist(const std::filesystem::path& path) {
     const auto startedAt = std::chrono::steady_clock::now();
-    spdlog::trace("loadWordlist: reading '{}'", path.string());
+    LENS_TRACE("loadWordlist: reading '{}'", path.string());
 
     std::ifstream in(path);
     if (!in) {
-        spdlog::critical("loadWordlist: cannot open word list '{}'", path.string());
+        LENS_CRITICAL("loadWordlist: cannot open word list '{}'", path.string());
         throw std::runtime_error("词表打不开：" + path.string());
     }
 
@@ -123,7 +121,7 @@ void loadWordlist(const std::filesystem::path& path) {
         table.emplace(lower(line), rank);   // duplicates keep their earliest rank
     }
     if (table.empty()) {
-        spdlog::critical("loadWordlist: word list '{}' is empty", path.string());
+        LENS_CRITICAL("loadWordlist: word list '{}' is empty", path.string());
         throw std::runtime_error("词表为空：" + path.string());
     }
     g_rank = std::move(table);
@@ -131,7 +129,7 @@ void loadWordlist(const std::filesystem::path& path) {
     const auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
                                std::chrono::steady_clock::now() - startedAt)
                                .count();
-    spdlog::info("wordlist loaded: {} entries from '{}' in {} ms", g_rank.size(),
+    LENS_INFO("wordlist loaded: {} entries from '{}' in {} ms", g_rank.size(),
                  path.string(), elapsedMs);
 }
 
@@ -220,7 +218,7 @@ std::string lemmatize(std::string_view token) {
         }
     }
 
-    if (*best != t) spdlog::trace("lemmatize: '{}' -> '{}' (rank {})", t, *best, bestRank);
+    if (*best != t) LENS_TRACE("lemmatize: '{}' -> '{}' (rank {})", t, *best, bestRank);
     return *best;
 }
 
@@ -274,11 +272,11 @@ std::vector<Candidate> filterWords(
         if (knownLemmas.count(lemma) != 0) continue;    // known set
         if (!seen.insert(lemma).second) continue;       // same lemma once per excerpt
 
-        spdlog::trace("filterWords: candidate surface='{}' lemma='{}'", surface, lemma);
+        LENS_TRACE("filterWords: candidate surface='{}' lemma='{}'", surface, lemma);
         out.push_back({surface, lemma});
     }
 
-    spdlog::trace("filterWords: {} chars -> {} candidate(s), minFreqRank={}", size, out.size(),
+    LENS_TRACE("filterWords: {} chars -> {} candidate(s), minFreqRank={}", size, out.size(),
                   minFreqRank);
     return out;
 }

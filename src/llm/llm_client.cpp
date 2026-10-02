@@ -4,8 +4,6 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 
-#include <spdlog/spdlog.h>
-
 #include <utility>
 #include <variant>
 
@@ -37,24 +35,24 @@ QString httpErrorFor(int status) {
 
 LlmClient::LlmClient(Config config, QObject* parent)
     : QObject(parent), config_(std::move(config)), manager_(new QNetworkAccessManager(this)) {
-    spdlog::trace("LlmClient created: model='{}' base='{}'", config_.model.toStdString(),
+    LENS_TRACE("LlmClient created: model='{}' base='{}'", config_.model.toStdString(),
                   config_.baseUrl.toString().toStdString());
 }
 
 void LlmClient::setExplanationLang(const QString& lang) {
-    spdlog::trace("LlmClient::setExplanationLang: '{}' -> '{}'", lang_.toStdString(),
+    LENS_TRACE("LlmClient::setExplanationLang: '{}' -> '{}'", lang_.toStdString(),
                   lang.toStdString());
     lang_ = lang;
 }
 
 void LlmClient::explainWords(QStringList words) {
     if (words.isEmpty()) {
-        spdlog::error("LlmClient::explainWords called with no words");
+        LENS_ERROR("LlmClient::explainWords called with no words");
         emit failed(QStringLiteral("没有待查单词"));
         return;
     }
     if (words.size() > kMaxWords) {
-        spdlog::warn("LlmClient::explainWords: {} words requested, keeping the first {}",
+        LENS_WARN("LlmClient::explainWords: {} words requested, keeping the first {}",
                      words.size(), kMaxWords);
         words = words.mid(0, kMaxWords);
     }
@@ -69,8 +67,8 @@ void LlmClient::explainWords(QStringList words) {
     request.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
     request.setTransferTimeout(kTimeoutMs);
 
-    spdlog::info("explaining {} word(s) with '{}'", words.size(), config_.model.toStdString());
-    spdlog::trace("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kTimeoutMs);
+    LENS_INFO("explaining {} word(s) with '{}'", words.size(), config_.model.toStdString());
+    LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kTimeoutMs);
 
     QNetworkReply* reply = manager_->post(request, buildRequestBody(config_, words, lang_));
     connect(reply, &QNetworkReply::finished, this, [this, reply, words] {
@@ -78,12 +76,12 @@ void LlmClient::explainWords(QStringList words) {
 
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         if (status == 0) {   // no status code at all: the transfer itself never completed
-            spdlog::error("request failed before a response: {}", reply->errorString().toStdString());
+            LENS_ERROR("request failed before a response: {}", reply->errorString().toStdString());
             emit failed(QStringLiteral("网络请求失败：%1").arg(reply->errorString()));
             return;
         }
         if (status != 200) {
-            spdlog::error("request failed with HTTP {}", status);
+            LENS_ERROR("request failed with HTTP {}", status);
             emit failed(httpErrorFor(status));
             return;
         }
@@ -93,7 +91,7 @@ void LlmClient::explainWords(QStringList words) {
             emit failed(*message);
             return;
         }
-        spdlog::info("received {} explanation(s)", words.size());
+        LENS_INFO("received {} explanation(s)", words.size());
         emit batchFinished(std::get<QVector<WordExplanation>>(parsed));
     });
 }

@@ -6,7 +6,7 @@
 #include <QJsonObject>
 #include <QRegularExpression>
 
-#include <spdlog/spdlog.h>
+#include "core/log.h"
 
 namespace lens::llm {
 namespace {
@@ -45,7 +45,7 @@ QString maskSensitive(const QString& text) {
 
     // Log only that something was masked. The masked content itself never reaches the log.
     if (masked != text)
-        spdlog::trace("maskSensitive: replaced sensitive content in a {}-char input",
+        LENS_TRACE("maskSensitive: replaced sensitive content in a {}-char input",
                       text.size());
     return masked;
 }
@@ -69,7 +69,7 @@ QByteArray buildRequestBody(const Config& config, const QStringList& words,
         {"stream", false},
     };
 
-    spdlog::trace("buildRequestBody: {} word(s), model='{}', lang='{}'", words.size(),
+    LENS_TRACE("buildRequestBody: {} word(s), model='{}', lang='{}'", words.size(),
                   config.model.toStdString(), explanationLang.toStdString());
     return QJsonDocument(body).toJson(QJsonDocument::Compact);
 }
@@ -80,7 +80,7 @@ std::variant<QVector<WordExplanation>, QString> parseExplanations(const QByteArr
 
     /// Reject the whole batch, naming the reason once for both the caller and the log.
     const auto reject = [](const QString& reason) -> Result {
-        spdlog::error("parseExplanations rejected the response: {}", reason.toStdString());
+        LENS_ERROR("parseExplanations rejected the response: {}", reason.toStdString());
         return reason;
     };
 
@@ -138,7 +138,7 @@ std::variant<QVector<WordExplanation>, QString> parseExplanations(const QByteArr
         ordered.push_back(*it);
     }
 
-    spdlog::trace("parseExplanations: accepted {} explanation(s)", ordered.size());
+    LENS_TRACE("parseExplanations: accepted {} explanation(s)", ordered.size());
     return ordered;
 }
 

@@ -23,13 +23,13 @@
 #include <QStringList>
 #include <QUrl>
 #include <nlohmann/json.hpp>
-#include <spdlog/spdlog.h>
 
 #include "core/filter_core.h"
 #include "core/known_store.h"
 #include "core/log.h"
 #include "llm/llm_client.h"
 #include "llm/llm_pure.h"
+#include "llm/qt_log.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -50,7 +50,7 @@ int g_fail = 0;
 void check(bool ok, const char* file, int line, const std::string& msg) {
     if (ok) return;
     std::printf("FAIL %s:%d  %s\n", file, line, msg.c_str());
-    spdlog::error("FAIL {}:{}  {}", file, line, msg);
+    LENS_ERROR("FAIL {}:{}  {}", file, line, msg);
     ++g_fail;
 }
 
@@ -78,7 +78,7 @@ std::vector<std::string> surfaces(const std::vector<Candidate>& cs) {
 /// @note Corpus fields are documented in PHASE1.md section 4.5. Change behaviour by
 ///       changing the corpus first; only touch src/ once --filter goes red.
 void runCorpus() {
-    spdlog::info("--- corpus ---");
+    LENS_INFO("--- corpus ---");
     const fs::path path = fs::path(LENS_SOURCE_DIR) / "test" / "eval_corpus.json";
     std::ifstream in(path);
     if (!in) {
@@ -127,7 +127,7 @@ void runCorpus() {
 
 /// @brief Offline check 2/3: KnownStore load / mark / cache / save / reload on a temp file.
 void runStore() {
-    spdlog::info("--- known store round trip ---");
+    LENS_INFO("--- known store round trip ---");
     const fs::path path = fs::temp_directory_path() / "lens_known_store_selftest.json";
     fs::remove(path);
 
@@ -199,7 +199,7 @@ void runStore() {
 /// the payload as untrusted: anything missing, extra, misspelled, or truncated must fail
 /// the whole batch.
 void runLlmPure() {
-    spdlog::info("--- llm helpers ---");
+    LENS_INFO("--- llm helpers ---");
     using lens::llm::Config;
     using lens::llm::WordExplanation;
     using lens::llm::buildRequestBody;
@@ -317,21 +317,28 @@ void runLlmPure() {
     std::printf("LLM 纯函数接缝：完成\n");
 }
 
+/// @brief Install logging against the repository's logs/ directory, whatever the cwd is,
+///        and route Qt's own messages into the same logger.
+void initLogging(spdlog::level::level_enum level = lens::log::kDefaultLevel) {
+    lens::log::init(level, fs::path(LENS_SOURCE_DIR) / "logs");
+    lens::log::installQtMessageHandler();
+}
+
 /// @brief Run every offline check. Requires the word list to be loaded first.
 /// @return 0 when everything passed, 1 otherwise.
 int runFilter() {
-    spdlog::info("=== offline self-check ===");
+    LENS_INFO("=== offline self-check ===");
     lens::core::loadWordlist(fs::path(LENS_SOURCE_DIR) / "data" / "wordlist.txt");
     runCorpus();
     runStore();
     runLlmPure();
     if (g_fail == 0) {
         std::printf("离线自检通过\n");
-        spdlog::info("offline self-check passed");
+        LENS_INFO("offline self-check passed");
         return 0;
     }
     std::printf("离线自检失败 %d 项\n", g_fail);
-    spdlog::error("offline self-check failed: {} assertion(s)", g_fail);
+    LENS_ERROR("offline self-check failed: {} assertion(s)", g_fail);
     return 1;
 }
 
@@ -348,13 +355,13 @@ int runSmoke(const std::string& word) {
     std::ifstream in(path);
     if (!in) {
         std::printf("打不开配置 %s\n", path.string().c_str());
-        spdlog::error("smoke: cannot open '{}'", path.string());
+        LENS_ERROR("smoke: cannot open '{}'", path.string());
         return 2;
     }
     const auto doc = nlohmann::json::parse(in, nullptr, false);
     if (doc.is_discarded() || !doc.is_object()) {
         std::printf("配置不是合法 JSON 对象\n");
-        spdlog::error("smoke: '{}' is not a JSON object", path.string());
+        LENS_ERROR("smoke: '{}' is not a JSON object", path.string());
         return 2;
     }
 
@@ -363,12 +370,12 @@ int runSmoke(const std::string& word) {
     const std::string key = doc.value("API-KEY", std::string());
     if (url.empty() || model.empty() || key.empty()) {
         std::printf("配置缺 URL / MODEL / API-KEY（密钥是否为空不作细节说明）\n");
-        spdlog::error("smoke: URL / MODEL / API-KEY missing from '{}'", path.string());
+        LENS_ERROR("smoke: URL / MODEL / API-KEY missing from '{}'", path.string());
         return 2;
     }
 
     std::printf("冒烟：%s @ %s（密钥已读入，不打印）\n", model.c_str(), url.c_str());
-    spdlog::info("smoke: {} @ {}", model, url);
+    LENS_INFO("smoke: {} @ {}", model, url);
     lens::llm::LlmClient client({QUrl(QString::fromStdString(url)), QString::fromStdString(key),
                                  QString::fromStdString(model)});
 
@@ -384,7 +391,7 @@ int runSmoke(const std::string& word) {
                      });
     QObject::connect(&client, &lens::llm::LlmClient::failed, [&exitCode](QString message) {
         std::printf("失败：%s\n", message.toStdString().c_str());
-        spdlog::error("smoke failed: {}", message.toStdString());
+        LENS_ERROR("smoke failed: {}", message.toStdString());
         exitCode = 3;
         QCoreApplication::quit();
     });
@@ -407,11 +414,11 @@ int main(int argc, char** argv) {
         if (args[i] == "--filter") {
             // Kept at info so the assertion output stays readable; raise it with
             // LENS_LOG_LEVEL=trace when the pipeline itself is under investigation.
-            lens::log::init(spdlog::level::info);
+            initLogging(spdlog::level::info);
             return runFilter();
         }
         if (args[i] == "--smoke") {
-            lens::log::init();   // Debug default: trace
+            initLogging();   // Debug default: trace
             const bool hasWord = i + 1 < args.size() && args[i + 1].rfind("--", 0) != 0;
             return runSmoke(hasWord ? args[i + 1] : "ubiquitous");
         }
