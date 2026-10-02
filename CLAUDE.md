@@ -20,7 +20,7 @@ lens/
 ├── .githooks         # pre-commit: doc typography budget + prototype-list check
 ├── data              # wordlist + llm/ (wire protocol as data)
 ├── i18n              # .ts translations; English is the source language
-├── scripts           # build.bat — Ninja + MSVC wrapper
+├── scripts           # build.bat — Ninja + MSVC wrapper; ui-*.ps1 — driving and photographing the real surfaces (TEST.md § 5)
 ├── third_party       # vendored: nlohmann/json, spdlog, googletest
 ├── icons
 ├── logs              # runtime logs, rotating, gitignored but for .gitkeep

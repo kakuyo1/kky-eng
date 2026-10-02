@@ -96,7 +96,28 @@ cmake --build --preset ninja-qt6-perf --target lens_gtest_perf
 `ponytail:` 注释写了升级路径）。`report()` 是 “进程启动至今” 的累计，`lens_gtest_perf` 在计时轮次
 前调 `reset()`，使报告只覆盖被测量的那一段。
 
-## 5 记录
+## 5 UI 表面
+
+表面没有主窗口，全部靠触发才出现，所以真机验证只能靠驱动与拍照。`scripts/ui-*.ps1` 是三个这样的工具，
+都是 PowerShell，都先把自己设成 per-monitor-v2 感知——不设的话截到的是 Windows 已经拉伸过的位图，
+糊与偏移都会被量成假的。
+
+- `ui-capture.ps1`：截屏。`-Virtual` 截整个虚拟桌面，`-Crop x,y,w,h` 裁一块，`-Zoom` 最近邻放大，
+  `-Profile` 打出穿过中间那一行的灰度值。清晰还是糊、卡片对没对齐，靠这行数字定案，光看图看不出来。
+  虚拟桌面那一档不是可选项：表面不只落在主屏上，而 `GetSystemMetrics(0/1)` 只知道主屏。
+- `ui-input.ps1`：驱动指针，三个脚本里只有它会动指针。`click` 点一下，`drag` 等步进拖，`dragfast`
+  相对位移连发，`reveal` 把指针停到主屏最后一行、把自动隐藏的任务栏勾出来。低层鼠标钩子看得见注入
+  事件，所以拖选、点外部、拖面板都能这样触发。等步进那一档看着没问题，密度超过手速的 `dragfast`
+  才拖出过发散——两者都要跑。
+- `ui-tray-rects.ps1`：打任务栏与通知区的窗口矩形，是 QML 侧位置的比对基准。托盘图标报的坐标是
+  设备无关像素、自动隐藏的任务栏其矩形落在主屏下方，两件事都是拿它查出来的。
+
+一轮的顺序：先 `ui-tray-rects.ps1` 量基准，再起应用，用 `ui-input.ps1` 驱动，用 `ui-capture.ps1`
+截图，必要时 `-Profile` 或放大看像素。为看清而临时加进 QML 的东西（计时器、`console.log`）**提交前
+必须删干净**，用 `grep -rn PROBE src/` 确认。观察点本身由应用自己的日志承担：`logs/lens.log` 每行
+都刷，可以 `tail -f`。
+
+## 6 记录
 
 `test/records/` 存运行快照，**gitignored**——那是本机的，不进仓库。一次值得留档的运行写一个 HTML，
 文件名是日期加主题（如 `2026-10-02-full-run.html`）。
