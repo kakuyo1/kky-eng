@@ -26,7 +26,7 @@ struct WordCache { std::string en, zh; };
 /**
  * @brief Word marks, difficulty level, explanation language, and the explanation cache.
  *
- * @note Deliberately Qt-free: it parses JSON with nlohmann/json, so lens_test can link it
+ * @note Deliberately Qt-free: it parses JSON with nlohmann/json, so the core test targets can link it
  *       into an offline self-check with no Qt and no network.
  */
 class KnownStore {

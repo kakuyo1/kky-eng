@@ -18,8 +18,17 @@ endif()
 # Dev only: require a consent dialog before any request leaves for the LLM. OFF for release.
 option(DEV_SEND_CONFIRM "Dev: force consent before sending to LLM" OFF)
 
+# Compile the lens_core measurement points in (core/profile.h). Off by default: it changes
+# how lens_core is built, so turning it on means a rebuild of that target, not a rerun.
+option(LENS_ENABLE_PROFILE "Compile lens_core profile instrumentation in" OFF)
+
 # Vendored dependencies. spdlog builds its own static library; see third_party/spdlog.
 add_subdirectory(third_party/spdlog)
+
+# gmock and the install rules are unused parts of the distribution; see third_party/googletest.
+set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+add_subdirectory(third_party/googletest)
 
 add_subdirectory(src/core)
 add_subdirectory(src/llm)

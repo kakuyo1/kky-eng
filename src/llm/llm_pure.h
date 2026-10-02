@@ -16,7 +16,7 @@
  *
  * The prompt, the envelope defaults, and the response schema all come from `data/llm/`
  * (see llm_protocol.h); what lives here is the assembly and the checks. That keeps this
- * unit-testable from lens_test --filter, with no socket and no API key.
+ * unit-testable from the lens_gtest_unit target, with no socket and no API key.
  */
 
 namespace lens::llm {

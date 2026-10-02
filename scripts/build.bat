@@ -6,7 +6,7 @@ REM first and only then drives CMake. Configure runs only when the build directo
 REM missing; every later call is a pure incremental ninja build.
 REM
 REM Usage: scripts\build.bat [extra "cmake --build" arguments]
-REM        scripts\build.bat --target lens_test
+REM        scripts\build.bat --target lens_gtest_unit
 
 setlocal
 cd /d "%~dp0.."
