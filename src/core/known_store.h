@@ -1,0 +1,88 @@
+#pragma once
+
+#include <filesystem>
+#include <optional>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+
+#include <nlohmann/json.hpp>
+
+/**
+ * @file known_store.h
+ * @brief Local state that survives restarts: which words the reader knows, how they were
+ *        marked, at what difficulty level, and the cached explanations.
+ *
+ * Everything lives in one JSON document (settings.local.json) that also carries the LLM
+ * API configuration. The file is loaded once and rewritten on every change; keys this
+ * class does not recognise are passed through untouched and never dropped.
+ */
+
+namespace lens::core {
+
+/// @brief A cached explanation for one lemma, in one explanation language.
+struct WordCache { std::string en, zh, example; };
+
+/**
+ * @brief Word marks, difficulty level, explanation language, and the explanation cache.
+ *
+ * @note Deliberately Qt-free: it parses JSON with nlohmann/json, so lens_test can link it
+ *       into an offline self-check with no Qt and no network.
+ */
+class KnownStore {
+public:
+    /**
+     * @brief Read the store from disk.
+     *
+     * @param path Path to the shared settings document.
+     * @return A store holding whatever the document contained.
+     * @throws std::runtime_error If the file exists but cannot be parsed. A document that
+     *         cannot be read is never silently reset: the first save afterwards would
+     *         overwrite the key and the word marks. A missing file is a first run instead.
+     */
+    static KnownStore load(std::filesystem::path path);
+
+    /// @return Whether the reader has marked this lemma as known.
+    bool isKnown(const std::string& lemma) const;
+
+    /// @brief Record a reader's verdict on a word.
+    /// @param lemma   Dictionary form of the word.
+    /// @param learned true for "already known" (never pop again), false for "new word"
+    ///                (kept in the list and popped first next time).
+    void mark(const std::string& lemma, bool learned);
+
+    /// @return The known set to hand to FilterCore::filterWords, derived from the marks.
+    const std::unordered_set<std::string>& known() const;
+
+    /// @return Difficulty level, 0..7. The order is defined in CONTEXT.md and UI.md 4.4.
+    int level() const;
+    /// @throws std::out_of_range If the level is outside 0..7.
+    void setLevel(int);
+
+    /// @return Explanation language: "en" or "zh".
+    std::string explanationLang() const;
+    void setExplanationLang(std::string);
+
+    /// @brief Look up a cached explanation for the current explanation language.
+    /// @return The cached entry, or std::nullopt when nothing is cached.
+    std::optional<WordCache> cacheGet(const std::string& lemma) const;
+    void cachePut(const std::string& lemma, WordCache);
+
+    /// @brief Write the whole document back, preserving every unrecognised key.
+    /// @throws std::runtime_error If the file cannot be written.
+    void save() const;
+
+private:
+    std::filesystem::path path_;
+    nlohmann::json doc_;   ///< The document as loaded; the base for save().
+    /// lemma -> known(true) / new word(false). Absent means never marked.
+    std::unordered_map<std::string, bool> marks_;
+    /// Derived view of marks_ holding only the true entries; feeds filterWords.
+    std::unordered_set<std::string> known_;
+    /// Keyed by explanation language + lemma so switching language never mixes meanings.
+    std::unordered_map<std::string, WordCache> cache_;
+    int level_ = 2;            ///< CET-4, the default difficulty level.
+    std::string lang_ = "en";  ///< English by default.
+};
+
+}

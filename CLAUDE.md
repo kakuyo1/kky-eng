@@ -15,27 +15,62 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 ```
 lens/
 ├── .clang-format     # code format spec
-├── data			 # wordlist
-├── third_party
+├── data              # wordlist
+├── scripts           # build.bat — Ninja + MSVC wrapper
+├── third_party       # vendored: nlohmann/json, spdlog
 ├── i18n              # .qm/ts files
 ├── icons
 ├── src
-├── test              # 自检：单测（样例集）+ 冒烟，根目录独立
-└──  ui-prototypes/
-     └── v1-halo-{tray-menu,stats,words,cost,settings,bubble}.html  
+├── test              # self-check: offline corpus + real-model smoke, separate from src/
+└── ui-prototypes/
+     └── v1-halo-{tray-menu,stats,words,cost,settings,bubble}.html
 ```
 
-## Commands
+## Build
 
-Toolchain (verified): cmake 4.0.1 · MSVC 19.44 (VS 2022) · Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`; preset `vs-qt6`.
+Toolchain (verified): cmake 4.0.1 · Ninja 1.12.1 · MSVC 19.44 (VS 2022 @ `D:\VS 2022`) · Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`.
 
 ```
-cmake --preset vs-qt6
-cmake --build --preset vs-qt6 --config Debug
+./scripts/build.bat                      # configure once, then incremental
+./scripts/build.bat --target lens_test
 ```
 
-- Before running: put `B:/qtt/6.9.0/msvc2022_64/bin` on `PATH` and set `QT_FORCE_STDERR_LOGGING=1`. Without them the exe cannot find `Qt6Core.dll`, and Qt logs are swallowed silently — a clean exit code does not mean it worked.
-- Targets: `lens_core` (no Qt) → `lens_llm` → `lens_app`. `lens_test` is standalone and never shipped (`--filter` offline self-check / `--smoke` real LLM) — see `PHASE1.md` §4.5.
+Ninja cannot find MSVC on its own, so `scripts/build.bat` enters the Visual Studio environment (`vswhere` → `vcvars64.bat`) before driving CMake. Running `cmake --preset ninja-qt6` then `cmake --build --preset ninja-qt6` by hand works from a VS developer command prompt. `preset vs-qt6` (Visual Studio generator, `build/`) stays for IDE work.
+
+The build preset caps Ninja at 4 parallel jobs. At 16 jobs the concurrent `cl.exe` processes exhaust the machine's memory and every translation unit dies with `C1060: compiler is out of heap space`; raise the cap via `CMAKE_BUILD_PARALLEL_LEVEL` only when the machine has headroom. A changed source file rebuilds in ~6 s.
+
+## Test
+
+Put the Qt bin directory on `PATH` first or the exe cannot find `Qt6Core.dll`, and set `QT_FORCE_STDERR_LOGGING=1` or Qt swallows its own logs — a clean exit code does not mean it worked.
+
+```
+PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
+  ./build-ninja/test/lens_test.exe --filter
+```
+
+- `--filter` — offline self-check: sample corpus, KnownStore round trip, LlmClient pure helpers. No network, no API key, CI-safe. Change behaviour by editing `test/eval_corpus.json` first; touch `src/` only once `--filter` goes red.
+- `--smoke [word]` — one word through the real model, default `ubiquitous`. Needs a key and spends money, and a human reads the verdict, so it never runs in CI.
+- `LENS_LOG_LEVEL=trace` raises verbosity. `--filter` defaults to `info`, `--smoke` to `trace`.
+
+Targets: `lens_core` (no Qt) → `lens_llm` → `lens_app`. `lens_test` is standalone and never shipped — see `PHASE1.md` §4.5.
+
+## Code Style
+
+Comments are English and Doxygen-style. `///` with `@brief`, `@param`, `@return`, `@throws` on declarations; a `/** @file ... */` block at the top of each file.
+
+```cpp
+/**
+ * @brief Reduce a token to its dictionary form.
+ * @param token Word to reduce, case-insensitive.
+ * @return The lemma; the known set and the cache are keyed by lemma, not by the form written.
+ * @throws std::logic_error If loadWordlist() has not run.
+ */
+std::string lemmatize(std::string_view token);
+```
+
+Chinese stays where a human or the model reads it: the model prompt, user-facing messages (exception texts, `lens_test` diagnostics), and the `*.md` design docs.
+
+Log through spdlog — `spdlog::trace` for per-call pipeline detail, `info` for lifecycle milestones, `error` or `critical` for failures. Every module logs; `src/core/log.h` installs the logger.
 
 ## Reference Documents
 
@@ -44,4 +79,4 @@ cmake --build --preset vs-qt6 --config Debug
 - `UI.md` — UI spec
 - `PHASE1.md` — phase 1 implementation contract (scope, module interfaces, prompt/schema)
 - `ui-prototypes/v1-halo-*.html` — prototype, one file per surface
-- `TODO.md ` — waiting for implement
+- `TODO.md` — waiting for implement
