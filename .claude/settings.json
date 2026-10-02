@@ -1,0 +1,22 @@
+{
+  "skillOverrides": {
+    "qt-cmake-project": "on",
+    "qt-cpp-docs": "on",
+    "qt-cpp-review": "on",
+    "qt-qml": "on",
+    "qt-qml-docs": "on",
+    "qt-qml-profiler": "on",
+    "qt-qml-review": "on",
+    "qt-qml-test": "on",
+    "qt-qml-test-run": "on",
+    "qt-ui-design": "on",
+    "archify": "user-invocable-only",
+    "claude-api": "user-invocable-only",
+    "deslop": "user-invocable-only",
+    "fewer-permission-prompts": "user-invocable-only",
+    "init": "user-invocable-only",
+    "keybindings-help": "user-invocable-only",
+    "security-review": "user-invocable-only",
+    "tldr": "user-invocable-only"
+  }
+}

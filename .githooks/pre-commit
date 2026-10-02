@@ -1,0 +1,112 @@
+#!/bin/sh
+# Lens pre-commit: the two checks that are mechanical and cheap.
+#
+# 1. Chinese typography, as a ratchet. Several docs carry errors that predate this hook --
+#    English prose tripping Chinese rules, mostly -- so each doc is compared against the
+#    budget recorded below rather than held to zero. Lower a number when you clean a doc up;
+#    a raise to make a commit pass is the hook doing its job.
+# 2. The prototype list, in the two places that name it. It has drifted twice already: a new
+#    surface landed in ui-prototypes/ and in UI.md but not in CLAUDE.md's tree.
+#
+# Only what this commit touches is checked, which keeps a commit hook under a few seconds.
+#
+# Setup, once per clone:  git config core.hooksPath .githooks
+#
+# The hook also has to be executable, which git records in the tree rather than reading from
+# the disk: if git ever reports it as skipped, run
+#     git update-index --chmod=+x .githooks/pre-commit
+#
+# Both checks warn and pass when their tool is unavailable, so a missing zhlint or an odd
+# environment cannot make the repository uncommittable.
+#
+# Two things about zhlint that cost an afternoon to learn: it exits 1 when it finds errors
+# (so the exit code cannot tell "found problems" from "did not run" -- an empty report is
+# the signal), and it takes exactly one file argument (passing more silently checks only the
+# first, which is the same as checking nothing).
+
+set -u
+
+cd "$(git rev-parse --show-toplevel)" || exit 0
+
+# Per-doc error budgets. Ratchet: lower on cleanup, never raise to pass.
+BASELINES='CLAUDE.md 61
+CONTEXT.md 0
+DESIGN.md 11
+LLM.md 0
+PHASE1.md 0
+TEST.md 0
+TODO.md 12
+UI.md 31'
+
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+
+check_typography() {
+    command -v npx >/dev/null 2>&1 || { echo "pre-commit: npx not found, skipping typography"; return 0; }
+
+    config="$HOME/.claude/skills/zhlint/assets/zhlintrc.json"
+    [ -f "$config" ] || { echo "pre-commit: $config not found, skipping typography"; return 0; }
+
+    status=0
+    for doc in $staged; do
+        limit=$(printf '%s\n' "$BASELINES" | awk -v d="$doc" '$1 == d { print $2 }')
+        [ -n "$limit" ] || continue
+
+        # Both streams: zhlint prints the offending lines on stderr and the verdict on
+        # stdout. Keeping only stdout counts zero every time, which is a check that always
+        # passes -- the failure mode this hook exists to avoid.
+        report=$(npx -y zhlint --config "$config" "$doc" 2>&1)
+        if ! printf '%s\n' "$report" | grep -qE 'errors\.|No error found'; then
+            echo "pre-commit: zhlint gave no verdict for $doc, skipping typography"
+            continue
+        fi
+
+        count=$(printf '%s\n' "$report" | grep -cE "^$doc:[0-9]+:")
+        if [ "$count" -gt "$limit" ]; then
+            # Line numbers, not messages: most of the count is pre-existing, and the first
+            # few messages usually come from the same old line, which sends the reader to
+            # fix something they did not break.
+            lines=$(printf '%s\n' "$report" | grep -oE "^$doc:[0-9]+" | cut -d: -f2 | sort -nu | head -10 | tr '\n' ' ')
+            echo "pre-commit: $doc has $count typography errors, its budget is $limit"
+            echo "  affected lines: $lines"
+            echo "  messages: npx -y zhlint --config \"\$HOME/.claude/skills/zhlint/assets/zhlintrc.json\" $doc"
+            echo "  (the budget only goes down; fix the line rather than raise it)"
+            status=1
+        fi
+    done
+    return $status
+}
+
+# Sorted, comma-joined names, so "a,b" and "b,a" compare equal.
+normalize() {
+    printf '%s' "$1" | tr ',' '\n' | sed '/^$/d' | sort | tr '\n' ',' | sed 's/,$//'
+}
+
+check_prototype_list() {
+    printf '%s\n' "$staged" | grep -qE '^(ui-prototypes/|CLAUDE\.md$|UI\.md$)' || return 0
+
+    from_disk=$(ls ui-prototypes/v1-halo-*.html 2>/dev/null | sed 's|.*/v1-halo-||; s|\.html$||' | sort | tr '\n' ',' | sed 's/,$//')
+    want=$(normalize "$from_disk")
+
+    for doc in CLAUDE.md UI.md; do
+        listed=$(grep -o 'v1-halo-{[^}]*}\.html' "$doc" | head -1 | sed 's|v1-halo-{||; s|}.*||')
+        got=$(normalize "$listed")
+
+        # An empty parse means the shorthand changed shape, not that the doc is wrong.
+        if [ -z "$want" ] || [ -z "$got" ]; then
+            echo "pre-commit: could not read the prototype list out of $doc, skipping that check"
+            continue
+        fi
+        if [ "$got" != "$want" ]; then
+            echo "pre-commit: the prototype list in $doc does not match ui-prototypes/"
+            echo "  in $doc:  $got"
+            echo "  on disk:  $want"
+            return 1
+        fi
+    done
+    return 0
+}
+
+status=0
+check_typography || status=1
+check_prototype_list || status=1
+exit $status

@@ -1,11 +1,12 @@
 ## Role & Purpose
 
-You are the AI assistant for Lens, a Windows desktop English-learning tool built in C++ / QML (Qt 6). Phase 1 (word-explanation channel, no OCR): clipboard trigger → local filter → DeepSeek (BYOK) → overlay bubble. Auto-scan / hover / frame-select are UI placeholders (need OCR, phase 2).
+You are the AI assistant for Lens, a Windows desktop English-learning tool built in C++ / QML (Qt 6). Phase 1 is the word-explanation channel, no OCR: the pipeline is `PHASE1.md` §3, its scope and the OCR-dependent placeholders are `PHASE1.md` §2.
 
 ## Critical Rules
 
 - No commits unless explicitly requested, no AI attribution in commits or PRs.
 - UI work must comply with `UI.md` and `DESIGN.md`; implementation contract in `PHASE1.md`.
+- Designing or auditing a UI surface starts by loading the `taste-skill` skill; a surface that has been rendered is checked with `visual-qa`.
 - Keep `CONTEXT.md`, `DESIGN.md`, `UI.md`, and `PHASE1.md` in sync on any design change; record major trade-offs as ADRs.
 - Default to Chinese in replies.
 - API key lives only in gitignored `settings.local.json` — never commit it, never log it, never echo it in errors.
@@ -14,7 +15,9 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 
 ```
 lens/
+├── .claude           # project settings: the Qt skill family enabled (settings.json)
 ├── .clang-format     # code format spec
+├── .githooks         # pre-commit: doc typography budget + prototype-list check
 ├── data              # wordlist + llm/ (wire protocol as data)
 ├── i18n              # .ts translations; English is the source language
 ├── scripts           # build.bat — Ninja + MSVC wrapper
@@ -24,7 +27,7 @@ lens/
 ├── src
 ├── test              # gtest targets: unit / integration / perf / smoke, separate from src/
 └── ui-prototypes/
-     └── v1-halo-{tray-menu,stats,words,cost,settings,bubble}.html
+     └── v1-halo-{tray-menu,stats,words,cost,settings,bubble,selection-bar}.html
 ```
 
 ## Build
@@ -45,7 +48,7 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
   ./build-ninja/test/googletest/lens_gtest_unit.exe
 ```
 
-`TEST.md` owns the rest: the three targets, the corpus format, the profiling facility and its build tree, and the run-record convention.
+`TEST.md` owns the rest: the targets, the corpus format, the profiling facility and its build tree, and the run-record convention.
 
 Targets: `lens_core` (no Qt) → `lens_llm` → `lens_app`. The `lens_gtest_*` targets are standalone and never shipped — see `PHASE1.md` §4.5.
 
