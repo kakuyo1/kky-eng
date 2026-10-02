@@ -80,13 +80,20 @@ public:
 
 signals:
     /// @brief A left-button gesture was judged a completed selection.
-    /// @param anchor Release position, in the coordinates Windows reports to the hook: real
-    ///               screen pixels, never virtualised. The bar and the bubble anchor off it,
-    ///               so the process has to be DPI aware or the two will disagree by the
-    ///               monitor's scale factor — measured at 125%: a release at logical x=220
-    ///               arrives here as x=275. Qt makes a QGuiApplication per-monitor aware, so
-    ///               this only bites a process that bypasses it.
+    /// @param anchor Release position in the coordinates Windows reports to the hook: real
+    ///               screen pixels, never virtualised. The windows of the QML surfaces are
+    ///               placed in device-independent pixels instead, so the view divides this by
+    ///               the screen's devicePixelRatio before it anchors anything — measured at
+    ///               125%: a release at physical x=275 is a window coordinate of 220.
     void selectionReleased(QPoint anchor);
+
+    /// @brief A mouse button went down anywhere on the desktop, left or right.
+    /// @param at Press position, in the same physical pixels selectionReleased() reports.
+    /// @note This fires for every press on the machine while the app runs. The surfaces are
+    ///       windows of their own, so a press outside one is never delivered to this process,
+    ///       and the hook is the only place that can see it -- UI.md's "click outside closes"
+    ///       has nothing else to stand on. A view with nothing open should ignore it cheaply.
+    void pointerPressed(QPoint at);
 
 private:
     bool installed_ = false;

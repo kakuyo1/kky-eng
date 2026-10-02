@@ -19,6 +19,14 @@ Window {
     readonly property int shadowMargin: 26
     readonly property int cardWidth: 360
 
+    /// The card of a window this panel opened, in screen coordinates, or null. main.qml's
+    /// outside-press rule reads it: a press that lands on the level list belongs to the list.
+    readonly property var openChildRect: levelField.openChildRect
+
+    /// The list outlives this panel otherwise: it is a window of its own, and nothing else
+    /// knows the panel has gone.
+    onVisibleChanged: if (!visible) levelField.closeList()
+
     width: cardWidth + 2 * shadowMargin
     height: column.implicitHeight + 36 + 2 * shadowMargin
 

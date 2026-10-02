@@ -57,6 +57,33 @@ Window {
             rotation: 45
         }
 
+        // The shadow is cast from a shape-only copy of the card, never from the card itself.
+        // MultiEffect draws its source through an offscreen texture, and at this monitor's
+        // 125% scale that texture is resampled: measured on the real window, one glyph stem
+        // comes out twice as wide and half as dark as the same text drawn directly. The shape
+        // can afford it; the text cannot. So the shape goes through the effect, the text does
+        // not, and both the shape and the effect are declared before the card to paint under it.
+        Rectangle {
+            id: shadowShape
+            anchors.fill: card
+            radius: card.radius
+            color: card.color
+            visible: false
+        }
+
+        MultiEffect {
+            // Placed and sized by the effect, from its source. Anchoring it to the window
+            // stretched the card's shape across the whole surface -- see ShadowCard.qml.
+            x: card.x
+            y: card.y
+            source: shadowShape
+            shadowEnabled: true
+            shadowColor: Qt.rgba(20 / 255, 20 / 255, 26 / 255, Tokens.dark ? 0.75 : 0.24)
+            shadowBlur: 0.9
+            shadowVerticalOffset: 10
+            blurMax: 40
+        }
+
         Rectangle {
             id: card
             width: parent.implicitWidth
@@ -116,16 +143,6 @@ Window {
                     }
                 }
             }
-        }
-
-        MultiEffect {
-            anchors.fill: parent
-            source: card
-            shadowEnabled: true
-            shadowColor: Qt.rgba(20 / 255, 20 / 255, 26 / 255, Tokens.dark ? 0.75 : 0.24)
-            shadowBlur: 0.9
-            shadowVerticalOffset: 10
-            blurMax: 40
         }
     }
 }

@@ -36,6 +36,12 @@ qt_add_executable(lens
   main.cpp
 )
 
+# GUI subsystem, not console. Left at the default, a tray application carries a console window
+# on screen for as long as it runs -- there is no main window to close it with. The property is
+# also what pulls Qt6::EntryPoint in: Qt6::Core's interface links it through
+# $<BOOL:$<TARGET_PROPERTY:WIN32_EXECUTABLE>>, so setting this one property is the whole change.
+set_target_properties(lens PROPERTIES WIN32_EXECUTABLE ON)
+
 # lens_core comes along for its include directories: main.cpp reads the settings document
 # through KnownStore, which needs nlohmann/json.hpp from third_party/.
 target_link_libraries(lens
@@ -70,6 +76,8 @@ qt_add_qml_module(lens
     qml/SwitchRow.qml
     qml/StatRow.qml
     qml/DropdownField.qml
+    qml/MenuRow.qml
+    qml/TrayMenu.qml
     qml/SelectionBar.qml
     qml/Bubble.qml
     qml/SettingsPopup.qml

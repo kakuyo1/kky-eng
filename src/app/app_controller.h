@@ -130,6 +130,12 @@ signals:
     ///             have nothing to send and only copy does anything.
     void selectionBarRequested(QVariantMap payload);
 
+    /// @brief A button went down somewhere on the desktop; forwarded from the mouse hook.
+    /// @param at Press position in physical screen pixels, as the hook reports it. The
+    ///           surfaces are separate windows, so a press outside one is never delivered to
+    ///           this process; this is what lets main.qml close the surface it missed.
+    void pointerPressed(QPoint at);
+
     void bubbleChanged();
     void settingsChanged();
     void statsChanged();

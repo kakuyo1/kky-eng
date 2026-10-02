@@ -165,18 +165,25 @@ int main(int argc, char* argv[])
     if (!tray.show())
         return 1;
 
-    TranslationKeeper translations;
-    translations.select(QString::fromStdString(settingsValue(store, "uiLanguage").empty()
-                                                   ? std::string("zh")
-                                                   : settingsValue(store, "uiLanguage")));
-    QObject::connect(&controller, &AppController::uiLanguageChanged, &app, [&translations](const QString& language) { translations.select(language); });
-
     QQmlApplicationEngine engine;
     // Context properties rather than registered singletons: two objects, one engine, and no
     // build-time type registration to keep in step. ponytail: move to
     // qmlRegisterSingletonInstance if the module ever grows past these two.
     engine.rootContext()->setContextProperty(QStringLiteral("controller"), &controller);
     engine.rootContext()->setContextProperty(QStringLiteral("tray"), &tray);
+
+    TranslationKeeper translations;
+    translations.select(QString::fromStdString(settingsValue(store, "uiLanguage").empty()
+                                                   ? std::string("zh")
+                                                   : settingsValue(store, "uiLanguage")));
+    // Installing a translator does not make QML's qsTr bindings re-evaluate -- the tray menu
+    // follows along only because Tray::retranslate() listens for this signal, and the surfaces
+    // had no equivalent. engine.retranslate() is the hook Qt 6.2 added for exactly this, and it
+    // is why the engine is declared above the connect rather than below it.
+    QObject::connect(&controller, &AppController::uiLanguageChanged, &app, [&translations, &engine](const QString& language) {
+        translations.select(language);
+        engine.retranslate();
+    });
 
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app, [] { LENS_CRITICAL("the QML surfaces failed to load"); QCoreApplication::exit(1); }, Qt::QueuedConnection);
 

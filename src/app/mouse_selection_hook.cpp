@@ -73,6 +73,14 @@ GestureTracker g_tracker;
 MouseSelectionHook* g_owner = nullptr;
 HHOOK g_handle = nullptr;
 
+/// @brief Report a press to the event loop, keeping the callback itself O(1).
+void emitPressedLater(const POINT& pt)
+{
+    MouseSelectionHook* const owner = g_owner;
+    const QPoint at(pt.x, pt.y);
+    QTimer::singleShot(0, owner, [owner, at] { emit owner->pointerPressed(at); });
+}
+
 /**
  * The hook itself. Windows calls it on the thread that installed the hook, within a budget
  * it enforces silently: a callback that overruns LowLevelHooksTimeout gets the hook removed
@@ -86,6 +94,11 @@ LRESULT CALLBACK lowLevelMouseProc(int code, WPARAM wParam, LPARAM lParam)
         switch (wParam) {
             case WM_LBUTTONDOWN:
                 g_tracker.onPress(info->pt.x, info->pt.y, GetTickCount());
+                emitPressedLater(info->pt);
+                break;
+
+            case WM_RBUTTONDOWN:
+                emitPressedLater(info->pt);
                 break;
 
             case WM_LBUTTONUP:

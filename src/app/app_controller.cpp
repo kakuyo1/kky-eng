@@ -99,6 +99,7 @@ AppController::AppController(core::KnownStore& store, llm::LlmClient& llm, Mouse
       pricing_(pricing), grabber_(std::make_unique<SelectionTextGrabber>())
 {
     connect(&hook_, &MouseSelectionHook::selectionReleased, this, &AppController::onSelectionReleased);
+    connect(&hook_, &MouseSelectionHook::pointerPressed, this, &AppController::pointerPressed);
 
     connect(&llm_, &llm::LlmClient::batchFinished, this, [this](const QVector<llm::WordExplanation>& results, llm::Usage usage) {
         busyLabel_.clear();
@@ -276,11 +277,16 @@ void AppController::cancelSend()
 
 void AppController::showBubble(const QString& word, const QString& en, const QString& zh, const QPoint& anchor)
 {
+    // Only the language the reader asked for goes to the surface: UI.md section 4.3's two
+    // lines made "explanation language" look like it did nothing, because both were always
+    // on screen. The word's own margin is what decides, and a change to it lands on the next
+    // bubble rather than on the one already up.
+    const bool wantsChinese = store_.explanationLang() == "zh";
     // A word the reader is being asked about is by definition one they have not marked as
     // known, so a fresh bubble is always a new word; only a verdict can change that.
     bubble_ = QVariantMap{{"word", word},
-                          {"en", en},
-                          {"zh", zh},
+                          {"en", wantsChinese ? QString() : en},
+                          {"zh", wantsChinese ? zh : QString()},
                           {"status", store_.isKnown(word.toStdString()) ? QStringLiteral("known") : QStringLiteral("new")},
                           {"x", anchor.x()},
                           {"y", anchor.y()}};
@@ -336,8 +342,14 @@ void AppController::setTheme(QString theme)
 void AppController::setUiLanguage(QString lang)
 {
     writeDocument("uiLanguage", lang);
-    emit settingsChanged();
+    // Order matters, and only this way round works. A few of the values the surfaces read are
+    // strings this side builds -- "Today 14:03", "Known", the level group names -- so the
+    // payloads have to be asked for again after a language change. Asking before the translator
+    // is swapped hands back the same old language, which is exactly what the words popup did:
+    // its qsTr labels changed and its rows did not.
     emit uiLanguageChanged(lang);
+    emit settingsChanged();
+    emit statsChanged();
 }
 
 void AppController::setSelectionCapture(bool on)

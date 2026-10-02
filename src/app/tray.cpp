@@ -1,16 +1,12 @@
 /**
  * @file tray.cpp
- * @brief The tray icon, its menu, and the strings both show.
+ * @brief The tray icon and its tooltip. The menu itself is a surface; see tray.h.
  */
 
 #include "tray.h"
 
-#include <QAction>
-#include <QActionGroup>
-#include <QCoreApplication>
 #include <QGuiApplication>
 #include <QIcon>
-#include <QMenu>
 #include <QStyleHints>
 #include <QSystemTrayIcon>
 #include <QVariantMap>
@@ -47,58 +43,31 @@ bool taskbarIsDark()
 } // namespace
 
 Tray::Tray(AppController& controller, QObject* parent)
-    : QObject(parent), controller_(controller), icon_(new QSystemTrayIcon(this)),
-      menu_(new QMenu())
+    : QObject(parent), controller_(controller), icon_(new QSystemTrayIcon(this))
 {
-    modeAction_ = menu_->addAction(QString());
-    modeAction_->setEnabled(false);
-    menu_->addSeparator();
-
-    statsAction_ = menu_->addAction(QString(), this, &Tray::statsRequested);
-
-    languageAction_ = menu_->addAction(QString());
-    auto* languages = new QMenu();
-    auto* group = new QActionGroup(this);
-    for (const auto& entry : {std::pair{QLatin1String("zh"), QString::fromUtf8("中文")},
-                              {QLatin1String("en"), QStringLiteral("English")}}) {
-        QAction* action = languages->addAction(entry.second);
-        action->setCheckable(true);
-        action->setData(entry.first);
-        group->addAction(action);
-        connect(action, &QAction::triggered, this, [this, code = QString(entry.first)] {
-            controller_.setUiLanguage(code);
-        });
-    }
-    languageAction_->setMenu(languages);
-
-    settingsAction_ = menu_->addAction(QString(), this, &Tray::settingsRequested);
-    menu_->addSeparator();
-    quitAction_ = menu_->addAction(QString(), this, &Tray::quitRequested);
-
-    icon_->setContextMenu(menu_);
-
     connect(icon_, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
-        if (reason == QSystemTrayIcon::Trigger || reason == QSystemTrayIcon::Context)
+        if (reason == QSystemTrayIcon::Trigger || reason == QSystemTrayIcon::Context) {
             emit geometryChanged();
+            emit menuRequested();
+        }
     });
 
     connect(&controller_, &AppController::settingsChanged, this, &Tray::refresh);
     connect(&controller_, &AppController::statsChanged, this, &Tray::refresh);
     connect(&controller_, &AppController::busyChanged, this, &Tray::refresh);
-    connect(&controller_, &AppController::uiLanguageChanged, this, [this](const QString&) { retranslate(); });
+
+    // The tooltip is the one string this side still owns, so a language change has to redraw
+    // it. It carries the day's tally, which is why it is not simply a translated constant.
+    connect(&controller_, &AppController::uiLanguageChanged, this, &Tray::refresh);
 
     // The reader can switch Windows between light and dark while the app runs, and the icon
     // is drawn for one of the two.
     connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, this, [this] { refresh(); });
 
-    retranslate();
     refresh();
 }
 
-Tray::~Tray()
-{
-    delete menu_; // owned by us, not by the QSystemTrayIcon
-}
+Tray::~Tray() = default;
 
 bool Tray::show()
 {
@@ -130,8 +99,7 @@ Tray::State Tray::state() const
 
 void Tray::refresh()
 {
-    const State current = state();
-    switch (current) {
+    switch (state()) {
         case State::Busy:
             icon_->setIcon(iconFor("busy", taskbarIsDark()));
             break;
@@ -144,34 +112,8 @@ void Tray::refresh()
     }
 
     const QVariantMap stats = controller_.stats();
-    const QString today = tr("Today %1 words")
-                              .arg(QString::number(stats.value("todayPops").toInt()));
+    const QString today = tr("Today %1 words").arg(QString::number(stats.value("todayPops").toInt()));
     icon_->setToolTip(QStringLiteral("Lens · %1 · %2").arg(controller_.modeLabel(), today));
-    // A native menu has no second column, so UI.md 4.2's right-aligned sub-label rides along
-    // in the item text instead.
-    const QString figures = QStringLiteral("%1 %2 · %3%4")
-                                .arg(QString::number(stats.value("todayPops").toInt()), tr("words"), stats.value("currency").toString(), QString::number(stats.value("todayCost").toDouble(), 'f', 2));
-    statsAction_->setText(QStringLiteral("%1  ·  %2").arg(tr("Today's statistics"), figures));
-
-    if (current == State::Off) {
-        modeAction_->setText(tr("Selection capture is off"));
-    } else {
-        modeAction_->setText(controller_.modeLabel());
-    }
-}
-
-void Tray::retranslate()
-{
-    statsAction_->setText(tr("Today's statistics"));
-    languageAction_->setText(tr("Language"));
-    settingsAction_->setText(tr("Settings"));
-    quitAction_->setText(tr("Quit"));
-
-    language_ = controller_.settings().value("uiLanguage").toString();
-    for (QAction* action : languageAction_->menu()->actions())
-        action->setChecked(action->data().toString() == language_);
-
-    refresh();
 }
 
 }

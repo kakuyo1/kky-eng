@@ -21,6 +21,36 @@ Item {
     /// The card's rectangle inside this item, for anchoring content to.
     readonly property alias card: card
 
+    // The shadow is cast from a shape-only copy of the card, never from the card itself.
+    // MultiEffect draws its source through an offscreen texture, and at this monitor's 125%
+    // scale that texture is resampled: measured on the real window, one glyph stem comes out
+    // twice as wide and half as dark as the same text drawn directly. The shape can afford it;
+    // the text cannot. Both the shape and the effect are declared before the card so they paint
+    // under it.
+    Rectangle {
+        id: shadowShape
+        anchors.fill: card
+        radius: root.radius
+        color: root.color
+        visible: false
+    }
+
+    MultiEffect {
+        // Sized and placed by the effect itself, from its source: MultiEffect fills its own
+        // rectangle with the source, so anchoring it to the window (bigger than the card)
+        // stretched the card's shape across the whole surface -- an opaque band inside the
+        // shadow margin, which is the "extra background layer" the panels were showing. Left
+        // unsized, it grows itself by what the blur needs, and the shape maps 1:1.
+        x: card.x
+        y: card.y
+        source: shadowShape
+        shadowEnabled: true
+        shadowColor: Qt.rgba(20 / 255, 20 / 255, 26 / 255, Tokens.dark ? 0.75 : 0.24)
+        shadowBlur: 0.9
+        shadowVerticalOffset: 10
+        blurMax: 40
+    }
+
     Rectangle {
         id: card
         x: root.shadowMargin
@@ -36,15 +66,5 @@ Item {
             id: holder
             anchors.fill: parent
         }
-    }
-
-    MultiEffect {
-        anchors.fill: parent
-        source: card
-        shadowEnabled: true
-        shadowColor: Qt.rgba(20 / 255, 20 / 255, 26 / 255, Tokens.dark ? 0.75 : 0.24)
-        shadowBlur: 0.9
-        shadowVerticalOffset: 10
-        blurMax: 40
     }
 }

@@ -275,9 +275,9 @@ signals:
 - **注入前必须确认前台不是自己**：靠 §4.4 已有的 `WindowDoesNotAcceptFocus`——动作条与气泡都不夺焦点，点它们不会污染下一次注入的目标。
 - **动作条介入数据流**：`onSelectionReleased` 不再直接通向气泡，中间隔着选区动作条。回传的 `action` 取 `translate` / `explain` / `copy`，前两者行为相同（通道由类型定，见 `UI.md` §4.9），故 `action` 只用来区分 “本地复制” 与 “发 LLM 请求” 两条路。
 - **捕获组件是两个文件**：`mouse_selection_hook.{h,cpp}`（低层钩子与手势规则）与 `selection_text_grabber.{h,cpp}`（注入 Ctrl+C、剪贴板存还原）。终端排除与前台自查都落在取文那一步——危险发生在注入处，那也才是查得到前台进程的地方；`selectionReleased` 只带 `QPoint`，不带进程名。两条纯谓词 `isSelectionGesture` / `isExcludedProcess` 收普通参数，可离线断言。
-- **锚点是物理像素**：钩子拿到的 `pt` 从不虚拟化，而 DPI 无感知进程自己的坐标是虚拟化的，两者会差一个缩放系数（本机 125% 实测：逻辑 x=220 的松手位置到达钩子是 x=275）。真实应用里 Qt 会把 QGuiApplication 设成 per-monitor aware，两边才重合；绕过 Qt 的进程要自己声明，否则动作条与气泡会偏。
+- **锚点是物理像素，窗口坐标不是**：钩子拿到的 `pt` 从不虚拟化，而 QML 窗口落在设备无关像素上，两者差一个 `devicePixelRatio`（本机 125% 实测：物理 x=275 的松手位置，窗口坐标是 220）；按 1:1 直接用，动作条会偏出选区四分之一屏，渲染循环还会记 “矩形不与屏幕相交”。Qt 会把 `QGuiApplication` 设成 per-monitor aware（实测进程感知级别 = 2），这一条只决定渲染清晰度，不改变上面的换算——交给动作条与气泡之前必须先除。
 
-QML 表面：设置浮层、选区动作条、解释气泡、统计弹窗及其下钻的词汇 / 花费弹窗、发送确认，按 `UI.md` 规格落地；占位项 `enabled: false`。托盘图标（四状态）与托盘菜单用 **C++ `QSystemTrayIcon` + `QMenu`**（QtWidgets，Windows 原生可靠；`Qt.labs.platform` 实验性 QML 类型在 6.9 上右键菜单不生效，弃用）。QML 根为隐藏 0×0 `Window`（`visible: false`、`WindowDoesNotAcceptFocus`）——弹层 Window 需要窗口上下文，隐藏窗口无任何可见足迹，不构成主窗口。
+QML 表面：设置浮层、选区动作条、解释气泡、统计弹窗及其下钻的词汇 / 花费弹窗、发送确认，按 `UI.md` 规格落地；占位项 `enabled: false`。托盘图标（四状态）用 **C++ `QSystemTrayIcon`**：那是 shell 的东西，没有 QML 对应物。**菜单不是原生的**——`Menu` 曾按 “Windows 原生可靠” 选过 `QMenu`（`Qt.labs.platform` 的实验性 QML 类型在 6.9 上右键菜单不生效，仍弃用），代价是画不成 `UI.md` §4.2 的卡片；现改为一个普通表面（`qml/TrayMenu.qml`），`Tray` 只在图标被点时发一个 `menuRequested`。QML 根为隐藏 0×0 `Window`（`visible: false`、`WindowDoesNotAcceptFocus`）——弹层 Window 需要窗口上下文，隐藏窗口无任何可见足迹，不构成主窗口。
 
 ### 4.5 Test（`test/googletest/`，独立目标，不编进 `lens_app`）
 
@@ -350,7 +350,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 
 日志：全项目走 spdlog（`third_party/spdlog`，编译成静态库），模块只用 `src/core/log.h` 的 `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_ERROR` / `LENS_CRITICAL` 宏。`SPDLOG_ACTIVE_LEVEL` 由 CMake 挂在 `lens_core` 上（Debug = trace，Release = info），低于它的调用整条编译掉——不能写在 `log.h` 里，spdlog 自己的 `common.h` 一旦被包含就会抢先定义成 info。`lens::log::init()` 写 `logs/lens.log`（10 MB 一轮，留 3 个备份）并镜像到 stderr，级别可用 `LENS_LOG_LEVEL` 覆盖。Qt 自身的 qDebug / qWarning / qCritical 等由 `src/llm/qt_log.h` 的 `installQtMessageHandler()` 折进同一个 logger，源位置指向 Qt 调用点而非桥接处。密钥永不进日志（第 6 节）。
 
-现状：`lens_core` 为 STATIC（`log.cpp` + `profile.cpp` + `filter_core.cpp` + `known_store.cpp` + `stats_store.cpp`），`lens_llm` 亦为 STATIC（`llm_pure.cpp` + `llm_client.cpp` + `llm_protocol.cpp` + `llm_pricing.cpp`），`lens_gtest_unit` / `lens_gtest_smoke` 链接两者，`lens_gtest_perf` 只链接 `lens_core`。`src/app` 为 STATIC，装着捕获组件（§4.4）、`AppController` 与托盘（`QSystemTrayIcon` + `QMenu`），除 `Qt6::Core` 外挂 Gui / Widgets 与 `user32`。可执行目标 `lens`（同目录的 `main.cpp` + `qml/`）不与 `lens_gtest_*` 共用：`qt_add_qml_module` 挂在 `lens` 上而不是静态库上——挂静态库要额外处理 QML 插件注册，而测试目标本来就不需要 QML。
+现状：`lens_core` 为 STATIC（`log.cpp` + `profile.cpp` + `filter_core.cpp` + `known_store.cpp` + `stats_store.cpp`），`lens_llm` 亦为 STATIC（`llm_pure.cpp` + `llm_client.cpp` + `llm_protocol.cpp` + `llm_pricing.cpp`），`lens_gtest_unit` / `lens_gtest_smoke` 链接两者，`lens_gtest_perf` 只链接 `lens_core`。`src/app` 为 STATIC，装着捕获组件（§4.4）、`AppController` 与托盘图标（`QSystemTrayIcon`；菜单是 QML 表面），除 `Qt6::Core` 外挂 Gui / Widgets 与 `user32`。可执行目标 `lens`（同目录的 `main.cpp` + `qml/`）不与 `lens_gtest_*` 共用：`qt_add_qml_module` 挂在 `lens` 上而不是静态库上——挂静态库要额外处理 QML 插件注册，而测试目标本来就不需要 QML。
 
 ## 8 预检清单（动工前）
 
@@ -403,7 +403,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 
 ### 切片三：AppController + QML 表面（进行中）
 
-- **范围**：`src/app` 落地。`AppController`（选区入口：鼠标钩子 + Ctrl+C 取文、选区类型判定与锚点、动作条回传、候选查缓存、known-set 回写、设置读写、DEV_SEND_CONFIRM 拦截）与 `UI.md` 的全部表面（设置浮层、选区动作条、解释气泡、统计弹窗及其下钻的词汇 / 花费弹窗、发送确认）；托盘图标四状态与菜单用 **C++ `QSystemTrayIcon` + `QMenu`**。
+- **范围**：`src/app` 落地。`AppController`（选区入口：鼠标钩子 + Ctrl+C 取文、选区类型判定与锚点、动作条回传、候选查缓存、known-set 回写、设置读写、DEV_SEND_CONFIRM 拦截）与 `UI.md` 的全部表面（设置浮层、选区动作条、解释气泡、统计弹窗及其下钻的词汇 / 花费弹窗、发送确认、托盘菜单）；托盘图标四状态用 **C++ `QSystemTrayIcon`**，菜单是一个表面（见 §4.4 的落地注记）。
 - **含**：§4.2 遗留的 “档位序号 → 词频阈值” 映射，与 `TODO.md` 的词书数据一起做（`minFreqRank` 目前是近似，见 §4.1 落地注记）。
 - **含**：i18n 首次真正生效——QML 目录加入 `lupdate` 扫描，`.qm` 经 CMake 构建、启动时加载（现在 `.ts` 只有 llm 模块的 22 条，加载机制尚未接）。
 - **含**：统计三个弹窗的数据层 `StatsStore`（§4.2）与金额所需的 `Usage` + 价目（§4.3）——此前两个契约里都没有，是切片三补的。
@@ -417,6 +417,16 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 - **选区的类型判定发生在动作之前**：`onSelectionReleased` 走完取文只判定并弹动作条，不请求；点 “翻译” 或 “解释” 之后才按判定结果分流，单词发请求，无候选时只有复制文本这一条路走得通。判定结果放进 `selectionBarRequested` 的 `kind`，QML 不参与判定。
 - **发出去的是词根，不是原文形态**：选中 running 时，请求、缓存键、气泡标题、历史记录统一用 lemma（run）。§4.2 已定缓存按词根分键，若请求发 surface，同一次选择就会产生 “问的是 running、缓存存的是 run” 两套键，再选 ran 也命中不了。代价是气泡标题显示词典形而非读者选中的词形。
 - **托盘 icon 只有三个可达状态**：自动扫描开 / 解释中 / 已关；第四态（预算耗尽）要等每日预算上限落地，它的图已在 `icons/` 里备好但没有分支去选它——留一个到不了的分支比缺一张图更坏。
+
+真机跑过之后的修正（2026-10-03，同样不占切片号）：
+
+- **`MultiEffect` 不能包着文字用**：它把源渲进一张离屏贴图，本机 125% 下这张贴图被重采样——实测同一个字形笔画从 5 像素的锐利边变成 11 像素的糊团，同一个窗口里直接画的那份是清晰的。阴影改由一份只有形状、`visible: false` 的副本去投（`ShadowCard.qml` / `SelectionBar.qml` / `Bubble.qml`），文字走直接绘制。新增表面照此办理，不要为了阴影把内容塞进特效层。
+- **同理，特效 item 只能用源的尺寸**：`MultiEffect` 把自己那份源**铺满整个 item**，所以写成 `anchors.fill: parent`（parent 是整个窗口，比卡片大）时，卡片的形状会被拉伸到整窗——实测每个弹窗底部都多出一层背景，就是这个。要么像现在这样只给位置、让特效按源自己定尺寸（`x: card.x; y: card.y`，不写 width / height），要么让 item 与源同尺寸。
+- **动作条与气泡此前偏出选区**：见 §4.4 的锚点修正，`main.qml` 的 `toDip()` 是唯一换算点，钩子给的物理像素一律先过它。
+- **`lens` 目标此前是 console 子系统**：托盘应用带一个常驻黑窗口，且 `WIN32_EXECUTABLE` 关着，Qt 也就不会链 `Qt6::EntryPoint`（`Qt6::Core` 的接口按这个属性用生成器表达式取舍）。一行 `set_target_properties(lens PROPERTIES WIN32_EXECUTABLE ON)` 同时解决两件事，不必手写 manifest、也不必手动声明 DPI 感知。
+- **界面语言要调 `QQmlApplicationEngine::retranslate()`**：装翻译器不会让 QML 的 `qsTr` 绑定重算，托盘菜单当场变是因为 C++ 那侧自己接了 `uiLanguageChanged`，QML 表面没有对应动作。因此 `engine` 必须声明在接这个信号的 lambda 之前。
+- **换语言时信号的顺序不是随意的**：`setUiLanguage` 先发 `uiLanguageChanged`（它才装翻译器），再发 `settingsChanged` / `statsChanged`。反过来发，重算 `words()` 时用的还是旧翻译器，词汇弹窗会出现表头已变、行没变的样子——实测就是这样，先发 `statsChanged` 那一版没修好。
+- **点击外部关闭靠钩子**：表面各是独立 `Window`，落在别的窗口上的按下根本不会送进本进程，只有低层钩子看得见（`MouseSelectionHook::pointerPressed` → `AppController` 转发 → `main.qml` 的 `dismissOutside()`）。判 “外面” 用的是卡片矩形而非窗口矩形，四周 26 px 阴影边距算外面。
 
 ### 切片四：阶段二通道（未开始）
 

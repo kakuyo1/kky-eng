@@ -70,6 +70,30 @@ Window {
         implicitWidth: 270
         implicitHeight: card.height + bubble.tailHeight
 
+        // The shadow is cast from a shape-only copy of the card, never from the card itself:
+        // MultiEffect draws its source through an offscreen texture, and at this monitor's
+        // 125% scale that texture is resampled. See SelectionBar.qml for the measurement.
+        Rectangle {
+            id: shadowShape
+            anchors.fill: card
+            radius: card.radius
+            color: card.color
+            visible: false
+        }
+
+        MultiEffect {
+            // Placed and sized by the effect, from its source. Anchoring it to the window
+            // stretched the card's shape across the whole surface -- see ShadowCard.qml.
+            x: card.x
+            y: card.y
+            source: shadowShape
+            shadowEnabled: true
+            shadowColor: Qt.rgba(20 / 255, 20 / 255, 26 / 255, Tokens.dark ? 0.75 : 0.26)
+            shadowBlur: 0.9
+            shadowVerticalOffset: 8
+            blurMax: 44
+        }
+
         Rectangle {
             id: tail
             width: 14
@@ -92,8 +116,28 @@ Window {
             border.width: 1
             border.color: Tokens.bubbleBorder
 
+            // Leaving takes effect only if it lasts: a pointer sitting on the edge of the
+            // card can read as an exit for a frame or two while the verdict row animates open,
+            // and each false reading restarts the countdown and collapses the row again.
+            // Entering stays immediate, so the row still opens the moment the pointer arrives.
+            // ponytail: a guard, not a diagnosis -- a controlled run with the pointer parked on
+            // the card showed no flapping, so the cause of the reported one is still open. If
+            // it outlasts this, raise the interval.
             HoverHandler {
-                onHoveredChanged: bubble.hovering = hovered
+                onHoveredChanged: {
+                    if (hovered) {
+                        hoverSettle.stop();
+                        bubble.hovering = true;
+                    } else {
+                        hoverSettle.restart();
+                    }
+                }
+            }
+
+            Timer {
+                id: hoverSettle
+                interval: 140
+                onTriggered: bubble.hovering = false
             }
 
             Column {
@@ -238,16 +282,6 @@ Window {
                     font.pixelSize: 11
                 }
             }
-        }
-
-        MultiEffect {
-            anchors.fill: parent
-            source: card
-            shadowEnabled: true
-            shadowColor: Qt.rgba(20 / 255, 20 / 255, 26 / 255, Tokens.dark ? 0.75 : 0.26)
-            shadowBlur: 0.9
-            shadowVerticalOffset: 8
-            blurMax: 44
         }
     }
 }

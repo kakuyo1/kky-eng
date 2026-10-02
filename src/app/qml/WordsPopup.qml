@@ -22,6 +22,9 @@ Window {
     /// 0 = all, 1 = known, 2 = new.
     property int filter: 0
 
+    /// The reader asked for the panel this one was opened from.
+    signal backRequested()
+
     function openNear(anchor) {
         words.x = Math.max(8, anchor.x - width + 60);
         words.y = Math.max(8, anchor.y - height);
@@ -47,7 +50,17 @@ Window {
                     font.pixelSize: 14
                     font.weight: Font.DemiBold
                 }
-                Item { width: parent.width - 40; height: 1 }
+                Item { width: parent.width - 61; height: 1 }
+                // Back to the statistics panel, which is where this one opens from. This panel
+                // replaces it rather than stacking on it, so the way up has to be visible.
+                Icon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    path: "M19 12H5 M12 5l-7 7 7 7"
+                    color: Tokens.faint
+                    HoverHandler { cursorShape: Qt.PointingHandCursor }
+                    TapHandler { onTapped: words.backRequested() }
+                }
+                Item { width: 6; height: 1 }
                 Icon {
                     anchors.verticalCenter: parent.verticalCenter
                     path: "M5 5l14 14M19 5L5 19"
@@ -80,7 +93,9 @@ Window {
 
             Item {
                 width: parent.width
-                height: 306
+                // UI.md 4.7 gives the list a *maximum* of 306px: a handful of words leaves a
+                // panel sized to those words, not a panel with a hole under them.
+                height: Math.min(306, list.contentHeight)
 
                 ListView {
                     id: list

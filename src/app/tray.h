@@ -4,18 +4,16 @@
 #include <QRect>
 #include <QString>
 
-class QAction;
-class QMenu;
 class QSystemTrayIcon;
 
 /**
  * @file tray.h
- * @brief The tray icon and its menu, in widgets rather than QML.
+ * @brief The tray icon, and nothing else: the menu is a QML surface.
  *
- * The contract picked C++ QSystemTrayIcon + QMenu over QML's Qt.labs.platform, whose context
- * menus do not come up on Qt 6.9 (PHASE1.md section 4.4). The cost is that the menu is a
- * native one and cannot be the rounded card UI.md 4.2 draws; the benefit is a menu that
- * actually appears on Windows.
+ * The menu was a native QMenu because QML's Qt.labs.platform context menus do not come up on
+ * Qt 6.9 (PHASE1.md section 4.4). That reason still holds, but the cost was a menu that could
+ * not be the card UI.md 4.2 draws, so the menu is now one of the surfaces: a frameless window
+ * like the action bar and the panels. What is left here is the icon the shell owns.
  */
 
 namespace lens::app {
@@ -23,7 +21,7 @@ namespace lens::app {
 class AppController;
 
 /**
- * @brief Keeps the tray icon in step with the controller, and routes menu picks back.
+ * @brief Keeps the tray icon in step with the controller, and says when it was clicked.
  *
  * @note The fourth icon state, an exhausted daily budget, is not reachable in phase 1: the
  *       budget itself is a placeholder (PHASE1.md section 2), so nothing sets it and the
@@ -33,10 +31,7 @@ class Tray : public QObject {
     Q_OBJECT
     Q_PROPERTY(QRect geometry READ geometry NOTIFY geometryChanged)
 public:
-    /**
-     * @brief Build the icon and the menu.
-     * @param controller Supplies the mode, the day's tallies, and the language list.
-     */
+    /// @param controller Supplies the mode, the day's tallies and the busy state.
     explicit Tray(AppController& controller, QObject* parent = nullptr);
     ~Tray() override;
 
@@ -44,14 +39,13 @@ public:
     /// @return False when the shell has no tray; the reason is logged.
     bool show();
 
-    /// @return Where the icon sits on screen, for anchoring the popups. May be null when the
-    ///         shell does not report it, which the caller has to handle.
+    /// @return Where the icon sits on screen, for anchoring the menu and the panels. May be
+    ///         null when the shell does not report it, which the caller has to handle.
     QRect geometry() const;
 
 signals:
-    void statsRequested();
-    void settingsRequested();
-    void quitRequested();
+    /// @brief The reader clicked the icon, left or right: put the menu up.
+    void menuRequested();
     void geometryChanged();
 
 private:
@@ -62,24 +56,14 @@ private:
         Off,  ///< Selection capture is off.
     };
 
-    /// @brief Recompute the state, the icon, the tooltip and the menu labels.
+    /// @brief Recompute the state, the icon and the tooltip.
     void refresh();
 
-    /// @brief Rebuild every string, e.g. after the interface language changed.
-    void retranslate();
-
-    /// @return The geometry the shell reports, read fresh.
+    /// @return The state the controller's own values imply.
     State state() const;
 
     AppController& controller_;
     QSystemTrayIcon* icon_ = nullptr;
-    QMenu* menu_ = nullptr;
-    QAction* modeAction_ = nullptr;
-    QAction* statsAction_ = nullptr;
-    QAction* languageAction_ = nullptr;
-    QAction* settingsAction_ = nullptr;
-    QAction* quitAction_ = nullptr;
-    QString language_;
 };
 
 }
