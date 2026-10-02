@@ -7,8 +7,8 @@
 
 #include <variant>
 
-#include "llm_client.h"    // Config / WordExplanation
-#include "llm_protocol.h"  // Channel
+#include "llm_client.h"   // Config / WordExplanation
+#include "llm_protocol.h" // Channel
 
 /**
  * @file llm_pure.h
@@ -49,8 +49,7 @@ QString maskSensitive(const QString& text);
  * @return A compact JSON body, ready to POST.
  * @throws std::logic_error If that channel's protocol has not been loaded.
  */
-QByteArray buildRequestBody(const Config& config, Channel channel, const QStringList& words,
-                            const QString& explanationLang);
+QByteArray buildRequestBody(const Config& config, Channel channel, const QStringList& words, const QString& explanationLang);
 
 /**
  * @brief Validate a response that arrives from the network and must not be trusted.

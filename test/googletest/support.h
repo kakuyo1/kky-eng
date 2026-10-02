@@ -21,7 +21,10 @@
 namespace lens::test {
 
 /// @return The repository root the tests read their data files from.
-inline std::filesystem::path sourceDir() { return std::filesystem::path(LENS_SOURCE_DIR); }
+inline std::filesystem::path sourceDir()
+{
+    return std::filesystem::path(LENS_SOURCE_DIR);
+}
 
 /**
  * @brief Load the word list and the irregular table, once.
@@ -30,7 +33,8 @@ inline std::filesystem::path sourceDir() { return std::filesystem::path(LENS_SOU
  * both. They run behind a function-local static so the second suite to ask pays nothing, and
  * so a load failure surfaces inside a test rather than in a global constructor.
  */
-inline void requireFilterTablesLoaded() {
+inline void requireFilterTablesLoaded()
+{
     static const bool loaded = [] {
         lens::core::loadWordlist(sourceDir() / "data" / "wordlist.txt");
         lens::core::loadIrregulars(sourceDir() / "data" / "irregulars.tsv");
@@ -42,7 +46,10 @@ inline void requireFilterTablesLoaded() {
 /// @brief Base for tests that need the filter tables in memory.
 struct CoreTest : ::testing::Test {
 protected:
-    void SetUp() override { requireFilterTablesLoaded(); }
+    void SetUp() override
+    {
+        requireFilterTablesLoaded();
+    }
 };
 
 }

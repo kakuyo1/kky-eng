@@ -1,7 +1,7 @@
 ---
 Language: Cpp
 BasedOnStyle: LLVM
-Standard: c++17
+Standard: c++20
 
 UseTab: Never
 IndentWidth: 4
@@ -10,20 +10,29 @@ ContinuationIndentWidth: 4
 
 ColumnLimit: 0
 
+# The code attaches & and * to the type (`const std::string& lemma`), which is clang-format's
+# Left. DerivePointerAlignment must stay off, or it re-derives per file from whatever it sees.
 DerivePointerAlignment: false
-PointerAlignment: Right
-ReferenceAlignment: Right
+PointerAlignment: Left
+ReferenceAlignment: Left
 
+# Allman for functions, `if (...) {` on one line for control statements, and the brace on the
+# same line as the keyword for namespaces, classes, structs and enums. That is what the tree
+# mostly does -- 22 same-line namespaces and no Allman ones, measured -- with a couple of
+# same-line functions left in llm_client.cpp, so a first run of the formatter would normalise a
+# little of everything. The previous version of this file asked for the opposite (Allman for
+# every brace, `int *a`, declarations padded into columns), which is part of why it and the
+# code disagreed.
 BreakBeforeBraces: Custom
 BraceWrapping:
-  AfterClass: true
+  AfterClass: false
   AfterControlStatement: Never
-  AfterEnum: true
+  AfterEnum: false
   AfterExternBlock: true
   AfterFunction: true
-  AfterNamespace: true
-  AfterStruct: true
-  AfterUnion: true
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
   BeforeCatch: false
   BeforeElse: false
   BeforeLambdaBody: false
@@ -31,12 +40,20 @@ BraceWrapping:
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
 
-AlignConsecutiveAssignments: Consecutive
-AlignConsecutiveDeclarations: Consecutive
+# Off: consecutive declarations and assignments are written flush, not padded into columns.
+# (AlignTrailingComments stays at its default: the `///<` comments in the tree are aligned, and
+# turning it off strips that padding from every field in the repository -- 3795 changed lines
+# instead of 1024, measured.)
+AlignConsecutiveAssignments: None
+AlignConsecutiveDeclarations: None
 AllowShortBlocksOnASingleLine: Never
-AllowShortCaseLabelsOnASingleLine: false
+# The next two are permissions rather than normalisers: a short arm that arrives on one line is
+# kept there, and one that arrives already broken stays broken. So the tree's own form has to be
+# run through the formatter first -- 14 one-line `case X: return Y;` and 34 one-line
+# `if (...) return ...;` were counted in the sources before the first pass.
+AllowShortCaseLabelsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: None
-AllowShortIfStatementsOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLoopsOnASingleLine: false
 
 SpaceBeforeParens: ControlStatements
@@ -62,4 +79,3 @@ BreakStringLiterals: false
 MaxEmptyLinesToKeep: 1
 KeepEmptyLinesAtTheStartOfBlocks: false
 IndentPPDirectives: None
-...

@@ -52,8 +52,7 @@ constexpr int kClipboardRetryMs = 10;
  */
 bool openClipboardWithRetry()
 {
-    for (int attempt = 0; attempt < kClipboardAttempts; ++attempt)
-    {
+    for (int attempt = 0; attempt < kClipboardAttempts; ++attempt) {
         if (OpenClipboard(nullptr) != FALSE) return true;
         Sleep(kClipboardRetryMs);
     }
@@ -84,8 +83,7 @@ constexpr std::array<std::string_view, 7> kExcludedProcesses{
  */
 bool isHandleFormat(UINT format)
 {
-    switch (format)
-    {
+    switch (format) {
         case CF_BITMAP:
         case CF_PALETTE:
         case CF_ENHMETAFILE:
@@ -158,8 +156,7 @@ bool sendCopyKeystroke()
 
     INPUT inputs[4] = {};
     std::size_t count = 0;
-    if (!ctrlHeld)
-    {
+    if (!ctrlHeld) {
         inputs[count].type = INPUT_KEYBOARD;
         inputs[count].ki.wVk = VK_CONTROL;
         ++count;
@@ -171,8 +168,7 @@ bool sendCopyKeystroke()
     inputs[count].ki.wVk = 'C';
     inputs[count].ki.dwFlags = KEYEVENTF_KEYUP;
     ++count;
-    if (!ctrlHeld)
-    {
+    if (!ctrlHeld) {
         inputs[count].type = INPUT_KEYBOARD;
         inputs[count].ki.wVk = VK_CONTROL;
         inputs[count].ki.dwFlags = KEYEVENTF_KEYUP;
@@ -208,11 +204,9 @@ std::optional<QString> readClipboardText()
     if (OpenClipboard(nullptr) == FALSE) return std::nullopt;
 
     std::optional<QString> text;
-    if (const HANDLE handle = GetClipboardData(CF_UNICODETEXT))
-    {
+    if (const HANDLE handle = GetClipboardData(CF_UNICODETEXT)) {
         // Owned by the clipboard, so it is locked and unlocked but never freed here.
-        if (const auto* wide = static_cast<const wchar_t*>(GlobalLock(handle)))
-        {
+        if (const auto* wide = static_cast<const wchar_t*>(GlobalLock(handle))) {
             text = QString::fromWCharArray(wide);
             GlobalUnlock(handle);
         }
@@ -222,7 +216,7 @@ std::optional<QString> readClipboardText()
     return text;
 }
 
-}   // namespace
+} // namespace
 
 bool isExcludedProcess(std::string_view executableName)
 {
@@ -237,8 +231,7 @@ bool isExcludedProcess(std::string_view executableName)
 
     // Exact match, never a substring: a process that merely has "conhost" inside its name is
     // not a terminal, and excluding it would silently kill the feature there.
-    for (const std::string_view candidate : kExcludedProcesses)
-    {
+    for (const std::string_view candidate : kExcludedProcesses) {
         if (candidate == lowered) return true;
     }
     return false;
@@ -250,16 +243,13 @@ ClipboardSnapshot ClipboardSnapshot::take()
 
     // Failure here is the one case where the caller must not go on: emptying a clipboard that
     // could not be read destroys it with nothing to put back.
-    if (!openClipboardWithRetry())
-    {
+    if (!openClipboardWithRetry()) {
         LENS_WARN("ClipboardSnapshot::take: OpenClipboard failed with error {}", GetLastError());
         return snapshot;
     }
 
-    for (UINT format = 0; (format = EnumClipboardFormats(format)) != 0;)
-    {
-        if (isHandleFormat(format))
-        {
+    for (UINT format = 0; (format = EnumClipboardFormats(format)) != 0;) {
+        if (isHandleFormat(format)) {
             LENS_TRACE("ClipboardSnapshot::take: '{}' is a handle, not memory; leaving it behind", formatName(format));
             continue;
         }
@@ -274,8 +264,7 @@ ClipboardSnapshot ClipboardSnapshot::take()
         // GetClipboardData renders on demand for a delayed format, so this also forces the
         // source application to hand its data over before it loses the chance.
         const void* source = GlobalLock(handle);
-        if (source == nullptr || size == 0)
-        {
+        if (source == nullptr || size == 0) {
             if (source != nullptr) GlobalUnlock(handle);
             LENS_WARN("ClipboardSnapshot::take: cannot read '{}'; leaving it behind", formatName(format));
             continue;
@@ -301,8 +290,7 @@ bool ClipboardSnapshot::restore() const
     if (!taken_) return true;
     if (entries_.empty()) return true;
 
-    if (!openClipboardWithRetry())
-    {
+    if (!openClipboardWithRetry()) {
         LENS_WARN("ClipboardSnapshot::restore: OpenClipboard failed with error {}; the reader's clipboard is gone", GetLastError());
         return false;
     }
@@ -310,25 +298,21 @@ bool ClipboardSnapshot::restore() const
     EmptyClipboard();
 
     bool complete = true;
-    for (const Entry& entry : entries_)
-    {
+    for (const Entry& entry : entries_) {
         HGLOBAL memory = GlobalAlloc(GMEM_MOVEABLE, entry.bytes.size());
-        if (memory == nullptr)
-        {
+        if (memory == nullptr) {
             LENS_WARN("ClipboardSnapshot::restore: cannot allocate {} bytes for '{}'", entry.bytes.size(), formatName(entry.format));
             complete = false;
             continue;
         }
 
-        if (void* target = GlobalLock(memory))
-        {
+        if (void* target = GlobalLock(memory)) {
             std::memcpy(target, entry.bytes.data(), entry.bytes.size());
             GlobalUnlock(memory);
         }
 
         // SetClipboardData takes ownership on success and leaves it with us on failure.
-        if (SetClipboardData(entry.format, memory) == nullptr)
-        {
+        if (SetClipboardData(entry.format, memory) == nullptr) {
             GlobalFree(memory);
             LENS_WARN("ClipboardSnapshot::restore: SetClipboardData failed for '{}'", formatName(entry.format));
             complete = false;
@@ -339,12 +323,13 @@ bool ClipboardSnapshot::restore() const
     return complete;
 }
 
-SelectionTextGrabber::SelectionTextGrabber(QObject* parent) : QObject(parent) {}
+SelectionTextGrabber::SelectionTextGrabber(QObject* parent)
+    : QObject(parent)
+{}
 
 std::variant<QString, GrabStatus> SelectionTextGrabber::grab()
 {
-    if (grabbing_)
-    {
+    if (grabbing_) {
         // The nested event loop in waitForClipboardChange pumps messages, so the mouse hook
         // can fire from inside a grab. Refusing the re-entry is what keeps the snapshot of
         // the outer call intact.
@@ -353,16 +338,14 @@ std::variant<QString, GrabStatus> SelectionTextGrabber::grab()
     }
 
     const HWND foreground = GetForegroundWindow();
-    if (foreground == nullptr)
-    {
+    if (foreground == nullptr) {
         LENS_TRACE("SelectionTextGrabber::grab: no foreground window to copy from");
         return GrabStatus::CopyTimedOut;
     }
 
     DWORD ownerPid = 0;
     GetWindowThreadProcessId(foreground, &ownerPid);
-    if (ownerPid == GetCurrentProcessId())
-    {
+    if (ownerPid == GetCurrentProcessId()) {
         // The overlay surfaces never take focus (PHASE1.md section 4.4), so this should not
         // happen; if it ever does, injecting would press Ctrl+C into our own UI.
         LENS_TRACE("SelectionTextGrabber::grab: the foreground window is ours");
@@ -370,8 +353,7 @@ std::variant<QString, GrabStatus> SelectionTextGrabber::grab()
     }
 
     const std::string processName = foregroundProcessName(foreground);
-    if (isExcludedProcess(processName))
-    {
+    if (isExcludedProcess(processName)) {
         LENS_INFO("SelectionTextGrabber::grab: '{}' is excluded; Ctrl+C there is an interrupt", processName);
         return GrabStatus::ProcessExcluded;
     }
@@ -381,8 +363,7 @@ std::variant<QString, GrabStatus> SelectionTextGrabber::grab()
     // Put the clipboard aside before touching it. Failing to take it means stopping, since
     // clobbering a clipboard that cannot be restored is worse than doing nothing.
     const ClipboardSnapshot snapshot = ClipboardSnapshot::take();
-    if (!snapshot.taken())
-    {
+    if (!snapshot.taken()) {
         LENS_WARN("SelectionTextGrabber::grab: no snapshot of the clipboard; leaving it alone");
         grabbing_ = false;
         return GrabStatus::ClipboardBusy;
@@ -390,8 +371,7 @@ std::variant<QString, GrabStatus> SelectionTextGrabber::grab()
 
     const DWORD sequenceBefore = GetClipboardSequenceNumber();
 
-    if (!sendCopyKeystroke())
-    {
+    if (!sendCopyKeystroke()) {
         LENS_WARN("SelectionTextGrabber::grab: SendInput was refused, which is what an elevated foreground window does");
         snapshot.restore();
         grabbing_ = false;
@@ -406,13 +386,11 @@ std::variant<QString, GrabStatus> SelectionTextGrabber::grab()
         LENS_WARN("SelectionTextGrabber::grab: the reader's clipboard could not be put back in full");
     grabbing_ = false;
 
-    if (!landed)
-    {
+    if (!landed) {
         LENS_TRACE("SelectionTextGrabber::grab: the clipboard did not change within {} ms", kGrabDeadlineMs);
         return GrabStatus::CopyTimedOut;
     }
-    if (!copied)
-    {
+    if (!copied) {
         LENS_WARN("SelectionTextGrabber::grab: the clipboard changed but carried no text");
         return GrabStatus::EmptyText;
     }

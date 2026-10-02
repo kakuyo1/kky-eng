@@ -29,22 +29,27 @@ using lens::core::KnownStore;
 using lens::test::CoreTest;
 
 /// @return Just the surface forms, which is what the corpus asserts on.
-std::vector<std::string> surfaces(const std::vector<Candidate>& candidates) {
+std::vector<std::string> surfaces(const std::vector<Candidate>& candidates)
+{
     std::vector<std::string> out;
     out.reserve(candidates.size());
-    for (const auto& candidate : candidates) out.push_back(candidate.surface);
+    for (const auto& candidate : candidates)
+        out.push_back(candidate.surface);
     return out;
 }
 
 /// @return Just the lemmas, for the corpus entries that spell out an expected reduction.
-std::vector<std::string> lemmas(const std::vector<Candidate>& candidates) {
+std::vector<std::string> lemmas(const std::vector<Candidate>& candidates)
+{
     std::vector<std::string> out;
     out.reserve(candidates.size());
-    for (const auto& candidate : candidates) out.push_back(candidate.lemma);
+    for (const auto& candidate : candidates)
+        out.push_back(candidate.lemma);
     return out;
 }
 
-nlohmann::json readCorpus() {
+nlohmann::json readCorpus()
+{
     std::ifstream in(lens::test::sourceDir() / "test" / "eval_corpus.json");
     EXPECT_TRUE(in) << "cannot open the corpus";
     if (!in) return {};
@@ -58,7 +63,8 @@ nlohmann::json readCorpus() {
 /// @brief A KnownStore test on a fresh temp file, seeded with keys the store does not own.
 struct KnownStoreTest : ::testing::Test {
 protected:
-    void SetUp() override {
+    void SetUp() override
+    {
         path = std::filesystem::temp_directory_path() / "lens_known_store_test.json";
         std::filesystem::remove(path);
 
@@ -67,10 +73,14 @@ protected:
         out << R"({"API-KEY":"sk-selftest","URL":"https://example.invalid"})";
     }
 
-    void TearDown() override { std::filesystem::remove(path); }
+    void TearDown() override
+    {
+        std::filesystem::remove(path);
+    }
 
     /// @brief Mark a known and a new word, move off the defaults, cache one entry, persist.
-    void writeSeededStore() {
+    void writeSeededStore()
+    {
         auto store = KnownStore::load(path);
         store.mark("ubiquitous", true);
         store.mark("resilience", false);
@@ -85,9 +95,10 @@ protected:
     std::filesystem::path path;
 };
 
-}   // namespace
+} // namespace
 
-TEST_F(CoreTest, ReplaysTheSampleCorpus) {
+TEST_F(CoreTest, ReplaysTheSampleCorpus)
+{
     const nlohmann::json corpus = readCorpus();
     ASSERT_FALSE(corpus.empty());
     ASSERT_TRUE(corpus.is_array());
@@ -102,7 +113,8 @@ TEST_F(CoreTest, ReplaysTheSampleCorpus) {
         const std::size_t minFreqRank = item.value("minFreqRank", std::size_t{0});
 
         std::unordered_set<std::string> known;
-        for (const auto& word : item.value("known", std::vector<std::string>{})) known.insert(word);
+        for (const auto& word : item.value("known", std::vector<std::string>{}))
+            known.insert(word);
 
         std::vector<Candidate> got;
         ASSERT_NO_THROW(got = lens::core::filterWords(text, known, minFreqRank))
@@ -115,14 +127,16 @@ TEST_F(CoreTest, ReplaysTheSampleCorpus) {
     }
 }
 
-TEST_F(KnownStoreTest, FreshStoreHoldsTheDocumentedDefaults) {
+TEST_F(KnownStoreTest, FreshStoreHoldsTheDocumentedDefaults)
+{
     const auto store = KnownStore::load(path);
     EXPECT_FALSE(store.isKnown("ubiquitous"));
-    EXPECT_EQ(store.level(), 2);   // CET-4
+    EXPECT_EQ(store.level(), 2); // CET-4
     EXPECT_EQ(store.explanationLang(), "en");
 }
 
-TEST_F(KnownStoreTest, MarkSeparatesKnownFromNewWords) {
+TEST_F(KnownStoreTest, MarkSeparatesKnownFromNewWords)
+{
     auto store = KnownStore::load(path);
     store.mark("ubiquitous", true);
     store.mark("resilience", false);
@@ -134,12 +148,14 @@ TEST_F(KnownStoreTest, MarkSeparatesKnownFromNewWords) {
     EXPECT_EQ(store.known().count("resilience"), 0);
 }
 
-TEST_F(KnownStoreTest, RejectsALevelOutsideTheRange) {
+TEST_F(KnownStoreTest, RejectsALevelOutsideTheRange)
+{
     auto store = KnownStore::load(path);
     EXPECT_THROW(store.setLevel(99), std::out_of_range);
 }
 
-TEST_F(KnownStoreTest, SurvivesASaveAndReload) {
+TEST_F(KnownStoreTest, SurvivesASaveAndReload)
+{
     writeSeededStore();
 
     const auto store = KnownStore::load(path);
@@ -154,7 +170,8 @@ TEST_F(KnownStoreTest, SurvivesASaveAndReload) {
     EXPECT_EQ(hit->zh, "无处不在的");
 }
 
-TEST_F(KnownStoreTest, KeysTheCacheByExplanationLanguage) {
+TEST_F(KnownStoreTest, KeysTheCacheByExplanationLanguage)
+{
     writeSeededStore();
 
     auto store = KnownStore::load(path);
@@ -162,7 +179,8 @@ TEST_F(KnownStoreTest, KeysTheCacheByExplanationLanguage) {
     EXPECT_FALSE(store.cacheGet("ubiquitous").has_value());
 }
 
-TEST_F(KnownStoreTest, SaveWritesValidJsonAndKeepsKeysItDoesNotOwn) {
+TEST_F(KnownStoreTest, SaveWritesValidJsonAndKeepsKeysItDoesNotOwn)
+{
     writeSeededStore();
 
     std::ifstream in(path);

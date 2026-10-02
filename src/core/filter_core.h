@@ -60,8 +60,8 @@ std::string lemmatize(std::string_view token);
 
 /// @brief A word worth explaining, in both the form seen and its dictionary form.
 struct Candidate {
-    std::string surface;   ///< The form as written, lower-cased (e.g. "running").
-    std::string lemma;     ///< The dictionary form (e.g. "run").
+    std::string surface; ///< The form as written, lower-cased (e.g. "running").
+    std::string lemma;   ///< The dictionary form (e.g. "run").
 };
 
 /**

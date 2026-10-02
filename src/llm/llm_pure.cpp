@@ -18,7 +18,8 @@ namespace {
 // the strings would silently never reach the .ts files.
 
 /// @brief Render a channel's system prompt with the output-language line filled in.
-QString renderSystemPrompt(Channel channel, const QString& explanationLang) {
+QString renderSystemPrompt(Channel channel, const QString& explanationLang)
+{
     const RequestTemplate& tmpl = requestTemplate(channel);
 
     QString line = tmpl.outputLanguageLine.value(explanationLang);
@@ -32,9 +33,10 @@ QString renderSystemPrompt(Channel channel, const QString& explanationLang) {
     return prompt;
 }
 
-}   // namespace
+} // namespace
 
-QString maskSensitive(const QString& text) {
+QString maskSensitive(const QString& text)
+{
     static const QRegularExpression url(R"(\bhttps?://\S+)");
     static const QRegularExpression email(R"([\w.%+-]+@[\w-]+(?:\.[\w-]+)+)");
     static const QRegularExpression digits(R"(\d{6,})");
@@ -50,13 +52,14 @@ QString maskSensitive(const QString& text) {
     return masked;
 }
 
-QByteArray buildRequestBody(const Config& config, Channel channel, const QStringList& words,
-                            const QString& explanationLang) {
+QByteArray buildRequestBody(const Config& config, Channel channel, const QStringList& words, const QString& explanationLang)
+{
     const RequestTemplate& tmpl = requestTemplate(channel);
 
     QStringList masked;
     masked.reserve(words.size());
-    for (const auto& word : words) masked << maskSensitive(word);
+    for (const auto& word : words)
+        masked << maskSensitive(word);
 
     const QJsonObject body{
         {"model", config.model},
@@ -72,14 +75,14 @@ QByteArray buildRequestBody(const Config& config, Channel channel, const QString
         {"stream", tmpl.stream},
     };
 
-    LENS_TRACE("buildRequestBody: {} item(s) for channel '{}', model='{}', lang='{}'", words.size(),
-               channelKey(channel), config.model.toStdString(), explanationLang.toStdString());
+    LENS_TRACE("buildRequestBody: {} item(s) for channel '{}', model='{}', lang='{}'", words.size(), channelKey(channel), config.model.toStdString(), explanationLang.toStdString());
     return QJsonDocument(body).toJson(QJsonDocument::Compact);
 }
 
 std::variant<QVector<WordExplanation>, QString> parseExplanations(Channel channel,
                                                                   const QByteArray& responseBody,
-                                                                  const QStringList& expectedWords) {
+                                                                  const QStringList& expectedWords)
+{
     using Result = std::variant<QVector<WordExplanation>, QString>;
 
     /// Reject the whole batch, naming the reason once for both the caller and the log.
@@ -141,8 +144,7 @@ std::variant<QVector<WordExplanation>, QString> parseExplanations(Channel channe
 
         // The struct mirrors the word channel's schema; the gate above is what the schema
         // actually governs.
-        WordExplanation e{obj.value("word").toString(), obj.value("en").toString(),
-                          obj.value("zh").toString()};
+        WordExplanation e{obj.value("word").toString(), obj.value("en").toString(), obj.value("zh").toString()};
         // Presence is the schema's business; emptiness is not. A field the schema requires
         // but the model left blank would render as an empty bubble, so it fails here.
         if (e.word.isEmpty() || e.en.isEmpty() || e.zh.isEmpty())
@@ -176,8 +178,7 @@ std::variant<QVector<WordExplanation>, QString> parseExplanations(Channel channe
         ordered.push_back(*it);
     }
 
-    LENS_TRACE("parseExplanations: accepted {} explanation(s) for channel '{}'", ordered.size(),
-               channelKey(channel));
+    LENS_TRACE("parseExplanations: accepted {} explanation(s) for channel '{}'", ordered.size(), channelKey(channel));
     return ordered;
 }
 

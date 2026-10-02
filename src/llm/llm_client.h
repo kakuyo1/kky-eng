@@ -6,7 +6,7 @@
 #include <QUrl>
 #include <QVector>
 
-#include "llm_protocol.h"   // Channel
+#include "llm_protocol.h" // Channel
 
 class QNetworkAccessManager;
 
@@ -22,13 +22,15 @@ namespace lens::llm {
 
 /// @brief Connection settings, loaded from settings.local.json.
 struct Config {
-    QUrl baseUrl;     ///< OpenAI-format base, e.g. https://api.deepseek.com (no /anthropic).
-    QString apiKey;   ///< Bearer token. Never logged, never echoed in errors.
-    QString model;    ///< Model name, e.g. "deepseek-flash".
+    QUrl baseUrl;   ///< OpenAI-format base, e.g. https://api.deepseek.com (no /anthropic).
+    QString apiKey; ///< Bearer token. Never logged, never echoed in errors.
+    QString model;  ///< Model name, e.g. "deepseek-flash".
 };
 
 /// @brief One explained word as returned by the model.
-struct WordExplanation { QString word, en, zh; };
+struct WordExplanation {
+    QString word, en, zh;
+};
 
 /**
  * @brief Sends a batch of words and reports the validated explanations back.

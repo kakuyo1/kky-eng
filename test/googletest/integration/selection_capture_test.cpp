@@ -66,8 +66,7 @@ constexpr int kDragPx = 40;
 ///         instead of a number.
 const char* statusName(GrabStatus status)
 {
-    switch (status)
-    {
+    switch (status) {
         case GrabStatus::Captured: return "Captured";
         case GrabStatus::ForegroundIsSelf: return "ForegroundIsSelf";
         case GrabStatus::ProcessExcluded: return "ProcessExcluded";
@@ -86,8 +85,7 @@ const char* statusName(GrabStatus status)
 /// — a flake with a shared resource is a bug in the test even when the cause is outside it.
 bool openClipboardRetrying()
 {
-    for (int attempt = 0; attempt < 5; ++attempt)
-    {
+    for (int attempt = 0; attempt < 5; ++attempt) {
         if (OpenClipboard(nullptr) != FALSE) return true;
         Sleep(10);
     }
@@ -108,22 +106,19 @@ bool putClipboardText(const QString& text)
     const std::size_t bytes = (wide.size() + 1) * sizeof(wchar_t);
 
     HGLOBAL memory = GlobalAlloc(GMEM_MOVEABLE, bytes);
-    if (memory == nullptr)
-    {
+    if (memory == nullptr) {
         CloseClipboard();
         return false;
     }
 
-    if (void* target = GlobalLock(memory))
-    {
+    if (void* target = GlobalLock(memory)) {
         std::memcpy(target, wide.c_str(), bytes);
         GlobalUnlock(memory);
     }
 
     // SetClipboardData takes ownership on success and leaves it with us on failure, so the
     // free has to be conditional on the failure.
-    if (SetClipboardData(CF_UNICODETEXT, memory) == nullptr)
-    {
+    if (SetClipboardData(CF_UNICODETEXT, memory) == nullptr) {
         GlobalFree(memory);
         CloseClipboard();
         return false;
@@ -139,11 +134,9 @@ std::optional<QString> readClipboardTextNow()
     if (!openClipboardRetrying()) return std::nullopt;
 
     std::optional<QString> text;
-    if (const HANDLE handle = GetClipboardData(CF_UNICODETEXT))
-    {
+    if (const HANDLE handle = GetClipboardData(CF_UNICODETEXT)) {
         // Owned by the clipboard, so it is locked and unlocked but never freed here.
-        if (const auto* wide = static_cast<const wchar_t*>(GlobalLock(handle)))
-        {
+        if (const auto* wide = static_cast<const wchar_t*>(GlobalLock(handle))) {
             text = QString::fromWCharArray(wide);
             GlobalUnlock(handle);
         }
@@ -172,10 +165,8 @@ unsigned putClipboardTextAndFormat(const QString& text, const char* name, const 
     // is freed only when its own SetClipboardData failed.
     const std::wstring wide = text.toStdWString();
     HGLOBAL textMemory = GlobalAlloc(GMEM_MOVEABLE, (wide.size() + 1) * sizeof(wchar_t));
-    if (textMemory != nullptr)
-    {
-        if (void* target = GlobalLock(textMemory))
-        {
+    if (textMemory != nullptr) {
+        if (void* target = GlobalLock(textMemory)) {
             std::memcpy(target, wide.c_str(), (wide.size() + 1) * sizeof(wchar_t));
             GlobalUnlock(textMemory);
         }
@@ -183,10 +174,8 @@ unsigned putClipboardTextAndFormat(const QString& text, const char* name, const 
     }
 
     HGLOBAL markerMemory = GlobalAlloc(GMEM_MOVEABLE, bytes.size());
-    if (markerMemory != nullptr)
-    {
-        if (void* target = GlobalLock(markerMemory))
-        {
+    if (markerMemory != nullptr) {
+        if (void* target = GlobalLock(markerMemory)) {
             std::memcpy(target, bytes.data(), bytes.size());
             GlobalUnlock(markerMemory);
         }
@@ -203,10 +192,8 @@ std::optional<std::string> readClipboardPrivateFormat(unsigned format)
     if (!openClipboardRetrying()) return std::nullopt;
 
     std::optional<std::string> bytes;
-    if (const HANDLE handle = GetClipboardData(format))
-    {
-        if (const void* source = GlobalLock(handle))
-        {
+    if (const HANDLE handle = GetClipboardData(format)) {
+        if (const void* source = GlobalLock(handle)) {
             bytes = std::string(static_cast<const char*>(source), GlobalSize(handle));
             GlobalUnlock(handle);
         }
@@ -250,8 +237,7 @@ void sendDrag(POINT start, int dx)
  */
 HWND createProbeWindow()
 {
-    return CreateWindowExW(WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, L"STATIC", L"Lens probe",
-                           WS_POPUP | WS_VISIBLE, 80, 80, 220, 48, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+    return CreateWindowExW(WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, L"STATIC", L"Lens probe", WS_POPUP | WS_VISIBLE, 80, 80, 220, 48, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
 }
 
 /// @brief Move the pointer back and get rid of the probe window.
@@ -269,11 +255,10 @@ void dismissProbe(HWND probe, POINT original)
  */
 HWND createFocusProbeWindow()
 {
-    return CreateWindowExW(WS_EX_TOPMOST | WS_EX_TOOLWINDOW, L"STATIC", L"Lens focus probe",
-                           WS_POPUP | WS_VISIBLE, 80, 80, 220, 48, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+    return CreateWindowExW(WS_EX_TOPMOST | WS_EX_TOOLWINDOW, L"STATIC", L"Lens focus probe", WS_POPUP | WS_VISIBLE, 80, 80, 220, 48, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
 }
 
-}   // namespace
+} // namespace
 
 TEST(SelectionGesture, AStillClickIsNotASelection)
 {
@@ -421,8 +406,7 @@ TEST(SelectionHook, ReportsASynthesisedDragAtItsReleasePoint)
 
     QEventLoop loop;
     std::optional<QPoint> anchor;
-    if (installed)
-    {
+    if (installed) {
         QObject::connect(&hook, &lens::app::MouseSelectionHook::selectionReleased, [&](QPoint point) {
             anchor = point;
             loop.quit();
@@ -547,7 +531,7 @@ int main(int argc, char** argv)
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
     SetConsoleOutputCP(CP_UTF8);
-    QCoreApplication app(argc, argv);   // the hook needs a message loop, not a window
+    QCoreApplication app(argc, argv); // the hook needs a message loop, not a window
 
     lens::log::init(spdlog::level::trace, lens::test::sourceDir() / "logs");
 

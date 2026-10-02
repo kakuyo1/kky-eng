@@ -25,8 +25,7 @@ namespace {
  * against. File scope rather than members, because LowLevelMouseProc is a free function:
  * Windows hands it no user data, so it has nothing to reach an instance through.
  */
-struct GestureTracker
-{
+struct GestureTracker {
     // Read from the system once, in install(). A reader who changes Mouse Properties while
     // the app runs keeps the old values until it restarts; ponytail: not worth a
     // WM_SETTINGCHANGE handler for a number nobody retunes mid-session.
@@ -82,18 +81,15 @@ HHOOK g_handle = nullptr;
  */
 LRESULT CALLBACK lowLevelMouseProc(int code, WPARAM wParam, LPARAM lParam)
 {
-    if (code == HC_ACTION && g_owner != nullptr)
-    {
+    if (code == HC_ACTION && g_owner != nullptr) {
         const auto* info = reinterpret_cast<const MSLLHOOKSTRUCT*>(lParam);
-        switch (wParam)
-        {
+        switch (wParam) {
             case WM_LBUTTONDOWN:
                 g_tracker.onPress(info->pt.x, info->pt.y, GetTickCount());
                 break;
 
             case WM_LBUTTONUP:
-                if (const auto anchor = g_tracker.onRelease(info->pt.x, info->pt.y))
-                {
+                if (const auto anchor = g_tracker.onRelease(info->pt.x, info->pt.y)) {
                     // Emitted from file scope because the callback must be a free function.
                     // Qt's signals are public, so this is legal; the class's own code would
                     // read the same way.
@@ -111,7 +107,7 @@ LRESULT CALLBACK lowLevelMouseProc(int code, WPARAM wParam, LPARAM lParam)
     return CallNextHookEx(nullptr, code, wParam, lParam);
 }
 
-}   // namespace
+} // namespace
 
 bool isSelectionGesture(const Gesture& gesture, int dragSlopPx)
 {
@@ -125,12 +121,13 @@ bool isSelectionGesture(const Gesture& gesture, int dragSlopPx)
     return dx >= dragSlopPx || dy >= dragSlopPx;
 }
 
-MouseSelectionHook::MouseSelectionHook(QObject* parent) : QObject(parent) {}
+MouseSelectionHook::MouseSelectionHook(QObject* parent)
+    : QObject(parent)
+{}
 
 MouseSelectionHook::~MouseSelectionHook()
 {
-    if (installed_ && g_owner == this && g_handle != nullptr)
-    {
+    if (installed_ && g_owner == this && g_handle != nullptr) {
         UnhookWindowsHookEx(g_handle);
         g_handle = nullptr;
         g_owner = nullptr;
@@ -149,8 +146,7 @@ bool MouseSelectionHook::install()
 
     g_owner = this;
     g_handle = SetWindowsHookExW(WH_MOUSE_LL, &lowLevelMouseProc, GetModuleHandleW(nullptr), 0);
-    if (g_handle == nullptr)
-    {
+    if (g_handle == nullptr) {
         LENS_CRITICAL("MouseSelectionHook::install: SetWindowsHookEx failed with error {}", GetLastError());
         g_owner = nullptr;
         return false;

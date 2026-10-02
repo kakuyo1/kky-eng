@@ -26,11 +26,10 @@ namespace lens::app {
  * Positions are virtual-screen pixels, so a multi-monitor desktop with negative origins
  * needs no special case.
  */
-struct Gesture
-{
-    int downX = 0;    ///< Where the button went down.
+struct Gesture {
+    int downX = 0; ///< Where the button went down.
     int downY = 0;
-    int upX = 0;      ///< Where it came back up.
+    int upX = 0; ///< Where it came back up.
     int upY = 0;
     int clickRun = 1; ///< 1 for a single click, 2 for a double, 3 for a triple.
 };
@@ -62,8 +61,7 @@ bool isSelectionGesture(const Gesture& gesture, int dragSlopPx);
  * must be the thread pumping messages. Everything expensive happens after the callback has
  * returned.
  */
-class MouseSelectionHook : public QObject
-{
+class MouseSelectionHook : public QObject {
     Q_OBJECT
 public:
     explicit MouseSelectionHook(QObject* parent = nullptr);

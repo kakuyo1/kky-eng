@@ -16,7 +16,8 @@ namespace {
 
 /// @return The level named by LENS_LOG_LEVEL, or @p fallback when it is unset or the name
 ///         is not one spdlog knows. A typo must not silence logging by accident.
-spdlog::level::level_enum levelFromEnvironment(spdlog::level::level_enum fallback) {
+spdlog::level::level_enum levelFromEnvironment(spdlog::level::level_enum fallback)
+{
     const char* name = std::getenv("LENS_LOG_LEVEL");
     if (name == nullptr) return fallback;
 
@@ -25,9 +26,10 @@ spdlog::level::level_enum levelFromEnvironment(spdlog::level::level_enum fallbac
     return known ? parsed : fallback;
 }
 
-}   // namespace
+} // namespace
 
-void init(spdlog::level::level_enum level, const std::filesystem::path& logDir) {
+void init(spdlog::level::level_enum level, const std::filesystem::path& logDir)
+{
     std::vector<spdlog::sink_ptr> sinks;
     sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 

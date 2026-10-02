@@ -19,8 +19,6 @@
 // here. spdlog's own common.h defaults it to info the moment it is included, so defining
 // it in this header would silently lose to that default whatever the include order.
 
-
-
 /// @name Logging macros
 /// Thin wrappers over spdlog's own macros, so every line carries the source file, line,
 /// and function, and so a call below SPDLOG_ACTIVE_LEVEL compiles away entirely.

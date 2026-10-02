@@ -31,7 +31,8 @@ std::array<LoadedProtocol, kChannelCount> g_protocols;
 /// @brief Read a file as raw bytes.
 /// @note std::ifstream rather than QFile: it takes the path natively, so a non-ASCII
 ///       directory never has to survive a narrow-string round trip.
-QByteArray readFile(const std::filesystem::path& file) {
+QByteArray readFile(const std::filesystem::path& file)
+{
     std::ifstream in(file, std::ios::binary);
     if (!in) throw std::runtime_error("cannot open " + file.string());
 
@@ -41,7 +42,8 @@ QByteArray readFile(const std::filesystem::path& file) {
     return QByteArray(text.data(), static_cast<qsizetype>(text.size()));
 }
 
-QJsonObject readJsonObject(const std::filesystem::path& file) {
+QJsonObject readJsonObject(const std::filesystem::path& file)
+{
     const auto parsed = QJsonDocument::fromJson(readFile(file));
     if (!parsed.isObject()) throw std::runtime_error("not a JSON object: " + file.string());
     return parsed.object();
@@ -49,25 +51,29 @@ QJsonObject readJsonObject(const std::filesystem::path& file) {
 
 /// @throws std::runtime_error Naming the key and the file, so a hand-edited protocol file
 ///         fails with something actionable instead of a default value.
-QString requireString(const QJsonObject& object, const char* key, const std::filesystem::path& file) {
+QString requireString(const QJsonObject& object, const char* key, const std::filesystem::path& file)
+{
     const QString value = object.value(QLatin1String(key)).toString();
     if (value.isEmpty())
         throw std::runtime_error(std::string("missing or empty '") + key + "' in " + file.string());
     return value;
 }
 
-void requireNonEmpty(const QJsonObject& value, const char* key, const std::filesystem::path& file) {
+void requireNonEmpty(const QJsonObject& value, const char* key, const std::filesystem::path& file)
+{
     if (value.isEmpty())
         throw std::runtime_error(std::string("missing or empty '") + key + "' in " + file.string());
 }
 
-LoadedProtocol& slotFor(Channel channel) {
+LoadedProtocol& slotFor(Channel channel)
+{
     return g_protocols[static_cast<std::size_t>(channel)];
 }
 
-}   // namespace
+} // namespace
 
-const char* channelKey(Channel channel) {
+const char* channelKey(Channel channel)
+{
     switch (channel) {
         case Channel::Word: return "word";
         case Channel::Entity: return "entity";
@@ -77,7 +83,8 @@ const char* channelKey(Channel channel) {
     throw std::logic_error("lens::llm::channelKey: Channel::Count is not a real channel");
 }
 
-void loadLlmProtocol(Channel channel, const std::filesystem::path& dir) {
+void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
+{
     const std::string key = channelKey(channel);
     const std::filesystem::path requestFile = dir / ("request." + key + ".json");
     const std::filesystem::path schemaFile = dir / ("response." + key + ".schema.json");
@@ -128,12 +135,12 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir) {
     slot.requiredFields = std::move(required);
     slot.loaded = true;
 
-    LENS_INFO("llm protocol loaded for channel '{}': {} required result field(s), max_tokens={}", key,
-              slot.requiredFields.size(), slot.request.maxTokens);
+    LENS_INFO("llm protocol loaded for channel '{}': {} required result field(s), max_tokens={}", key, slot.requiredFields.size(), slot.request.maxTokens);
     LENS_TRACE("channel '{}' system prompt is {} chars", key, slot.request.systemPromptTemplate.size());
 }
 
-const RequestTemplate& requestTemplate(Channel channel) {
+const RequestTemplate& requestTemplate(Channel channel)
+{
     const LoadedProtocol& slot = slotFor(channel);
     if (!slot.loaded)
         throw std::logic_error(std::string("lens::llm::requestTemplate: channel '") + channelKey(channel) +
@@ -141,7 +148,8 @@ const RequestTemplate& requestTemplate(Channel channel) {
     return slot.request;
 }
 
-const QStringList& requiredResultFields(Channel channel) {
+const QStringList& requiredResultFields(Channel channel)
+{
     const LoadedProtocol& slot = slotFor(channel);
     if (!slot.loaded)
         throw std::logic_error(std::string("lens::llm::requiredResultFields: channel '") +

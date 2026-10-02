@@ -26,8 +26,7 @@
 namespace lens::app {
 
 /// @brief Why one grab attempt ended the way it did.
-enum class GrabStatus : std::uint8_t
-{
+enum class GrabStatus : std::uint8_t {
     Captured = 0,     ///< The text came back.
     ForegroundIsSelf, ///< The foreground window belongs to this process; injecting would
                       ///< target our own surfaces, so nothing was sent.
@@ -71,8 +70,7 @@ bool isExcludedProcess(std::string_view executableName);
  *       and the owner-display family — and cannot be copied this way. Those are skipped and
  *       logged by name, so what was dropped is never a mystery.
  */
-class ClipboardSnapshot
-{
+class ClipboardSnapshot {
 public:
     ClipboardSnapshot() = default;
 
@@ -84,7 +82,10 @@ public:
     static ClipboardSnapshot take();
 
     /// @return Whether the clipboard was read successfully.
-    bool taken() const { return taken_; }
+    bool taken() const
+    {
+        return taken_;
+    }
 
     /**
      * @brief Replace the clipboard with this copy.
@@ -96,10 +97,9 @@ public:
 
 private:
     /// @brief One format and the bytes of its handle.
-    struct Entry
-    {
-        unsigned format = 0;             ///< A CF_* value or a registered format id.
-        std::vector<std::byte> bytes;    ///< The handle's contents, copied out.
+    struct Entry {
+        unsigned format = 0;          ///< A CF_* value or a registered format id.
+        std::vector<std::byte> bytes; ///< The handle's contents, copied out.
     };
 
     bool taken_ = false;
@@ -109,8 +109,7 @@ private:
 /**
  * @brief Borrows the clipboard to copy the current selection out of the foreground window.
  */
-class SelectionTextGrabber : public QObject
-{
+class SelectionTextGrabber : public QObject {
     Q_OBJECT
 public:
     explicit SelectionTextGrabber(QObject* parent = nullptr);

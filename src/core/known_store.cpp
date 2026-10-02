@@ -7,26 +7,28 @@
 namespace lens::core {
 namespace {
 
-constexpr int kDefaultLevel = 2;   ///< CET-4.
+constexpr int kDefaultLevel = 2; ///< CET-4.
 /// Order is defined in UI.md 4.4: B1-B2 / C1-C2 / CET-4 / CET-6 / TEM-4 / TEM-8 / IELTS / TOEFL.
 constexpr int kMaxLevel = 7;
 /// Separator between language and lemma in a cache key. Cannot occur inside either.
 constexpr char kSep = '\x1f';
 
-std::string cacheKey(const std::string& lang, const std::string& lemma) {
+std::string cacheKey(const std::string& lang, const std::string& lemma)
+{
     return lang + kSep + lemma;
 }
 
-}   // namespace
+} // namespace
 
-KnownStore KnownStore::load(std::filesystem::path path) {
+KnownStore KnownStore::load(std::filesystem::path path)
+{
     KnownStore store;
     store.path_ = std::move(path);
     LENS_TRACE("KnownStore::load: reading '{}'", store.path_.string());
 
     std::ifstream in(store.path_);
     if (!in) {
-        store.doc_ = nlohmann::json::object();   // no file yet: first run
+        store.doc_ = nlohmann::json::object(); // no file yet: first run
         LENS_INFO("settings not found at '{}'; starting from defaults", store.path_.string());
         return store;
     }
@@ -36,12 +38,12 @@ KnownStore KnownStore::load(std::filesystem::path path) {
     // overwrite the reader's API key and word marks.
     if (store.doc_.is_discarded()) {
         LENS_ERROR("KnownStore::load: '{}' is not valid JSON; refusing to reset it",
-                      store.path_.string());
+                   store.path_.string());
         throw std::runtime_error("Cannot parse the settings JSON: " + store.path_.string());
     }
     if (!store.doc_.is_object()) {
         LENS_ERROR("KnownStore::load: '{}' does not hold a JSON object at the top level",
-                      store.path_.string());
+                   store.path_.string());
         throw std::runtime_error("The settings JSON is not an object at the top level: " +
                                  store.path_.string());
     }
@@ -51,8 +53,7 @@ KnownStore KnownStore::load(std::filesystem::path path) {
     if (doc.contains("level") && doc["level"].is_number_integer())
         store.level_ = doc["level"].get<int>();
     if (store.level_ < 0 || store.level_ > kMaxLevel) {
-        LENS_WARN("KnownStore::load: level {} out of range; falling back to {}", store.level_,
-                     kDefaultLevel);
+        LENS_WARN("KnownStore::load: level {} out of range; falling back to {}", store.level_, kDefaultLevel);
         store.level_ = kDefaultLevel;
     }
 
@@ -80,14 +81,17 @@ KnownStore KnownStore::load(std::filesystem::path path) {
         }
     }
 
-    LENS_INFO("settings loaded: level={} lang={} known={} cached={}", store.level_, store.lang_,
-                 store.known_.size(), store.cache_.size());
+    LENS_INFO("settings loaded: level={} lang={} known={} cached={}", store.level_, store.lang_, store.known_.size(), store.cache_.size());
     return store;
 }
 
-bool KnownStore::isKnown(const std::string& lemma) const { return known_.count(lemma) != 0; }
+bool KnownStore::isKnown(const std::string& lemma) const
+{
+    return known_.count(lemma) != 0;
+}
 
-void KnownStore::mark(const std::string& lemma, bool learned) {
+void KnownStore::mark(const std::string& lemma, bool learned)
+{
     marks_[lemma] = learned;
     if (learned)
         known_.insert(lemma);
@@ -96,11 +100,18 @@ void KnownStore::mark(const std::string& lemma, bool learned) {
     LENS_TRACE("KnownStore::mark: '{}' -> {}", lemma, learned ? "known" : "new word");
 }
 
-const std::unordered_set<std::string>& KnownStore::known() const { return known_; }
+const std::unordered_set<std::string>& KnownStore::known() const
+{
+    return known_;
+}
 
-int KnownStore::level() const { return level_; }
+int KnownStore::level() const
+{
+    return level_;
+}
 
-void KnownStore::setLevel(int level) {
+void KnownStore::setLevel(int level)
+{
     if (level < 0 || level > kMaxLevel) {
         LENS_ERROR("KnownStore::setLevel: level {} is outside 0..{}", level, kMaxLevel);
         throw std::out_of_range("Level out of range: " + std::to_string(level));
@@ -109,14 +120,19 @@ void KnownStore::setLevel(int level) {
     LENS_TRACE("KnownStore::setLevel: {}", level);
 }
 
-std::string KnownStore::explanationLang() const { return lang_; }
+std::string KnownStore::explanationLang() const
+{
+    return lang_;
+}
 
-void KnownStore::setExplanationLang(std::string lang) {
+void KnownStore::setExplanationLang(std::string lang)
+{
     LENS_TRACE("KnownStore::setExplanationLang: '{}' -> '{}'", lang_, lang);
     lang_ = std::move(lang);
 }
 
-std::optional<WordCache> KnownStore::cacheGet(const std::string& lemma) const {
+std::optional<WordCache> KnownStore::cacheGet(const std::string& lemma) const
+{
     const auto it = cache_.find(cacheKey(lang_, lemma));
     if (it == cache_.end()) {
         LENS_TRACE("KnownStore::cacheGet: miss for '{}' ({})", lemma, lang_);
@@ -126,12 +142,14 @@ std::optional<WordCache> KnownStore::cacheGet(const std::string& lemma) const {
     return it->second;
 }
 
-void KnownStore::cachePut(const std::string& lemma, WordCache entry) {
+void KnownStore::cachePut(const std::string& lemma, WordCache entry)
+{
     LENS_TRACE("KnownStore::cachePut: '{}' ({})", lemma, lang_);
     cache_[cacheKey(lang_, lemma)] = std::move(entry);
 }
 
-void KnownStore::save() const {
+void KnownStore::save() const
+{
     // Start from the document as loaded and overwrite only our own keys; everything else
     // (API-KEY, URL, settings added later) is carried through untouched.
     nlohmann::json doc = doc_.is_object() ? doc_ : nlohmann::json::object();
@@ -139,7 +157,8 @@ void KnownStore::save() const {
     doc["explanationLang"] = lang_;
 
     nlohmann::json known = nlohmann::json::object();
-    for (const auto& [lemma, learned] : marks_) known[lemma] = learned;   // true: known
+    for (const auto& [lemma, learned] : marks_)
+        known[lemma] = learned; // true: known
     doc["known"] = std::move(known);
 
     nlohmann::json cache = nlohmann::json::object();
@@ -155,8 +174,7 @@ void KnownStore::save() const {
         throw std::runtime_error("Cannot write the settings file: " + path_.string());
     }
     out << doc.dump(2) << '\n';
-    LENS_INFO("settings saved: level={} lang={} marked={} cached={}", level_, lang_,
-                 marks_.size(), cache_.size());
+    LENS_INFO("settings saved: level={} lang={} marked={} cached={}", level_, lang_, marks_.size(), cache_.size());
 }
 
 }

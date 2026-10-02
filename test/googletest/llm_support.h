@@ -16,7 +16,8 @@
 namespace lens::test {
 
 /// @brief Load the word channel's request template and response schema, once.
-inline void requireLlmProtocolLoaded() {
+inline void requireLlmProtocolLoaded()
+{
     static const bool loaded = [] {
         lens::llm::loadLlmProtocol(lens::llm::Channel::Word, sourceDir() / "data" / "llm");
         return true;
@@ -27,7 +28,8 @@ inline void requireLlmProtocolLoaded() {
 /// @brief Base for tests that need the wire protocol, and the filter tables with it.
 struct LlmTest : ::testing::Test {
 protected:
-    void SetUp() override {
+    void SetUp() override
+    {
         requireFilterTablesLoaded();
         requireLlmProtocolLoaded();
     }

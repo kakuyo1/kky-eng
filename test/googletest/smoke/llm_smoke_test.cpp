@@ -40,7 +40,8 @@ using lens::llm::WordExplanation;
 /// How long to wait for the model before calling it a timeout.
 constexpr int kTimeoutMs = 60'000;
 
-std::optional<Config> readConfigFrom(const std::filesystem::path& path) {
+std::optional<Config> readConfigFrom(const std::filesystem::path& path)
+{
     std::ifstream in(path);
     if (!in) return std::nullopt;
 
@@ -52,13 +53,13 @@ std::optional<Config> readConfigFrom(const std::filesystem::path& path) {
     const std::string key = doc.value("API-KEY", std::string());
     if (url.empty() || model.empty() || key.empty()) return std::nullopt;
 
-    return Config{QUrl(QString::fromStdString(url)), QString::fromStdString(key),
-                  QString::fromStdString(model)};
+    return Config{QUrl(QString::fromStdString(url)), QString::fromStdString(key), QString::fromStdString(model)};
 }
 
-}   // namespace
+} // namespace
 
-TEST(LlmSmoke, OneWordRoundTrip) {
+TEST(LlmSmoke, OneWordRoundTrip)
+{
     lens::test::requireLlmProtocolLoaded();
 
     const auto config = readConfigFrom(lens::test::sourceDir() / "settings.local.json");
@@ -77,11 +78,10 @@ TEST(LlmSmoke, OneWordRoundTrip) {
     std::optional<QVector<WordExplanation>> results;
     QString failure;
 
-    QObject::connect(&client, &LlmClient::batchFinished,
-                     [&](const QVector<WordExplanation>& explained) {
-                         results = explained;
-                         loop.quit();
-                     });
+    QObject::connect(&client, &LlmClient::batchFinished, [&](const QVector<WordExplanation>& explained) {
+        results = explained;
+        loop.quit();
+    });
     QObject::connect(&client, &LlmClient::failed, [&](const QString& message) {
         failure = message;
         loop.quit();
@@ -104,12 +104,13 @@ TEST(LlmSmoke, OneWordRoundTrip) {
     EXPECT_FALSE(explanation.zh.isEmpty());
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
     ::testing::InitGoogleTest(&argc, argv);
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
 #endif
-    QCoreApplication app(argc, argv);   // LlmClient needs an event loop, not a window
+    QCoreApplication app(argc, argv); // LlmClient needs an event loop, not a window
 
     lens::log::init(spdlog::level::trace, lens::test::sourceDir() / "logs");
     lens::log::installQtMessageHandler();

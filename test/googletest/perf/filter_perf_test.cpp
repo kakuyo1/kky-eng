@@ -34,7 +34,8 @@ namespace {
 using lens::test::CoreTest;
 
 /// @return The corpus's excerpt texts, which are real prose rather than generated filler.
-std::vector<std::string> corpusTexts() {
+std::vector<std::string> corpusTexts()
+{
     std::ifstream in(lens::test::sourceDir() / "test" / "eval_corpus.json");
     if (!in) return {};
 
@@ -43,20 +44,23 @@ std::vector<std::string> corpusTexts() {
 
     std::vector<std::string> texts;
     texts.reserve(corpus.size());
-    for (const auto& item : corpus) texts.push_back(item.at("text").get<std::string>());
+    for (const auto& item : corpus)
+        texts.push_back(item.at("text").get<std::string>());
     return texts;
 }
 
-}   // namespace
+} // namespace
 
-TEST_F(CoreTest, FilterWordsThroughput) {
+TEST_F(CoreTest, FilterWordsThroughput)
+{
     const auto texts = corpusTexts();
     ASSERT_FALSE(texts.empty()) << "the corpus gave no excerpts to measure";
 
-    const std::unordered_set<std::string> known;   // an empty known set: worst case
+    const std::unordered_set<std::string> known; // an empty known set: worst case
 
     // Warm up: first touch of the tables, the corpus strings, and the allocator.
-    for (const auto& text : texts) lens::core::filterWords(text, known, 0);
+    for (const auto& text : texts)
+        lens::core::filterWords(text, known, 0);
 
     constexpr int kRounds = 200;
     std::vector<double> roundMs;
@@ -67,7 +71,8 @@ TEST_F(CoreTest, FilterWordsThroughput) {
 
     for (int round = 0; round < kRounds; ++round) {
         const auto startedAt = std::chrono::steady_clock::now();
-        for (const auto& text : texts) candidates += lens::core::filterWords(text, known, 0).size();
+        for (const auto& text : texts)
+            candidates += lens::core::filterWords(text, known, 0).size();
         roundMs.push_back(std::chrono::duration<double, std::milli>(
                               std::chrono::steady_clock::now() - startedAt)
                               .count());

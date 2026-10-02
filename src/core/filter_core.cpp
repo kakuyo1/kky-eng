@@ -17,29 +17,49 @@ using Table = std::unordered_map<std::string, std::size_t>;
 /// Word to 1-based frequency rank. Empty means the word list has not been loaded.
 Table g_rank;
 
-bool isLetter(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
-bool isDigit(char c) { return c >= '0' && c <= '9'; }
-bool isAlnum(char c) { return isLetter(c) || isDigit(c); }
-bool isSpace(char c) {
+bool isLetter(char c)
+{
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+}
+bool isDigit(char c)
+{
+    return c >= '0' && c <= '9';
+}
+bool isAlnum(char c)
+{
+    return isLetter(c) || isDigit(c);
+}
+bool isSpace(char c)
+{
     return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f';
 }
-char toLower(char c) { return (c >= 'A' && c <= 'Z') ? static_cast<char>(c - 'A' + 'a') : c; }
+char toLower(char c)
+{
+    return (c >= 'A' && c <= 'Z') ? static_cast<char>(c - 'A' + 'a') : c;
+}
 
-std::string lower(std::string_view s) {
+std::string lower(std::string_view s)
+{
     std::string out(s);
-    for (char& c : out) c = toLower(c);
+    for (char& c : out)
+        c = toLower(c);
     return out;
 }
 
-bool inTable(const std::string& word) { return g_rank.contains(word); }
+bool inTable(const std::string& word)
+{
+    return g_rank.contains(word);
+}
 
 /// @return The word's rank, or 0 when the word is absent from the list.
-std::size_t rankOf(const std::string& word) {
+std::size_t rankOf(const std::string& word)
+{
     const auto it = g_rank.find(word);
     return it == g_rank.end() ? 0 : it->second;
 }
 
-bool endsWith(std::string_view s, std::string_view suffix) {
+bool endsWith(std::string_view s, std::string_view suffix)
+{
     return s.size() >= suffix.size() &&
            s.compare(s.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
@@ -47,7 +67,8 @@ bool endsWith(std::string_view s, std::string_view suffix) {
 /// Words that look inflected but are their own base form, and whose "stem" happens to be
 /// another word in the list. Intercepted before any suffix rule can fire.
 /// Only these two so far; add more when the sample set catches another.
-const std::unordered_set<std::string>& keepAsIs() {
+const std::unordered_set<std::string>& keepAsIs()
+{
     static const std::unordered_set<std::string> words = {"news", "means"};
     return words;
 }
@@ -60,27 +81,31 @@ bool g_irregularsLoaded = false;
 
 /// Every candidate must already be a real word list entry. A stem that is not in the list
 /// is meaningless and would only split "water" into "wat".
-void pushIfInTable(std::vector<std::string>& out, std::string stem) {
+void pushIfInTable(std::vector<std::string>& out, std::string stem)
+{
     if (stem.size() >= 3 && inTable(stem)) out.push_back(std::move(stem));
 }
 
 /// Applies the doubled-consonant rule: "running" -> "runn" -> "run". Requires at least
 /// 3 letters left over, which blocks the degenerate "inning" -> "in".
-void pushDoubledFixed(std::vector<std::string>& out, const std::string& stem) {
+void pushDoubledFixed(std::vector<std::string>& out, const std::string& stem)
+{
     if (stem.size() < 4 || stem[stem.size() - 1] != stem[stem.size() - 2]) return;
     pushIfInTable(out, stem.substr(0, stem.size() - 1));
 }
 
 /// @note 'y' counts as a vowel here, which rescues rhythm / myth / gym.
-bool hasVowel(const std::string& s) {
+bool hasVowel(const std::string& s)
+{
     for (char c : s)
         if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' || c == 'y') return true;
     return false;
 }
 
-}   // namespace
+} // namespace
 
-void loadWordlist(const std::filesystem::path& path) {
+void loadWordlist(const std::filesystem::path& path)
+{
     const auto startedAt = std::chrono::steady_clock::now();
     LENS_TRACE("loadWordlist: reading '{}'", path.string());
 
@@ -94,10 +119,11 @@ void loadWordlist(const std::filesystem::path& path) {
     std::string line;
     std::size_t rank = 0;
     while (std::getline(in, line)) {
-        while (!line.empty() && (line.back() == '\r' || line.back() == '\n')) line.pop_back();
+        while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
+            line.pop_back();
         if (line.empty()) continue;
         ++rank;
-        table.emplace(lower(line), rank);   // duplicates keep their earliest rank
+        table.emplace(lower(line), rank); // duplicates keep their earliest rank
     }
     if (table.empty()) {
         LENS_CRITICAL("loadWordlist: word list '{}' is empty", path.string());
@@ -108,11 +134,11 @@ void loadWordlist(const std::filesystem::path& path) {
     const auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
                                std::chrono::steady_clock::now() - startedAt)
                                .count();
-    LENS_INFO("wordlist loaded: {} entries from '{}' in {} ms", g_rank.size(), path.string(),
-              elapsedMs);
+    LENS_INFO("wordlist loaded: {} entries from '{}' in {} ms", g_rank.size(), path.string(), elapsedMs);
 }
 
-void loadIrregulars(const std::filesystem::path& path) {
+void loadIrregulars(const std::filesystem::path& path)
+{
     const auto startedAt = std::chrono::steady_clock::now();
     LENS_TRACE("loadIrregulars: reading '{}'", path.string());
 
@@ -127,7 +153,8 @@ void loadIrregulars(const std::filesystem::path& path) {
     std::size_t lineNumber = 0;
     while (std::getline(in, line)) {
         ++lineNumber;
-        while (!line.empty() && (line.back() == '\r' || line.back() == '\n')) line.pop_back();
+        while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
+            line.pop_back();
         if (line.empty() || line.front() == '#') continue;
 
         const std::size_t tab = line.find('\t');
@@ -160,17 +187,17 @@ void loadIrregulars(const std::filesystem::path& path) {
     const auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
                                std::chrono::steady_clock::now() - startedAt)
                                .count();
-    LENS_INFO("irregular table loaded: {} form(s) from '{}' in {} ms", g_irregulars.size(),
-              path.string(), elapsedMs);
+    LENS_INFO("irregular table loaded: {} form(s) from '{}' in {} ms", g_irregulars.size(), path.string(), elapsedMs);
 }
 
-std::string lemmatize(std::string_view token) {
+std::string lemmatize(std::string_view token)
+{
     if (!g_irregularsLoaded)
         throw std::logic_error("lens::core::lemmatize: loadIrregulars() must run first");
     if (g_rank.empty())
         throw std::logic_error("lens::core::lemmatize: loadWordlist() must run first");
 
-    LENS_PROFILE_SCOPE("lemmatize");   // entered once per token, so watch the timer cost
+    LENS_PROFILE_SCOPE("lemmatize"); // entered once per token, so watch the timer cost
 
     const std::string t = lower(token);
     if (keepAsIs().count(t) != 0) return t;
@@ -225,16 +252,16 @@ std::string lemmatize(std::string_view token) {
     if (endsWith(t, "ed")) reduceVerbForm(2);
 
     if (endsWith(t, "es") && n > 3) {
-        pushIfInTable(cands, t.substr(0, n - 1));   // moves -> move
-        pushIfInTable(cands, t.substr(0, n - 2));   // goes -> go
+        pushIfInTable(cands, t.substr(0, n - 1)); // moves -> move
+        pushIfInTable(cands, t.substr(0, n - 2)); // goes -> go
     } else if (endsWith(t, "s") && n > 3 && !endsWith(t, "ss")) {
         pushIfInTable(cands, t.substr(0, n - 1));
     }
 
-    if (endsWith(t, "ly") && n > 5) {   // -ily was already tried above, mapping to y
+    if (endsWith(t, "ly") && n > 5) { // -ily was already tried above, mapping to y
         const std::string stem = t.substr(0, n - 2);
-        pushIfInTable(cands, stem + "e");   // likely -> like
-        pushIfInTable(cands, stem);         // quickly -> quick
+        pushIfInTable(cands, stem + "e"); // likely -> like
+        pushIfInTable(cands, stem);       // quickly -> quick
     }
 
     // ponytail: comparatives -er/-est only fire at 6/7+ letters; at 5 letters the stems of
@@ -244,18 +271,18 @@ std::string lemmatize(std::string_view token) {
     // word is not merged with its lemma either.
     if (endsWith(t, "er") && n > 5) {
         const std::string stem = t.substr(0, n - 2);
-        pushIfInTable(cands, stem + "e");   // larger -> large
-        pushIfInTable(cands, stem);         // faster -> fast
-        pushDoubledFixed(cands, stem);      // bigger -> big
+        pushIfInTable(cands, stem + "e"); // larger -> large
+        pushIfInTable(cands, stem);       // faster -> fast
+        pushDoubledFixed(cands, stem);    // bigger -> big
     }
     if (endsWith(t, "est") && n > 6) {
         const std::string stem = t.substr(0, n - 3);
-        pushIfInTable(cands, stem + "e");   // largest -> large
-        pushIfInTable(cands, stem);         // fastest -> fast
+        pushIfInTable(cands, stem + "e"); // largest -> large
+        pushIfInTable(cands, stem);       // fastest -> fast
         pushDoubledFixed(cands, stem);
     }
 
-    if (cands.empty()) return t;   // not in the list; the caller's whitelist stage drops it
+    if (cands.empty()) return t; // not in the list; the caller's whitelist stage drops it
 
     const std::string* best = &cands.front();
     std::size_t bestRank = rankOf(*best);
@@ -274,7 +301,8 @@ std::string lemmatize(std::string_view token) {
 std::vector<Candidate> filterWords(
     std::string_view text,
     const std::unordered_set<std::string>& knownLemmas,
-    std::size_t minFreqRank) {
+    std::size_t minFreqRank)
+{
     if (!g_irregularsLoaded)
         throw std::logic_error("lens::core::filterWords: loadIrregulars() must run first");
     if (g_rank.empty())
@@ -283,14 +311,16 @@ std::vector<Candidate> filterWords(
     LENS_PROFILE_SCOPE("filterWords");
 
     std::vector<Candidate> out;
-    std::unordered_set<std::string> seen;   // de-duplication keyed by lemma
+    std::unordered_set<std::string> seen; // de-duplication keyed by lemma
 
     const std::size_t size = text.size();
     std::size_t i = 0;
     while (i < size) {
-        while (i < size && isSpace(text[i])) ++i;
+        while (i < size && isSpace(text[i]))
+            ++i;
         const std::size_t start = i;
-        while (i < size && !isSpace(text[i])) ++i;
+        while (i < size && !isSpace(text[i]))
+            ++i;
         if (start == i) continue;
 
         // One whitespace-delimited run of the original text. Trim bytes that are neither
@@ -301,39 +331,46 @@ std::vector<Candidate> filterWords(
         // and popped as a real word.
         std::size_t head = start;
         std::size_t tail = i;
-        while (head < tail && !isAlnum(text[head])) ++head;
-        while (tail > head && !isAlnum(text[tail - 1])) --tail;
+        while (head < tail && !isAlnum(text[head]))
+            ++head;
+        while (tail > head && !isAlnum(text[tail - 1]))
+            --tail;
         if (head == tail) continue;
 
-        LENS_PROFILE_COUNT("filterWords/tokens", 1);   // every run that survived trimming
+        LENS_PROFILE_COUNT("filterWords/tokens", 1); // every run that survived trimming
 
         const std::string_view tok = text.substr(head, tail - head);
         bool glued = false;
         for (char c : tok)
-            if (!isLetter(c)) { glued = true; break; }
+            if (!isLetter(c)) {
+                glued = true;
+                break;
+            }
         if (glued) continue;
         if (tok.size() < 3) continue;
 
         bool allCaps = true;
         for (char c : tok)
-            if (c >= 'a' && c <= 'z') { allCaps = false; break; }
-        if (allCaps) continue;   // THE / NASA / OK: not a vocabulary candidate
+            if (c >= 'a' && c <= 'z') {
+                allCaps = false;
+                break;
+            }
+        if (allCaps) continue; // THE / NASA / OK: not a vocabulary candidate
 
         const std::string surface = lower(tok);
         if (!hasVowel(surface)) continue;
 
         const std::string lemma = lemmatize(surface);
-        if (!inTable(lemma)) continue;                  // static word list: absent means drop
-        if (rankOf(lemma) <= minFreqRank) continue;     // within the level's range: mastered
-        if (knownLemmas.count(lemma) != 0) continue;    // known set
-        if (!seen.insert(lemma).second) continue;       // same lemma once per excerpt
+        if (!inTable(lemma)) continue;               // static word list: absent means drop
+        if (rankOf(lemma) <= minFreqRank) continue;  // within the level's range: mastered
+        if (knownLemmas.count(lemma) != 0) continue; // known set
+        if (!seen.insert(lemma).second) continue;    // same lemma once per excerpt
 
         LENS_TRACE("filterWords: candidate surface='{}' lemma='{}'", surface, lemma);
         out.push_back({surface, lemma});
     }
 
-    LENS_TRACE("filterWords: {} chars -> {} candidate(s), minFreqRank={}", size, out.size(),
-                  minFreqRank);
+    LENS_TRACE("filterWords: {} chars -> {} candidate(s), minFreqRank={}", size, out.size(), minFreqRank);
     return out;
 }
 

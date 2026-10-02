@@ -37,25 +37,27 @@ using LlmResult = std::variant<QVector<WordExplanation>, QString>;
 using lens::test::LlmTest;
 
 /// @return The failure message when @p result is an error, or an empty string on success.
-QString errorOf(const LlmResult& result) {
+QString errorOf(const LlmResult& result)
+{
     const auto* message = std::get_if<QString>(&result);
     return message ? *message : QString();
 }
 
-bool accepted(const LlmResult& result) {
+bool accepted(const LlmResult& result)
+{
     return std::holds_alternative<QVector<WordExplanation>>(result);
 }
 
 /// @brief Wrap @p content the way the chat-completions envelope does.
-QByteArray envelope(const QString& content, const QString& finishReason = QStringLiteral("stop")) {
-    return QJsonDocument(QJsonObject{{"choices", QJsonArray{QJsonObject{
-                                                    {"finish_reason", finishReason},
-                                                    {"message", QJsonObject{{"content", content}}}}}}})
+QByteArray envelope(const QString& content, const QString& finishReason = QStringLiteral("stop"))
+{
+    return QJsonDocument(QJsonObject{{"choices", QJsonArray{QJsonObject{{"finish_reason", finishReason}, {"message", QJsonObject{{"content", content}}}}}}})
         .toJson(QJsonDocument::Compact);
 }
 
 /// @return A word-channel content payload carrying @p items as its `results` array.
-QString results(const QString& items) {
+QString results(const QString& items)
+{
     return QStringLiteral("{\"results\":[%1]}").arg(items);
 }
 
@@ -63,9 +65,10 @@ const QStringList kAskedFor{"ubiquitous"};
 const QString kGoodResult =
     QStringLiteral(R"({"word":"ubiquitous","en":"existing everywhere","zh":"无处不在的"})");
 
-}   // namespace
+} // namespace
 
-TEST(LlmPureMask, CollapsesEmailUrlAndLongDigits) {
+TEST(LlmPureMask, CollapsesEmailUrlAndLongDigits)
+{
     const struct {
         const char* input;
         const char* want;
@@ -82,7 +85,8 @@ TEST(LlmPureMask, CollapsesEmailUrlAndLongDigits) {
     }
 }
 
-TEST_F(LlmTest,RequestBodyKeepsTheDeepSeekContract) {
+TEST_F(LlmTest, RequestBodyKeepsTheDeepSeekContract)
+{
     const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
     const QStringList words{"ubiquitous", "resilience"};
 
@@ -118,7 +122,8 @@ TEST_F(LlmTest,RequestBodyKeepsTheDeepSeekContract) {
     }
 }
 
-TEST_F(LlmTest,AcceptsAWellFormedResponse) {
+TEST_F(LlmTest, AcceptsAWellFormedResponse)
+{
     const auto result = parseExplanations(Channel::Word, envelope(results(kGoodResult)), kAskedFor);
 
     ASSERT_TRUE(accepted(result)) << errorOf(result).toStdString();
@@ -128,7 +133,8 @@ TEST_F(LlmTest,AcceptsAWellFormedResponse) {
     EXPECT_EQ(explanations.at(0).zh, QString::fromUtf8("无处不在的"));
 }
 
-TEST_F(LlmTest,RejectsTheWholeBatchOnAnyMalformedResponse) {
+TEST_F(LlmTest, RejectsTheWholeBatchOnAnyMalformedResponse)
+{
     const struct {
         const char* what;
         QByteArray body;

@@ -21,7 +21,9 @@
 namespace lens::core {
 
 /// @brief A cached explanation for one lemma, in one explanation language.
-struct WordCache { std::string en, zh; };
+struct WordCache {
+    std::string en, zh;
+};
 
 /**
  * @brief Word marks, difficulty level, explanation language, and the explanation cache.
@@ -74,15 +76,15 @@ public:
 
 private:
     std::filesystem::path path_;
-    nlohmann::json doc_;   ///< The document as loaded; the base for save().
+    nlohmann::json doc_; ///< The document as loaded; the base for save().
     /// lemma -> known(true) / new word(false). Absent means never marked.
     std::unordered_map<std::string, bool> marks_;
     /// Derived view of marks_ holding only the true entries; feeds filterWords.
     std::unordered_set<std::string> known_;
     /// Keyed by explanation language + lemma so switching language never mixes meanings.
     std::unordered_map<std::string, WordCache> cache_;
-    int level_ = 2;            ///< CET-4, the default difficulty level.
-    std::string lang_ = "en";  ///< English by default.
+    int level_ = 2;           ///< CET-4, the default difficulty level.
+    std::string lang_ = "en"; ///< English by default.
 };
 
 }

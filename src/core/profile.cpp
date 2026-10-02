@@ -21,25 +21,27 @@ using Registry = std::unordered_map<const char*, Stat>;
  * ponytail: one registry, no lock. lens_core is single-threaded; add a mutex only when a
  * worker thread starts calling into the pipeline.
  */
-Registry& registry() {
+Registry& registry()
+{
     static Registry sites;
     return sites;
 }
 
 /// @return The instrument keys, ordered by name so two runs diff cleanly.
-std::vector<const char*> sortedKeys(const Registry& sites) {
+std::vector<const char*> sortedKeys(const Registry& sites)
+{
     std::vector<const char*> keys;
     keys.reserve(sites.size());
-    for (const auto& [name, stat] : sites) keys.push_back(name);
+    for (const auto& [name, stat] : sites)
+        keys.push_back(name);
 
-    std::sort(keys.begin(), keys.end(),
-              [](const char* a, const char* b) { return std::strcmp(a, b) < 0; });
+    std::sort(keys.begin(), keys.end(), [](const char* a, const char* b) { return std::strcmp(a, b) < 0; });
     return keys;
 }
 
 /// @brief Write the header and one row for every key in @p keys.
-void writeTable(std::ostringstream& out, const Registry& sites, const std::vector<const char*>& keys,
-                bool timed) {
+void writeTable(std::ostringstream& out, const Registry& sites, const std::vector<const char*>& keys, bool timed)
+{
     constexpr int kNameWidth = 30;
     constexpr int kNumberWidth = 16;
 
@@ -69,11 +71,14 @@ void writeTable(std::ostringstream& out, const Registry& sites, const std::vecto
     }
 }
 
-}   // namespace
+} // namespace
 
-ScopeTimer::ScopeTimer(const char* name_) : name(name_), startedAt(std::chrono::steady_clock::now()) {}
+ScopeTimer::ScopeTimer(const char* name_)
+    : name(name_), startedAt(std::chrono::steady_clock::now())
+{}
 
-ScopeTimer::~ScopeTimer() {
+ScopeTimer::~ScopeTimer()
+{
     const auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(
                              std::chrono::steady_clock::now() - startedAt)
                              .count();
@@ -86,9 +91,13 @@ ScopeTimer::~ScopeTimer() {
     stat.maxNs = std::max(stat.maxNs, ns);
 }
 
-void count(const char* name, std::uint64_t n) { registry()[name].count += n; }
+void count(const char* name, std::uint64_t n)
+{
+    registry()[name].count += n;
+}
 
-std::string report() {
+std::string report()
+{
     const Registry& sites = registry();
     if (sites.empty()) return {};
 
@@ -101,6 +110,9 @@ std::string report() {
     return out.str();
 }
 
-void reset() { registry().clear(); }
+void reset()
+{
+    registry().clear();
+}
 
 }

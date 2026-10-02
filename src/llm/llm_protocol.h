@@ -32,16 +32,19 @@ namespace lens::llm {
 inline constexpr const char* kOutputLanguagePlaceholder = "{outputLanguage}";
 
 /// @brief Which channel a request belongs to. Decided locally, before anything is sent.
-enum class Channel : std::uint8_t { Word = 0, Entity, Sentence, Count };
+enum class Channel : std::uint8_t { Word = 0,
+                                    Entity,
+                                    Sentence,
+                                    Count };
 
 /// @brief Request half of one channel's protocol, from `request.<channel>.json`.
 struct RequestTemplate {
-    QString systemPromptTemplate;                ///< Carries kOutputLanguagePlaceholder.
-    QHash<QString, QString> outputLanguageLine;  ///< "en" / "zh" -> closing prompt line.
-    QJsonObject responseFormat;                  ///< Passed through as `response_format`.
-    QJsonObject thinking;                        ///< Passed through as `thinking`.
-    int maxTokens = 0;                           ///< Output token cap.
-    bool stream = false;                         ///< A batch is answered whole.
+    QString systemPromptTemplate;               ///< Carries kOutputLanguagePlaceholder.
+    QHash<QString, QString> outputLanguageLine; ///< "en" / "zh" -> closing prompt line.
+    QJsonObject responseFormat;                 ///< Passed through as `response_format`.
+    QJsonObject thinking;                       ///< Passed through as `thinking`.
+    int maxTokens = 0;                          ///< Output token cap.
+    bool stream = false;                        ///< A batch is answered whole.
 };
 
 /// @return The lowercase channel name used in file names and log lines, e.g. "word".
