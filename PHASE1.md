@@ -88,7 +88,7 @@ std::vector<Candidate> filterWords(
 ```cpp
 namespace lens::core {
 
-struct WordCache { std::string en, zh, example; };
+struct WordCache { std::string en, zh; };
 
 class KnownStore {
 public:
@@ -125,7 +125,7 @@ public:
 namespace lens::llm {
 
 struct Config { QUrl baseUrl; QString apiKey; QString model; };
-struct WordExplanation { QString word, en, zh, example; };
+struct WordExplanation { QString word, en, zh; };
 
 class LlmClient : public QObject {
     Q_OBJECT
@@ -209,6 +209,7 @@ QML 表面：设置浮层、解释气泡、统计弹窗及其下钻的词汇 / �
 
 - API key **仅存本地** `settings.local.json`（gitignored），不提交、不入日志、不写入本会话记忆。输入经设置浮层（掩码显示）或配置文件。
 - 发送最小化：单词通道只发单词本身，脱敏兜底；绝不发送整屏或快照全文。
+- **档位与界面语言不进请求**：档位只影响本地词表与 known-set 预置（见 `CONTEXT.md` 档位条目）。2026-10-02 的系统提示词曾写进 “CET-4 level or above”，属违规，已删；提示词只说取最常见义项，判断全在本地。
 - DEV_SEND_CONFIRM 编译开关：开发期任何发往大模型的请求先弹窗展示内容并征得同意；正式发布整段移除。
 - 注意：本次会话中曾粘贴真实 key（已进对话记录），建议开发完成后轮换。
 
@@ -260,7 +261,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。`lens_test
 
 - FilterCore 单测：样例集离线断言（`lens_test --filter`，零网络，可进 CI）。**已通过**：样例集 8 段 + 存储往返，覆盖档位词频阈值、词根还原（后缀规则与 WordNet 异常表）、只有表能覆盖的形式（`criteria → criterion` 一类）、垃圾内容（URL / 邮箱 / 文件名 / 带数字串 / 连字 / 全大写）、不在词表即丢、同段同词根去重、known-set 跳过。
 - LLM 纯函数接缝：脱敏 / 请求体 / 响应校验三项离线断言（`lens_test --filter`）。**已通过**：覆盖邮箱、URL、长数字掩码；`model` / `stream:false` / `response_format` / `thinking:disabled` / `max_tokens` / 提示词含 `json` 与格式示例 / 解释语言切末句；`finish_reason != stop`、外层非 JSON、缺 `results`、字段缺失、回显错词 / 漏词 / 多余词一律整体失败。断言经变异验证确实会红。
-- LLM 冒烟：**已通过**（2026-10-02）：`--smoke ubiquitous` 经 `deepseek-flash` 真实往返，`word` / `en` / `zh` / `example` 四字段回显与 §5 schema 一致，`finish_reason=stop`。人工执行，不入 CI。
+- LLM 冒烟：**已通过**（2026-10-02）：`--smoke ubiquitous` 经 `deepseek-flash` 真实往返，`word` / `en` / `zh` 三字段回显与 §5 schema 一致，`finish_reason=stop`。人工执行，不入 CI。
 - 全链手测：复制真实英文句 → 浮层弹词 → [已会]/[新词] 回写 → 复弹不重复。
 - 改动中文文档后重跑 zhlint 至零错误。
 

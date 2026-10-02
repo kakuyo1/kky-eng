@@ -28,7 +28,7 @@ struct Config {
 };
 
 /// @brief One explained word as returned by the model.
-struct WordExplanation { QString word, en, zh, example; };
+struct WordExplanation { QString word, en, zh; };
 
 /**
  * @brief Sends a batch of words and reports the validated explanations back.

@@ -142,9 +142,9 @@ std::variant<QVector<WordExplanation>, QString> parseExplanations(Channel channe
         // The struct mirrors the word channel's schema; the gate above is what the schema
         // actually governs.
         WordExplanation e{obj.value("word").toString(), obj.value("en").toString(),
-                          obj.value("zh").toString(), obj.value("example").toString()};
-        // The example is not shown in phase 1, so an empty one must not sink the batch.
-        // The fields the overlay does show must be present and non-empty.
+                          obj.value("zh").toString()};
+        // Presence is the schema's business; emptiness is not. A field the schema requires
+        // but the model left blank would render as an empty bubble, so it fails here.
         if (e.word.isEmpty() || e.en.isEmpty() || e.zh.isEmpty())
             return reject(QCoreApplication::translate("lens::llm",
                                                       "A results entry has an empty field "

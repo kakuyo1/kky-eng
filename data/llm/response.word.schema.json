@@ -10,12 +10,11 @@
       "description": "One entry per requested word, echoed in any order.",
       "items": {
         "type": "object",
-        "required": ["word", "en", "zh", "example"],
+        "required": ["word", "en", "zh"],
         "properties": {
           "word": { "type": "string", "description": "The input word, spelled exactly as requested." },
           "en": { "type": "string", "description": "One-line English definition." },
-          "zh": { "type": "string", "description": "One-line Chinese definition." },
-          "example": { "type": "string", "description": "One short example sentence. Not shown in phase 1." }
+          "zh": { "type": "string", "description": "One-line Chinese definition." }
         }
       }
     }

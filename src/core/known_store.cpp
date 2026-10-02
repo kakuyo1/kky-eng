@@ -75,9 +75,7 @@ KnownStore KnownStore::load(std::filesystem::path path) {
                 const nlohmann::json& e = entry.value();
                 if (!e.is_object()) continue;
                 store.cache_[cacheKey(lang.key(), entry.key())] =
-                    WordCache{e.value("en", std::string()),
-                              e.value("zh", std::string()),
-                              e.value("example", std::string())};
+                    WordCache{e.value("en", std::string()), e.value("zh", std::string())};
             }
         }
     }
@@ -147,8 +145,7 @@ void KnownStore::save() const {
     nlohmann::json cache = nlohmann::json::object();
     for (const auto& [key, entry] : cache_) {
         const std::size_t sep = key.find(kSep);
-        cache[key.substr(0, sep)][key.substr(sep + 1)] = {
-            {"en", entry.en}, {"zh", entry.zh}, {"example", entry.example}};
+        cache[key.substr(0, sep)][key.substr(sep + 1)] = {{"en", entry.en}, {"zh", entry.zh}};
     }
     doc["cache"] = std::move(cache);
 

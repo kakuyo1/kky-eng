@@ -1,5 +1,4 @@
-# LLM 协议（阶段一：单词通道）
-
+# LLM 协议
 > 本文件描述 Lens 与释义模型之间的线上格式。契约来源见 `PHASE1.md` §4.3 与 §5；**实际生效的定义在 `data/llm/` 目录**，代码只组装与校验，不内联任何提示词或字段名。
 
 服务：DeepSeek（OpenAI 兼容，BYOK）。端点 `POST {baseUrl}/chat/completions`，请求头 `Content-Type: application/json` 与 `Authorization: Bearer <API-KEY>`。
@@ -48,7 +47,7 @@
     {
       "finish_reason": "stop",
       "message": {
-        "content": "{\"results\":[{\"word\":\"ubiquitous\",\"en\":\"present everywhere\",\"zh\":\"无处不在的\",\"example\":\"Phones are ubiquitous.\"}]}"
+        "content": "{\"results\":[{\"word\":\"ubiquitous\",\"en\":\"present everywhere\",\"zh\":\"无处不在的\"}]}"
       }
     }
   ],
@@ -64,8 +63,7 @@
     {
       "word": "ubiquitous",
       "en": "present everywhere",
-      "zh": "无处不在的",
-      "example": "Phones are ubiquitous."
+      "zh": "无处不在的"
     }
   ]
 }
@@ -78,7 +76,6 @@
 | `word` | string | 原样回显输入的词，用于逐词核对 |
 | `en` | string | 一行英文释义 |
 | `zh` | string | 一行中文释义 |
-| `example` | string | 一句例句；阶段一不进浮层，但 schema 保留 |
 
 ## 4 校验规则
 
@@ -88,7 +85,7 @@
 2. `finish_reason` 必须是 `stop`——`length`（截断）、`content_filter`、`insufficient_system_resource`、`aborted` 一律判失败；
 3. `message.content` 能解析成 JSON 对象，且带 `results` 数组；
 4. `results` 每一项是对象，且**具备 schema 要求的全部字段**；
-5. `word` / `en` / `zh` 非空（`example` 允许为空，它不进浮层）；
+5. `word` / `en` / `zh` 三个字段都非空——schema 管字段在不在，非空校验管内容空不空；
 6. 回显的词与请求**逐一对应**：不多、不少、不重、不拼错。返回顺序不作要求，代码按请求顺序回填。
 
 失败原因会经 Qt 翻译（`tr()` / `QCoreApplication::translate()`）后交给 `LlmClient::failed(QString)`，译文见 `i18n/lens_zh_CN.ts`。

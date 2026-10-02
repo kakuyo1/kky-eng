@@ -174,7 +174,7 @@ void runStore() {
         store.setExplanationLang("zh");
         // A real Chinese definition, kept non-ASCII on purpose: this is what proves the
         // JSON round trip survives UTF-8, which an ASCII stand-in would not.
-        store.cachePut("ubiquitous", {"existing everywhere", "无处不在的", "Phones are ubiquitous."});
+        store.cachePut("ubiquitous", {"existing everywhere", "无处不在的"});
         store.save();
     }
 
@@ -274,7 +274,8 @@ void runLlmPure() {
             CHECK(sys.contains("\"results\""), "the prompt shows a JSON format example");
             CHECK(usr.contains("ubiquitous") && usr.contains("resilience"),
                   "the user message carries every requested item");
-            CHECK(sys.contains(QStringLiteral("in Chinese")) ==
+            // The shared body never names a language, so its presence tracks the switch.
+            CHECK(sys.contains(QStringLiteral("Chinese")) ==
                       (QString(lang) == QStringLiteral("zh")),
                   "the explanation language switches the prompt's closing line");
         }
@@ -292,7 +293,7 @@ void runLlmPure() {
 
     const QStringList want{"ubiquitous"};
     const QString good = results(QStringLiteral(
-        R"({"word":"ubiquitous","en":"existing everywhere","zh":"无处不在的","example":"Phones are ubiquitous."})"));
+        R"({"word":"ubiquitous","en":"existing everywhere","zh":"无处不在的"})"));
 
     {
         const auto r = parseExplanations(Channel::Word, envelope(good), want);
@@ -303,32 +304,21 @@ void runLlmPure() {
         }
     }
 
-    {   // The example is not shown in phase 1, so an empty one must not sink the batch.
-        const auto r = parseExplanations(
-            Channel::Word,
-            envelope(results(
-                QStringLiteral(R"({"word":"ubiquitous","en":"x","zh":"y","example":""})"))),
-            want);
-        CHECK(okOf(r), "an empty example does not fail the batch: " + errOf(r).toStdString());
-    }
-
     const struct { const char* what; QByteArray body; } bad[] = {
         {"finish_reason=length, the JSON was cut off",
          envelope(good, QStringLiteral("length"))},
         {"content is not JSON", envelope(QStringLiteral("not json at all"))},
         {"no results key", envelope(QStringLiteral("{}"))},
         {"missing field (no zh)",
-         envelope(results(QStringLiteral(R"({"word":"ubiquitous","en":"x","example":"y"})")))},
-        {"missing field (no example key)",
-         envelope(results(QStringLiteral(R"({"word":"ubiquitous","en":"x","zh":"y"})")))},
+         envelope(results(QStringLiteral(R"({"word":"ubiquitous","en":"x"})")))},
         {"empty field (no en)",
-         envelope(results(QStringLiteral(R"({"word":"ubiquitous","en":"","zh":"y","example":"z"})")))},
+         envelope(results(QStringLiteral(R"({"word":"ubiquitous","en":"","zh":"y"})")))},
         {"misspelled echo",
-         envelope(results(QStringLiteral(R"({"word":"ubiquitos","en":"x","zh":"y","example":"z"})")))},
+         envelope(results(QStringLiteral(R"({"word":"ubiquitos","en":"x","zh":"y"})")))},
         {"missing echo", envelope(results(QString()))},
         {"extra echo",
          envelope(results(QStringLiteral(
-             R"({"word":"ubiquitous","en":"x","zh":"y","example":"z"},{"word":"extra","en":"x","zh":"y","example":"z"})")))},
+             R"({"word":"ubiquitous","en":"x","zh":"y"},{"word":"extra","en":"x","zh":"y"})")))},
     };
     for (const auto& b : bad) {
         const auto r = parseExplanations(Channel::Word, b.body, want);
@@ -407,9 +397,9 @@ int runSmoke(const std::string& word) {
     QObject::connect(&client, &lens::llm::LlmClient::batchFinished,
                      [&exitCode](QVector<lens::llm::WordExplanation> results) {
                          for (const auto& e : results)
-                             std::printf("word:    %s\nen:      %s\nzh:      %s\nexample: %s\n",
+                             std::printf("word: %s\nen:   %s\nzh:   %s\n",
                                          e.word.toStdString().c_str(), e.en.toStdString().c_str(),
-                                         e.zh.toStdString().c_str(), e.example.toStdString().c_str());
+                                         e.zh.toStdString().c_str());
                          exitCode = 0;
                          QCoreApplication::quit();
                      });

@@ -21,7 +21,7 @@
 namespace lens::core {
 
 /// @brief A cached explanation for one lemma, in one explanation language.
-struct WordCache { std::string en, zh, example; };
+struct WordCache { std::string en, zh; };
 
 /**
  * @brief Word marks, difficulty level, explanation language, and the explanation cache.
