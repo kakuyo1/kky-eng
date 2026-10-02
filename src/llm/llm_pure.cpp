@@ -182,4 +182,20 @@ std::variant<QVector<WordExplanation>, QString> parseExplanations(Channel channe
     return ordered;
 }
 
+Usage parseUsage(const QByteArray& responseBody)
+{
+    const auto envelope = QJsonDocument::fromJson(responseBody).object();
+    const auto usage = envelope.value("usage").toObject();
+    if (usage.isEmpty()) {
+        LENS_WARN("the response carries no usage object; the cost tally loses this call");
+        return {};
+    }
+
+    Usage counts;
+    counts.promptTokens = usage.value("prompt_tokens").toInt();
+    counts.completionTokens = usage.value("completion_tokens").toInt();
+    LENS_TRACE("usage: {} prompt / {} completion token(s)", counts.promptTokens, counts.completionTokens);
+    return counts;
+}
+
 }

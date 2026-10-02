@@ -7,7 +7,7 @@
 - **目标**：单词解释通道端到端可用（不含 OCR），UI 各表面完整，未实现功能一律占位、不可触发。
 - **取词**：选区（低层鼠标钩子监听拖选松手，注入 Ctrl+C 取剪贴板，真可用）+ `lens_gtest_unit` 自检。扫描、截图、悬停依赖 OCR，本阶段全部占位。
 - **LLM**：真模型直连（DeepSeek，OpenAI 兼容，BYOK）。替代 DESIGN 原 “假 LLM 先跑通” 原型路径，取舍记录见 `DESIGN.md`。
-- **状态**：离线内核与 LLM 客户端均已落地——`lens_core`（FilterCore / KnownStore）、`lens_llm`（LlmClient + 纯函数内核）、`lens_gtest_unit`（样例集 + 存储往返 + LLM 纯函数接缝，11 例）均通过，见第 9 节。测试框架已从手写 `CHECK` 迁到 GoogleTest（§4.5）；冒烟走 `lens_gtest_smoke`，需人手动执行。`src/app` 的捕获组件（§4.4）已落地并自检通过，见第 9 节；AppController 与 QML 表面仍属后续切片（各片的范围与验收见 §10）。工具链已确认：Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`，preset `vs-qt6`；`data/wordlist.txt` 88,918 行。
+- **状态**：切片一（离线内核）、切片二（LLM 客户端）与切片三（AppController + QML 表面）均已落地。`lens_core`（FilterCore / KnownStore / StatsStore）、`lens_llm`（LlmClient + 纯函数内核 + 价目）、`src/app`（捕获组件 + AppController + 托盘 + QML 七个表面）齐备，可执行目标 `lens` 已能起来。`lens_gtest_unit` 26 例全绿，见第 9 节；冒烟走 `lens_gtest_smoke`，需人手动执行。工具链已确认：Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`，preset `ninja-qt6`（首选）；`data/wordlist.txt` 88,918 行。切片四（阶段二通道）未开始。
 
 ## 2 非目标（本阶段占位）
 
@@ -42,7 +42,7 @@ UI 上占位项：控件存在但 `enabled: false`——文案转 `faint`、开�
   → 用户 [已会]/[新词] → KnownStore 回写
 ```
 
-阶段一单次复制最多弹 1 个词（最高频候选），5 秒自动消失；鼠标悬浮时计时挂起、永不消失，移出后重新计时。悬停同时展开反馈按钮——规格见 `UI.md`。（多词错峰属多气泡场景，阶段一单气泡不涉及。）无候选时动作条照样弹出，但翻译与解释不发请求——没有可用通道，只有复制文本是通的。
+阶段一单次复制最多弹 1 个词（`filterWords` 的首个候选，即选区内最先出现的那个），5 秒自动消失；鼠标悬浮时计时挂起、永不消失，移出后重新计时。悬停同时展开反馈按钮——规格见 `UI.md`。（多词错峰属多气泡场景，阶段一单气泡不涉及。）无候选时动作条照样弹出，但翻译与解释不发请求——没有可用通道，只有复制文本是通的。
 
 ## 4 模块接口（契约先行）
 
@@ -122,6 +122,49 @@ public:
 - `setLevel` 越界抛 `std::out_of_range`；`load` 见越界值回落默认档。
 - 档位序号到词频阈值（`filterWords` 的 `minFreqRank`）的映射尚未落地，属 AppController 切片，配合 `TODO.md` 词书数据一起做。
 
+统计三个弹窗（统计 / 词汇 / 花费）要的数据此前没有归属，切片三补上（2026-10-03）。`StatsStore` 与 `KnownStore` **共用 settings.local.json，但不自己读写文件**：构造时绑定 `KnownStore::document()` 交出的那份文档，只写 `history` / `daily` 两键，落盘仍由 `KnownStore::save()` 一次写完。两个类各自持一份文档的话，后存的一方会把先存的一方的改动整体覆盖——用户的标记或密钥就这么没了，所以文档的所有者只能有一个。
+
+```cpp
+namespace lens::core {
+
+/// @brief A word the bubble showed, kept for the words popup.
+struct HistoryEntry {
+    std::string lemma;
+    std::string minute;   ///< Local "YYYY-MM-DD HH:MM".
+    std::string verdict;  ///< "" until marked, then "known" or "new".
+};
+
+/// @brief One day's tallies, for the stats and cost popups.
+struct DailyUsage {
+    int pops = 0;
+    int learned = 0;
+    int fresh = 0;
+    long long promptTokens = 0;
+    long long completionTokens = 0;
+};
+
+class StatsStore {
+public:
+    explicit StatsStore(nlohmann::json& document);   // the document KnownStore owns
+
+    void recordPop(std::string lemma, std::string minute);
+    void recordVerdict(const std::string& lemma, std::string minute, std::string verdict);
+    void recordUsage(const std::string& minute, long long promptTokens, long long completionTokens);
+
+    const std::vector<HistoryEntry>& history() const;        ///< newest first
+    const std::map<std::string, DailyUsage>& daily() const;  ///< keyed by local date
+};
+
+}
+```
+
+落地注记（2026-10-03）：
+
+- **只存 token，不存金额**。单价会变，把当时的金额刻进历史没有意义；金额在展示时由 token × 当前价目算出（§4.3 的 `llm_pricing`），改价不改历史记录的结构。
+- **`history` 有上限**：留最近 2000 条，超出按时间截断最旧的，否则文档随使用无界增长。`daily` 是按日聚合，一条一天，不设上限。
+- **日期与分钟都取本地时间**：词汇弹窗的三档时间（`今天 14:20` / `昨天 21:48` / `09-30 14:02`）由界面按日期差选格式，故存 `YYYY-MM-DD HH:MM` 原样，不做相对化。
+- **`recordVerdict` 找最新一条同词且未标记的记录回填**；找不到就只动当日计数——标记可能发生在弹词之后很久，两次之间又弹过别的词。
+
 ### 4.3 LlmClient（QObject，异步）
 
 ```cpp
@@ -129,16 +172,17 @@ namespace lens::llm {
 
 struct Config { QUrl baseUrl; QString apiKey; QString model; };
 struct WordExplanation { QString word, en, zh; };
+struct Usage { int promptTokens = 0; int completionTokens = 0; };  // 响应 usage 字段
 
 class LlmClient : public QObject {
     Q_OBJECT
 public:
     explicit LlmClient(Config, QObject* parent = nullptr);
 signals:
-    void batchFinished(QVector<WordExplanation> results);   // 校验通过
-    void failed(QString message);                            // 网络 / schema 失败
+    void batchFinished(QVector<WordExplanation> results, Usage usage);  // 校验通过
+    void failed(QString message);                                       // 网络 / schema 失败
 public slots:
-    void explainWords(QStringList words);                    // 一次 HTTP，批量
+    void explainWords(QStringList words);                               // 一次 HTTP，批量
 };
 
 }
@@ -161,8 +205,12 @@ public slots:
 - **`max_tokens` 显式设**：非思考模式缺省 8K。JSON 被截断时接口不报错，只把 `finish_reason` 置为 `length`。
 - **`finish_reason` 必查**：仅 `stop` 算成功；`length`（截断）、`content_filter`、`insufficient_system_resource`、`aborted` 一律按整体失败上报——与 “缺失 / 多余 → 整体失败” 同源，响应是不可信数据。
 - **错误码归类**：401 认证失败、402 余额不足、429 限流、400 格式错、422 参数错、500 服务端错、503 过载。`failed(message)` 按此分类，**任何分支都不得回显密钥**。
+- **usage 随结果一起回报**（2026-10-03，切片三）：`batchFinished` 带 `Usage`，由 `parseUsage()` 从同一个响应里读 `usage.prompt_tokens` / `usage.completion_tokens`。**usage 缺失按 0 计并记警告，不判整批失败**——统计少一笔可以忍，把一次成功的解释整批丢掉不行。这一点与 “缺失 / 多余 → 整体失败” 不冲突：那条管的是解释内容，这条管的是计费元数据。
+- **价目是数据**：`data/llm/pricing.json` 按模型名给输入 / 输出单价（每百万 token）与币种，`llm_pricing.{h,cpp}` 加载并算 `Usage -> 金额`。改价是改数据，不重编译；价目缺失或模型不在表内时金额记 0 并记警告，不影响解释。
 
 ### 4.4 AppController（QML 后端）
+
+接口不再用 `...Model` 占位，切片三落成下面这份（2026-10-03）。喂给 QML 的一律是 `QVariantMap` / `QVariantList` 只读属性，QML 只读不写；写回一律走 `Q_INVOKABLE`。
 
 ```cpp
 namespace lens::app {
@@ -170,20 +218,55 @@ namespace lens::app {
 class AppController : public QObject {
     Q_OBJECT
 public:
-    void onSelectionReleased(QPoint anchor);            // 选区入口：鼠标钩子在拖选松手时调用
+    AppController(core::KnownStore& store, llm::LlmClient& llm, MouseSelectionHook& hook,
+                  const llm::Pricing& pricing, QObject* parent = nullptr);
+
+    void onSelectionReleased(QPoint anchor);             // 选区入口：鼠标钩子在拖选松手时调用
+
     Q_INVOKABLE void runSelectionAction(QString action, QString text);  // 动作条回传：translate / explain / copy
     Q_INVOKABLE void mark(QString lemma, bool learned);  // 浮层反馈
     Q_INVOKABLE void setAutoScan(bool on);               // 设置开关 / 全局热键 F8
-    Q_PROPERTY(... bubbleModel ...)                       // 当前解释（喂气泡）
-    Q_PROPERTY(... settingsModel ...)                     // 档位 / 语言 / API / 触发开关
+    Q_INVOKABLE void setLevel(int level);
+    Q_INVOKABLE void setExplanationLang(QString lang);
+    Q_INVOKABLE void setTheme(QString theme);            // "light" / "dark"
+    Q_INVOKABLE void setUiLanguage(QString lang);        // "zh" / "en"，切 .qm
+    Q_INVOKABLE void setSelectionCapture(bool on);       // 阶段一唯一有实效的触发开关
+    Q_INVOKABLE void setApiKey(QString key);             // 只写文件，不回显
+
+    Q_INVOKABLE void bubbleHoverChanged(bool hovering);  // QML 持有 5 秒计时，这里只记状态
+    Q_INVOKABLE void dismissBubble();
+
+    Q_INVOKABLE void confirmSend();                      // DEV_SEND_CONFIRM 的两条出路，
+    Q_INVOKABLE void cancelSend();                       // 正式构建里随开关整段消失
+
+    Q_PROPERTY(QVariantMap bubble READ bubble NOTIFY bubbleChanged)      // 当前解释，空 map = 无气泡
+    Q_PROPERTY(QVariantMap settings READ settings NOTIFY settingsChanged)
+    Q_PROPERTY(QVariantMap stats READ stats NOTIFY statsChanged)         // 今日计数 + 历史累计
+    Q_PROPERTY(QVariantList words READ words NOTIFY statsChanged)        // 词汇弹窗的行
+    Q_PROPERTY(QVariantMap cost READ cost NOTIFY statsChanged)           // 花费弹窗的各档金额
+    Q_PROPERTY(QString modeLabel READ modeLabel NOTIFY settingsChanged)  // 托盘首行与 tooltip 共用
+    Q_PROPERTY(QString busyLabel READ busyLabel NOTIFY busyChanged)      // 托盘 icon 的「解释中」态
+
 signals:
     void selectionBarRequested(QVariantMap payload);      // → QML 弹选区动作条：{x, y, kind, text}
-    void bubbleReady(QVariantMap payload);                // → QML 弹气泡：{x, y, ...}
+    void bubbleChanged();
+    void settingsChanged();
+    void statsChanged();
+    void busyChanged();                                   // 托盘 icon 切「解释中」
+    void uiLanguageChanged(QString lang);                 // → 启动处换 QTranslator
     void confirmSendRequest(QStringList words);           // DEV_SEND_CONFIRM 开关
 };
 
 }
 ```
+
+落地注记（2026-10-03）：
+
+- **`bubble` 与 `settings` 都是 map，不是 QObject 模型**。表面数量个位数、字段都是标量，为每个表面写一个 QAbstractItemModel 是给 QML 添一层没人问的间接。
+- **5 秒计时归 QML**：自动消失与悬停挂起是视图行为（`UI.md` §4.3），计时的持有者在 QML；`bubbleHoverChanged` 只让 C++ 知道状态，不参与计时。否则计时器要跨进程边界地和悬停事件对齐。
+- **`modeLabel` 一个属性喂两处**：托盘菜单首行与 tooltip 都写同一个 “Lens · 模式 · 今日词数” 串（`UI.md` §4.2 / §4.5），分两处拼字符串必然漂移。
+- **`cost` 的五个数在 C++ 算**：本月、今天、昨天、本周、日均里的日期运算用 `QDate`，core 侧只存 token 与按日计数（§4.2）。
+- **气泡不带音标**：`UI.md` §4.3 的单词行右侧有音标位，而响应 schema 只有 `word` / `en` / `zh` 三字段（§5），阶段一不放音标位。
 
 落地注记（2026-10-02）：
 
@@ -248,15 +331,15 @@ lens/
 ├── TEST.md                   # 测试：框架 / 目标 / 样例集 / profiling / 记录
 ├── data/wordlist.txt         # 静态词表（top-100k，词频序，第 8 节）
 ├── data/irregulars.tsv       # 不规则屈折表（WordNet 异常表生成，见 §4.1）
-├── data/llm/                 # LLM 协议数据：request.<通道>.json + response.<通道>.schema.json
+├── data/llm/                 # LLM 协议数据：request.<通道>.json + response.<通道>.schema.json + pricing.json
 ├── logs/                     # 运行期日志（轮转，gitignored，只留 .gitkeep）
 ├── third_party/              # 供应商源码：nlohmann/json（header-only）、spdlog 与 googletest（编译成静态库）
 ├── i18n/                     # 文案翻译：lens_en_US.ts（源）+ lens_zh_CN.ts（中文）
-├── icons/                    # 托盘图标，按主题两套（待填）
+├── icons/                    # 托盘图标，深浅任务栏两套（SVG）；预算态已备图、未接线
 ├── src/
-│   ├── core/                 # FilterCore / KnownStore / 日志入口 log.h / 测量点 profile.h
-│   ├── llm/                  # LlmClient + 纯函数内核
-│   └── app/                  # 捕获组件（已落地）+ AppController / QML 表面（待建）
+│   ├── core/                 # FilterCore / KnownStore / StatsStore / 日志入口 log.h / 测量点 profile.h
+│   ├── llm/                  # LlmClient + 纯函数内核 + 价目
+│   └── app/                  # 捕获组件 + AppController + 托盘 + main + qml/
 ├── test/                     # googletest/ 下的 unit / perf / smoke，以及样例集（独立于 src/）
 └── ui-prototypes/            # 设计原型（v1-halo-*.html）
 ```
@@ -267,7 +350,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 
 日志：全项目走 spdlog（`third_party/spdlog`，编译成静态库），模块只用 `src/core/log.h` 的 `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_ERROR` / `LENS_CRITICAL` 宏。`SPDLOG_ACTIVE_LEVEL` 由 CMake 挂在 `lens_core` 上（Debug = trace，Release = info），低于它的调用整条编译掉——不能写在 `log.h` 里，spdlog 自己的 `common.h` 一旦被包含就会抢先定义成 info。`lens::log::init()` 写 `logs/lens.log`（10 MB 一轮，留 3 个备份）并镜像到 stderr，级别可用 `LENS_LOG_LEVEL` 覆盖。Qt 自身的 qDebug / qWarning / qCritical 等由 `src/llm/qt_log.h` 的 `installQtMessageHandler()` 折进同一个 logger，源位置指向 Qt 调用点而非桥接处。密钥永不进日志（第 6 节）。
 
-现状：`lens_core` 为 STATIC（`log.cpp` + `profile.cpp` + `filter_core.cpp` + `known_store.cpp`），`lens_llm` 亦已转 STATIC（`llm_pure.cpp` + `llm_client.cpp`），`lens_gtest_unit` / `lens_gtest_smoke` 链接两者，`lens_gtest_perf` 只链接 `lens_core`。`src/app` 已由 INTERFACE 占位转为 STATIC，装着捕获组件（§4.4）的 `mouse_selection_hook.cpp` 与 `selection_text_grabber.cpp`；它眼下只挂 `Qt6::Core`（`QPoint` / `QEventLoop` / `QTimer` 都在 QtCore）加 `user32`，Gui / Quick / Widgets 随 QML 表面落地时再补。
+现状：`lens_core` 为 STATIC（`log.cpp` + `profile.cpp` + `filter_core.cpp` + `known_store.cpp` + `stats_store.cpp`），`lens_llm` 亦为 STATIC（`llm_pure.cpp` + `llm_client.cpp` + `llm_protocol.cpp` + `llm_pricing.cpp`），`lens_gtest_unit` / `lens_gtest_smoke` 链接两者，`lens_gtest_perf` 只链接 `lens_core`。`src/app` 为 STATIC，装着捕获组件（§4.4）、`AppController` 与托盘（`QSystemTrayIcon` + `QMenu`），除 `Qt6::Core` 外挂 Gui / Widgets 与 `user32`。可执行目标 `lens`（同目录的 `main.cpp` + `qml/`）不与 `lens_gtest_*` 共用：`qt_add_qml_module` 挂在 `lens` 上而不是静态库上——挂静态库要额外处理 QML 插件注册，而测试目标本来就不需要 QML。
 
 ## 8 预检清单（动工前）
 
@@ -291,6 +374,9 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 - 选区捕获（2026-10-03）：`lens_gtest_integration` 15 例中 14 例通过、1 例跳过。机器已验证——手势规则（含阈值边界、双击 / 三击、反向拖动）、终端排除名单的大小写与全路径匹配、钩子装上后能收到拖拽并按松手坐标发出锚点（拖拽由 `SendInput` 合成，低层钩子对合成事件与真实事件一视同仁）、前台是自己时取文拒绝执行，以及剪贴板存还原的三面（内容被顶掉后还原、非文本格式一并还原、没取过快照时不许动剪贴板）。真人手测过一次（2026-10-03，Windows 记事本 11.2607 商店版）：注入的 Ctrl+C 确实取到了选区，十字相符——契约里那句 “凡能复制的应用都通” 有实证了。同一次的日志还给出了逐格式拷贝的量化理由：记事本一次 Ctrl+C 往剪贴板放了 4 种格式，快照全数取回并全数还原，**只存文本会毁掉其中 3 种**。
 - **剪贴板的存还原用 OLE 是错的**（2026-10-03 实测推翻）：`OleGetClipboard` 取出的 `IDataObject` 交给 `OleSetClipboard` 一律失败，`CLIPBRD_E_CANT_CLOSE` 或 `CLIPBRD_E_CANT_OPEN`；中间有没有变化、内容由本进程还是别的进程（`clip.exe` 验过）放入，结果都一样，而同一次运行里 `OleSetClipboard(nullptr)` 却成功，所以坏的是对象往返而非 setter。现在的做法是裸开剪贴板逐格式读出字节，还原时空盘再逐格式写回；位图 / 调色板 / 增强图元文件 / owner-display 族这类句柄格式按名跳过并记日志；`ole32` 不再需要。这条错误原先只有人工用例能碰，改成三个离线用例后当场复现。
 - 全链手测：复制真实英文句 → 浮层弹词 → [已会]/[新词] 回写 → 复弹不重复。
+- 切片三（2026-10-03）：`lens_gtest_unit` 26 例全绿——切片一的 11 例之外，新增 `StatsStore` 8 例（往返、判定回填、上限截断、畸形文档、与 `KnownStore` 共用文档时的互不覆盖）、`parseUsage` 3 例、价目 4 例。
+- 切片三界面：`lens` 起来无 QML 警告，七个表面在真实桌面渲染核对过（截图）：选区动作条、解释气泡、统计 / 词汇 / 花费三弹窗、设置浮层。界面语言切到中文后各表面文案为中文（`i18n` 共 84 条、`lrelease` 报 0 unfinished）；托盘图标资源加载成功（`QIcon::isNull()` 为假）。占位项按 §2 灰化且不响应。
+- **切片三的端到端验收尚未跑**：三条验收里 “复制真实英文句、浮层弹词、[已会] / [新词] 回写、复弹不重复” 这条需要真实鼠标操作与一次真实的模型往返，属人手动，未执行。因此 “选区取词在真机上从手势走到气泡” 这条链目前只有各段的证据，没有整条的证据。
 - 改动中文文档后重跑 zhlint 至零错误。
 
 ## 10 切片计划
@@ -315,12 +401,22 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 
 第二次追加（2026-10-02，同样不占切片号）：GoogleTest 进 `third_party` 并退役手写自检（§4.5）、`src/core/profile.{h,cpp}` 与 `LENS_ENABLE_PROFILE` 选项（§4.6）。两件都是基建，没有可独立验收的用户交付物，故按上一段的先例记在这里，不另起切片号。
 
-### 切片三：AppController + QML 表面（未开始）
+### 切片三：AppController + QML 表面（进行中）
 
 - **范围**：`src/app` 落地。`AppController`（选区入口：鼠标钩子 + Ctrl+C 取文、选区类型判定与锚点、动作条回传、候选查缓存、known-set 回写、设置读写、DEV_SEND_CONFIRM 拦截）与 `UI.md` 的全部表面（设置浮层、选区动作条、解释气泡、统计弹窗及其下钻的词汇 / 花费弹窗、发送确认）；托盘图标四状态与菜单用 **C++ `QSystemTrayIcon` + `QMenu`**。
 - **含**：§4.2 遗留的 “档位序号 → 词频阈值” 映射，与 `TODO.md` 的词书数据一起做（`minFreqRank` 目前是近似，见 §4.1 落地注记）。
 - **含**：i18n 首次真正生效——QML 目录加入 `lupdate` 扫描，`.qm` 经 CMake 构建、启动时加载（现在 `.ts` 只有 llm 模块的 22 条，加载机制尚未接）。
+- **含**：统计三个弹窗的数据层 `StatsStore`（§4.2）与金额所需的 `Usage` + 价目（§4.3）——此前两个契约里都没有，是切片三补的。
 - **验收**：复制真实英文句 → 浮层弹词 → [已会] / [新词] 回写 → 复弹不重复；占位项 `enabled: false` 不可触发；界面语言中英切换生效。
+
+落地注记（2026-10-03）：
+
+- **主窗口不存在，根窗口却必须真的可见**。表面各自是一个 `Window`（`UI.md` 的 “各表面相互独立，不共用窗口” 正是这么写的），不是 `Popup`；而 QML 里嵌在另一个 `Window` 内的 `Window` 会成为它的 transient child，Windows 在父窗口隐藏时不会把 transient child 显示出来——原先写的 “0×0 且 `visible: false`” 实测所有表面都不出现，改成 1×1、`opacity: 0`、带 `WindowTransparentForInput` 的可见窗口后正常（挪到屏幕外也管用，但渲染循环会为 “矩形不与任何屏幕相交” 每次启动记一条警告）。这一条靠跑起来验证，不从文档推。
+- **窗口的屏幕坐标是 `x` / `y`**：`Window` 没有 `screenX` / `screenY`（那是 `Item` 的属性），在函数里写未加限定的 `screenY = ...` 会去写全局属性并报错。
+- **QML 的 `font.pixelSize` 是整数**：`UI.md` 字号表里的 12.5 / 11.5 / 10.5 px 落不了地，按四舍五入取 13 / 12 / 11，保住 “最小 11 px” 那条约束。
+- **选区的类型判定发生在动作之前**：`onSelectionReleased` 走完取文只判定并弹动作条，不请求；点 “翻译” 或 “解释” 之后才按判定结果分流，单词发请求，无候选时只有复制文本这一条路走得通。判定结果放进 `selectionBarRequested` 的 `kind`，QML 不参与判定。
+- **发出去的是词根，不是原文形态**：选中 running 时，请求、缓存键、气泡标题、历史记录统一用 lemma（run）。§4.2 已定缓存按词根分键，若请求发 surface，同一次选择就会产生 “问的是 running、缓存存的是 run” 两套键，再选 ran 也命中不了。代价是气泡标题显示词典形而非读者选中的词形。
+- **托盘 icon 只有三个可达状态**：自动扫描开 / 解释中 / 已关；第四态（预算耗尽）要等每日预算上限落地，它的图已在 `icons/` 里备好但没有分支去选它——留一个到不了的分支比缺一张图更坏。
 
 ### 切片四：阶段二通道（未开始）
 

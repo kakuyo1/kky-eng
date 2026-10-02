@@ -75,4 +75,17 @@ std::variant<QVector<WordExplanation>, QString> parseExplanations(Channel channe
                                                                   const QByteArray& responseBody,
                                                                   const QStringList& expectedWords);
 
+/**
+ * @brief Read the token counts out of a response envelope.
+ *
+ * `usage` sits on the envelope, not in the payload, so it is outside everything
+ * parseExplanations() checks: a response with perfect explanations and no `usage` is still a
+ * success, and one with `usage` and a malformed payload still fails. Losing a line of the
+ * cost tally is survivable; dropping an explanation that arrived intact is not.
+ *
+ * @param responseBody Raw HTTP response body.
+ * @return The counts, or zero for any field the response omits or states as a non-number.
+ */
+Usage parseUsage(const QByteArray& responseBody);
+
 }

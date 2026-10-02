@@ -32,6 +32,15 @@ struct WordExplanation {
     QString word, en, zh;
 };
 
+/// @brief Token counts the service reports for one call, for the cost surfaces.
+///
+/// Missing from the response is recorded as zero rather than failing the batch: losing one
+/// line of a tally is survivable, throwing away an explanation that succeeded is not.
+struct Usage {
+    int promptTokens = 0;
+    int completionTokens = 0;
+};
+
 /**
  * @brief Sends a batch of words and reports the validated explanations back.
  *
@@ -57,9 +66,16 @@ public:
     /// phase 1 produces; the entity and sentence channels arrive with phase 2.
     void setChannel(Channel channel);
 
+    /// @return The model name as sent on the wire, which is the key the price list uses.
+    QString model() const
+    {
+        return config_.model;
+    }
+
 signals:
     /// @brief Emitted with the validated explanations, in the order the words were asked for.
-    void batchFinished(QVector<WordExplanation> results);
+    /// @param usage Token counts from the same response, all zero when it carried none.
+    void batchFinished(QVector<WordExplanation> results, Usage usage);
 
     /// @brief Emitted on transport, HTTP status, or response-validation failure.
     /// @param message Reader-facing reason, already routed through translation.

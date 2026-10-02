@@ -112,13 +112,14 @@ void LlmClient::explainWords(QStringList words)
             return;
         }
 
-        const auto parsed = parseExplanations(channel_, reply->readAll(), words);
+        const QByteArray body = reply->readAll();
+        const auto parsed = parseExplanations(channel_, body, words);
         if (const auto* message = std::get_if<QString>(&parsed)) {
             emit failed(*message);
             return;
         }
         LENS_INFO("received {} explanation(s)", words.size());
-        emit batchFinished(std::get<QVector<WordExplanation>>(parsed));
+        emit batchFinished(std::get<QVector<WordExplanation>>(parsed), parseUsage(body));
     });
 }
 

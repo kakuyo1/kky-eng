@@ -4,9 +4,9 @@
  * @file qt_log.h
  * @brief Routes Qt's own diagnostics into spdlog, so one file holds the whole story.
  *
- * @note This is Qt plumbing with no LLM behaviour in it. It sits in lens_llm because that
- *       is the only Qt-dependent module today; move it next to AppController once src/app
- *       stops being a placeholder.
+ * @note This is Qt plumbing with no LLM behaviour in it. lens_llm is where it compiles
+ *       because that is the lowest target that links Qt at all; every Qt-linked target above
+ *       it depends on lens_llm, so moving the file would buy nothing.
  */
 
 namespace lens::log {

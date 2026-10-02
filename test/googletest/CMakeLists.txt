@@ -19,7 +19,9 @@ endfunction()
 # The offline suite: no network, no API key, safe for CI. This is the one to run by default.
 add_executable(lens_gtest_unit
   unit/filter_core_test.cpp
+  unit/stats_store_test.cpp
   unit/llm_pure_test.cpp
+  unit/llm_pricing_test.cpp
 )
 target_link_libraries(lens_gtest_unit PRIVATE lens_core lens_llm GTest::gtest_main)
 lens_gtest_configure(lens_gtest_unit)

@@ -1,0 +1,101 @@
+#pragma once
+
+#include <nlohmann/json.hpp>
+
+#include <map>
+#include <string>
+#include <vector>
+
+/**
+ * @file stats_store.h
+ * @brief What the statistics, words, and cost popups are built from: every word a bubble
+ *        showed and a per-day tally of pops and tokens.
+ *
+ * This is a section of the settings document, not a file of its own. It binds to the
+ * document KnownStore owns and never reads or writes the file -- KnownStore::save() persists
+ * the whole document, this class's keys included. Two owners of one file would each save a
+ * stale view and the later save would drop the earlier one's changes.
+ *
+ * Only tokens are stored, never money: prices change, and a cost frozen into history means
+ * nothing later. The amount is computed at display time from the current price list
+ * (llm_pricing.h).
+ */
+
+namespace lens::core {
+
+/// @brief A word the bubble showed, kept for the words popup.
+struct HistoryEntry {
+    std::string lemma;
+    std::string minute;  ///< Local "YYYY-MM-DD HH:MM".
+    std::string verdict; ///< Empty until marked, then "known" or "new".
+};
+
+/// @brief One day's tallies, for the statistics and cost popups.
+struct DailyUsage {
+    int pops = 0;
+    int learned = 0;
+    int fresh = 0;
+    long long promptTokens = 0;
+    long long completionTokens = 0;
+};
+
+/**
+ * @brief The history and daily tallies behind the statistics surfaces.
+ *
+ * @note Deliberately Qt-free, like KnownStore: the aggregates the popups show (this month,
+ *       this week, yesterday, the daily average) are date arithmetic and live in the
+ *       controller, which has QDate. Here the dates are strings.
+ */
+class StatsStore {
+public:
+    /// @brief Number of history entries kept; older ones are dropped.
+    static constexpr std::size_t kMaxHistory = 2000;
+
+    /**
+     * @brief Bind to the settings document and read the keys already in it.
+     * @param document The document KnownStore owns, which must outlive this object.
+     */
+    explicit StatsStore(nlohmann::json& document);
+
+    /// @brief Record that a bubble showed this word.
+    /// @param minute Local time as "YYYY-MM-DD HH:MM"; its date picks the daily bucket.
+    void recordPop(std::string lemma, std::string minute);
+
+    /**
+     * @brief Attach the reader's verdict to the newest unmarked entry for a word.
+     *
+     * The mark can come long after the pop, with other words shown in between, so the entry
+     * is found rather than assumed to be the last one. Finding none is not an error: the
+     * verdict may come from a pop that predates the history window, and the day's tally
+     * still moves.
+     *
+     * @param minute Local time of the mark; its date picks the daily bucket.
+     * @param verdict "known" or "new".
+     */
+    void recordVerdict(const std::string& lemma, std::string minute, std::string verdict);
+
+    /// @brief Add one response's token usage to its day.
+    void recordUsage(const std::string& minute, long long promptTokens, long long completionTokens);
+
+    /// @return The history, newest first.
+    const std::vector<HistoryEntry>& history() const
+    {
+        return history_;
+    }
+
+    /// @return Every day's tally, keyed by local date as "YYYY-MM-DD".
+    const std::map<std::string, DailyUsage>& daily() const
+    {
+        return daily_;
+    }
+
+private:
+    /// @brief Write the typed state back into the document, for KnownStore::save() to persist.
+    void writeBack();
+
+    nlohmann::json& doc_;
+    std::vector<HistoryEntry> history_; ///< Newest first, same order as the document.
+    std::map<std::string, DailyUsage> daily_;
+};
+
+}

@@ -63,7 +63,7 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH lrelease i18n/lens_en_US.ts i18n/lens_zh
 
 After adding or changing a reader-facing string, run `lupdate`: it appends the new ones as `unfinished` and leaves existing translations alone, so it is safe to rerun. Then write the Chinese into `lens_zh_CN.ts` and copy the source text into `lens_en_US.ts`. `lrelease` is the check — it reports how many entries are unfinished, and the goal is zero. The `.qm` files it writes are build output and stay gitignored.
 
-`lupdate` only reads literal arguments, so every `tr()` / `translate()` call spells out its context and its string at the call site; routing them through a helper that takes the context as a parameter would extract nothing. Scan `src` today; add the QML directory to the `lupdate` command once the app surfaces exist.
+`lupdate` only reads literal arguments, so every `tr()` / `translate()` call spells out its context and its string at the call site; routing them through a helper that takes the context as a parameter would extract nothing. `src` is scanned whole, so the QML surfaces under `src/app/qml` come along with the C++. CMake builds the `.qm` from the `.ts` and embeds it at `:/i18n/`.
 
 ## Code Style
 

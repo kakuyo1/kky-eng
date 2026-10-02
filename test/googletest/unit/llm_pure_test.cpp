@@ -27,10 +27,12 @@ namespace {
 
 using lens::llm::Channel;
 using lens::llm::Config;
+using lens::llm::Usage;
 using lens::llm::WordExplanation;
 using lens::llm::buildRequestBody;
 using lens::llm::maskSensitive;
 using lens::llm::parseExplanations;
+using lens::llm::parseUsage;
 using LlmResult = std::variant<QVector<WordExplanation>, QString>;
 
 // TEST_F pastes the fixture name into a class definition, so it has to be unqualified.
@@ -157,4 +159,35 @@ TEST_F(LlmTest, RejectsTheWholeBatchOnAnyMalformedResponse)
         SCOPED_TRACE(item.what);
         EXPECT_FALSE(accepted(parseExplanations(Channel::Word, item.body, kAskedFor)));
     }
+}
+
+TEST_F(LlmTest, ReadsTokenUsageOffTheEnvelope)
+{
+    const QJsonObject usage{{"prompt_tokens", 1200}, {"completion_tokens", 340}, {"total_tokens", 1540}};
+    const QByteArray body = QJsonDocument(QJsonObject{{"usage", usage}}).toJson(QJsonDocument::Compact);
+
+    const Usage counts = parseUsage(body);
+    EXPECT_EQ(counts.promptTokens, 1200);
+    EXPECT_EQ(counts.completionTokens, 340);
+}
+
+TEST_F(LlmTest, TreatsMissingUsageAsZeroRatherThanAFailure)
+{
+    // A response with no usage is still a good explanation; only the tally loses a line.
+    const QByteArray body = envelope(results(kGoodResult));
+    EXPECT_TRUE(accepted(parseExplanations(Channel::Word, body, kAskedFor)));
+
+    const Usage counts = parseUsage(body);
+    EXPECT_EQ(counts.promptTokens, 0);
+    EXPECT_EQ(counts.completionTokens, 0);
+}
+
+TEST_F(LlmTest, TreatsNonNumericUsageAsZero)
+{
+    const QJsonObject usage{{"prompt_tokens", QStringLiteral("many")}, {"completion_tokens", QJsonValue::Null}};
+    const QByteArray body = QJsonDocument(QJsonObject{{"usage", usage}}).toJson(QJsonDocument::Compact);
+
+    const Usage counts = parseUsage(body);
+    EXPECT_EQ(counts.promptTokens, 0);
+    EXPECT_EQ(counts.completionTokens, 0);
 }

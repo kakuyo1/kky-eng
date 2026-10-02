@@ -70,6 +70,28 @@ public:
     std::optional<WordCache> cacheGet(const std::string& lemma) const;
     void cachePut(const std::string& lemma, WordCache);
 
+    /**
+     * @brief The document this store owns, for the section objects that persist beside it.
+     *
+     * StatsStore keeps its keys in the same document, and only one object may own it: two
+     * copies loaded separately would each save their own stale view and the later save would
+     * drop the earlier one's changes -- a word mark or the API key, silently. So the file has
+     * one owner (this class) and the others write into its document; save() then persists
+     * everything at once.
+     *
+     * @return The whole settings document, as loaded.
+     */
+    nlohmann::json& document()
+    {
+        return doc_;
+    }
+
+    /// @return The same document, read-only.
+    const nlohmann::json& document() const
+    {
+        return doc_;
+    }
+
     /// @brief Write the whole document back, preserving every unrecognised key.
     /// @throws std::runtime_error If the file cannot be written.
     void save() const;

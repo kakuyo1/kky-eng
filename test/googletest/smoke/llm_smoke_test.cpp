@@ -35,6 +35,7 @@ namespace {
 
 using lens::llm::Config;
 using lens::llm::LlmClient;
+using lens::llm::Usage;
 using lens::llm::WordExplanation;
 
 /// How long to wait for the model before calling it a timeout.
@@ -78,8 +79,10 @@ TEST(LlmSmoke, OneWordRoundTrip)
     std::optional<QVector<WordExplanation>> results;
     QString failure;
 
-    QObject::connect(&client, &LlmClient::batchFinished, [&](const QVector<WordExplanation>& explained) {
+    QObject::connect(&client, &LlmClient::batchFinished, [&](const QVector<WordExplanation>& explained, Usage usage) {
         results = explained;
+        std::cout << "usage: " << usage.promptTokens << " prompt / " << usage.completionTokens
+                  << " completion token(s)\n";
         loop.quit();
     });
     QObject::connect(&client, &LlmClient::failed, [&](const QString& message) {

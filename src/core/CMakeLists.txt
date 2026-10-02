@@ -3,6 +3,7 @@ add_library(lens_core STATIC
   profile.cpp
   filter_core.cpp
   known_store.cpp
+  stats_store.cpp
 )
 
 # src/ is exposed for self-contained "core/xxx.h" includes; third_party/ for nlohmann/json.hpp

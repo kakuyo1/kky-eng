@@ -77,6 +77,8 @@
 | `en` | string | 一行英文释义 |
 | `zh` | string | 一行中文释义 |
 
+`usage` 在 envelope 层，不在载荷里，因此**不参与上面那套校验**：`parseUsage()` 从同一个响应体独立读 `prompt_tokens` / `completion_tokens`，缺失按 0 计并记警告。统计少一笔可忍，把一次成功的解释整批丢掉不可忍；`usage` 与解释内容是否合法互不影响（`PHASE1.md` §4.3）。金额不由线上格式给出，本地按 `data/llm/pricing.json` 乘算。
+
 ## 4 校验规则
 
 响应是**第三方不可信数据**，任一项不过即整批失败，不静默丢词（`PHASE1.md` §4.3）：
@@ -106,6 +108,8 @@
 
 - `data/llm/request.word.json` — 请求模板、系统提示词、输出语言行
 - `data/llm/response.word.schema.json` — 响应 schema（校验真源）
-- `src/llm/llm_protocol.{h,cpp}` — 加载与访问上述文件
-- `src/llm/llm_pure.{h,cpp}` — 组装请求体与校验响应，均无网络
+- `data/llm/pricing.json` — 按模型名给输入 / 输出单价（每百万 token）与币种，算金额用
+- `src/llm/llm_protocol.{h,cpp}` — 加载与访问上述协议文件
+- `src/llm/llm_pricing.{h,cpp}` — 加载价目、把 `Usage` 折成金额
+- `src/llm/llm_pure.{h,cpp}` — 组装请求体、校验响应、读 `usage`，均无网络
 - `test/googletest/unit/llm_pure_test.cpp` — 用固定样例锁住上述行为
