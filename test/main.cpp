@@ -350,6 +350,7 @@ void initLogging(spdlog::level::level_enum level = lens::log::kDefaultLevel) {
 int runFilter() {
     LENS_INFO("=== offline self-check ===");
     lens::core::loadWordlist(fs::path(LENS_SOURCE_DIR) / "data" / "wordlist.txt");
+    lens::core::loadIrregulars(fs::path(LENS_SOURCE_DIR) / "data" / "irregulars.tsv");
     loadProtocol();
     runCorpus();
     runStore();

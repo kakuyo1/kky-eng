@@ -1,8 +1,10 @@
 #include "core/filter_core.h"
 #include "core/log.h"
 
+#include <algorithm>
 #include <chrono>
 #include <fstream>
+#include <limits>
 #include <stdexcept>
 #include <unordered_map>
 
@@ -49,35 +51,11 @@ const std::unordered_set<std::string>& keepAsIs() {
     return words;
 }
 
-/// Irregular form to base form. Only pairs no suffix rule could derive (went -> go,
-/// children -> child, and the like).
-const std::unordered_map<std::string, std::string>& irregulars() {
-    static const std::unordered_map<std::string, std::string> table = {
-        {"went", "go"},       {"gone", "go"},         {"ran", "run"},         {"came", "come"},
-        {"took", "take"},     {"taken", "take"},      {"made", "make"},       {"said", "say"},
-        {"gave", "give"},     {"given", "give"},      {"found", "find"},      {"thought", "think"},
-        {"bought", "buy"},    {"brought", "bring"},   {"kept", "keep"},       {"held", "hold"},
-        {"built", "build"},   {"sent", "send"},       {"spent", "spend"},     {"lost", "lose"},
-        {"met", "meet"},      {"paid", "pay"},        {"told", "tell"},       {"felt", "feel"},
-        {"left", "leave"},    {"meant", "mean"},      {"led", "lead"},        {"lay", "lie"},
-        {"wrote", "write"},   {"written", "write"},   {"drove", "drive"},     {"driven", "drive"},
-        {"rose", "rise"},     {"risen", "rise"},      {"grew", "grow"},       {"grown", "grow"},
-        {"knew", "know"},     {"known", "know"},      {"threw", "throw"},     {"thrown", "throw"},
-        {"drew", "draw"},     {"drawn", "draw"},      {"flew", "fly"},        {"flown", "fly"},
-        {"began", "begin"},   {"begun", "begin"},     {"broke", "break"},     {"broken", "break"},
-        {"chose", "choose"},  {"chosen", "choose"},   {"drank", "drink"},     {"drunk", "drink"},
-        {"ate", "eat"},       {"eaten", "eat"},       {"fell", "fall"},       {"fallen", "fall"},
-        {"forgot", "forget"}, {"forgotten", "forget"},{"hid", "hide"},        {"hidden", "hide"},
-        {"sang", "sing"},     {"sung", "sing"},       {"sank", "sink"},       {"sunk", "sink"},
-        {"sat", "sit"},       {"slept", "sleep"},     {"spoke", "speak"},     {"spoken", "speak"},
-        {"stood", "stand"},   {"stole", "steal"},     {"stolen", "steal"},    {"swam", "swim"},
-        {"swum", "swim"},     {"wore", "wear"},       {"worn", "wear"},       {"won", "win"},
-        {"children", "child"},{"men", "man"},         {"women", "woman"},     {"feet", "foot"},
-        {"teeth", "tooth"},   {"mice", "mouse"},      {"geese", "goose"},     {"people", "person"},
-        {"better", "good"},   {"best", "good"},       {"worse", "bad"},       {"worst", "bad"},
-    };
-    return table;
-}
+/// Inflected form to its base form(s), loaded from data/irregulars.tsv. A form with more
+/// than one base (better -> good / well) carries them all; the empty map means
+/// loadIrregulars() has not run.
+std::unordered_map<std::string, std::vector<std::string>> g_irregulars;
+bool g_irregularsLoaded = false;
 
 /// Every candidate must already be a real word list entry. A stem that is not in the list
 /// is meaningless and would only split "water" into "wat".
@@ -129,22 +107,89 @@ void loadWordlist(const std::filesystem::path& path) {
     const auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
                                std::chrono::steady_clock::now() - startedAt)
                                .count();
-    LENS_INFO("wordlist loaded: {} entries from '{}' in {} ms", g_rank.size(),
-                 path.string(), elapsedMs);
+    LENS_INFO("wordlist loaded: {} entries from '{}' in {} ms", g_rank.size(), path.string(),
+              elapsedMs);
+}
+
+void loadIrregulars(const std::filesystem::path& path) {
+    const auto startedAt = std::chrono::steady_clock::now();
+    LENS_TRACE("loadIrregulars: reading '{}'", path.string());
+
+    std::ifstream in(path);
+    if (!in) {
+        LENS_CRITICAL("loadIrregulars: cannot open '{}'", path.string());
+        throw std::runtime_error("Cannot open the irregular table: " + path.string());
+    }
+
+    std::unordered_map<std::string, std::vector<std::string>> table;
+    std::string line;
+    std::size_t lineNumber = 0;
+    while (std::getline(in, line)) {
+        ++lineNumber;
+        while (!line.empty() && (line.back() == '\r' || line.back() == '\n')) line.pop_back();
+        if (line.empty() || line.front() == '#') continue;
+
+        const std::size_t tab = line.find('\t');
+        if (tab == std::string::npos) {
+            LENS_CRITICAL("loadIrregulars: line {} is neither blank, '#' nor 'form<TAB>base'",
+                          lineNumber);
+            throw std::runtime_error("Irregular table line " + std::to_string(lineNumber) +
+                                     " is malformed: " + path.string());
+        }
+
+        const std::string form = lower(std::string_view(line).substr(0, tab));
+        const std::string base = lower(std::string_view(line).substr(tab + 1));
+        if (form.empty() || base.empty() || form == base) {
+            LENS_CRITICAL("loadIrregulars: line {} carries no usable pair", lineNumber);
+            throw std::runtime_error("Irregular table line " + std::to_string(lineNumber) +
+                                     " carries no usable pair: " + path.string());
+        }
+
+        std::vector<std::string>& bases = table[form];
+        if (std::find(bases.begin(), bases.end(), base) == bases.end()) bases.push_back(base);
+    }
+
+    if (table.empty()) {
+        LENS_CRITICAL("loadIrregulars: '{}' holds no pairs", path.string());
+        throw std::runtime_error("The irregular table is empty: " + path.string());
+    }
+    g_irregulars = std::move(table);
+    g_irregularsLoaded = true;
+
+    const auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                               std::chrono::steady_clock::now() - startedAt)
+                               .count();
+    LENS_INFO("irregular table loaded: {} form(s) from '{}' in {} ms", g_irregulars.size(),
+              path.string(), elapsedMs);
 }
 
 std::string lemmatize(std::string_view token) {
+    if (!g_irregularsLoaded)
+        throw std::logic_error("lens::core::lemmatize: loadIrregulars() must run first");
     if (g_rank.empty())
         throw std::logic_error("lens::core::lemmatize: loadWordlist() must run first");
 
     const std::string t = lower(token);
     if (keepAsIs().count(t) != 0) return t;
 
-    // Irregular forms are decided outright rather than entered into the frequency
-    // comparison below: children (451) outranks child (461), so picking by frequency would
-    // pick children right back. What is wanted here is the explicitly listed base form.
-    if (const auto it = irregulars().find(t); it != irregulars().end() && inTable(it->second))
-        return it->second;
+    // A loaded irregular is authoritative and does not enter the frequency comparison
+    // below: children outranks child in the word list, so comparing would pick children
+    // right back. A form with several bases (better -> good / well) has none that can be
+    // told apart locally, so those are settled by the same frequency tie-break.
+    if (const auto it = g_irregulars.find(t); it != g_irregulars.end()) {
+        const std::vector<std::string>& bases = it->second;
+        const std::string* best = &bases.front();
+        std::size_t bestRank = std::numeric_limits<std::size_t>::max();
+        for (const auto& base : bases) {
+            const std::size_t rank = rankOf(base);
+            if (rank != 0 && rank < bestRank) {
+                bestRank = rank;
+                best = &base;
+            }
+        }
+        if (*best != t) LENS_TRACE("lemmatize: '{}' -> '{}' (irregular)", t, *best);
+        return *best;
+    }
 
     // The base form and every stem the suffix rules produce become candidates; the winner
     // is whichever is most common in the word list (smallest frequency rank). The list
@@ -227,6 +272,8 @@ std::vector<Candidate> filterWords(
     std::string_view text,
     const std::unordered_set<std::string>& knownLemmas,
     std::size_t minFreqRank) {
+    if (!g_irregularsLoaded)
+        throw std::logic_error("lens::core::filterWords: loadIrregulars() must run first");
     if (g_rank.empty())
         throw std::logic_error("lens::core::filterWords: loadWordlist() must run first");
 

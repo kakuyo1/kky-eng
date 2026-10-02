@@ -1,44 +1,51 @@
 [
   {
-    "note": "档位词频阈值：低于阈值的常用词丢弃，高于阈值的实词按出现顺序保留",
+    "note": "Frequency cut-off: common words below the rank are dropped, real words above it survive in order",
     "minFreqRank": 3000,
     "text": "The ubiquitous nature of modern software makes resilience essential.",
     "expect": ["ubiquitous", "software", "resilience", "essential"]
   },
   {
-    "note": "词根还原：不规则表 + 后缀规则，档位阈值置 0 以单看还原结果",
+    "note": "Lemmatisation: the loaded irregular table plus the suffix rules, cut-off at 0 to isolate reduction",
     "minFreqRank": 0,
     "text": "children ran quickly, studies and policies changed as they flew",
     "expect": ["children", "ran", "quickly", "studies", "and", "policies", "changed", "they", "flew"],
     "expectLemmas": ["child", "run", "quick", "study", "and", "policy", "change", "they", "fly"]
   },
   {
-    "note": "垃圾内容：URL / 邮箱 / 文件名 / 带数字串 / 连字 / 全大写，一律丢弃",
+    "note": "Irregular forms no suffix rule can reach: without the loaded table these reduce to themselves",
+    "minFreqRank": 0,
+    "text": "criteria phenomena cacti alumni",
+    "expect": ["criteria", "phenomena", "cacti", "alumni"],
+    "expectLemmas": ["criterion", "phenomenon", "cactus", "alumnus"]
+  },
+  {
+    "note": "Junk: URL, email, filename, strings with digits, hyphenated words and all-caps are all dropped",
     "minFreqRank": 0,
     "text": "https://example.com/k8s user@example.com report_final.txt 42 version2 ABC123 NASA THE OK end-to-end",
     "expect": []
   },
   {
-    "note": "不在静态词表即丢，与档位阈值无关（阈值置 0 仍不弹）",
+    "note": "Absent from the static word list means dropped, whatever the cut-off (still nothing at 0)",
     "minFreqRank": 0,
     "text": "kubernetes throughput",
     "expect": []
   },
   {
-    "note": "档位阈值以上的实词",
+    "note": "Real words above the cut-off",
     "minFreqRank": 4500,
     "text": "The infrastructure deployment requires meticulous latency tuning.",
     "expect": ["infrastructure", "deployment", "meticulous", "latency"]
   },
   {
-    "note": "同段内同词根只留首次出现",
+    "note": "One lemma appears once per excerpt",
     "minFreqRank": 4500,
     "text": "Leveraging infrastructure and scrutinizing infrastructure again.",
     "expect": ["leveraging", "infrastructure", "scrutinizing"],
     "expectLemmas": ["leverage", "infrastructure", "scrutinize"]
   },
   {
-    "note": "known-set 命中即跳过",
+    "note": "A lemma in the known set is skipped",
     "minFreqRank": 4500,
     "known": ["infrastructure"],
     "text": "Leveraging infrastructure and scrutinizing infrastructure again.",

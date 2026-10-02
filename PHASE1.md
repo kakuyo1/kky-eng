@@ -7,7 +7,7 @@
 - **目标**：单词解释通道端到端可用（不含 OCR），UI 各表面完整，未实现功能一律占位、不可触发。
 - **取词**：选区（剪贴板监听，真可用）+ `lens_test --filter` 自检。扫描、截图、悬停依赖 OCR，本阶段全部占位。
 - **LLM**：真模型直连（DeepSeek，OpenAI 兼容，BYOK）。替代 DESIGN 原 “假 LLM 先跑通” 原型路径，取舍记录见 `DESIGN.md`。
-- **状态**：离线内核与 LLM 客户端均已落地——`lens_core`（FilterCore / KnownStore）、`lens_llm`（LlmClient + 纯函数内核）、`lens_test --filter`（样例集 + 存储往返 + LLM 纯函数接缝）与 `lens_test --smoke`（真模型 1 词往返）均通过，见第 9 节。`src/app` 仍为 INTERFACE 占位，AppController 与 QML 表面属后续切片。工具链已确认：Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`，preset `vs-qt6`；`data/wordlist.txt` 88,918 行。
+- **状态**：离线内核与 LLM 客户端均已落地——`lens_core`（FilterCore / KnownStore）、`lens_llm`（LlmClient + 纯函数内核）、`lens_test --filter`（样例集 + 存储往返 + LLM 纯函数接缝）与 `lens_test --smoke`（真模型 1 词往返）均通过，见第 9 节。`src/app` 仍为 INTERFACE 占位，AppController 与 QML 表面属后续切片（各片的范围与验收见 §10）。工具链已确认：Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`，preset `vs-qt6`；`data/wordlist.txt` 88,918 行。
 
 ## 2 非目标（本阶段占位）
 
@@ -76,7 +76,9 @@ std::vector<Candidate> filterWords(
 
 - **词表是模块内加载一次的只读状态**，不占 `filterWords` 参数位：契约里它本就是唯一权威判定，词根还原也要靠它挑词干。故新增 `loadWordlist`；未加载即调用 `filterWords` / `lemmatize` 抛 `std::logic_error`——这是初始化次序 bug，必须响亮而非静默丢弃全部候选。
 - **词根还原 = 候选生成 + 词表择一**，不是无脑剥后缀。不规则表命中即裁定；其余由后缀规则产出 “在词表内” 的词干，与原形并列，取词频序最小者。依据是实测：词表同时收录变形词与原形（running 555 / run 314，increasing 7246 / increase 3568，studied 3632 / study 1273），比词频序天然挑中原形；而 water / under / offer 这类词干不是词的原形会安全落回自身。不规则表必须直接返回而非参与比较——children（451）比 child（461）更靠前，按词频挑会挑回 children 自己。
-- **有意的近似**（`ponytail:`，样例集撞出误判再放宽）：比较级 -er / -est 仅 ≥6 / ≥7 字母启用，短词干的 biggest → big、nicer → nice 不还原；`-ing` / `-ed` 仅 ≥5 字母启用，避开 seed → see 这类伪还原；`news` / `means` 列入 keepAsIs 例外表。
+- **不规则表是数据，不是代码**（2026-10-02 改）：`data/irregulars.tsv` 由 `scripts/gen_irregulars.py` 从 WordNet 的四张屈折异常表（`verb/noun/adj/adv.exc`）生成，5761 条，加载走新增的 `loadIrregulars()`——与 `loadWordlist()` 并列，两者都必须先跑，缺一个即抛。此前是 `filter_core.cpp` 里手打的 74 条，覆盖不到 `criteria → criterion`、`cacti → cactus`、`abaci → abacus` 这类后缀规则根本推不出的形式。源表缺 `women → woman`、`people → person`（WordNet 把这两个复数当成独立词条），由生成脚本里一段带注释的补漏补齐。
+- **一词多 base 的归属**：表里极少数形式有多个原形（`better` → good / well），本地无从分辨义项，按词表词频择一；单 base 的形式仍命中即裁定。
+- **有意的近似**（`ponytail:`，样例集撞出误判再放宽）：`-er` 仅 ≥6 字母、`-est` 仅 ≥7 字母启用，故 nicer（5 字母）与 nicest（6 字母）不还原——**注意 biggest 是 7 字母，规则会触发并经叠辅音减一还原成 big**（早先此处写成 “biggest → big 不还原” 是错的，与代码不符，2026-10-02 更正）；`-ing` / `-ed` 仅 ≥5 字母启用，避开 seed → see 这类伪还原；`news` / `means` 列入 keepAsIs 例外表——它们不在异常表里，需要挡掉 `-s` 规则。
 - **分词**：按空白切段，削去首尾既非字母也非数字的字节，剩余内部只要还有非字母字节，整段判粘连串丢弃。数字留在 token 内而不是削掉——否则 version2 会被削成 version 反被弹出。
 - **含元音**判定把 `y` 计入，救回 rhythm / myth / gym。
 - 去重按 **lemma**（非 surface）：同段内 run 与 running 只留首次出现。
@@ -221,6 +223,7 @@ lens/
 ├── scripts/build.bat         # 进 VS 环境后驱动 ninja（首配一次，之后纯增量）
 ├── LLM.md                    # LLM 线上格式说明（请求 / 响应 / 校验 / 错误码）
 ├── data/wordlist.txt         # 静态词表（top-100k，词频序，第 8 节）
+├── data/irregulars.tsv       # 不规则屈折表（WordNet 异常表生成，见 §4.1）
 ├── data/llm/                 # LLM 协议数据：request.<通道>.json + response.<通道>.schema.json
 ├── logs/                     # 运行期日志（轮转，gitignored，只留 .gitkeep）
 ├── third_party/              # 供应商源码：nlohmann/json（header-only）、spdlog（编译成静态库）
@@ -255,8 +258,40 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。`lens_test
 
 ## 9 验证
 
-- FilterCore 单测：样例集离线断言（`lens_test --filter`，零网络，可进 CI）。**已通过**：样例集 7 段 + 存储往返，覆盖档位词频阈值、词根还原（不规则表与后缀规则）、垃圾内容（URL / 邮箱 / 文件名 / 带数字串 / 连字 / 全大写）、不在词表即丢、同段同词根去重、known-set 跳过。
+- FilterCore 单测：样例集离线断言（`lens_test --filter`，零网络，可进 CI）。**已通过**：样例集 8 段 + 存储往返，覆盖档位词频阈值、词根还原（后缀规则与 WordNet 异常表）、只有表能覆盖的形式（`criteria → criterion` 一类）、垃圾内容（URL / 邮箱 / 文件名 / 带数字串 / 连字 / 全大写）、不在词表即丢、同段同词根去重、known-set 跳过。
 - LLM 纯函数接缝：脱敏 / 请求体 / 响应校验三项离线断言（`lens_test --filter`）。**已通过**：覆盖邮箱、URL、长数字掩码；`model` / `stream:false` / `response_format` / `thinking:disabled` / `max_tokens` / 提示词含 `json` 与格式示例 / 解释语言切末句；`finish_reason != stop`、外层非 JSON、缺 `results`、字段缺失、回显错词 / 漏词 / 多余词一律整体失败。断言经变异验证确实会红。
 - LLM 冒烟：**已通过**（2026-10-02）：`--smoke ubiquitous` 经 `deepseek-flash` 真实往返，`word` / `en` / `zh` / `example` 四字段回显与 §5 schema 一致，`finish_reason=stop`。人工执行，不入 CI。
 - 全链手测：复制真实英文句 → 浮层弹词 → [已会]/[新词] 回写 → 复弹不重复。
 - 改动中文文档后重跑 zhlint 至零错误。
+
+## 10 切片计划
+
+切片 = 一次可独立验收的落地单元。编号此前只活在临时交接单里（那份删了就没了），在此固定下来；本文件是它的唯一出处。
+
+### 切片一：离线内核（已完成）
+
+- **范围**：词表加载、词根还原、候选过滤、本地状态持久化，全离线可自检。
+- **交付**：`src/core/filter_core.{h,cpp}`、`src/core/known_store.{h,cpp}`、`data/wordlist.txt`、`test/` 的样例集与存储往返。
+- **验收**：`lens_test --filter` 全绿，零网络、零密钥。
+
+### 切片二：LLM 客户端（已完成）
+
+- **范围**：真模型直连（DeepSeek，OpenAI 兼容，BYOK）。传输层 `LlmClient`（QObject + `QNetworkAccessManager`）与无网络内核（脱敏 / 请求体构造 / 响应校验）分离。
+- **交付**：`src/llm/llm_client.{h,cpp}`、`src/llm/llm_pure.{h,cpp}`、`--smoke` 真模型往返。
+- **验收**：`--smoke` 单词往返四字段齐全；响应校验对畸形输入一律整批拒绝。
+
+### 工程基建（已完成，不占切片号）
+
+这一段不在原计划里，是几次按需请求累积出来的，单独记一笔以免来历不明：spdlog 与 `LENS_*` 日志宏（Qt 消息并入同一 logger）、Ninja 构建与 `scripts/build.bat`、全项目英文 Doxygen 注释、i18n 骨架（`i18n/*.ts`，英文为源语言）、LLM 线上协议数据化（`data/llm/` + `LLM.md`）、不规则屈折表数据化（`data/irregulars.tsv`）。
+
+### 切片三：AppController + QML 表面（未开始）
+
+- **范围**：`src/app` 落地。`AppController`（剪贴板入口、候选查缓存、known-set 回写、设置读写、DEV_SEND_CONFIRM 拦截）与 `UI.md` 的全部表面（设置浮层、解释气泡、统计弹窗及其下钻的词汇 / 花费弹窗、发送确认）；托盘图标四状态与菜单用 **C++ `QSystemTrayIcon` + `QMenu`**。
+- **含**：§4.2 遗留的 “档位序号 → 词频阈值” 映射，与 `TODO.md` 的词书数据一起做（`minFreqRank` 目前是近似，见 §4.1 落地注记）。
+- **含**：i18n 首次真正生效——QML 目录加入 `lupdate` 扫描，`.qm` 经 CMake 构建、启动时加载（现在 `.ts` 只有 llm 模块的 22 条，加载机制尚未接）。
+- **验收**：复制真实英文句 → 浮层弹词 → [已会] / [新词] 回写 → 复弹不重复；占位项 `enabled: false` 不可触发；界面语言中英切换生效。
+
+### 切片四：阶段二通道（未开始）
+
+- **范围**：OCR 取词（扫描 / 悬停 / 截图）、实体通道、句子通道、误弹反馈入口、每日预算上限（§2 全部占位项）。
+- **前置**：`data/llm/request.<通道>.json` 与 `response.<通道>.schema.json` 的提示词与响应字段名要先有契约。通道骨架（`Channel` 枚举、按通道加载器、`setChannel`）已就位，内容未定。
