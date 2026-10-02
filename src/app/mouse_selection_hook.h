@@ -1,0 +1,101 @@
+#pragma once
+
+#include <QObject>
+#include <QPoint>
+
+/**
+ * @file mouse_selection_hook.h
+ * @brief Watches the mouse for the moment the reader finishes selecting text.
+ *
+ * Windows offers no API that hands over the selected text of another application, so the
+ * trigger cannot be "the selection changed" — it has to be the gesture. A drag that ended,
+ * or the release of a double or triple click, is the point at which a selection exists. The
+ * hook reports only that moment; getting the text out is a separate step, see
+ * selection_text_grabber.h. Injecting Ctrl+C from inside a low-level hook callback would
+ * overrun the budget Windows allows it and get the hook removed without a word, so the
+ * callback stays O(1) and defers.
+ *
+ * @note Windows only, like the rest of src/app. This is where the Win32 mouse calls live.
+ */
+
+namespace lens::app {
+
+/**
+ * @brief What the hook saw between one left-button press and its release.
+ *
+ * Positions are virtual-screen pixels, so a multi-monitor desktop with negative origins
+ * needs no special case.
+ */
+struct Gesture
+{
+    int downX = 0;    ///< Where the button went down.
+    int downY = 0;
+    int upX = 0;      ///< Where it came back up.
+    int upY = 0;
+    int clickRun = 1; ///< 1 for a single click, 2 for a double, 3 for a triple.
+};
+
+/**
+ * @brief Whether a finished gesture was the reader selecting text.
+ *
+ * Two things count. A drag that travelled at least @p dragSlopPx, and the release of a
+ * double or triple click — Windows selects a word on the second click and a paragraph on
+ * the third without the pointer moving at all, so distance alone would miss both and the
+ * most common way to pick a single word would never fire. A single click that stayed inside
+ * the slop is a caret placement, not a selection.
+ *
+ * @param gesture    Endpoints and the click run the hook accumulated.
+ * @param dragSlopPx Movement below this counts as jitter rather than a drag. The caller
+ *                   seeds it from the system's own SM_CXDRAG / SM_CYDRAG so the rule
+ *                   follows the reader's mouse settings.
+ * @return True when the gesture should be treated as a selection.
+ * @note A low-level mouse hook never receives WM_LBUTTONDBLCLK, so @p clickRun is
+ *       synthesised by the hook from GetDoubleClickTime() and SM_CXDOUBLECLK. This function
+ *       only reads it, which is what keeps the rule testable without a mouse.
+ */
+bool isSelectionGesture(const Gesture& gesture, int dragSlopPx);
+
+/**
+ * @brief Installs the low-level mouse hook and reports completed selections.
+ *
+ * The hook is process-wide and its callback runs on the thread that installed it, which
+ * must be the thread pumping messages. Everything expensive happens after the callback has
+ * returned.
+ */
+class MouseSelectionHook : public QObject
+{
+    Q_OBJECT
+public:
+    explicit MouseSelectionHook(QObject* parent = nullptr);
+
+    /// @brief Uninstalls the hook if it is still installed.
+    ~MouseSelectionHook() override;
+
+    /**
+     * @brief Install the hook.
+     * @return True on success. On failure the reason is logged at CRITICAL and false comes
+     *         back; nothing throws, because this runs on a startup path.
+     * @note Calling it twice is harmless: the second call reports success without
+     *       reinstalling.
+     */
+    bool install();
+
+signals:
+    /// @brief A left-button gesture was judged a completed selection.
+    /// @param anchor Release position, in the coordinates Windows reports to the hook: real
+    ///               screen pixels, never virtualised. The bar and the bubble anchor off it,
+    ///               so the process has to be DPI aware or the two will disagree by the
+    ///               monitor's scale factor — measured at 125%: a release at logical x=220
+    ///               arrives here as x=275. Qt makes a QGuiApplication per-monitor aware, so
+    ///               this only bites a process that bypasses it.
+    void selectionReleased(QPoint anchor);
+
+private:
+    bool installed_ = false;
+
+    // The system thresholds and the gesture bookkeeping live in the .cpp, not here: the
+    // callback Windows calls is a free function that receives no user data and cannot reach
+    // a private member. Keeping them there is also what keeps windows.h out of this header.
+};
+
+}

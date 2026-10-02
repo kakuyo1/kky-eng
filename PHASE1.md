@@ -7,7 +7,7 @@
 - **目标**：单词解释通道端到端可用（不含 OCR），UI 各表面完整，未实现功能一律占位、不可触发。
 - **取词**：选区（低层鼠标钩子监听拖选松手，注入 Ctrl+C 取剪贴板，真可用）+ `lens_gtest_unit` 自检。扫描、截图、悬停依赖 OCR，本阶段全部占位。
 - **LLM**：真模型直连（DeepSeek，OpenAI 兼容，BYOK）。替代 DESIGN 原 “假 LLM 先跑通” 原型路径，取舍记录见 `DESIGN.md`。
-- **状态**：离线内核与 LLM 客户端均已落地——`lens_core`（FilterCore / KnownStore）、`lens_llm`（LlmClient + 纯函数内核）、`lens_gtest_unit`（样例集 + 存储往返 + LLM 纯函数接缝，11 例）均通过，见第 9 节。测试框架已从手写 `CHECK` 迁到 GoogleTest（§4.5）；冒烟走 `lens_gtest_smoke`，需人手动执行。`src/app` 仍为 INTERFACE 占位，AppController 与 QML 表面属后续切片（各片的范围与验收见 §10）。工具链已确认：Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`，preset `vs-qt6`；`data/wordlist.txt` 88,918 行。
+- **状态**：离线内核与 LLM 客户端均已落地——`lens_core`（FilterCore / KnownStore）、`lens_llm`（LlmClient + 纯函数内核）、`lens_gtest_unit`（样例集 + 存储往返 + LLM 纯函数接缝，11 例）均通过，见第 9 节。测试框架已从手写 `CHECK` 迁到 GoogleTest（§4.5）；冒烟走 `lens_gtest_smoke`，需人手动执行。`src/app` 的捕获组件（§4.4）已落地并自检通过，见第 9 节；AppController 与 QML 表面仍属后续切片（各片的范围与验收见 §10）。工具链已确认：Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`，preset `vs-qt6`；`data/wordlist.txt` 88,918 行。
 
 ## 2 非目标（本阶段占位）
 
@@ -191,12 +191,14 @@ signals:
 - **两个必须处理的副作用**：一是剪贴板被顶掉——注入前存、读完还原，其间用户恰好复制的东西会被吞（`ponytail:` 竞争窗口，真被投诉再上 UIA TextPattern 绕开剪贴板取文）；二是注入的 Ctrl+C 在终端里就是 SIGINT——按前台进程名排除终端类（Windows Terminal / conhost / PowerShell），与 `DESIGN.md` 的扫描白名单同源。
 - **注入前必须确认前台不是自己**：靠 §4.4 已有的 `WindowDoesNotAcceptFocus`——动作条与气泡都不夺焦点，点它们不会污染下一次注入的目标。
 - **动作条介入数据流**：`onSelectionReleased` 不再直接通向气泡，中间隔着选区动作条。回传的 `action` 取 `translate` / `explain` / `copy`，前两者行为相同（通道由类型定，见 `UI.md` §4.9），故 `action` 只用来区分 “本地复制” 与 “发 LLM 请求” 两条路。
+- **捕获组件是两个文件**：`mouse_selection_hook.{h,cpp}`（低层钩子与手势规则）与 `selection_text_grabber.{h,cpp}`（注入 Ctrl+C、剪贴板存还原）。终端排除与前台自查都落在取文那一步——危险发生在注入处，那也才是查得到前台进程的地方；`selectionReleased` 只带 `QPoint`，不带进程名。两条纯谓词 `isSelectionGesture` / `isExcludedProcess` 收普通参数，可离线断言。
+- **锚点是物理像素**：钩子拿到的 `pt` 从不虚拟化，而 DPI 无感知进程自己的坐标是虚拟化的，两者会差一个缩放系数（本机 125% 实测：逻辑 x=220 的松手位置到达钩子是 x=275）。真实应用里 Qt 会把 QGuiApplication 设成 per-monitor aware，两边才重合；绕过 Qt 的进程要自己声明，否则动作条与气泡会偏。
 
 QML 表面：设置浮层、选区动作条、解释气泡、统计弹窗及其下钻的词汇 / 花费弹窗、发送确认，按 `UI.md` 规格落地；占位项 `enabled: false`。托盘图标（四状态）与托盘菜单用 **C++ `QSystemTrayIcon` + `QMenu`**（QtWidgets，Windows 原生可靠；`Qt.labs.platform` 实验性 QML 类型在 6.9 上右键菜单不生效，弃用）。QML 根为隐藏 0×0 `Window`（`visible: false`、`WindowDoesNotAcceptFocus`）——弹层 Window 需要窗口上下文，隐藏窗口无任何可见足迹，不构成主窗口。
 
 ### 4.5 Test（`test/googletest/`，独立目标，不编进 `lens_app`）
 
-测试代码与样例集是单独的可执行目标，只在本机构建，**不进发布包**：它是 `lens_core`（无 Qt）→ `lens_llm` → `lens_app` 这条链之外的旁支，`lens_gtest_unit` / `lens_gtest_smoke` 链接 `lens_core` + `lens_llm`，`lens_gtest_perf` 只链接 `lens_core`，保持无 Qt。
+测试代码与样例集是单独的可执行目标，只在本机构建，**不进发布包**：它是 `lens_core`（无 Qt）→ `lens_llm` → `lens_app` 这条链之外的旁支，`lens_gtest_unit` / `lens_gtest_smoke` 链接 `lens_core` + `lens_llm`，`lens_gtest_perf` 只链接 `lens_core`（保持无 Qt），`lens_gtest_integration` 链接 `lens_app` + `lens_core`。
 
 契约要点只有一条：**样例集 `test/eval_corpus.json` 是 FilterCore 的行为规格**——改行为先改样例集（`CONTEXT.md`“自检样例集”），测试红了再动 `src/`。离线那一支零网络、零密钥，**可进 CI**。
 
@@ -254,18 +256,18 @@ lens/
 ├── src/
 │   ├── core/                 # FilterCore / KnownStore / 日志入口 log.h / 测量点 profile.h
 │   ├── llm/                  # LlmClient + 纯函数内核
-│   └── app/                  # AppController + QML 表面（待建）
+│   └── app/                  # 捕获组件（已落地）+ AppController / QML 表面（待建）
 ├── test/                     # googletest/ 下的 unit / perf / smoke，以及样例集（独立于 src/）
 └── ui-prototypes/            # 设计原型（v1-halo-*.html）
 ```
 
-CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。三个 `lens_gtest_*` 独立于这条链，只在本机构建、不进发布包：`unit` 与 `smoke` 链接 `lens_core` + `lens_llm`，`perf` 只链接 `lens_core`（保持无 Qt）。
+CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `lens_gtest_*` 独立于这条链，只在本机构建、不进发布包：`unit` 与 `smoke` 链接 `lens_core` + `lens_llm`，`perf` 只链接 `lens_core`（保持无 Qt），`integration` 链接 `lens_app` + `lens_core`。
 
 构建：首选 `ninja-qt6` preset（单配置，增量重编一个源文件约 6 秒），由 `scripts/build.bat` 先进 MSVC 环境再驱动，命令与并行度上限见 `CLAUDE.md`。`vs-qt6` 保留给 IDE。
 
 日志：全项目走 spdlog（`third_party/spdlog`，编译成静态库），模块只用 `src/core/log.h` 的 `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_ERROR` / `LENS_CRITICAL` 宏。`SPDLOG_ACTIVE_LEVEL` 由 CMake 挂在 `lens_core` 上（Debug = trace，Release = info），低于它的调用整条编译掉——不能写在 `log.h` 里，spdlog 自己的 `common.h` 一旦被包含就会抢先定义成 info。`lens::log::init()` 写 `logs/lens.log`（10 MB 一轮，留 3 个备份）并镜像到 stderr，级别可用 `LENS_LOG_LEVEL` 覆盖。Qt 自身的 qDebug / qWarning / qCritical 等由 `src/llm/qt_log.h` 的 `installQtMessageHandler()` 折进同一个 logger，源位置指向 Qt 调用点而非桥接处。密钥永不进日志（第 6 节）。
 
-现状：`lens_core` 为 STATIC（`log.cpp` + `profile.cpp` + `filter_core.cpp` + `known_store.cpp`），`lens_llm` 亦已转 STATIC（`llm_pure.cpp` + `llm_client.cpp`），`lens_gtest_unit` / `lens_gtest_smoke` 链接两者，`lens_gtest_perf` 只链接 `lens_core`。`src/app` 仍为 INTERFACE 占位（零文件、只挂 Qt 依赖），落地时改成 STATIC 并加源文件即可，测试的链接行不用动。
+现状：`lens_core` 为 STATIC（`log.cpp` + `profile.cpp` + `filter_core.cpp` + `known_store.cpp`），`lens_llm` 亦已转 STATIC（`llm_pure.cpp` + `llm_client.cpp`），`lens_gtest_unit` / `lens_gtest_smoke` 链接两者，`lens_gtest_perf` 只链接 `lens_core`。`src/app` 已由 INTERFACE 占位转为 STATIC，装着捕获组件（§4.4）的 `mouse_selection_hook.cpp` 与 `selection_text_grabber.cpp`；它眼下只挂 `Qt6::Core`（`QPoint` / `QEventLoop` / `QTimer` 都在 QtCore）加 `user32` / `ole32`，Gui / Quick / Widgets 随 QML 表面落地时再补。
 
 ## 8 预检清单（动工前）
 
@@ -286,6 +288,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。三个 `le
 - LLM 冒烟：**已通过**（2026-10-02，迁移前的手写版本）：`ubiquitous` 经 `deepseek-flash` 真实往返，`word` / `en` / `zh` 三字段回显与 §5 schema 一致，`finish_reason=stop`。迁移后的 `lens_gtest_smoke` 尚未跑过真实往返，待人工执行。
 - FilterCore 热点：**已测量**（2026-10-02，RelWithDebInfo，`LENS_ENABLE_PROFILE=ON`，样例集 8 段 × 200 轮，`filterWords` 1600 次 / `lemmatize` 8400 次 / token 10800 个）。**`lemmatize` 只占一部分，其余落在分词与硬过滤阶段**，比此前 “热路径即 lemmatize” 的说法更宽。五轮数据（见 `TEST.md` 的记录约定）：`lemmatize` 很稳，1.85–2.04 ms（221–240 ns/次）；`filterWords` 在 4.36–7.04 ms 之间摆，占机器干扰最大的分词侧。因此占比是区间而非点值：**最干净的三轮约 43%，受干扰时降到 27%**。同株关掉插桩作对照，插桩整体抬高约 16%，反推一次计时器约 60 ns；扣掉后下限约 36%。
 - 一次运行的定量结论都带这类区间，跑 `lens_gtest_perf` 时至少看三轮。
+- 选区捕获（2026-10-02）：`lens_gtest_integration` 12 例中 11 例通过、1 例跳过。**机器已验证**——手势规则（含阈值边界、双击 / 三击、反向拖动）、终端排除名单的大小写与全路径匹配、钩子装上后能收到拖拽并按松手坐标发出锚点（拖拽由 `SendInput` 合成，低层钩子对合成事件与真实事件一视同仁）、前台是自己时取文拒绝执行。**只有人能验**——在浏览器 / PDF 阅读器里真选一次，确认注入的 Ctrl+C 真能把选区取出来、且读者自己的剪贴板内容被还原；`LENS_HOOK_SMOKE=1` 放开那一例。
 - 全链手测：复制真实英文句 → 浮层弹词 → [已会]/[新词] 回写 → 复弹不重复。
 - 改动中文文档后重跑 zhlint 至零错误。
 

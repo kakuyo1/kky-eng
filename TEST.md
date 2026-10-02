@@ -18,12 +18,13 @@ test/
     ├── support.h         # 仓库根 + 词表与屈折表的加载（无 Qt）
     ├── llm_support.h     # 线上协议加载（含 Qt，只有 LLM 侧目标包含）
     ├── unit/             # 离线，必绿
+    ├── integration/      # 真机 Windows API，人工执行
     ├── perf/             # 只测量，不对时间下断言
     └── smoke/            # 真模型，人工执行
 ```
 
-目录名按用例性质分组：`unit` / `integration` / `e2e` / `perf` / `smoke`。当前只有 `unit`、
-`perf`、`smoke` 有内容；`integration` 与 `e2e` 等第一个用例出现时再建目录——git 不跟踪空目录。
+目录名按用例性质分组：`unit` / `integration` / `e2e` / `perf` / `smoke`。当前 `unit`、
+`integration`、`perf`、`smoke` 有内容；`e2e` 等第一个用例出现时再建目录——git 不跟踪空目录。
 Qt 与 QML 侧的测试将来用 QTest 另立 `test/qtest/`，与这里平行，不混在一起。
 
 ## 2 目标与运行
@@ -31,6 +32,7 @@ Qt 与 QML 侧的测试将来用 QTest 另立 `test/qtest/`，与这里平行，
 | 目标 | 内容 | 何时跑 |
 | --- | --- | --- |
 | `lens_gtest_unit` | 样例集 / KnownStore 往返 / LLM 纯函数 | 每次改动，可进 CI |
+| `lens_gtest_integration` | 选区捕获：手势规则 / 终端排除 / 钩子与剪贴板的真机往返 | 动选区入口时，人工执行 |
 | `lens_gtest_perf` | FilterCore 吞吐 + profiling 报告 | 动内核时 |
 | `lens_gtest_smoke` | 1 词真模型往返 | 动 LLM 链路时，人工执行 |
 
@@ -39,8 +41,12 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
   ./build-ninja/test/googletest/lens_gtest_unit.exe
 ```
 
-- 链接 `lens_llm` 的两个目标需要 Qt DLL 在 `PATH` 上。`lens_gtest_perf` 只链 `lens_core`，保持无
-  Qt，什么都不需要。
+- 链接 `lens_llm` 或 `lens_app` 的目标需要 Qt DLL 在 `PATH` 上（即 `unit` / `integration` /
+  `smoke`）。`lens_gtest_perf` 只链 `lens_core`，保持无 Qt，什么都不需要。
+- 选区捕获：`lens_gtest_integration`。默认 11 例绿、1 例 skip——跳过的那条要人手拖鼠标。
+  `LENS_HOOK_SMOKE=1` 放开它，`LENS_HOOK_SMOKE_TEXT` 指定要拖选的词（缺省 `ubiquitous`）。它先往剪贴板放一个哨兵串，再等人在**别的窗口**里拖选那个词，然后断言三件事：取到的文本相符、返回状态是
+  `Captured`、哨兵串还在剪贴板上（这是唯一能自动验证 “不丢读者剪贴板” 的地方）。提权窗口（任务管理器、管理员控制台）会被 UIPI 挡下注入，表现为超时而不是报错，别拿它试；终端类进程按名字排除，是故意的。
+- 那两例真机用例会合成鼠标事件，指针会被移动并复位；拖拽落点是一个测试自己创建的顶层小窗口，不会点到读者的界面。
 - 不接 ctest：`gtest_discover_tests` 会在构建期执行测试程序，等于要求构建环境也把 Qt DLL 摆在
   `PATH` 上，不值得这层耦合。
 - 冒烟：`LENS_SMOKE_WORD=ubiquitous ./build-ninja/test/googletest/lens_gtest_smoke.exe`。词取自

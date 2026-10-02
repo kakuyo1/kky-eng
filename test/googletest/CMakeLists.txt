@@ -2,8 +2,8 @@
 # that are Qt types but need no window. QML and widget tests arrive under test/qtest with
 # QTest targets of their own.
 #
-# integration/ and e2e/ have no cases yet, so they have no directory -- git does not track
-# empty ones. Add the folder and an add_executable here when the first case lands.
+# e2e/ has no cases yet, so it has no directory -- git does not track empty ones. Add the
+# folder and an add_executable here when the first case lands.
 #
 # There is no ctest registration: the executables are run directly, as CLAUDE.md documents.
 # gtest_discover_tests() would run each one during the build, which needs the Qt DLLs on
@@ -40,3 +40,14 @@ add_executable(lens_gtest_smoke
 )
 target_link_libraries(lens_gtest_smoke PRIVATE lens_core lens_llm GTest::gtest)
 lens_gtest_configure(lens_gtest_smoke)
+
+# The selection entry point: real Windows mouse and clipboard APIs, so it is not smoke (that
+# name is the real-model round trip) and not unit (the interesting half needs a human to drag
+# over another application). The gesture rule and the exclusion list are asserted offline
+# here; the round trip reports a skip unless LENS_HOOK_SMOKE is set. Own main() for an event
+# loop, hence GTest::gtest rather than gtest_main.
+add_executable(lens_gtest_integration
+  integration/selection_capture_test.cpp
+)
+target_link_libraries(lens_gtest_integration PRIVATE lens_app lens_core GTest::gtest)
+lens_gtest_configure(lens_gtest_integration)
