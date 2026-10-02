@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lens word explanation response",
+  "description": "The object the model is asked to return inside choices[0].message.content. Validation reads this file for the required field list, so the code and LLM.md cannot drift apart.",
+  "type": "object",
+  "required": ["results"],
+  "properties": {
+    "results": {
+      "type": "array",
+      "description": "One entry per requested word, echoed in any order.",
+      "items": {
+        "type": "object",
+        "required": ["word", "en", "zh", "example"],
+        "properties": {
+          "word": { "type": "string", "description": "The input word, spelled exactly as requested." },
+          "en": { "type": "string", "description": "One-line English definition." },
+          "zh": { "type": "string", "description": "One-line Chinese definition." },
+          "example": { "type": "string", "description": "One short example sentence. Not shown in phase 1." }
+        }
+      }
+    }
+  }
+}

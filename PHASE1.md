@@ -192,44 +192,16 @@ QML 表面：设置浮层、解释气泡、统计弹窗及其下钻的词汇 / �
 
 ## 5 LLM Prompt 与 JSON Schema
 
-目标模型：DeepSeek（OpenAI 兼容）。系统提示（精简、声明式）：
+线上格式的完整说明（请求体、响应体、校验规则、错误码）见 **`LLM.md`**；这里只记契约要点。
 
-```
-你是英语学习工具的释义助手，用户是 CET-4 以上水平的成人学习者。
-输入一个单词列表；对每个单词给出最常见的词义：一条英文定义、一条中文释义、一个简短例句。
-常见词若有多义，取最常见义项。
-输出必须是合法 JSON，符合此结构：
-{"results":[{"word":"...","en":"...","zh":"...","example":"..."}]}
-必须逐一回显输入单词（原样拼写），不增不减。
-```
+目标模型：DeepSeek（OpenAI 兼容）。**提示词与 schema 都是数据，不是代码**——单词通道的一份在 `data/llm/request.word.json` 与 `data/llm/response.word.schema.json`，改提示词或加字段是改数据，不用重编译。
 
-DeepSeek JSON Output 的两条硬性要求——prompt 里出现 `json` 字样、给出期望的 JSON 格式示例——上面这段都已满足（官方示例自身也用大写 `JSON`，大小写不敏感）。缺了这两条，模型会一路吐空白直到 `max_tokens` 用尽。
+落地注记（2026-10-02，与切片四一起定）：
 
-解释语言设置（英文默认 / 中文）：切换提示词末句为 “英文定义为主、例句用英文” 或 “中文释义为主、例句用中文”；但 `en`/`zh` 两字段始终返回，浮层始终双显（`UI.md` 4.3 规格）。例句暂不进浮层，schema 保留供后续 “难词回顾”。
-
-响应校验 schema（本地解析后逐字段核对，非 LLM 自证）：
-
-```json
-{
-  "type": "object",
-  "required": ["results"],
-  "properties": {
-    "results": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["word", "en", "zh", "example"],
-        "properties": {
-          "word":    {"type": "string"},
-          "en":      {"type": "string"},
-          "zh":      {"type": "string"},
-          "example": {"type": "string"}
-        }
-      }
-    }
-  }
-}
-```
+- **按通道拆分**：请求属于哪个通道在发送前就定好，通道决定用哪套提示词与哪套响应 schema，故文件名带通道名（`request.<通道>.json` / `response.<通道>.schema.json`）。阶段一只有单词通道落地；实体与句子通道的提示词与响应字段名本契约尚未定义，属阶段二（§2）。
+- **系统提示词用英文**，末句由 `{outputLanguage}` 占位符按解释语言替换（`outputLanguage.en` / `outputLanguage.zh`）——只切这一句，其余共用，避免两份提示词各改一半。
+- **响应 schema 是校验的唯一真源**：代码从 `properties.results.items.required` 读必填字段名，往 schema 里加字段校验立刻跟着变，文档与代码不会漂移。
+- `llm_protocol.{h,cpp}` 负责加载与校验数据文件：缺文件、非法 JSON、必填值为空一律抛，**不回落内置默认值**——回落会正好掩盖这次抽离要防的漂移。
 
 ## 6 隐私与密钥边界
 
@@ -247,10 +219,12 @@ lens/
 ├── .clang-format
 ├── settings.local.json       # 本地密钥与设置，gitignored
 ├── scripts/build.bat         # 进 VS 环境后驱动 ninja（首配一次，之后纯增量）
+├── LLM.md                    # LLM 线上格式说明（请求 / 响应 / 校验 / 错误码）
 ├── data/wordlist.txt         # 静态词表（top-100k，词频序，第 8 节）
+├── data/llm/                 # LLM 协议数据：request.<通道>.json + response.<通道>.schema.json
 ├── logs/                     # 运行期日志（轮转，gitignored，只留 .gitkeep）
 ├── third_party/              # 供应商源码：nlohmann/json（header-only）、spdlog（编译成静态库）
-├── i18n/                     # 每种语言一套 .ts / .qm（待填）
+├── i18n/                     # 文案翻译：lens_en_US.ts（源）+ lens_zh_CN.ts（中文）
 ├── icons/                    # 托盘图标，按主题两套（待填）
 ├── src/
 │   ├── core/                 # FilterCore / KnownStore / 日志入口 log.h

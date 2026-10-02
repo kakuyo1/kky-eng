@@ -37,12 +37,13 @@ KnownStore KnownStore::load(std::filesystem::path path) {
     if (store.doc_.is_discarded()) {
         LENS_ERROR("KnownStore::load: '{}' is not valid JSON; refusing to reset it",
                       store.path_.string());
-        throw std::runtime_error("settings JSON 解析失败：" + store.path_.string());
+        throw std::runtime_error("Cannot parse the settings JSON: " + store.path_.string());
     }
     if (!store.doc_.is_object()) {
         LENS_ERROR("KnownStore::load: '{}' does not hold a JSON object at the top level",
                       store.path_.string());
-        throw std::runtime_error("settings JSON 顶层不是对象：" + store.path_.string());
+        throw std::runtime_error("The settings JSON is not an object at the top level: " +
+                                 store.path_.string());
     }
 
     const nlohmann::json& doc = store.doc_;
@@ -104,7 +105,7 @@ int KnownStore::level() const { return level_; }
 void KnownStore::setLevel(int level) {
     if (level < 0 || level > kMaxLevel) {
         LENS_ERROR("KnownStore::setLevel: level {} is outside 0..{}", level, kMaxLevel);
-        throw std::out_of_range("档位越界：" + std::to_string(level));
+        throw std::out_of_range("Level out of range: " + std::to_string(level));
     }
     level_ = level;
     LENS_TRACE("KnownStore::setLevel: {}", level);
@@ -154,7 +155,7 @@ void KnownStore::save() const {
     std::ofstream out(path_, std::ios::trunc);
     if (!out) {
         LENS_ERROR("KnownStore::save: cannot write '{}'", path_.string());
-        throw std::runtime_error("settings 写不进去：" + path_.string());
+        throw std::runtime_error("Cannot write the settings file: " + path_.string());
     }
     out << doc.dump(2) << '\n';
     LENS_INFO("settings saved: level={} lang={} marked={} cached={}", level_, lang_,

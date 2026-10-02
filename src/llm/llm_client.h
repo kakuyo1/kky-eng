@@ -6,6 +6,8 @@
 #include <QUrl>
 #include <QVector>
 
+#include "llm_protocol.h"   // Channel
+
 class QNetworkAccessManager;
 
 /**
@@ -41,27 +43,36 @@ public:
 
     /// @brief Set the explanation language, "en" or "zh".
     ///
-    /// The language only switches the closing sentence of the system prompt (PHASE1.md
+    /// The language only switches the closing line of the system prompt (PHASE1.md
     /// section 5). It is a setter rather than a Config field because the reader can change
     /// it at runtime from the settings popup.
     void setExplanationLang(const QString& lang);
+
+    /// @brief Set which protocol the next request speaks.
+    ///
+    /// The channel is decided locally, before anything is sent, and selects the request
+    /// template and the response schema. Defaults to Channel::Word, the only channel
+    /// phase 1 produces; the entity and sentence channels arrive with phase 2.
+    void setChannel(Channel channel);
 
 signals:
     /// @brief Emitted with the validated explanations, in the order the words were asked for.
     void batchFinished(QVector<WordExplanation> results);
 
     /// @brief Emitted on transport, HTTP status, or response-validation failure.
-    /// @param message Human-readable reason. Never contains the API key.
+    /// @param message Reader-facing reason, already routed through translation.
+    ///                Never contains the API key.
     void failed(QString message);
 
 public slots:
-    /// @brief Look up all words in one HTTP request.
-    /// @param words Words to explain. More than 20 are silently truncated to the first 20;
-    ///              the current caller sends one, so the cap is not reached in practice.
+    /// @brief Look up the whole payload in one HTTP request.
+    /// @param words Payload to explain. More than 20 entries are silently truncated to the
+    ///              first 20; the current caller sends one, so the cap is not reached.
     void explainWords(QStringList words);
 
 private:
     Config config_;
+    Channel channel_ = Channel::Word;
     QString lang_ = QStringLiteral("en");
     QNetworkAccessManager* manager_;
 };

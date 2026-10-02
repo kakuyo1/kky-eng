@@ -7,14 +7,16 @@
 
 #include <variant>
 
-#include "llm_client.h"   // Config / WordExplanation
+#include "llm_client.h"    // Config / WordExplanation
+#include "llm_protocol.h"  // Channel
 
 /**
  * @file llm_pure.h
  * @brief The network-free core of LlmClient: mask, build the request, check the response.
  *
- * Splitting these out keeps them unit-testable from lens_test --filter, with no socket and
- * no API key. The wire format itself is documented in PHASE1.md section 4.3.
+ * The prompt, the envelope defaults, and the response schema all come from `data/llm/`
+ * (see llm_protocol.h); what lives here is the assembly and the checks. That keeps this
+ * unit-testable from lens_test --filter, with no socket and no API key.
  */
 
 namespace lens::llm {
@@ -32,40 +34,46 @@ namespace lens::llm {
 QString maskSensitive(const QString& text);
 
 /**
- * @brief Build the /chat/completions request body.
+ * @brief Build the /chat/completions request body for one channel.
  *
- * Centralises the two constraints DeepSeek imposes on JSON output, so a regression cannot
- * quietly drop either one:
- *  - response_format json_object requires the word "json" and a format example in the
- *    prompt, otherwise the model streams whitespace until max_tokens runs out;
- *  - thinking mode is on by default and must be explicitly disabled for this task.
+ * Channel decides which template is used, so the caller must know whether it is sending a
+ * word, an entity, or a sentence before it gets here. The envelope defaults
+ * (`response_format`, `thinking`, `max_tokens`, `stream`) come from that channel's
+ * `request.<channel>.json`, as does the system prompt.
  *
  * @param config          Supplies the model name.
- * @param words           Words to explain; each is masked before it is embedded.
- * @param explanationLang "en" or "zh"; switches the closing sentence of the system prompt.
+ * @param channel         Which protocol to speak.
+ * @param words           Payload to explain; each entry is masked before it is embedded.
+ * @param explanationLang "en" or "zh"; picks the closing line of the system prompt.
+ *                        An unknown value falls back to "en" and logs a warning.
  * @return A compact JSON body, ready to POST.
+ * @throws std::logic_error If that channel's protocol has not been loaded.
  */
-QByteArray buildRequestBody(const Config& config, const QStringList& words,
+QByteArray buildRequestBody(const Config& config, Channel channel, const QStringList& words,
                             const QString& explanationLang);
 
 /**
  * @brief Validate a response that arrives from the network and must not be trusted.
  *
  * Checks, in order: the HTTP envelope is JSON with a `choices` array; finish_reason is
- * `stop`; the message content is JSON; it carries a `results` array; every element has the
- * four required string fields; word/en/zh are non-empty; and the returned words match the
- * requested ones exactly, with no word missing, extra, or misspelled.
+ * `stop`; the message content is JSON; it carries a `results` array; every element is an
+ * object holding every field that channel's response schema marks required; the fields the
+ * overlay shows are non-empty; and the returned words match the requested ones exactly,
+ * with no word missing, extra, or misspelled.
  *
  * Any failure rejects the whole batch rather than dropping individual words, because a
  * partial batch would silently explain the wrong thing. The caller sees either the full
- * validated batch or one error message.
+ * validated batch or one message.
  *
- * @param responseBody Raw HTTP response body.
- * @param expectedWords The words the request asked for, in request order.
- * @return The explanations in request order on success, or a user-facing error message
- *         (never containing the API key).
+ * @param channel       Which protocol was spoken; selects the response schema.
+ * @param responseBody  Raw HTTP response body.
+ * @param expectedWords The payload the request asked for, in request order.
+ * @return The explanations in request order on success, or a reader-facing message
+ *         (never containing the API key, and marked for translation).
+ * @throws std::logic_error If that channel's protocol has not been loaded.
  */
-std::variant<QVector<WordExplanation>, QString> parseExplanations(const QByteArray& responseBody,
+std::variant<QVector<WordExplanation>, QString> parseExplanations(Channel channel,
+                                                                  const QByteArray& responseBody,
                                                                   const QStringList& expectedWords);
 
 }

@@ -108,7 +108,7 @@ void loadWordlist(const std::filesystem::path& path) {
     std::ifstream in(path);
     if (!in) {
         LENS_CRITICAL("loadWordlist: cannot open word list '{}'", path.string());
-        throw std::runtime_error("词表打不开：" + path.string());
+        throw std::runtime_error("Cannot open the word list: " + path.string());
     }
 
     Table table;
@@ -122,7 +122,7 @@ void loadWordlist(const std::filesystem::path& path) {
     }
     if (table.empty()) {
         LENS_CRITICAL("loadWordlist: word list '{}' is empty", path.string());
-        throw std::runtime_error("词表为空：" + path.string());
+        throw std::runtime_error("The word list is empty: " + path.string());
     }
     g_rank = std::move(table);
 
@@ -134,7 +134,8 @@ void loadWordlist(const std::filesystem::path& path) {
 }
 
 std::string lemmatize(std::string_view token) {
-    if (g_rank.empty()) throw std::logic_error("lens::core::lemmatize：需先 loadWordlist");
+    if (g_rank.empty())
+        throw std::logic_error("lens::core::lemmatize: loadWordlist() must run first");
 
     const std::string t = lower(token);
     if (keepAsIs().count(t) != 0) return t;
@@ -226,7 +227,8 @@ std::vector<Candidate> filterWords(
     std::string_view text,
     const std::unordered_set<std::string>& knownLemmas,
     std::size_t minFreqRank) {
-    if (g_rank.empty()) throw std::logic_error("lens::core::filterWords：需先 loadWordlist");
+    if (g_rank.empty())
+        throw std::logic_error("lens::core::filterWords: loadWordlist() must run first");
 
     std::vector<Candidate> out;
     std::unordered_set<std::string> seen;   // de-duplication keyed by lemma

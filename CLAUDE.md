@@ -15,10 +15,10 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 ```
 lens/
 ├── .clang-format     # code format spec
-├── data              # wordlist
+├── data              # wordlist + llm/ (wire protocol as data)
+├── i18n              # .ts translations; English is the source language
 ├── scripts           # build.bat — Ninja + MSVC wrapper
 ├── third_party       # vendored: nlohmann/json, spdlog
-├── i18n              # .qm/ts files
 ├── icons
 ├── logs              # runtime logs, rotating, gitignored but for .gitkeep
 ├── src
@@ -49,6 +49,19 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
 
 Targets: `lens_core` (no Qt) → `lens_llm` → `lens_app`. `lens_test` is standalone and never shipped — see `PHASE1.md` §4.5.
 
+## Translations
+
+English is the source language, so `i18n/lens_en_US.ts` mirrors the source strings and `i18n/lens_zh_CN.ts` carries the Chinese.
+
+```
+PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH lupdate src -ts i18n/lens_en_US.ts i18n/lens_zh_CN.ts
+PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH lrelease i18n/lens_en_US.ts i18n/lens_zh_CN.ts
+```
+
+After adding or changing a reader-facing string, run `lupdate`: it appends the new ones as `unfinished` and leaves existing translations alone, so it is safe to rerun. Then write the Chinese into `lens_zh_CN.ts` and copy the source text into `lens_en_US.ts`. `lrelease` is the check — it reports how many entries are unfinished, and the goal is zero. The `.qm` files it writes are build output and stay gitignored.
+
+`lupdate` only reads literal arguments, so every `tr()` / `translate()` call spells out its context and its string at the call site; routing them through a helper that takes the context as a parameter would extract nothing. Scan `src` today; add the QML directory to the `lupdate` command once the app surfaces exist.
+
 ## Code Style
 
 Comments are English and Doxygen-style. `///` with `@brief`, `@param`, `@return`, `@throws` on declarations; a `/** @file ... */` block at the top of each file.
@@ -63,7 +76,7 @@ Comments are English and Doxygen-style. `///` with `@brief`, `@param`, `@return`
 std::string lemmatize(std::string_view token);
 ```
 
-Log through the `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_ERROR` / `LENS_CRITICAL` macros in `src/core/log.h` — trace for per-call pipeline detail, info for lifecycle milestones, error or critical for failures. A call below the build's level compiles away, so Release carries no trace cost. `lens::log::init()` writes `logs/lens.log` (10 MB, 3 rotated backups) and mirrors to stderr; `lens::log::installQtMessageHandler()` in `src/llm/qt_log.h` folds Qt's own messages into the same stream.
+Log through the `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_ERROR` / `LENS_CRITICAL` macros in `src/core/log.h`
 
 ## Reference Documents
 
@@ -71,5 +84,6 @@ Log through the `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_
 - `DESIGN.md` — design decisions
 - `UI.md` — UI spec
 - `PHASE1.md` — phase 1 implementation contract (scope, module interfaces, prompt/schema)
+- `LLM.md` — wire format: request body, response envelope, validation rules, error codes
 - `ui-prototypes/v1-halo-*.html` — prototype, one file per surface
 - `TODO.md` — waiting for implement

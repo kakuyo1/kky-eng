@@ -1,5 +1,6 @@
 #include "llm_client.h"
 
+#include <QCoreApplication>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -16,18 +17,34 @@ namespace {
 constexpr int kMaxWords = 20;   ///< Contract limit; see PHASE1.md section 4.3.
 constexpr int kTimeoutMs = 30000;
 
-/// Map an HTTP status onto a message for the user. The API key is never part of it, and
-/// neither is the response body, which may echo the request.
+/// Map an HTTP status onto something the reader can act on. The API key is never part of
+/// it, and neither is the response body, which may echo the request.
 QString httpErrorFor(int status) {
     switch (status) {
-        case 400: return QStringLiteral("请求格式错误（400）");
-        case 401: return QStringLiteral("API key 无效或缺失（401）");
-        case 402: return QStringLiteral("账户余额不足（402）");
-        case 422: return QStringLiteral("请求参数无效（422）");
-        case 429: return QStringLiteral("请求过于频繁，已被限流（429）");
-        case 500: return QStringLiteral("DeepSeek 服务端错误（500）");
-        case 503: return QStringLiteral("DeepSeek 服务过载（503）");
-        default: return QStringLiteral("HTTP %1").arg(status);
+        case 400:
+            return QCoreApplication::translate("lens::llm",
+                                               "The request was rejected as malformed (400).");
+        case 401:
+            return QCoreApplication::translate("lens::llm",
+                                               "The API key is missing or not accepted (401).");
+        case 402:
+            return QCoreApplication::translate("lens::llm",
+                                               "The account is out of credit (402).");
+        case 422:
+            return QCoreApplication::translate("lens::llm",
+                                               "The request parameters were rejected (422).");
+        case 429:
+            return QCoreApplication::translate(
+                "lens::llm", "Too many requests; the service is rate-limiting (429).");
+        case 500:
+            return QCoreApplication::translate("lens::llm",
+                                               "The explanation service failed (500).");
+        case 503:
+            return QCoreApplication::translate("lens::llm",
+                                               "The explanation service is overloaded (503).");
+        default:
+            return QCoreApplication::translate("lens::llm", "Unexpected HTTP status %1.")
+                .arg(status);
     }
 }
 
@@ -36,24 +53,29 @@ QString httpErrorFor(int status) {
 LlmClient::LlmClient(Config config, QObject* parent)
     : QObject(parent), config_(std::move(config)), manager_(new QNetworkAccessManager(this)) {
     LENS_TRACE("LlmClient created: model='{}' base='{}'", config_.model.toStdString(),
-                  config_.baseUrl.toString().toStdString());
+               config_.baseUrl.toString().toStdString());
 }
 
 void LlmClient::setExplanationLang(const QString& lang) {
     LENS_TRACE("LlmClient::setExplanationLang: '{}' -> '{}'", lang_.toStdString(),
-                  lang.toStdString());
+               lang.toStdString());
     lang_ = lang;
+}
+
+void LlmClient::setChannel(Channel channel) {
+    LENS_TRACE("LlmClient::setChannel: '{}' -> '{}'", channelKey(channel_), channelKey(channel));
+    channel_ = channel;
 }
 
 void LlmClient::explainWords(QStringList words) {
     if (words.isEmpty()) {
-        LENS_ERROR("LlmClient::explainWords called with no words");
-        emit failed(QStringLiteral("没有待查单词"));
+        LENS_ERROR("LlmClient::explainWords called with nothing to look up");
+        emit failed(tr("There is nothing to look up."));
         return;
     }
     if (words.size() > kMaxWords) {
-        LENS_WARN("LlmClient::explainWords: {} words requested, keeping the first {}",
-                     words.size(), kMaxWords);
+        LENS_WARN("LlmClient::explainWords: {} entries requested, keeping the first {}", words.size(),
+                  kMaxWords);
         words = words.mid(0, kMaxWords);
     }
 
@@ -67,17 +89,19 @@ void LlmClient::explainWords(QStringList words) {
     request.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
     request.setTransferTimeout(kTimeoutMs);
 
-    LENS_INFO("explaining {} word(s) with '{}'", words.size(), config_.model.toStdString());
+    LENS_INFO("explaining {} item(s) on channel '{}' with '{}'", words.size(), channelKey(channel_),
+              config_.model.toStdString());
     LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kTimeoutMs);
 
-    QNetworkReply* reply = manager_->post(request, buildRequestBody(config_, words, lang_));
+    QNetworkReply* reply =
+        manager_->post(request, buildRequestBody(config_, channel_, words, lang_));
     connect(reply, &QNetworkReply::finished, this, [this, reply, words] {
         reply->deleteLater();
 
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         if (status == 0) {   // no status code at all: the transfer itself never completed
             LENS_ERROR("request failed before a response: {}", reply->errorString().toStdString());
-            emit failed(QStringLiteral("网络请求失败：%1").arg(reply->errorString()));
+            emit failed(tr("The request could not reach the service: %1").arg(reply->errorString()));
             return;
         }
         if (status != 200) {
@@ -86,7 +110,7 @@ void LlmClient::explainWords(QStringList words) {
             return;
         }
 
-        const auto parsed = parseExplanations(reply->readAll(), words);
+        const auto parsed = parseExplanations(channel_, reply->readAll(), words);
         if (const auto* message = std::get_if<QString>(&parsed)) {
             emit failed(*message);
             return;

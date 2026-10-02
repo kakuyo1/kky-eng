@@ -11,3 +11,6 @@ settings.local.json
 logs/*
 !logs/.gitkeep
 
+# Translations: the .ts files are the source, the .qm files are built from them
+i18n/*.qm
+
