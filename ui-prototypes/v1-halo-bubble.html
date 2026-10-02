@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 解释浮层</title>
+<style>
+:root{
+  --bg:#f6f6f8; --panel:#fff; --panel2:#fafafb; --line:#e9e9ee; --line2:#f2f2f5;
+  --text:#1a1a1f; --muted:#66666f; --faint:#9d9da8;
+  --ok:#2f9e6e; --ok-bg:#e6f4ee; --ok-text:#1d7a52; --ink:#1a1a1f; --on:#fff;
+  --bubble-bg:rgba(255,255,255,.86); --bubble-bd:rgba(255,255,255,.95); --bubble-sh:0 14px 44px -10px rgba(20,20,26,.26),inset 0 1px 0 #fff;
+  --r-lg:18px;
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+}
+html[data-theme=dark]{
+  --bg:#131316; --panel:#1c1c20; --panel2:#242429; --line:#2f2f37; --line2:#26262c;
+  --text:#e9e9ee; --muted:#a3a3ae; --faint:#75757f;
+  --ok:#45c08a; --ok-bg:#1a3527; --ok-text:#6fd6a5; --ink:#e9e9ee; --on:#16161a;
+  --bubble-bg:rgba(30,30,35,.82); --bubble-bd:rgba(255,255,255,.09);
+  --bubble-sh:0 16px 48px -12px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh;display:grid;place-items:center}
+
+.bubble{position:relative;width:270px;background:var(--bubble-bg);border:1px solid var(--bubble-bd);border-radius:var(--r-lg);box-shadow:var(--bubble-sh);padding:14px 16px 12px;z-index:3;-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4)}
+.bubble::before{content:"";position:absolute;top:-7px;left:34px;width:14px;height:14px;background:var(--bubble-bg);transform:rotate(45deg);border-radius:3px}
+.bub-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.tag{font-size:10.5px;padding:2px 8px;border-radius:99px;background:var(--ok-bg);color:var(--ok-text);font-weight:600}
+.tag.known{background:var(--panel2);color:var(--muted);font-weight:600}
+.tag.outline{background:transparent;border:1px solid var(--line);color:var(--muted);font-weight:600;padding:1px 7px}
+.tagsrow{position:fixed;left:20px;top:16px;display:flex;gap:8px;align-items:center}
+.bub-word{font-size:20px;font-weight:650;letter-spacing:-.01em}
+.ipa{margin-left:7px;font-size:12.5px;font-weight:400;color:var(--faint)}
+.bub-def{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:6px}
+.bub-cn{font-size:12px;color:var(--text);margin-top:5px}
+.bub-actions{display:flex;gap:8px;max-height:0;opacity:0;overflow:hidden;transition:.22s ease}
+.bubble:hover .bub-actions{max-height:44px;opacity:1;margin-top:12px;padding-top:12px;border-top:1px solid var(--line2)}
+.bub-meta{font-size:11px;color:var(--faint);margin-top:9px;display:flex;align-items:center;gap:6px}
+.bub-meta svg{width:12px;height:12px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:6px 13px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid transparent;cursor:pointer;font-family:var(--f);transition:.15s}
+.btn.known{background:var(--panel2);color:var(--text);border-color:var(--line)}
+.btn.again{background:var(--ink);color:var(--on)}
+.btn:active{transform:scale(.97)}
+.themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:var(--f);font-size:11.5px;cursor:pointer}
+.themebtn:hover{color:var(--text)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="bubble">
+  <div class="bub-top"><span class="tag">新词</span></div>
+  <div class="bub-word">serendipity<span class="ipa">/ˌserənˈdɪpəti/</span></div>
+  <div class="bub-def">the occurrence of events by chance in a happy or beneficial way</div>
+  <div class="bub-cn">意外发现珍奇事物的本领，机缘巧合</div>
+  <div class="bub-actions"><button class="btn known">已会</button><button class="btn again">新词</button></div>
+  <div class="bub-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 10l4-4 4 4M12 6v12"/></svg>5s 后自动消失</div>
+</div>
+<div class="tagsrow">
+  <span class="tag">新词</span>
+  <span class="tag known">已会</span>
+  <span class="tag outline">实体</span>
+  <span class="tag outline">句子</span>
+</div>
+<button class="themebtn" id="tb">黑夜</button>
+<script>
+const tb = document.getElementById('tb');
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  tb.textContent = t === 'dark' ? '白天' : '黑夜';
+}
+applyTheme(location.search.includes('theme=dark') ? 'dark' : 'light');
+tb.onclick = () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+</script>
+</body>
+</html>

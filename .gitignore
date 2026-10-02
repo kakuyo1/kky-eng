@@ -1,4 +1,9 @@
 build/
 build-*/
 CMakeCache.txt
+CMakePresets.json
 *.user
+
+# API and settings
+settings.local.json
+

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 托盘菜单</title>
+<style>
+:root{
+  --bg:#f6f6f8; --panel:#fff; --panel2:#fafafb; --line:#e9e9ee; --line2:#f2f2f5;
+  --text:#1a1a1f; --muted:#66666f; --faint:#9d9da8; --ok:#2f9e6e; --ok-bg:#e6f4ee;
+  --ink:#1a1a1f; --on:#fff; --danger:#b3564a;
+  --sh2:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+  --mono:"Cascadia Code","Consolas",ui-monospace,monospace;
+}
+html[data-theme=dark]{
+  --bg:#131316; --panel:#1c1c20; --panel2:#242429; --line:#2f2f37; --line2:#26262c;
+  --text:#e9e9ee; --muted:#a3a3ae; --faint:#75757f;
+  --ok:#45c08a; --ok-bg:#1a3527;
+  --ink:#e9e9ee; --on:#16161a; --danger:#d98d81;
+  --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh;display:grid;place-items:center}
+
+.traymenu{width:240px;background:var(--panel);border:1px solid var(--line);border-radius:13px;box-shadow:var(--sh2);padding:6px}
+.tm-info{display:flex;align-items:center;gap:8px;padding:8px 11px 9px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line2);margin-bottom:4px}
+.tm-info b{color:var(--text);font-weight:650}
+.tm-info .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none;box-shadow:0 0 0 3px var(--ok-bg)}
+.tm-item{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:9px;font-size:12.5px;color:var(--text);cursor:default}
+.tm-item svg{width:15px;height:15px;color:var(--muted);flex:none}
+.tm-item .tm-sub{margin-left:auto;font-size:11px;color:var(--faint);font-family:var(--mono)}
+.tm-item:hover{background:var(--panel2)}
+.tm-item.has-sub{position:relative}
+.submenu{position:absolute;right:calc(100% + 8px);top:-6px;min-width:104px;background:var(--panel);border:1px solid var(--line);border-radius:11px;box-shadow:var(--sh2);padding:5px}
+.sm-item{padding:7px 11px;border-radius:8px;font-size:12.5px;color:var(--text);cursor:default;white-space:nowrap}
+.sm-item:hover{background:var(--panel2)}
+.sm-item.on{background:var(--ink);color:var(--on);font-weight:600}
+.themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:var(--f);font-size:11.5px;cursor:pointer}
+.themebtn:hover{color:var(--text)}
+.tm-sep{height:1px;background:var(--line2);margin:5px 8px}
+.tm-item.danger{color:var(--danger)}
+.tm-item.danger svg{color:var(--danger)}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="traymenu">
+  <div class="tm-info"><span class="dot"></span><b>手动模式</b></div>
+  <div class="tm-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 19V9M12 19V5M19 19v-6"/></svg>今日统计<span class="tm-sub">128 词 · ¥0.42</span></div>
+  <div class="tm-item has-sub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4c2.6 2.8 2.6 13.2 0 16M12 4c-2.6 2.8-2.6 13.2 0 16"/></svg>语言<span class="tm-sub">中文</span>
+    <div class="submenu">
+      <div class="sm-item on">中文</div>
+      <div class="sm-item">English</div>
+    </div>
+  </div>
+  <div class="tm-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="11" cy="7" r="1.8" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.8" fill="currentColor" stroke="none"/><circle cx="8.5" cy="17" r="1.8" fill="currentColor" stroke="none"/></svg>设置</div>
+  <div class="tm-sep"></div>
+  <div class="tm-item danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v8"/><path d="M6.3 5.8a8 8 0 1 0 11.4 0"/></svg>退出</div>
+</div>
+<button class="themebtn" id="tb">黑夜</button>
+<script>
+const tb = document.getElementById('tb');
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  tb.textContent = t === 'dark' ? '白天' : '黑夜';
+}
+applyTheme(location.search.includes('theme=dark') ? 'dark' : 'light');
+tb.onclick = () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+</script>
+</body>
+</html>
