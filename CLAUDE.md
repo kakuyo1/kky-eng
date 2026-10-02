@@ -18,11 +18,11 @@ lens/
 ├── data              # wordlist + llm/ (wire protocol as data)
 ├── i18n              # .ts translations; English is the source language
 ├── scripts           # build.bat — Ninja + MSVC wrapper
-├── third_party       # vendored: nlohmann/json, spdlog
+├── third_party       # vendored: nlohmann/json, spdlog, googletest
 ├── icons
 ├── logs              # runtime logs, rotating, gitignored but for .gitkeep
 ├── src
-├── test              # self-check: offline corpus + real-model smoke, separate from src/
+├── test              # gtest targets: unit / perf / smoke, separate from src/
 └── ui-prototypes/
      └── v1-halo-{tray-menu,stats,words,cost,settings,bubble}.html
 ```
@@ -33,21 +33,21 @@ Toolchain (verified): cmake 4.0.1 · Ninja 1.12.1 · MSVC 19.44
 
 ```
 ./scripts/build.bat                      # configure once, then incremental
-./scripts/build.bat --target lens_test
+./scripts/build.bat --target lens_gtest_unit
 ```
 
 ## Test
 
+Tests live under `test/googletest/` (gtest): `unit/` offline, `perf/` measurement, `smoke/` real model, with `integration/` and `e2e/` the names for what comes next. QML and widget tests will arrive under `test/qtest/` with QTest, not here.
+
 ```
 PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
-  ./build-ninja/test/lens_test.exe --filter
+  ./build-ninja/test/googletest/lens_gtest_unit.exe
 ```
 
-- `--filter` — offline self-check: sample corpus, KnownStore round trip, LlmClient pure helpers. No network, no API key, CI-safe. Change behaviour by editing `test/eval_corpus.json` first; touch `src/` only once `--filter` goes red.
-- `--smoke [word]` — one word through the real model, default `ubiquitous`. Needs a key and spends money, and a human reads the verdict, so it never runs in CI.
-- `LENS_LOG_LEVEL=trace` raises verbosity. `--filter` defaults to `info`, `--smoke` to `trace`.
+`TEST.md` owns the rest: the three targets, the corpus format, the profiling facility and its build tree, and the run-record convention.
 
-Targets: `lens_core` (no Qt) → `lens_llm` → `lens_app`. `lens_test` is standalone and never shipped — see `PHASE1.md` §4.5.
+Targets: `lens_core` (no Qt) → `lens_llm` → `lens_app`. The `lens_gtest_*` targets are standalone and never shipped — see `PHASE1.md` §4.5.
 
 ## Translations
 
@@ -84,6 +84,7 @@ Log through the `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_
 - `DESIGN.md` — design decisions
 - `UI.md` — UI spec
 - `PHASE1.md` — phase 1 implementation contract (scope, module interfaces, prompt/schema)
+- `TEST.md` — tests: framework, targets, corpus, profiling, run records
 - `LLM.md` — wire format: request body, response envelope, validation rules, error codes
 - `ui-prototypes/v1-halo-*.html` — prototype, one file per surface
 - `TODO.md` — waiting for implement

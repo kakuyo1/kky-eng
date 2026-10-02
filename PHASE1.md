@@ -5,9 +5,9 @@
 ## 1 范围与状态
 
 - **目标**：单词解释通道端到端可用（不含 OCR），UI 各表面完整，未实现功能一律占位、不可触发。
-- **取词**：选区（剪贴板监听，真可用）+ `lens_test --filter` 自检。扫描、截图、悬停依赖 OCR，本阶段全部占位。
+- **取词**：选区（剪贴板监听，真可用）+ `lens_gtest_unit` 自检。扫描、截图、悬停依赖 OCR，本阶段全部占位。
 - **LLM**：真模型直连（DeepSeek，OpenAI 兼容，BYOK）。替代 DESIGN 原 “假 LLM 先跑通” 原型路径，取舍记录见 `DESIGN.md`。
-- **状态**：离线内核与 LLM 客户端均已落地——`lens_core`（FilterCore / KnownStore）、`lens_llm`（LlmClient + 纯函数内核）、`lens_test --filter`（样例集 + 存储往返 + LLM 纯函数接缝）与 `lens_test --smoke`（真模型 1 词往返）均通过，见第 9 节。`src/app` 仍为 INTERFACE 占位，AppController 与 QML 表面属后续切片（各片的范围与验收见 §10）。工具链已确认：Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`，preset `vs-qt6`；`data/wordlist.txt` 88,918 行。
+- **状态**：离线内核与 LLM 客户端均已落地——`lens_core`（FilterCore / KnownStore）、`lens_llm`（LlmClient + 纯函数内核）、`lens_gtest_unit`（样例集 + 存储往返 + LLM 纯函数接缝，11 例）均通过，见第 9 节。测试框架已从手写 `CHECK` 迁到 GoogleTest（§4.5）；冒烟走 `lens_gtest_smoke`，需人手动执行。`src/app` 仍为 INTERFACE 占位，AppController 与 QML 表面属后续切片（各片的范围与验收见 §10）。工具链已确认：Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`，preset `vs-qt6`；`data/wordlist.txt` 88,918 行。
 
 ## 2 非目标（本阶段占位）
 
@@ -148,7 +148,7 @@ public slots:
 - DEV_SEND_CONFIRM 由上层 AppController 拦截（编译开关，发布整段移除），LlmClient 不感知。
 - 一次请求上限 20 词；超出静默截断（当前调用方单次仅 1 词，实际不触达）。
 - `setExplanationLang(QString)` 为切片二新增，契约原表未列：解释语言在设置浮层里运行时可变，塞进构造期的 `Config` 不合适；它只切 §5 提示词末句。
-- 纯函数内核与传输层分离：`src/llm/llm_pure.{h,cpp}` 放脱敏、请求体构造、响应校验三个无网络函数（`lens_test --filter` 覆盖），`llm_client.{h,cpp}` 只剩 QObject + `QNetworkAccessManager`。
+- 纯函数内核与传输层分离：`src/llm/llm_pure.{h,cpp}` 放脱敏、请求体构造、响应校验三个无网络函数（`lens_gtest_unit` 覆盖），`llm_client.{h,cpp}` 只剩 QObject + `QNetworkAccessManager`。
 
 落地注记（2026-10-02，DeepSeek 官方文档核验，`settings.local.json` 的 `MODEL` / `URL` 即按此定）：
 
@@ -182,15 +182,23 @@ signals:
 
 QML 表面：设置浮层、解释气泡、统计弹窗及其下钻的词汇 / 花费弹窗、发送确认，按 `UI.md` 规格落地；占位项 `enabled: false`。托盘图标（四状态）与托盘菜单用 **C++ `QSystemTrayIcon` + `QMenu`**（QtWidgets，Windows 原生可靠；`Qt.labs.platform` 实验性 QML 类型在 6.9 上右键菜单不生效，弃用）。QML 根为隐藏 0×0 `Window`（`visible: false`、`WindowDoesNotAcceptFocus`）——弹层 Window 需要窗口上下文，隐藏窗口无任何可见足迹，不构成主窗口。
 
-### 4.5 Test（`test/`，独立目标 `lens_test`，不编进 `lens_app`）
+### 4.5 Test（`test/googletest/`，独立目标，不编进 `lens_app`）
 
-自检代码与样例集是单独的可执行目标，只在本机构建，**不进发布包**。
+测试代码与样例集是单独的可执行目标，只在本机构建，**不进发布包**：它是 `lens_core`（无 Qt）→ `lens_llm` → `lens_app` 这条链之外的旁支，`lens_gtest_unit` / `lens_gtest_smoke` 链接 `lens_core` + `lens_llm`，`lens_gtest_perf` 只链接 `lens_core`，保持无 Qt。
 
-`lens_test --filter`：离线自检，三项——**样例集**（`CONTEXT.md`“自检样例集”）跑 FilterCore，断言实际候选与期望一致（顺序、surface、可选 lemma）；**存储往返**跑 KnownStore 在临时文件上的 load / mark / cache / save / reload；**LLM 纯函数接缝**跑脱敏 / 请求体构造 / 响应校验，请求体那项把 §4.3 核验过的 DeepSeek 硬性约束（`json_object`、显式关思考、`max_tokens`）钉成断言。零网络、零密钥，**可进 CI**。
+契约要点只有一条：**样例集 `test/eval_corpus.json` 是 FilterCore 的行为规格**——改行为先改样例集（`CONTEXT.md`“自检样例集”），测试红了再动 `src/`。离线那一支零网络、零密钥，**可进 CI**。
 
-样例集是数据文件 `test/eval_corpus.json`，每段一项：`text`（必填）、`expect`（必填，surface 序列）、`expectLemmas`（选填）、`minFreqRank`（选填，缺省 0）、`known`（选填）、`note`（选填）。改行为先改样例集，`lens_test --filter` 红了再动 `src/`。
+框架、目录、三个目标、样例集字段表与运行方式见 `TEST.md`。
 
-`lens_test --smoke [单词]`：发 1 个词走真实 LLM（缺省 `ubiquitous`），人工核验 JSON 往返与浮层展示。要 key、要花钱、结论靠人看，**不进 CI**。密钥从 `settings.local.json` 读入内存后不打印；本命令由人显式敲出，即 DEV_SEND_CONFIRM 的确认本身，故 `LlmClient` 不感知该开关。
+### 4.6 Profiling（`src/core/profile.{h,cpp}`，零 Qt）
+
+`lens_core` 内的测量点，由 CMake 选项 `LENS_ENABLE_PROFILE` 做编译期开关。三条契约约束：
+
+- **零 Qt**，与 §4.2 一致。
+- **不逐条打日志**。热路径按调用记日志会淹掉日志本身，并盖住要观察的现象；站点只累加，热阶段结束后用一次 `report()` 出汇总表。
+- **计时器不是免费的**，所以两个原语并存：作用域计时器给粗粒度，计数器给每 token 量分母。先用计数器，再决定要不要给内层计时。
+
+原语定义、开销实测、profile 构建树与记录约定见 `TEST.md` §4。
 
 ## 5 LLM Prompt 与 JSON Schema
 
@@ -223,28 +231,29 @@ lens/
 ├── settings.local.json       # 本地密钥与设置，gitignored
 ├── scripts/build.bat         # 进 VS 环境后驱动 ninja（首配一次，之后纯增量）
 ├── LLM.md                    # LLM 线上格式说明（请求 / 响应 / 校验 / 错误码）
+├── TEST.md                   # 测试：框架 / 目标 / 样例集 / profiling / 记录
 ├── data/wordlist.txt         # 静态词表（top-100k，词频序，第 8 节）
 ├── data/irregulars.tsv       # 不规则屈折表（WordNet 异常表生成，见 §4.1）
 ├── data/llm/                 # LLM 协议数据：request.<通道>.json + response.<通道>.schema.json
 ├── logs/                     # 运行期日志（轮转，gitignored，只留 .gitkeep）
-├── third_party/              # 供应商源码：nlohmann/json（header-only）、spdlog（编译成静态库）
+├── third_party/              # 供应商源码：nlohmann/json（header-only）、spdlog 与 googletest（编译成静态库）
 ├── i18n/                     # 文案翻译：lens_en_US.ts（源）+ lens_zh_CN.ts（中文）
 ├── icons/                    # 托盘图标，按主题两套（待填）
 ├── src/
-│   ├── core/                 # FilterCore / KnownStore / 日志入口 log.h
+│   ├── core/                 # FilterCore / KnownStore / 日志入口 log.h / 测量点 profile.h
 │   ├── llm/                  # LlmClient + 纯函数内核
 │   └── app/                  # AppController + QML 表面（待建）
-├── test/                     # 自检入口 + 自检样例集（根目录独立于 src/）
+├── test/                     # googletest/ 下的 unit / perf / smoke，以及样例集（独立于 src/）
 └── ui-prototypes/            # 设计原型（v1-halo-*.html）
 ```
 
-CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。`lens_test` 独立于这条链，链接 `lens_core` + `lens_llm`，只在本机构建、不进发布包。
+CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。三个 `lens_gtest_*` 独立于这条链，只在本机构建、不进发布包：`unit` 与 `smoke` 链接 `lens_core` + `lens_llm`，`perf` 只链接 `lens_core`（保持无 Qt）。
 
 构建：首选 `ninja-qt6` preset（单配置，增量重编一个源文件约 6 秒），由 `scripts/build.bat` 先进 MSVC 环境再驱动，命令与并行度上限见 `CLAUDE.md`。`vs-qt6` 保留给 IDE。
 
 日志：全项目走 spdlog（`third_party/spdlog`，编译成静态库），模块只用 `src/core/log.h` 的 `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_ERROR` / `LENS_CRITICAL` 宏。`SPDLOG_ACTIVE_LEVEL` 由 CMake 挂在 `lens_core` 上（Debug = trace，Release = info），低于它的调用整条编译掉——不能写在 `log.h` 里，spdlog 自己的 `common.h` 一旦被包含就会抢先定义成 info。`lens::log::init()` 写 `logs/lens.log`（10 MB 一轮，留 3 个备份）并镜像到 stderr，级别可用 `LENS_LOG_LEVEL` 覆盖。Qt 自身的 qDebug / qWarning / qCritical 等由 `src/llm/qt_log.h` 的 `installQtMessageHandler()` 折进同一个 logger，源位置指向 Qt 调用点而非桥接处。密钥永不进日志（第 6 节）。
 
-现状：`lens_core` 为 STATIC（`log.cpp` + `filter_core.cpp` + `known_store.cpp`），`lens_llm` 亦已转 STATIC（`llm_pure.cpp` + `llm_client.cpp`），`lens_test` 链接两者。`src/app` 仍为 INTERFACE 占位（零文件、只挂 Qt 依赖），落地时改成 STATIC 并加源文件即可，`lens_test` 的链接行不用动。
+现状：`lens_core` 为 STATIC（`log.cpp` + `profile.cpp` + `filter_core.cpp` + `known_store.cpp`），`lens_llm` 亦已转 STATIC（`llm_pure.cpp` + `llm_client.cpp`），`lens_gtest_unit` / `lens_gtest_smoke` 链接两者，`lens_gtest_perf` 只链接 `lens_core`。`src/app` 仍为 INTERFACE 占位（零文件、只挂 Qt 依赖），落地时改成 STATIC 并加源文件即可，测试的链接行不用动。
 
 ## 8 预检清单（动工前）
 
@@ -259,9 +268,12 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。`lens_test
 
 ## 9 验证
 
-- FilterCore 单测：样例集离线断言（`lens_test --filter`，零网络，可进 CI）。**已通过**：样例集 8 段 + 存储往返，覆盖档位词频阈值、词根还原（后缀规则与 WordNet 异常表）、只有表能覆盖的形式（`criteria → criterion` 一类）、垃圾内容（URL / 邮箱 / 文件名 / 带数字串 / 连字 / 全大写）、不在词表即丢、同段同词根去重、known-set 跳过。
-- LLM 纯函数接缝：脱敏 / 请求体 / 响应校验三项离线断言（`lens_test --filter`）。**已通过**：覆盖邮箱、URL、长数字掩码；`model` / `stream:false` / `response_format` / `thinking:disabled` / `max_tokens` / 提示词含 `json` 与格式示例 / 解释语言切末句；`finish_reason != stop`、外层非 JSON、缺 `results`、字段缺失、回显错词 / 漏词 / 多余词一律整体失败。断言经变异验证确实会红。
-- LLM 冒烟：**已通过**（2026-10-02）：`--smoke ubiquitous` 经 `deepseek-flash` 真实往返，`word` / `en` / `zh` 三字段回显与 §5 schema 一致，`finish_reason=stop`。人工执行，不入 CI。
+- FilterCore 单测：样例集离线断言（`lens_gtest_unit`，零网络，可进 CI）。**已通过**：样例集 8 段 + 存储往返，覆盖档位词频阈值、词根还原（后缀规则与 WordNet 异常表）、只有表能覆盖的形式（`criteria → criterion` 一类）、垃圾内容（URL / 邮箱 / 文件名 / 带数字串 / 连字 / 全大写）、不在词表即丢、同段同词根去重、known-set 跳过。
+- LLM 纯函数接缝：脱敏 / 请求体 / 响应校验三项离线断言（`lens_gtest_unit`）。**已通过**：覆盖邮箱、URL、长数字掩码；`model` / `stream:false` / `response_format` / `thinking:disabled` / `max_tokens` / 提示词含 `json` 与格式示例 / 解释语言切末句；`finish_reason != stop`、外层非 JSON、缺 `results`、字段缺失、回显错词 / 漏词 / 多余词一律整体失败。断言经变异验证确实会红。
+- 迁移核对：**已通过**（2026-10-02）：手写 `CHECK` 转入 gtest 后为 11 例（样例集 1 + KnownStore 6 + 掩码 1 + LLM 纯函数 3），`lens_gtest_unit` 全绿。原 `main.cpp`（452 行）删除。
+- LLM 冒烟：**已通过**（2026-10-02，迁移前的手写版本）：`ubiquitous` 经 `deepseek-flash` 真实往返，`word` / `en` / `zh` 三字段回显与 §5 schema 一致，`finish_reason=stop`。迁移后的 `lens_gtest_smoke` 尚未跑过真实往返，待人工执行。
+- FilterCore 热点：**已测量**（2026-10-02，RelWithDebInfo，`LENS_ENABLE_PROFILE=ON`，样例集 8 段 × 200 轮，`filterWords` 1600 次 / `lemmatize` 8400 次 / token 10800 个）。**`lemmatize` 只占一部分，其余落在分词与硬过滤阶段**，比此前 “热路径即 lemmatize” 的说法更宽。五轮数据（见 `TEST.md` 的记录约定）：`lemmatize` 很稳，1.85–2.04 ms（221–240 ns/次）；`filterWords` 在 4.36–7.04 ms 之间摆，占机器干扰最大的分词侧。因此占比是区间而非点值：**最干净的三轮约 43%，受干扰时降到 27%**。同株关掉插桩作对照，插桩整体抬高约 16%，反推一次计时器约 60 ns；扣掉后下限约 36%。
+- 一次运行的定量结论都带这类区间，跑 `lens_gtest_perf` 时至少看三轮。
 - 全链手测：复制真实英文句 → 浮层弹词 → [已会]/[新词] 回写 → 复弹不重复。
 - 改动中文文档后重跑 zhlint 至零错误。
 
@@ -273,17 +285,19 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。`lens_test
 
 - **范围**：词表加载、词根还原、候选过滤、本地状态持久化，全离线可自检。
 - **交付**：`src/core/filter_core.{h,cpp}`、`src/core/known_store.{h,cpp}`、`data/wordlist.txt`、`test/` 的样例集与存储往返。
-- **验收**：`lens_test --filter` 全绿，零网络、零密钥。
+- **验收**：`lens_gtest_unit` 全绿，零网络、零密钥。
 
 ### 切片二：LLM 客户端（已完成）
 
 - **范围**：真模型直连（DeepSeek，OpenAI 兼容，BYOK）。传输层 `LlmClient`（QObject + `QNetworkAccessManager`）与无网络内核（脱敏 / 请求体构造 / 响应校验）分离。
-- **交付**：`src/llm/llm_client.{h,cpp}`、`src/llm/llm_pure.{h,cpp}`、`--smoke` 真模型往返。
-- **验收**：`--smoke` 单词往返四字段齐全；响应校验对畸形输入一律整批拒绝。
+- **交付**：`src/llm/llm_client.{h,cpp}`、`src/llm/llm_pure.{h,cpp}`、`lens_gtest_smoke` 真模型往返。
+- **验收**：`lens_gtest_smoke` 单词往返四字段齐全；响应校验对畸形输入一律整批拒绝。
 
 ### 工程基建（已完成，不占切片号）
 
 这一段不在原计划里，是几次按需请求累积出来的，单独记一笔以免来历不明：spdlog 与 `LENS_*` 日志宏（Qt 消息并入同一 logger）、Ninja 构建与 `scripts/build.bat`、全项目英文 Doxygen 注释、i18n 骨架（`i18n/*.ts`，英文为源语言）、LLM 线上协议数据化（`data/llm/` + `LLM.md`）、不规则屈折表数据化（`data/irregulars.tsv`）。
+
+第二次追加（2026-10-02，同样不占切片号）：GoogleTest 进 `third_party` 并退役手写自检（§4.5）、`src/core/profile.{h,cpp}` 与 `LENS_ENABLE_PROFILE` 选项（§4.6）。两件都是基建，没有可独立验收的用户交付物，故按上一段的先例记在这里，不另起切片号。
 
 ### 切片三：AppController + QML 表面（未开始）
 

@@ -108,4 +108,4 @@
 - `data/llm/response.word.schema.json` — 响应 schema（校验真源）
 - `src/llm/llm_protocol.{h,cpp}` — 加载与访问上述文件
 - `src/llm/llm_pure.{h,cpp}` — 组装请求体与校验响应，均无网络
-- `test/main.cpp` — `--filter` 里用固定样例锁住上述行为
+- `test/googletest/unit/llm_pure_test.cpp` — 用固定样例锁住上述行为
