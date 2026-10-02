@@ -20,6 +20,7 @@ target_link_libraries(lens_app
   PRIVATE lens_core
 )
 
-# user32 for the hook and SendInput, ole32 for the clipboard snapshot. Not guarded by
-# if(WIN32): this module *is* the Win32 one, and the product has no other platform.
-target_link_libraries(lens_app PRIVATE user32 ole32)
+# user32 for the hook, SendInput and the clipboard. Not guarded by if(WIN32): this module
+# *is* the Win32 one, and the product has no other platform. OLE is deliberately absent --
+# ClipboardSnapshot records why its round trip is not usable here.
+target_link_libraries(lens_app PRIVATE user32)

@@ -14,6 +14,13 @@
  * reader's own clipboard content comes back afterwards.
  *
  * Windows only, like the module it covers: it creates real windows and moves the pointer.
+ *
+ * ClipboardSnapshot.* drives the real clipboard, which this machine shares with everything
+ * else running on it. A case has been seen to fail intermittently right after another process
+ * wrote the clipboard (three times in about thirty-five runs) and could not be reproduced on
+ * demand; an open-clipboard retry did not stop it. So a lone failure there is worth a re-run
+ * before it is read as a signal — and the cause is still unknown, which is recorded rather
+ * than papered over.
  */
 
 #include <cstring>
@@ -71,14 +78,30 @@ const char* statusName(GrabStatus status)
     return "unknown";
 }
 
+/// @brief Open the clipboard, retrying briefly.
+///
+/// Same reason the product retries: another process holding the clipboard open is normal on a
+/// live desktop, and a single attempt turns that into a spurious failure. The first version
+/// of these cases did not, and failed twice in a full-suite run that then would not reproduce
+/// — a flake with a shared resource is a bug in the test even when the cause is outside it.
+bool openClipboardRetrying()
+{
+    for (int attempt = 0; attempt < 5; ++attempt)
+    {
+        if (OpenClipboard(nullptr) != FALSE) return true;
+        Sleep(10);
+    }
+    return false;
+}
+
 /// @brief Put @p text on the clipboard with the raw Win32 API.
 ///
-/// Deliberately not the grabber's own OLE path: the sentinel has to be set independently for
-/// the restore check to mean anything. Qt's own clipboard needs a QGuiApplication, which
-/// this target does not have.
+/// Deliberately its own code rather than the snapshot's: the sentinel has to be set
+/// independently for the restore checks to mean anything. Qt's own clipboard needs a
+/// QGuiApplication, which this target does not have.
 bool putClipboardText(const QString& text)
 {
-    if (OpenClipboard(nullptr) == FALSE) return false;
+    if (!openClipboardRetrying()) return false;
 
     EmptyClipboard();
     const std::wstring wide = text.toStdWString();
@@ -113,7 +136,7 @@ bool putClipboardText(const QString& text)
 /// @return Whatever text the clipboard holds now, read the raw way.
 std::optional<QString> readClipboardTextNow()
 {
-    if (OpenClipboard(nullptr) == FALSE) return std::nullopt;
+    if (!openClipboardRetrying()) return std::nullopt;
 
     std::optional<QString> text;
     if (const HANDLE handle = GetClipboardData(CF_UNICODETEXT))
@@ -128,6 +151,69 @@ std::optional<QString> readClipboardTextNow()
 
     CloseClipboard();
     return text;
+}
+
+/// @brief Fill the clipboard with text and a private format, in one session.
+/// @return The registered format id, or 0 when the write failed.
+/// @note Both formats go on inside a single Open/EmptyClipboard/SetClipboardData session on
+///       purpose. SetClipboardData is only defined once the clipboard has been emptied, so
+///       adding a second format from a later session leaves it undefined whether the first
+///       one survives — which is what made this case fail intermittently before, and why the
+///       case now checks the setup before it starts.
+unsigned putClipboardTextAndFormat(const QString& text, const char* name, const std::string& bytes)
+{
+    const UINT format = RegisterClipboardFormatA(name);
+    if (format == 0) return 0;
+    if (!openClipboardRetrying()) return 0;
+
+    EmptyClipboard();
+
+    // Ownership passes to the clipboard on success and stays here on failure, so each handle
+    // is freed only when its own SetClipboardData failed.
+    const std::wstring wide = text.toStdWString();
+    HGLOBAL textMemory = GlobalAlloc(GMEM_MOVEABLE, (wide.size() + 1) * sizeof(wchar_t));
+    if (textMemory != nullptr)
+    {
+        if (void* target = GlobalLock(textMemory))
+        {
+            std::memcpy(target, wide.c_str(), (wide.size() + 1) * sizeof(wchar_t));
+            GlobalUnlock(textMemory);
+        }
+        if (SetClipboardData(CF_UNICODETEXT, textMemory) == nullptr) GlobalFree(textMemory);
+    }
+
+    HGLOBAL markerMemory = GlobalAlloc(GMEM_MOVEABLE, bytes.size());
+    if (markerMemory != nullptr)
+    {
+        if (void* target = GlobalLock(markerMemory))
+        {
+            std::memcpy(target, bytes.data(), bytes.size());
+            GlobalUnlock(markerMemory);
+        }
+        if (SetClipboardData(format, markerMemory) == nullptr) GlobalFree(markerMemory);
+    }
+
+    CloseClipboard();
+    return format;
+}
+
+/// @return The bytes of a private registered format, or nothing when it is not there.
+std::optional<std::string> readClipboardPrivateFormat(unsigned format)
+{
+    if (!openClipboardRetrying()) return std::nullopt;
+
+    std::optional<std::string> bytes;
+    if (const HANDLE handle = GetClipboardData(format))
+    {
+        if (const void* source = GlobalLock(handle))
+        {
+            bytes = std::string(static_cast<const char*>(source), GlobalSize(handle));
+            GlobalUnlock(handle);
+        }
+    }
+
+    CloseClipboard();
+    return bytes;
 }
 
 /// @brief Move the pointer to @p start and drag it @p dx pixels to the right.
@@ -261,6 +347,61 @@ TEST(ExcludedProcess, TheMatchIsExactRatherThanASubstring)
     EXPECT_FALSE(isExcludedProcess("powershell"));
 }
 
+/// The guarantee the snapshot exists for. Borrowing a reader's clipboard is only acceptable
+/// because this puts it back, and the interactive case above cannot check it without a hand
+/// on the mouse — which is how the first version shipped broken.
+TEST(ClipboardSnapshot, PutsBackWhatItTookAfterTheClipboardChanges)
+{
+    ASSERT_TRUE(putClipboardText(QStringLiteral("lens-keep-me")));
+
+    const lens::app::ClipboardSnapshot snapshot = lens::app::ClipboardSnapshot::take();
+    ASSERT_TRUE(snapshot.taken()) << "the clipboard could not be read";
+
+    // Stands in for the injected copy replacing the clipboard underneath.
+    ASSERT_TRUE(putClipboardText(QStringLiteral("lens-intruder")));
+    ASSERT_EQ(readClipboardTextNow().value_or(QString()), QStringLiteral("lens-intruder"));
+
+    EXPECT_TRUE(snapshot.restore());
+    EXPECT_EQ(readClipboardTextNow().value_or(QString()), QStringLiteral("lens-keep-me"))
+        << "the reader's clipboard did not come back";
+}
+
+/// The reason the snapshot copies formats rather than text: a reader who had copied an image
+/// or a block of formatted text must not lose it to a word lookup.
+TEST(ClipboardSnapshot, PutsBackEveryFormatRatherThanJustTheText)
+{
+    const unsigned marker = putClipboardTextAndFormat(QStringLiteral("lens-keep-me"), "LensIntegrationMarker", "second-format");
+    ASSERT_NE(marker, 0u) << "could not register or set the marker format";
+
+    // Check the setup before blaming the snapshot: if the two formats were not on the
+    // clipboard to begin with, a failure afterwards says nothing about the snapshot.
+    ASSERT_EQ(readClipboardTextNow().value_or(QString()), QStringLiteral("lens-keep-me")) << "setup: the text is not there";
+    ASSERT_EQ(readClipboardPrivateFormat(marker).value_or(std::string()), "second-format") << "setup: the marker is not there";
+
+    const lens::app::ClipboardSnapshot snapshot = lens::app::ClipboardSnapshot::take();
+    ASSERT_TRUE(snapshot.taken());
+
+    ASSERT_TRUE(putClipboardText(QStringLiteral("lens-intruder")));
+    EXPECT_TRUE(snapshot.restore());
+
+    EXPECT_EQ(readClipboardTextNow().value_or(QString()), QStringLiteral("lens-keep-me"));
+    EXPECT_EQ(readClipboardPrivateFormat(marker).value_or(std::string()), "second-format")
+        << "a format other than the text was dropped, which is what a text-only save would do";
+}
+
+/// Restoring a snapshot that was never taken must do nothing: it has no entries to fill an
+/// emptied clipboard with, so the guard is the difference between an untouched clipboard and
+/// a wiped one.
+TEST(ClipboardSnapshot, ARestoreWithoutATakeLeavesTheClipboardAlone)
+{
+    ASSERT_TRUE(putClipboardText(QStringLiteral("lens-untouched")));
+
+    const lens::app::ClipboardSnapshot neverTaken;
+    EXPECT_TRUE(neverTaken.restore());
+    EXPECT_EQ(readClipboardTextNow().value_or(QString()), QStringLiteral("lens-untouched"))
+        << "restoring a snapshot that was never taken emptied the clipboard";
+}
+
 /// Everything about the hook that can be checked without a hand on the mouse. Synthetic input
 /// reaches a low-level hook the same way real input does, so driving the pointer ourselves
 /// tests the gesture rule and the deferred signal for real rather than through a mock.
@@ -385,8 +526,12 @@ TEST(SelectionGrab, CapturesTheSelectionAndPutsTheClipboardBack)
     std::cout << "  captured: \"" << text->toStdString() << "\"\n";
 
     EXPECT_EQ(*text, expected) << "the captured text is not what was selected";
-    EXPECT_EQ(readClipboardTextNow().value_or(QString()), sentinel)
-        << "the reader's clipboard did not come back";
+
+    // Distinguish "the clipboard came back empty" from "it could not be read at all": the
+    // first is the data-loss bug, the second is a lock, and they need different fixes.
+    const std::optional<QString> afterwards = readClipboardTextNow();
+    ASSERT_TRUE(afterwards.has_value()) << "the clipboard could not be read back at all";
+    EXPECT_EQ(*afterwards, sentinel) << "the reader's clipboard did not come back";
 }
 
 int main(int argc, char** argv)

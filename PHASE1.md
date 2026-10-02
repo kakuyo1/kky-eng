@@ -267,7 +267,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 
 日志：全项目走 spdlog（`third_party/spdlog`，编译成静态库），模块只用 `src/core/log.h` 的 `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_ERROR` / `LENS_CRITICAL` 宏。`SPDLOG_ACTIVE_LEVEL` 由 CMake 挂在 `lens_core` 上（Debug = trace，Release = info），低于它的调用整条编译掉——不能写在 `log.h` 里，spdlog 自己的 `common.h` 一旦被包含就会抢先定义成 info。`lens::log::init()` 写 `logs/lens.log`（10 MB 一轮，留 3 个备份）并镜像到 stderr，级别可用 `LENS_LOG_LEVEL` 覆盖。Qt 自身的 qDebug / qWarning / qCritical 等由 `src/llm/qt_log.h` 的 `installQtMessageHandler()` 折进同一个 logger，源位置指向 Qt 调用点而非桥接处。密钥永不进日志（第 6 节）。
 
-现状：`lens_core` 为 STATIC（`log.cpp` + `profile.cpp` + `filter_core.cpp` + `known_store.cpp`），`lens_llm` 亦已转 STATIC（`llm_pure.cpp` + `llm_client.cpp`），`lens_gtest_unit` / `lens_gtest_smoke` 链接两者，`lens_gtest_perf` 只链接 `lens_core`。`src/app` 已由 INTERFACE 占位转为 STATIC，装着捕获组件（§4.4）的 `mouse_selection_hook.cpp` 与 `selection_text_grabber.cpp`；它眼下只挂 `Qt6::Core`（`QPoint` / `QEventLoop` / `QTimer` 都在 QtCore）加 `user32` / `ole32`，Gui / Quick / Widgets 随 QML 表面落地时再补。
+现状：`lens_core` 为 STATIC（`log.cpp` + `profile.cpp` + `filter_core.cpp` + `known_store.cpp`），`lens_llm` 亦已转 STATIC（`llm_pure.cpp` + `llm_client.cpp`），`lens_gtest_unit` / `lens_gtest_smoke` 链接两者，`lens_gtest_perf` 只链接 `lens_core`。`src/app` 已由 INTERFACE 占位转为 STATIC，装着捕获组件（§4.4）的 `mouse_selection_hook.cpp` 与 `selection_text_grabber.cpp`；它眼下只挂 `Qt6::Core`（`QPoint` / `QEventLoop` / `QTimer` 都在 QtCore）加 `user32`，Gui / Quick / Widgets 随 QML 表面落地时再补。
 
 ## 8 预检清单（动工前）
 
@@ -288,7 +288,8 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 - LLM 冒烟：**已通过**（2026-10-02，迁移前的手写版本）：`ubiquitous` 经 `deepseek-flash` 真实往返，`word` / `en` / `zh` 三字段回显与 §5 schema 一致，`finish_reason=stop`。迁移后的 `lens_gtest_smoke` 尚未跑过真实往返，待人工执行。
 - FilterCore 热点：**已测量**（2026-10-02，RelWithDebInfo，`LENS_ENABLE_PROFILE=ON`，样例集 8 段 × 200 轮，`filterWords` 1600 次 / `lemmatize` 8400 次 / token 10800 个）。**`lemmatize` 只占一部分，其余落在分词与硬过滤阶段**，比此前 “热路径即 lemmatize” 的说法更宽。五轮数据（见 `TEST.md` 的记录约定）：`lemmatize` 很稳，1.85–2.04 ms（221–240 ns/次）；`filterWords` 在 4.36–7.04 ms 之间摆，占机器干扰最大的分词侧。因此占比是区间而非点值：**最干净的三轮约 43%，受干扰时降到 27%**。同株关掉插桩作对照，插桩整体抬高约 16%，反推一次计时器约 60 ns；扣掉后下限约 36%。
 - 一次运行的定量结论都带这类区间，跑 `lens_gtest_perf` 时至少看三轮。
-- 选区捕获（2026-10-02）：`lens_gtest_integration` 12 例中 11 例通过、1 例跳过。**机器已验证**——手势规则（含阈值边界、双击 / 三击、反向拖动）、终端排除名单的大小写与全路径匹配、钩子装上后能收到拖拽并按松手坐标发出锚点（拖拽由 `SendInput` 合成，低层钩子对合成事件与真实事件一视同仁）、前台是自己时取文拒绝执行。**只有人能验**——在浏览器 / PDF 阅读器里真选一次，确认注入的 Ctrl+C 真能把选区取出来、且读者自己的剪贴板内容被还原；`LENS_HOOK_SMOKE=1` 放开那一例。
+- 选区捕获（2026-10-03）：`lens_gtest_integration` 15 例中 14 例通过、1 例跳过。机器已验证——手势规则（含阈值边界、双击 / 三击、反向拖动）、终端排除名单的大小写与全路径匹配、钩子装上后能收到拖拽并按松手坐标发出锚点（拖拽由 `SendInput` 合成，低层钩子对合成事件与真实事件一视同仁）、前台是自己时取文拒绝执行，以及剪贴板存还原的三面（内容被顶掉后还原、非文本格式一并还原、没取过快照时不许动剪贴板）。真人手测过一次（2026-10-03，Windows 记事本 11.2607 商店版）：注入的 Ctrl+C 确实取到了选区，十字相符——契约里那句 “凡能复制的应用都通” 有实证了。同一次的日志还给出了逐格式拷贝的量化理由：记事本一次 Ctrl+C 往剪贴板放了 4 种格式，快照全数取回并全数还原，**只存文本会毁掉其中 3 种**。
+- **剪贴板的存还原用 OLE 是错的**（2026-10-03 实测推翻）：`OleGetClipboard` 取出的 `IDataObject` 交给 `OleSetClipboard` 一律失败，`CLIPBRD_E_CANT_CLOSE` 或 `CLIPBRD_E_CANT_OPEN`；中间有没有变化、内容由本进程还是别的进程（`clip.exe` 验过）放入，结果都一样，而同一次运行里 `OleSetClipboard(nullptr)` 却成功，所以坏的是对象往返而非 setter。现在的做法是裸开剪贴板逐格式读出字节，还原时空盘再逐格式写回；位图 / 调色板 / 增强图元文件 / owner-display 族这类句柄格式按名跳过并记日志；`ole32` 不再需要。这条错误原先只有人工用例能碰，改成三个离线用例后当场复现。
 - 全链手测：复制真实英文句 → 浮层弹词 → [已会]/[新词] 回写 → 复弹不重复。
 - 改动中文文档后重跑 zhlint 至零错误。
 

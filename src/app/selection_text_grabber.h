@@ -3,9 +3,11 @@
 #include <QObject>
 #include <QString>
 
+#include <cstddef>
 #include <cstdint>
 #include <string_view>
 #include <variant>
+#include <vector>
 
 /**
  * @file selection_text_grabber.h
@@ -17,8 +19,8 @@
  * discovered — the clipboard is borrowed, and an injected Ctrl+C is SIGINT inside a
  * terminal, so terminal processes are excluded before anything is sent.
  *
- * @note Windows only, like the rest of src/app. The clipboard snapshot is OLE's, the
- *       injection is SendInput's.
+ * @note Windows only, like the rest of src/app. The clipboard work uses the raw Win32
+ *       clipboard API rather than OLE's, for the reason recorded in ClipboardSnapshot.
  */
 
 namespace lens::app {
@@ -32,9 +34,9 @@ enum class GrabStatus : std::uint8_t
     ProcessExcluded,  ///< The foreground process is one where Ctrl+C means "interrupt".
     ClipboardBusy,    ///< The clipboard could not be taken; without a snapshot to restore,
                       ///< clobbering it is not allowed. Also returned on re-entry.
-    CopyTimedOut,     ///< The clipboard did not change before the deadline: nothing was
-                      ///< selected, the application ignores synthetic input, or an elevated
-                      ///< window dropped it (UIPI).
+    CopyTimedOut,     ///< Nothing came back: there was no window to copy from, the clipboard
+                      ///< did not change before the deadline, the application ignored the
+                      ///< synthetic input, or an elevated window dropped it (UIPI).
     EmptyText,        ///< The clipboard changed but carried no text.
 };
 
@@ -54,21 +56,64 @@ enum class GrabStatus : std::uint8_t
 bool isExcludedProcess(std::string_view executableName);
 
 /**
- * @brief Borrows the clipboard to copy the current selection out of the foreground window.
+ * @brief A copy of everything the clipboard held, kept as bytes this process owns.
  *
- * The snapshot is taken with OleGetClipboard and handed back with OleSetClipboard, so every
- * format survives — a text-only save would quietly destroy a copied image or a chunk of
- * formatted HTML. If the snapshot cannot be taken the attempt stops there, because
- * clobbering a clipboard that cannot be restored is worse than doing nothing.
+ * OLE looked like the right tool for this and is not: `OleSetClipboard` on an object that
+ * came from `OleGetClipboard` fails with `CLIPBRD_E_CANT_CLOSE` in this process, whether or
+ * not the clipboard changed in between and whether the content was put there by this process
+ * or another one — measured, with `OleSetClipboard(nullptr)` succeeding in the same run, so
+ * it is the object round trip that fails, not the setter. The raw API has none of that: every
+ * format is read out and copied here, and written back as the clipboard is emptied and filled
+ * again. A reader's copied image or formatted block therefore survives, which a text-only save
+ * would quietly destroy.
+ *
+ * @note Some formats are handles rather than memory — bitmaps, palettes, enhanced metafiles,
+ *       and the owner-display family — and cannot be copied this way. Those are skipped and
+ *       logged by name, so what was dropped is never a mystery.
+ */
+class ClipboardSnapshot
+{
+public:
+    ClipboardSnapshot() = default;
+
+    /**
+     * @brief Copy everything the clipboard currently holds.
+     * @return The snapshot. Check taken(): a snapshot that could not be read must never be
+     *         restored, because restoring it would empty a clipboard it cannot refill.
+     */
+    static ClipboardSnapshot take();
+
+    /// @return Whether the clipboard was read successfully.
+    bool taken() const { return taken_; }
+
+    /**
+     * @brief Replace the clipboard with this copy.
+     * @return True when every entry landed. A false return means the reader's clipboard was
+     *         left short, so it is logged as a warning rather than swallowed.
+     * @note Does nothing when taken() is false.
+     */
+    bool restore() const;
+
+private:
+    /// @brief One format and the bytes of its handle.
+    struct Entry
+    {
+        unsigned format = 0;             ///< A CF_* value or a registered format id.
+        std::vector<std::byte> bytes;    ///< The handle's contents, copied out.
+    };
+
+    bool taken_ = false;
+    std::vector<Entry> entries_;
+};
+
+/**
+ * @brief Borrows the clipboard to copy the current selection out of the foreground window.
  */
 class SelectionTextGrabber : public QObject
 {
     Q_OBJECT
 public:
     explicit SelectionTextGrabber(QObject* parent = nullptr);
-
-    /// @brief Releases the OLE registration taken in the constructor, if any.
-    ~SelectionTextGrabber() override;
 
     /**
      * @brief Copy the foreground application's selection and read it back.
@@ -85,7 +130,6 @@ public:
     std::variant<QString, GrabStatus> grab();
 
 private:
-    bool oleReady_ = false;
     bool grabbing_ = false;
 };
 

@@ -1,6 +1,6 @@
 /**
  * @file selection_text_grabber.cpp
- * @brief The terminal exclusion list, and the clipboard round trip that gets the text out.
+ * @brief The terminal exclusion list, the clipboard snapshot, and the Ctrl+C round trip.
  */
 
 #include "selection_text_grabber.h"
@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <cstring>
 #include <optional>
 #include <string>
 
@@ -19,7 +20,6 @@
 // Last, after everything else: windows.h brings a few hundred macros with it (min and max
 // among them), and including it first would let them loose on the standard library.
 #include <windows.h>
-#include <ole2.h>
 
 namespace lens::app {
 namespace {
@@ -33,6 +33,32 @@ constexpr int kGrabDeadlineMs = 250;
 /// How often the wait looks at the clipboard. Small enough to catch a fast application,
 /// large enough not to spin.
 constexpr int kPollIntervalMs = 5;
+
+/// How many times to try opening the clipboard, and how long between tries.
+constexpr int kClipboardAttempts = 5;
+constexpr int kClipboardRetryMs = 10;
+
+/**
+ * @brief Open the clipboard, retrying briefly.
+ *
+ * OpenClipboard fails whenever any other process holds it open, which on a live desktop
+ * happens for milliseconds at a time — the clipboard history service indexing a copy, another
+ * application pasting, a clipboard manager looking at what changed. A single attempt turns
+ * those into a spurious "the clipboard is busy" and the feature silently does nothing.
+ *
+ * @return True when the clipboard is open; the caller owns it until CloseClipboard().
+ * @note Blocking, up to kClipboardAttempts * kClipboardRetryMs. ponytail: on the calling
+ *       thread, because the grab already runs there; revisit if it is ever felt.
+ */
+bool openClipboardWithRetry()
+{
+    for (int attempt = 0; attempt < kClipboardAttempts; ++attempt)
+    {
+        if (OpenClipboard(nullptr) != FALSE) return true;
+        Sleep(kClipboardRetryMs);
+    }
+    return false;
+}
 
 /**
  * Processes where Ctrl+C interrupts instead of copying. Compared against the executable's
@@ -50,8 +76,43 @@ constexpr std::array<std::string_view, 7> kExcludedProcesses{
     "wt.exe",
 };
 
-/// @return @p wide as UTF-8 bytes. The comparison wants a bare name, and a name that is not
-///         ASCII simply will not match anything in the list, which is the safe direction.
+/**
+ * Formats whose clipboard handle is a GDI or display handle rather than memory, so their
+ * contents cannot be copied by reading a block out of the handle. Everything else is treated
+ * as memory and copied; a format whose handle turns out not to be readable is skipped on the
+ * spot and named in the log.
+ */
+bool isHandleFormat(UINT format)
+{
+    switch (format)
+    {
+        case CF_BITMAP:
+        case CF_PALETTE:
+        case CF_ENHMETAFILE:
+        case CF_OWNERDISPLAY:
+            return true;
+        default:
+            return format >= CF_DSPTEXT && format <= CF_DSPENHMETAFILE;
+    }
+}
+
+/// @return A name for @p format, for the log: the registered name when it has one, the
+///         number otherwise.
+std::string formatName(UINT format)
+{
+    wchar_t name[128];
+    const int length = GetClipboardFormatNameW(format, name, static_cast<int>(std::size(name)));
+    if (length <= 0) return std::to_string(format);
+
+    char narrow[256];
+    const int written = WideCharToMultiByte(CP_UTF8, 0, name, length, narrow, sizeof(narrow) - 1, nullptr, nullptr);
+    if (written <= 0) return std::to_string(format);
+    narrow[written] = '\0';
+    return narrow;
+}
+
+/// @return @p wide as UTF-8 bytes. A name that is not ASCII simply will not match anything in
+///         the exclusion list, which is the safe direction.
 std::string narrow(const std::wstring& wide)
 {
     if (wide.empty()) return {};
@@ -141,36 +202,24 @@ bool waitForClipboardChange(DWORD sequenceBefore)
     return GetClipboardSequenceNumber() != sequenceBefore;
 }
 
-/// @return Whatever text the clipboard holds now.
+/// @return The text the clipboard holds now, or nothing when it holds none.
 std::optional<QString> readClipboardText()
 {
-    IDataObject* current = nullptr;
-    if (OleGetClipboard(&current) != S_OK || current == nullptr) return std::nullopt;
+    if (OpenClipboard(nullptr) == FALSE) return std::nullopt;
 
     std::optional<QString> text;
-    FORMATETC format{CF_UNICODETEXT, nullptr, DVASPECT_CONTENT, -1, TYMED_HGLOBAL};
-    STGMEDIUM medium{};
-    if (current->GetData(&format, &medium) == S_OK)
+    if (const HANDLE handle = GetClipboardData(CF_UNICODETEXT))
     {
-        const auto* wide = static_cast<const wchar_t*>(GlobalLock(medium.hGlobal));
-        if (wide != nullptr)
+        // Owned by the clipboard, so it is locked and unlocked but never freed here.
+        if (const auto* wide = static_cast<const wchar_t*>(GlobalLock(handle)))
         {
             text = QString::fromWCharArray(wide);
-            GlobalUnlock(medium.hGlobal);
+            GlobalUnlock(handle);
         }
-        ReleaseStgMedium(&medium);
     }
 
-    current->Release();
+    CloseClipboard();
     return text;
-}
-
-/// @brief Hand the snapshot back, releasing the reference either way.
-void restoreClipboard(IDataObject* saved)
-{
-    if (OleSetClipboard(saved) != S_OK)
-        LENS_WARN("SelectionTextGrabber::grab: OleSetClipboard failed; the reader's clipboard was not put back");
-    saved->Release();
 }
 
 }   // namespace
@@ -195,31 +244,105 @@ bool isExcludedProcess(std::string_view executableName)
     return false;
 }
 
-SelectionTextGrabber::SelectionTextGrabber(QObject* parent) : QObject(parent)
+ClipboardSnapshot ClipboardSnapshot::take()
 {
-    // The clipboard snapshot is OLE's. Qt's Windows platform plugin already does this for
-    // the GUI thread once a QGuiApplication exists, in which case this returns S_FALSE —
-    // which still demands a matching OleUninitialize, so oleReady_ balances both the same
-    // way. RPC_E_CHANGED_MODE (the thread was already set up with another apartment model)
-    // leaves OLE unusable here, and grab() then declines rather than clobbering anything.
-    const HRESULT result = OleInitialize(nullptr);
-    oleReady_ = SUCCEEDED(result);
-    if (!oleReady_) LENS_WARN("SelectionTextGrabber: OleInitialize failed with 0x{:08X}", static_cast<unsigned>(result));
+    ClipboardSnapshot snapshot;
+
+    // Failure here is the one case where the caller must not go on: emptying a clipboard that
+    // could not be read destroys it with nothing to put back.
+    if (!openClipboardWithRetry())
+    {
+        LENS_WARN("ClipboardSnapshot::take: OpenClipboard failed with error {}", GetLastError());
+        return snapshot;
+    }
+
+    for (UINT format = 0; (format = EnumClipboardFormats(format)) != 0;)
+    {
+        if (isHandleFormat(format))
+        {
+            LENS_TRACE("ClipboardSnapshot::take: '{}' is a handle, not memory; leaving it behind", formatName(format));
+            continue;
+        }
+
+        const HANDLE handle = GetClipboardData(format);
+        if (handle == nullptr) continue;
+
+        // Read it out here rather than holding the handle: a handle on the clipboard belongs
+        // to the clipboard, and is freed the moment anything replaces its contents.
+        const SIZE_T size = GlobalSize(handle);
+
+        // GetClipboardData renders on demand for a delayed format, so this also forces the
+        // source application to hand its data over before it loses the chance.
+        const void* source = GlobalLock(handle);
+        if (source == nullptr || size == 0)
+        {
+            if (source != nullptr) GlobalUnlock(handle);
+            LENS_WARN("ClipboardSnapshot::take: cannot read '{}'; leaving it behind", formatName(format));
+            continue;
+        }
+
+        Entry entry;
+        entry.format = format;
+        entry.bytes.resize(size);
+        std::memcpy(entry.bytes.data(), source, size);
+        GlobalUnlock(handle);
+
+        snapshot.entries_.push_back(std::move(entry));
+    }
+
+    CloseClipboard();
+    snapshot.taken_ = true;
+    LENS_TRACE("ClipboardSnapshot::take: {} formats copied", snapshot.entries_.size());
+    return snapshot;
 }
 
-SelectionTextGrabber::~SelectionTextGrabber()
+bool ClipboardSnapshot::restore() const
 {
-    if (oleReady_) OleUninitialize();
+    if (!taken_) return true;
+    if (entries_.empty()) return true;
+
+    if (!openClipboardWithRetry())
+    {
+        LENS_WARN("ClipboardSnapshot::restore: OpenClipboard failed with error {}; the reader's clipboard is gone", GetLastError());
+        return false;
+    }
+
+    EmptyClipboard();
+
+    bool complete = true;
+    for (const Entry& entry : entries_)
+    {
+        HGLOBAL memory = GlobalAlloc(GMEM_MOVEABLE, entry.bytes.size());
+        if (memory == nullptr)
+        {
+            LENS_WARN("ClipboardSnapshot::restore: cannot allocate {} bytes for '{}'", entry.bytes.size(), formatName(entry.format));
+            complete = false;
+            continue;
+        }
+
+        if (void* target = GlobalLock(memory))
+        {
+            std::memcpy(target, entry.bytes.data(), entry.bytes.size());
+            GlobalUnlock(memory);
+        }
+
+        // SetClipboardData takes ownership on success and leaves it with us on failure.
+        if (SetClipboardData(entry.format, memory) == nullptr)
+        {
+            GlobalFree(memory);
+            LENS_WARN("ClipboardSnapshot::restore: SetClipboardData failed for '{}'", formatName(entry.format));
+            complete = false;
+        }
+    }
+
+    CloseClipboard();
+    return complete;
 }
+
+SelectionTextGrabber::SelectionTextGrabber(QObject* parent) : QObject(parent) {}
 
 std::variant<QString, GrabStatus> SelectionTextGrabber::grab()
 {
-    if (!oleReady_)
-    {
-        LENS_WARN("SelectionTextGrabber::grab: OLE is unavailable on this thread");
-        return GrabStatus::ClipboardBusy;
-    }
-
     if (grabbing_)
     {
         // The nested event loop in waitForClipboardChange pumps messages, so the mouse hook
@@ -255,14 +378,12 @@ std::variant<QString, GrabStatus> SelectionTextGrabber::grab()
 
     grabbing_ = true;
 
-    // Put the clipboard aside before touching it. Every format survives because the snapshot
-    // is a live OLE data object rather than a copy of the text: a text-only save would
-    // quietly destroy a copied image or a chunk of HTML. Failing to take it means stopping,
-    // since clobbering a clipboard that cannot be restored is worse than doing nothing.
-    IDataObject* saved = nullptr;
-    if (OleGetClipboard(&saved) != S_OK || saved == nullptr)
+    // Put the clipboard aside before touching it. Failing to take it means stopping, since
+    // clobbering a clipboard that cannot be restored is worse than doing nothing.
+    const ClipboardSnapshot snapshot = ClipboardSnapshot::take();
+    if (!snapshot.taken())
     {
-        LENS_WARN("SelectionTextGrabber::grab: OleGetClipboard failed; leaving the clipboard alone");
+        LENS_WARN("SelectionTextGrabber::grab: no snapshot of the clipboard; leaving it alone");
         grabbing_ = false;
         return GrabStatus::ClipboardBusy;
     }
@@ -272,16 +393,17 @@ std::variant<QString, GrabStatus> SelectionTextGrabber::grab()
     if (!sendCopyKeystroke())
     {
         LENS_WARN("SelectionTextGrabber::grab: SendInput was refused, which is what an elevated foreground window does");
-        restoreClipboard(saved);
+        snapshot.restore();
         grabbing_ = false;
         return GrabStatus::CopyTimedOut;
     }
 
     const bool landed = waitForClipboardChange(sequenceBefore);
 
-    // Read before restoring: OleSetClipboard puts the snapshot back over the top.
+    // Read before restoring: the restore empties the clipboard and fills it again.
     const std::optional<QString> copied = landed ? readClipboardText() : std::nullopt;
-    restoreClipboard(saved);
+    if (!snapshot.restore())
+        LENS_WARN("SelectionTextGrabber::grab: the reader's clipboard could not be put back in full");
     grabbing_ = false;
 
     if (!landed)
