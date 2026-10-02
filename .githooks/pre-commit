@@ -1,5 +1,5 @@
 #!/bin/sh
-# Lens pre-commit: the two checks that are mechanical and cheap.
+# Lens pre-commit: the three checks that are mechanical and cheap.
 #
 # 1. Chinese typography, as a ratchet. Several docs carry errors that predate this hook --
 #    English prose tripping Chinese rules, mostly -- so each doc is compared against the
@@ -7,6 +7,9 @@
 #    a raise to make a commit pass is the hook doing its job.
 # 2. The prototype list, in the two places that name it. It has drifted twice already: a new
 #    surface landed in ui-prototypes/ and in UI.md but not in CLAUDE.md's tree.
+# 3. C++ formatting. The tree was formatted once by hand and then left to drift; this is what
+#    stops that. clang-format is not on PATH on this machine, so the copy Visual Studio ships is
+#    looked for as a fallback.
 #
 # Only what this commit touches is checked, which keeps a commit hook under a few seconds.
 #
@@ -16,8 +19,8 @@
 # the disk: if git ever reports it as skipped, run
 #     git update-index --chmod=+x .githooks/pre-commit
 #
-# Both checks warn and pass when their tool is unavailable, so a missing zhlint or an odd
-# environment cannot make the repository uncommittable.
+# Every check warns and passes when its tool is unavailable, so a missing zhlint or clang-format,
+# or an odd environment, cannot make the repository uncommittable.
 #
 # Two things about zhlint that cost an afternoon to learn: it exits 1 when it finds errors
 # (so the exit code cannot tell "found problems" from "did not run" -- an empty report is
@@ -106,7 +109,52 @@ check_prototype_list() {
     return 0
 }
 
+# clang-format is not on PATH on this machine; the copy Visual Studio ships is the fallback.
+CLANG_FORMAT_FALLBACKS='/d/VS 2022/VC/Tools/Llvm/x64/bin/clang-format.exe
+/c/Program Files/LLVM/bin/clang-format.exe'
+
+check_formatting() {
+    printf '%s\n' "$staged" | grep -qE '\.(cpp|h|hpp|cc)$' || return 0
+
+    formatter=$(command -v clang-format 2>/dev/null || true)
+    if [ -z "$formatter" ]; then
+        while read -r candidate; do
+            if [ -x "$candidate" ]; then
+                formatter="$candidate"
+                break
+            fi
+        done <<EOF
+$CLANG_FORMAT_FALLBACKS
+EOF
+    fi
+    if [ -z "$formatter" ]; then
+        echo "pre-commit: clang-format not found, skipping the format check"
+        return 0
+    fi
+
+    status=0
+    for file in $staged; do
+        case "$file" in
+            *.cpp | *.h | *.hpp | *.cc) ;;
+            *) continue ;;
+        esac
+        [ -f "$file" ] || continue
+
+        # --dry-run --Werror exits non-zero when the file differs from .clang-format, which is
+        # the whole test. The config is found by searching upward from the file, so nothing
+        # here has to name it.
+        if ! "$formatter" --dry-run --Werror "$file" >/dev/null 2>&1; then
+            echo "pre-commit: $file is not clang-formatted"
+            "$formatter" "$file" 2>/dev/null | diff "$file" - | head -8
+            echo "  fix with: \"$formatter\" -i $file"
+            status=1
+        fi
+    done
+    return $status
+}
+
 status=0
 check_typography || status=1
 check_prototype_list || status=1
+check_formatting || status=1
 exit $status
