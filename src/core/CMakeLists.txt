@@ -1,5 +1,6 @@
 add_library(lens_core STATIC
   log.cpp
+  profile.cpp
   filter_core.cpp
   known_store.cpp
 )
@@ -20,4 +21,11 @@ target_link_libraries(lens_core PUBLIC spdlog::spdlog)
 target_compile_definitions(lens_core PUBLIC
   $<$<CONFIG:Debug>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE>
   $<$<NOT:$<CONFIG:Debug>>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_INFO>
+)
+
+# Profiling (core/profile.h) is off unless the build asks for it. PUBLIC, not PRIVATE: the
+# macro decides whether a call site emits a sample, so lens_core and its callers must agree
+# on the value or the reads and the writes would disagree about which sites exist.
+target_compile_definitions(lens_core PUBLIC
+  $<$<BOOL:${LENS_ENABLE_PROFILE}>:LENS_PROFILE=1>
 )

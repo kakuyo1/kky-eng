@@ -1,5 +1,6 @@
 #include "core/filter_core.h"
 #include "core/log.h"
+#include "core/profile.h"
 
 #include <algorithm>
 #include <chrono>
@@ -169,6 +170,8 @@ std::string lemmatize(std::string_view token) {
     if (g_rank.empty())
         throw std::logic_error("lens::core::lemmatize: loadWordlist() must run first");
 
+    LENS_PROFILE_SCOPE("lemmatize");   // entered once per token, so watch the timer cost
+
     const std::string t = lower(token);
     if (keepAsIs().count(t) != 0) return t;
 
@@ -277,6 +280,8 @@ std::vector<Candidate> filterWords(
     if (g_rank.empty())
         throw std::logic_error("lens::core::filterWords: loadWordlist() must run first");
 
+    LENS_PROFILE_SCOPE("filterWords");
+
     std::vector<Candidate> out;
     std::unordered_set<std::string> seen;   // de-duplication keyed by lemma
 
@@ -299,6 +304,8 @@ std::vector<Candidate> filterWords(
         while (head < tail && !isAlnum(text[head])) ++head;
         while (tail > head && !isAlnum(text[tail - 1])) --tail;
         if (head == tail) continue;
+
+        LENS_PROFILE_COUNT("filterWords/tokens", 1);   // every run that survived trimming
 
         const std::string_view tok = text.substr(head, tail - head);
         bool glued = false;
