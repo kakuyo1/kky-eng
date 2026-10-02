@@ -1,0 +1,53 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "ninja-qt6",
+      "displayName": "Ninja + Qt 6.9 (MSVC)",
+      "description": "Fast incremental builds. Requires the MSVC environment: run inside a vcvars64 shell (see CLAUDE.md).",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-ninja",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "B:/qtt/6.9.0/msvc2022_64",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "DEV_SEND_CONFIRM": "ON",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "ninja-qt6-perf",
+      "displayName": "Ninja + Qt 6.9 (MSVC), profiling",
+      "description": "RelWithDebInfo with LENS_ENABLE_PROFILE=ON, in a tree of its own: profile numbers want optimisation, and the dev presets are Debug. See TEST.md.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-ninja-perf",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "B:/qtt/6.9.0/msvc2022_64",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "DEV_SEND_CONFIRM": "ON",
+        "LENS_ENABLE_PROFILE": "ON"
+      }
+    },
+    {
+      "name": "vs-qt6",
+      "displayName": "Visual Studio 17 2022 + Qt 6.9 (MSVC)",
+      "description": "Fallback generator for IDE work. Needs no vcvars shell.",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "B:/qtt/6.9.0/msvc2022_64",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "DEV_SEND_CONFIRM": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "ninja-qt6",
+      "configurePreset": "ninja-qt6",
+      "jobs": 4
+    },
+    { "name": "ninja-qt6-perf", "configurePreset": "ninja-qt6-perf", "jobs": 4 },
+    { "name": "vs-qt6", "configurePreset": "vs-qt6" }
+  ]
+}
