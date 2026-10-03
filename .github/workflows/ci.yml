@@ -110,8 +110,18 @@ jobs:
 
       # tree-sitter, for the parse tree the QML scan counts its denominator from. It is the
       # same dependency the AST metrics use, so this is the one install both share.
+      #
+      # The grammar has no prebuilt binary for this platform, so npm builds it with node-gyp,
+      # and that is what the pin below is for. ilammy/msvc-dev-cmd picked the newest Visual
+      # Studio on the image, 2026 (18.x), and npm's bundled node-gyp cannot read an 18.x
+      # version string -- it reports "unknown version undefined" and gives up with "could not
+      # find any Visual Studio installation to use", which reads like a missing install and is
+      # not one. The image also carries VS 2022 (17.14), which this node-gyp does know, so
+      # naming it settles the choice.
       - name: Install QML metric dependencies
-        run: npm ci
+        run: |
+          npm config set msvs_version 2022
+          npm ci
 
       # qmlprofiler comes from the Qt the action installed, already on PATH. It launches the
       # two QTest binaries itself, so this is the same pair of suites the steps above ran,
