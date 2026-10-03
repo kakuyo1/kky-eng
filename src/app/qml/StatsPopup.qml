@@ -63,7 +63,7 @@ Window {
 
             Text {
                 topPadding: 16
-                text: String(controller.stats.todayPops)
+                text: String(Controller.stats.todayPops)
                 color: Tokens.text
                 font.family: Tokens.monoFamily
                 font.pixelSize: 32
@@ -84,17 +84,17 @@ Window {
             StatRow {
                 width: parent.width
                 label: qsTr("Known")
-                value: String(controller.stats.todayLearned)
+                value: String(Controller.stats.todayLearned)
             }
             StatRow {
                 width: parent.width
                 label: qsTr("New")
-                value: String(controller.stats.todayFresh)
+                value: String(Controller.stats.todayFresh)
             }
             StatRow {
                 width: parent.width
                 label: qsTr("Cost")
-                value: controller.stats.currency + controller.stats.todayCost.toFixed(2)
+                value: Controller.stats.currency + Controller.stats.todayCost.toFixed(2)
                 clickable: true
                 onTapped: stats.costRequested()
             }
@@ -104,7 +104,7 @@ Window {
                 // The same count the words panel shows, from the same source: the rows are
                 // deduplicated, so a tally of pops labelled "words" reads as a bug beside a
                 // panel that lists fewer of them.
-                value: qsTr("%1 words").arg(controller.words.length)
+                value: qsTr("%1 words").arg(Controller.words.length)
                 clickable: true
                 onTapped: stats.wordsRequested()
             }

@@ -65,14 +65,14 @@ Window {
                     property point grabWindow: Qt.point(0, 0)
 
                     function place() {
-                        const at = controller.cursorPos();
+                        const at = Controller.cursorPos();
                         words.x = Math.round(grabWindow.x + at.x - grabCursor.x);
                         words.y = Math.round(grabWindow.y + at.y - grabCursor.y);
                     }
 
                     onActiveChanged: {
                         if (active) {
-                            grabCursor = controller.cursorPos();
+                            grabCursor = Controller.cursorPos();
                             grabWindow = Qt.point(words.x, words.y);
                         } else {
                             place();
@@ -118,7 +118,7 @@ Window {
                 // the rows below are deduplicated, so a word explained twice counts once here
                 // and twice there. A number that disagrees with the list under it reads as a
                 // bug, whichever of the two meanings it was meant to carry.
-                text: qsTr("%1 words").arg(controller.words.length)
+                text: qsTr("%1 words").arg(Controller.words.length)
                 color: Tokens.faint
                 font.pixelSize: 12
             }
@@ -147,7 +147,7 @@ Window {
                     width: parent.width
                     height: parent.height
                     clip: true
-                    model: controller.words
+                    model: Controller.words
                     boundsBehavior: Flickable.StopAtBounds
 
                     delegate: Item {

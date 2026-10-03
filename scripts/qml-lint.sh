@@ -21,7 +21,7 @@
 
 set -u
 
-BASELINE=130
+BASELINE=70
 
 root=$(git rev-parse --show-toplevel 2>/dev/null)
 [ -n "$root" ] || root=$(cd "$(dirname "$0")/.." && pwd)

@@ -7,6 +7,8 @@
 
 #include <QGuiApplication>
 #include <QIcon>
+#include <QJSEngine>
+#include <QQmlEngine>
 #include <QStyleHints>
 #include <QSystemTrayIcon>
 #include <QVariantMap>
@@ -68,6 +70,24 @@ Tray::Tray(AppController& controller, QObject* parent)
 }
 
 Tray::~Tray() = default;
+
+// The QML singleton the surfaces name as Tray. See AppController::provide() for why the
+// instance is handed in rather than built here.
+Tray* Tray::instance_ = nullptr;
+
+void Tray::provide(Tray* instance)
+{
+    instance_ = instance;
+}
+
+Tray* Tray::create(QQmlEngine* engine, QJSEngine* scriptEngine)
+{
+    Q_UNUSED(engine)
+    Q_UNUSED(scriptEngine)
+    Q_ASSERT(instance_ != nullptr);
+    QQmlEngine::setObjectOwnership(instance_, QQmlEngine::CppOwnership);
+    return instance_;
+}
 
 bool Tray::show()
 {

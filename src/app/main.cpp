@@ -11,7 +11,6 @@
 #include <QFont>
 #include <QCoreApplication>
 #include <QQmlApplicationEngine>
-#include <QQmlContext>
 #include <QTranslator>
 #include <QUrl>
 
@@ -176,12 +175,16 @@ int main(int argc, char* argv[])
     if (!tray.show())
         return 1;
 
+    // The surfaces reach both objects as QML singletons -- Controller and Tray -- declared on
+    // the classes themselves with QML_SINGLETON. Context properties are the simpler wiring and
+    // are what this used to do, but no linter can see a name that exists only in the engine's
+    // context: every read off controller or tray came back as unqualified access, 53 warnings
+    // across the surfaces, and a mistyped property name would read as undefined rather than
+    // fail. Registering the types gives qmllint the property names to check against.
+    AppController::provide(&controller);
+    Tray::provide(&tray);
+
     QQmlApplicationEngine engine;
-    // Context properties rather than registered singletons: two objects, one engine, and no
-    // build-time type registration to keep in step. ponytail: move to
-    // qmlRegisterSingletonInstance if the module ever grows past these two.
-    engine.rootContext()->setContextProperty(QStringLiteral("controller"), &controller);
-    engine.rootContext()->setContextProperty(QStringLiteral("tray"), &tray);
 
     TranslationKeeper translations;
     translations.select(QString::fromStdString(settingsValue(store, "uiLanguage").empty()

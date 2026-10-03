@@ -3,8 +3,11 @@
 #include <QObject>
 #include <QRect>
 #include <QString>
+#include <QtQml/qqmlregistration.h>
 
 class QSystemTrayIcon;
+class QQmlEngine; // For the create() factory's signature; see app_controller.h.
+class QJSEngine;
 
 /**
  * @file tray.h
@@ -29,11 +32,19 @@ class AppController;
  */
 class Tray : public QObject {
     Q_OBJECT
+    QML_NAMED_ELEMENT(Tray)
+    QML_SINGLETON
     Q_PROPERTY(QRect geometry READ geometry NOTIFY geometryChanged)
 public:
     /// @param controller Supplies the mode, the day's tallies and the busy state.
     explicit Tray(AppController& controller, QObject* parent = nullptr);
     ~Tray() override;
+
+    /// @brief Hand the QML engine the one instance main() built; see AppController::provide().
+    static void provide(Tray* instance);
+
+    /// @brief The factory QML_SINGLETON makes the engine call. Returns what provide() was given.
+    static Tray* create(QQmlEngine* engine, QJSEngine* scriptEngine);
 
     /// @brief Put the icon up.
     /// @return False when the shell has no tray; the reason is logged.
@@ -56,6 +67,9 @@ signals:
     void geometryChanged();
 
 private:
+    /// @brief What main() handed to provide(); see AppController::provide().
+    static Tray* instance_;
+
     /// @brief What the icon is saying. See the class note about the missing fourth state.
     enum class State {
         Auto, ///< Selection capture is on and nothing is in flight.

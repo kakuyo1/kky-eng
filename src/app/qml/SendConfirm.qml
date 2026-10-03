@@ -94,7 +94,7 @@ Window {
                     TapHandler {
                         onTapped: {
                             confirm.visible = false;
-                            controller.confirmSend();
+                            Controller.confirmSend();
                         }
                     }
                 }
@@ -118,7 +118,7 @@ Window {
                     TapHandler {
                         onTapped: {
                             confirm.visible = false;
-                            controller.cancelSend();
+                            Controller.cancelSend();
                         }
                     }
                 }

@@ -72,7 +72,7 @@ Window {
     }
 
     onHoveringChanged: {
-        controller.bubbleHoverChanged(hovering);
+        Controller.bubbleHoverChanged(hovering);
         updateCountdown();
     }
 
@@ -92,7 +92,7 @@ Window {
         interval: bubble.dismissAfterMs
         onTriggered: {
             bubble.visible = false;
-            controller.dismissBubble();
+            Controller.dismissBubble();
         }
     }
 
@@ -151,7 +151,7 @@ Window {
                 property point grabWindow: Qt.point(0, 0)
 
                 function place() {
-                    const at = controller.cursorPos();
+                    const at = Controller.cursorPos();
                     bubble.x = Math.round(grabWindow.x + at.x - grabCursor.x);
                     bubble.y = Math.round(grabWindow.y + at.y - grabCursor.y);
                 }
@@ -159,7 +159,7 @@ Window {
                 onActiveChanged: {
                     bubble.dragging = active;
                     if (active) {
-                        grabCursor = controller.cursorPos();
+                        grabCursor = Controller.cursorPos();
                         grabWindow = Qt.point(bubble.x, bubble.y);
                     } else {
                         place();
@@ -213,7 +213,7 @@ Window {
                     onTapped: {
                         countdown.stop();
                         bubble.visible = false;
-                        controller.dismissBubble();
+                        Controller.dismissBubble();
                     }
                 }
             }
@@ -321,7 +321,7 @@ Window {
                             HoverHandler { cursorShape: Qt.PointingHandCursor }
                             TapHandler {
                                 id: knownTap
-                                onTapped: controller.mark(bubble.word, true)
+                                onTapped: Controller.mark(bubble.word, true)
                             }
                         }
 
@@ -342,7 +342,7 @@ Window {
                             HoverHandler { cursorShape: Qt.PointingHandCursor }
                             TapHandler {
                                 id: newTap
-                                onTapped: controller.mark(bubble.word, false)
+                                onTapped: Controller.mark(bubble.word, false)
                             }
                         }
                     }

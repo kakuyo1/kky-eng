@@ -352,7 +352,9 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 
 日志：全项目走 spdlog（`third_party/spdlog`，编译成静态库），模块只用 `src/core/log.h` 的 `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_ERROR` / `LENS_CRITICAL` 宏。`SPDLOG_ACTIVE_LEVEL` 由 CMake 挂在 `lens_core` 上（Debug = trace，Release = info），低于它的调用整条编译掉——不能写在 `log.h` 里，spdlog 自己的 `common.h` 一旦被包含就会抢先定义成 info。`lens::log::init()` 写 `logs/lens.log`（10 MB 一轮，留 3 个备份）并镜像到 stderr，级别可用 `LENS_LOG_LEVEL` 覆盖。Qt 自身的 qDebug / qWarning / qCritical 等由 `src/llm/qt_log.h` 的 `installQtMessageHandler()` 折进同一个 logger，源位置指向 Qt 调用点而非桥接处。密钥永不进日志（第 6 节）。
 
-现状：`lens_core` 为 STATIC（`log.cpp` + `profile.cpp` + `filter_core.cpp` + `known_store.cpp` + `stats_store.cpp`），`lens_llm` 亦为 STATIC（`llm_pure.cpp` + `llm_client.cpp` + `llm_protocol.cpp` + `llm_pricing.cpp`），`lens_gtest_unit` / `lens_gtest_smoke` 链接两者，`lens_gtest_perf` 只链接 `lens_core`。`src/app` 为 STATIC，装着捕获组件（§4.4）、`AppController` 与托盘图标（`QSystemTrayIcon`；菜单是 QML 表面），除 `Qt6::Core` 外挂 Gui / Widgets 与 `user32`。可执行目标 `lens`（同目录的 `main.cpp` + `qml/`）不与 `lens_gtest_*` 共用：`qt_add_qml_module` 挂在 `lens` 上而不是静态库上——挂静态库要额外处理 QML 插件注册，而测试目标本来就不需要 QML。
+现状：`lens_core` 为 STATIC（`log.cpp` + `profile.cpp` + `filter_core.cpp` + `known_store.cpp` + `stats_store.cpp`），`lens_llm` 亦为 STATIC（`llm_pure.cpp` + `llm_client.cpp` + `llm_protocol.cpp` + `llm_pricing.cpp`），`lens_gtest_unit` / `lens_gtest_smoke` 链接两者，`lens_gtest_perf` 只链接 `lens_core`。`src/app` 为 STATIC，装着捕获组件（§4.4）、`AppController` 与托盘图标（`QSystemTrayIcon`；菜单是 QML 表面），除 `Qt6::Core` 外挂 Gui / Widgets / Quick 与 `user32`。
+
+**QML 模块挂在 `lens_app` 上，不在可执行文件上**（2026-10-03 改）。`qt_add_qml_module` 只注册它自己那个 target 的 C++ 类型，而 `AppController` / `Tray` 住在静态库里：模块挂在 `lens` 上时一个类型也注册不了，QML 只能靠 context property 拿到它们，于是那两个名字对 lint 隐形（53 条警告），属性名写错也只是运行时读成 undefined。代价有两条：静态库的 QML 插件要显式链进可执行文件（`target_link_libraries(lens PRIVATE lens_appplugin)`——Qt 把 `Q_IMPORT_PLUGIN` 那个 init 对象挂在该插件 target 上，少了这一行表面照常加载，但每个 `Controller` / `Tray` 引用都是 ReferenceError），以及 `lens_gtest_integration` 链接 `lens_app`、从此也被带上 Qt Quick。取舍与取舍的账见 `docs/adr/0004`。
 
 ## 8 预检清单（动工前）
 

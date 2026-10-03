@@ -98,9 +98,9 @@ Window {
                 DropdownField {
                     id: levelField
                     width: parent.width
-                    options: controller.settings.levels
-                    currentValue: controller.settings.level
-                    onPicked: (value) => controller.setLevel(value)
+                    options: Controller.settings.levels
+                    currentValue: Controller.settings.level
+                    onPicked: (value) => Controller.setLevel(value)
                 }
             }
 
@@ -116,8 +116,8 @@ Window {
                     width: parent.width
                     height: 31
                     labels: [qsTr("English"), qsTr("中文")]
-                    currentIndex: controller.settings.explanationLang === "zh" ? 1 : 0
-                    onPicked: (index) => controller.setExplanationLang(index === 1 ? "zh" : "en")
+                    currentIndex: Controller.settings.explanationLang === "zh" ? 1 : 0
+                    onPicked: (index) => Controller.setExplanationLang(index === 1 ? "zh" : "en")
                 }
             }
 
@@ -133,8 +133,8 @@ Window {
                     width: parent.width
                     height: 31
                     labels: [qsTr("Light"), qsTr("Dark")]
-                    currentIndex: controller.settings.theme === "dark" ? 1 : 0
-                    onPicked: (index) => controller.setTheme(index === 1 ? "dark" : "light")
+                    currentIndex: Controller.settings.theme === "dark" ? 1 : 0
+                    onPicked: (index) => Controller.setTheme(index === 1 ? "dark" : "light")
                 }
             }
 
@@ -170,7 +170,7 @@ Window {
                             anchors.fill: parent
                             verticalAlignment: Text.AlignVCenter
                             visible: apiField.text.length === 0
-                            text: controller.settings.hasApiKey ? "sk-" + "•".repeat(28) : "sk-********************************"
+                            text: Controller.settings.hasApiKey ? "sk-" + "•".repeat(28) : "sk-********************************"
                             color: Tokens.faint
                             font: apiField.font
                             elide: Text.ElideRight
@@ -206,8 +206,8 @@ Window {
                         SwitchRow {
                             width: parent.width
                             label: qsTr("Selection")
-                            checked: controller.settings.selectionCapture
-                            onToggled: (on) => controller.setSelectionCapture(on)
+                            checked: Controller.settings.selectionCapture
+                            onToggled: (on) => Controller.setSelectionCapture(on)
                         }
                         SwitchRow {
                             width: parent.width
@@ -292,7 +292,7 @@ Window {
                     TapHandler {
                         onTapped: {
                             if (apiField.text.length > 0)
-                                controller.setApiKey(apiField.text);
+                                Controller.setApiKey(apiField.text);
                             settings.visible = false;
                         }
                     }
@@ -316,9 +316,9 @@ Window {
                     HoverHandler { cursorShape: Qt.PointingHandCursor }
                     TapHandler {
                         onTapped: {
-                            controller.setLevel(2);
-                            controller.setExplanationLang("en");
-                            controller.setTheme("light");
+                            Controller.setLevel(2);
+                            Controller.setExplanationLang("en");
+                            Controller.setTheme("light");
                         }
                     }
                 }

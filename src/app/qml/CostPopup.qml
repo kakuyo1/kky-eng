@@ -76,7 +76,7 @@ Window {
 
             Text {
                 topPadding: 16
-                text: controller.cost.currency + controller.cost.month.toFixed(2)
+                text: Controller.cost.currency + Controller.cost.month.toFixed(2)
                 color: Tokens.text
                 font.family: Tokens.monoFamily
                 font.pixelSize: 32
@@ -97,22 +97,22 @@ Window {
             StatRow {
                 width: parent.width
                 label: qsTr("Today")
-                value: controller.cost.currency + controller.cost.today.toFixed(2)
+                value: Controller.cost.currency + Controller.cost.today.toFixed(2)
             }
             StatRow {
                 width: parent.width
                 label: qsTr("Yesterday")
-                value: controller.cost.currency + controller.cost.yesterday.toFixed(2)
+                value: Controller.cost.currency + Controller.cost.yesterday.toFixed(2)
             }
             StatRow {
                 width: parent.width
                 label: qsTr("This week")
-                value: controller.cost.currency + controller.cost.week.toFixed(2)
+                value: Controller.cost.currency + Controller.cost.week.toFixed(2)
             }
             StatRow {
                 width: parent.width
                 label: qsTr("Daily average")
-                value: controller.cost.currency + controller.cost.dailyAverage.toFixed(2)
+                value: Controller.cost.currency + Controller.cost.dailyAverage.toFixed(2)
             }
         }
     }

@@ -5,6 +5,7 @@
 #include <QString>
 #include <QVariantList>
 #include <QVariantMap>
+#include <QtQml/qqmlregistration.h>
 
 #include <memory>
 
@@ -13,6 +14,11 @@
 #include "llm/llm_client.h"
 #include "llm/llm_pricing.h"
 #include "selection_text_grabber.h"
+
+// For the create() factory's signature. Declared here rather than included: the header of a
+// class QML_SINGLETON registers should not drag the whole QML engine into every includer.
+class QQmlEngine;
+class QJSEngine;
 
 namespace lens::app {
 
@@ -33,6 +39,8 @@ class MouseSelectionHook;
  */
 class AppController : public QObject {
     Q_OBJECT
+    QML_NAMED_ELEMENT(Controller)
+    QML_SINGLETON
 public:
     /**
      * @brief Wire the controller to the components it drives.
@@ -44,6 +52,19 @@ public:
      */
     AppController(core::KnownStore& store, llm::LlmClient& llm, MouseSelectionHook& hook, const llm::Pricing& pricing, QObject* parent = nullptr);
     ~AppController() override;
+
+    /// @brief Hand the QML engine the one instance main() built.
+    ///
+    /// The surfaces reach this class as the QML singleton Controller, which is what lets a
+    /// linter see the properties they read. A singleton cannot be built by the engine -- the
+    /// constructor wants the store, the client and the hook, all of which live in main() -- so
+    /// the instance is parked here just before the QML loads and create() hands it over.
+    static void provide(AppController* instance);
+
+    /// @brief The factory QML_SINGLETON makes the engine call. Returns what provide() was given.
+    /// @note Ownership is set back to C++: without that the engine deletes a singleton it did
+    ///       not build, which here would be the second delete of a stack object.
+    static AppController* create(QQmlEngine* engine, QJSEngine* scriptEngine);
 
     /**
      * @brief Called when the mouse hook judges a selection finished.
@@ -159,6 +180,9 @@ signals:
     void confirmSendRequest(QStringList words);
 
 private:
+    /// @brief What main() handed to provide(); see the note there.
+    static AppController* instance_;
+
     /// @brief What a finished selection turned out to be, held until an action arrives.
     struct Pending {
         QPoint anchor;

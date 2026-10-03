@@ -99,14 +99,14 @@ Window {
                 property point grabWindow: Qt.point(0, 0)
 
                 function place() {
-                    const at = controller.cursorPos();
+                    const at = Controller.cursorPos();
                     bar.x = Math.round(grabWindow.x + at.x - grabCursor.x);
                     bar.y = Math.round(grabWindow.y + at.y - grabCursor.y);
                 }
 
                 onActiveChanged: {
                     if (active) {
-                        grabCursor = controller.cursorPos();
+                        grabCursor = Controller.cursorPos();
                         grabWindow = Qt.point(bar.x, bar.y);
                     } else {
                         place();
@@ -163,7 +163,7 @@ Window {
                         HoverHandler { id: hover; cursorShape: Qt.PointingHandCursor }
                         TapHandler {
                             onTapped: {
-                                controller.runSelectionAction(modelData.action, bar.selectionText);
+                                Controller.runSelectionAction(modelData.action, bar.selectionText);
                                 bar.visible = false;
                             }
                         }

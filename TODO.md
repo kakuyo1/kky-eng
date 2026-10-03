@@ -2,21 +2,32 @@
 
 ## 把 qmllint 的警告修到 0
 
-现状（2026-10-03）：`scripts/qml-lint.sh` 已接进 pre-commit 与 CI，阈值 130、只降不升。这 130 条是真的：
+现状（2026-10-03）：`scripts/qml-lint.sh` 已接进 pre-commit、CI 与 `scripts/build.bat`，阈值 70、只降不升。
 直接拿 `qmllint` 喂松散的源文件会得 525 条（那些文件没有模块上下文，`Tokens` 与同目录组件全都解析不了），
-走 `qt_add_qml_module` 生成的响应文件才是 130 条。
+走 `qt_add_qml_module` 生成的响应文件才是真数。
+
+已做（130 → 70）：`controller.*` / `tray.*` 那 53 条。QML 模块改挂 `lens_app`，两个类成了真正的 QML 单例，
+QML 侧改名成 `Controller.` / `Tray.`；为什么值得改、代价是什么，见 `docs/adr/0004`。
 
 待办，按桶：
 
-- `controller.*` / `tray.*`（约 40 条）：换成 `qmlRegisterSingletonInstance` 注册的 QML 单例——`main.cpp`
-  里那条 `ponytail:` 注释说的是同一件事。QML 侧的调用点要从 `controller.foo` 改成 `Controller.foo`。
-- delegate 里的 `index` / `modelData.*`（约 49 条）：声明成 `required property`。
-- 嵌套组件里读外层 id（`root.*` / `list.*`，约 25 条）：`pragma ComponentBehavior: Bound`。**这会改 id 的
-  解析语义**，改完托盘菜单与四张面板要人眼过一遍——本机拍不到那几张。
-- 其余：`Main.qml` 的 `toDip()` 经由 `var` 拿 `QScreen`，`devicePixelRatio` 因此无法验证；`SelectionBar.qml`
-  在一处 `HoverHandler` 上读 `pressed`，该属性不存在，疑为真 bug。
+- delegate 里的 `index` / `modelData.*`（约 20 条）：声明成 `required property`。
+- 嵌套组件里读外层 id（`root.*` / `list.*` / `clickable`，约 12 条）：`pragma ComponentBehavior: Bound`。
+  **这会改 id 的解析语义**，改完托盘菜单与四张面板要人眼过一遍——本机拍不到那几张。
+- `[missing-property]` 那 38 条：`Main.qml` 的 `toDip()` / `placeBeside()` 经由 `var` 拿 `QScreen`，
+  `virtualX` / `width` / `devicePixelRatio` 因此无法验证；`SelectionBar.qml` 在一处 `HoverHandler` 上读
+  `pressed`，该属性不存在，**疑为真 bug**。
 
 每修完一桶，把 `scripts/qml-lint.sh` 的 `BASELINE` 降到新的实测值。
+
+## 选区钩子的合成拖拽用例一直红着
+
+现状（2026-10-03）：`lens_gtest_integration` 里 `SelectionHook.ReportsASynthesisedDragAtItsReleasePoint` 稳定
+失败——测试在自己进程的探针窗口上合成 40 px 拖拽，钩子什么都没报。拿改动前的树复跑结果一样，所以不是新近的
+回归；`PHASE1.md` §9 记的 “15 例中 14 例通过” 在这条上已经过期。
+
+待办：先确认它是不是被 “钩子认自己的窗口” 那条规则挡下的（`PHASE1.md` §4.4），再核对用例的意图——若探针窗口
+注定被拒，用例该换一个别的进程的窗口，或改成断言 “被拒绝”。
 
 ## 中文字面比拉丁重一档
 

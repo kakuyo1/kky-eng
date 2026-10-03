@@ -27,7 +27,7 @@ Window {
     Binding {
         target: Tokens
         property: "theme"
-        value: controller.settings.theme
+        value: Controller.settings.theme
     }
 
     /// @return The tray icon's rectangle, for anchoring the menu and the panels. Empty only
@@ -35,7 +35,7 @@ Window {
     ///         is down, and an auto-hidden taskbar is down whenever a panel is opened from the
     ///         menu. Tray::geometry() remembers the last place it did report.
     function trayAnchor() {
-        const g = tray.geometry;
+        const g = Tray.geometry;
         if (g.width > 0)
             return g;
         return Qt.rect(screen.virtualX + screen.width - 56,
@@ -134,7 +134,7 @@ Window {
      * this machine's 125% they differ by that factor, and taking one for the other throws
      * every surface a quarter-screen off what it belongs to.
      *
-     * The copy is what makes the division stick. `controller.bubble` and its siblings are
+     * The copy is what makes the division stick. `Controller.bubble` and its siblings are
      * QVariantMaps, and the JS object QML hands back for one takes the assignment and keeps
      * the old value -- measured on the real window, `payload.x = payload.x / ratio` left the
      * bubble reading the raw physical x, so this function spent its whole life as a no-op and
@@ -231,7 +231,7 @@ Window {
     }
 
     Connections {
-        target: controller
+        target: Controller
 
         function onSelectionBarRequested(payload) {
             bar.selectionText = payload.text;
@@ -239,7 +239,7 @@ Window {
         }
 
         function onBubbleChanged() {
-            const payload = controller.bubble;
+            const payload = Controller.bubble;
             if (payload && Object.keys(payload).length > 0)
                 bubble.show(root.toDip(payload));
         }
@@ -254,7 +254,7 @@ Window {
     }
 
     Connections {
-        target: tray
+        target: Tray
 
         function onMenuRequested() {
             // Opening the menu is one of the reader's own gestures, so it takes the screen the

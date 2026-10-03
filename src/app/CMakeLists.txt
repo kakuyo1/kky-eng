@@ -1,13 +1,15 @@
 # The app itself. Three groups of things live here:
 #
 #   lens_app  -- the C++ the surfaces are driven by: the mouse hook, the grabber, the
-#                controller, and the tray. Qt Core / Gui / Widgets, no QML.
-#   lens      -- the executable: main.cpp plus the QML module the surfaces live in.
+#                controller, and the tray -- plus the QML module those two types are registered
+#                in.
+#   lens      -- the executable: main.cpp, the icon resources and the .qm files.
 #   icons/    -- the tray art, compiled into the binary as resources.
 #
-# The QML module hangs off the executable rather than off lens_app: attaching one to a static
-# library means Qt's QML plugin registration has to be handled by hand, and the test targets
-# that link lens_app have no use for QML anyway (PHASE1.md section 7).
+# The QML module hangs off lens_app and not off the executable, which is the reverse of what
+# this file used to say. The reason is registration scope: qt_add_qml_module registers the C++
+# types of its own backing target and no others, so a module attached to `lens` could not
+# register classes that live in lens_app (PHASE1.md section 7).
 
 add_library(lens_app STATIC
   mouse_selection_hook.cpp
@@ -22,8 +24,10 @@ target_include_directories(lens_app PUBLIC ${CMAKE_SOURCE_DIR}/src)
 # Qt6::Gui is public because AppController's interface reaches into it: the clipboard and
 # QPoint come from there. Widgets is public for the tray -- QMenu and QSystemTrayIcon.
 # lens_llm is public for the same reason: the constructor takes an LlmClient and a Pricing.
+# Quick is public because the QML module below backs this library, and anything linking it is
+# linking the module: that now includes lens_gtest_integration, which used to need no QML.
 target_link_libraries(lens_app
-  PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets lens_llm
+  PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Quick lens_llm
   PRIVATE lens_core
 )
 
@@ -35,6 +39,13 @@ target_link_libraries(lens_app PRIVATE user32)
 qt_add_executable(lens
   main.cpp
 )
+
+# The module's QML files reach the executable through lens_app's resources, but the C++ types
+# it registers do not come with them: a static plugin is only imported when its init object --
+# the one carrying Q_IMPORT_PLUGIN -- is linked in, and nothing links it on its own. Qt attaches
+# that object to the plugin target, so naming the plugin is the whole fix. Without it the
+# surfaces load and then every reference to Controller or Tray is a ReferenceError.
+target_link_libraries(lens PRIVATE lens_appplugin)
 
 # GUI subsystem, not console. Left at the default, a tray application carries a console window
 # on screen for as long as it runs -- there is no main window to close it with. The property is
@@ -68,9 +79,19 @@ set_source_files_properties(qml/components/Tokens.qml PROPERTIES QT_QML_SINGLETO
 # Main stays loadFromModule("Lens", "Main"). Everything else is a component a surface is built
 # out of, and lives in qml/components/. Both are the same QML module, so neither group names the
 # other in an import: Qt gives every file in the module an implicit import of its own types.
-qt_add_qml_module(lens
+# The module hangs off lens_app and not off the executable because of where the two types the
+# surfaces talk to are declared. qt_add_qml_module registers the C++ types of the target it is
+# called on and only that target's; a class living in a linked static library stays invisible to
+# it. A module on `lens` therefore registered nothing, and every read off Controller or Tray
+# came back to qmllint as unqualified access -- 53 warnings that no amount of renaming fixes.
+# The executable still owns main.cpp, the icon resources and the .qm files, and picks the
+# module up by linking lens_app.
+qt_add_qml_module(lens_app
   URI Lens
   VERSION 1.0
+  SOURCES
+    app_controller.h
+    tray.h
   QML_FILES
     qml/Main.qml
     qml/TrayMenu.qml

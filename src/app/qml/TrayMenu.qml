@@ -30,18 +30,18 @@ Window {
     height: body.implicitHeight + 2 * padding + 2 * shadowMargin
 
     /// True while a selection is captured at all; the state line's dot and label read it.
-    readonly property bool capturing: controller.settings.selectionCapture
+    readonly property bool capturing: Controller.settings.selectionCapture
 
     /// The interface language, and the name to show for it in the list.
-    readonly property string language: controller.settings.uiLanguage
+    readonly property string language: Controller.settings.uiLanguage
     readonly property string languageName: language === "zh" ? "中文" : "English"
 
     /// Whether the language list is unfolded.
     property bool listVisible: false
 
     /// The day's tally for the statistics row, in the shape the tray tooltip uses.
-    readonly property string todayFigures: controller.stats.todayPops + " " + qsTr("words")
-        + " · " + controller.stats.currency + controller.stats.todayCost.toFixed(2)
+    readonly property string todayFigures: Controller.stats.todayPops + " " + qsTr("words")
+        + " · " + Controller.stats.currency + Controller.stats.todayCost.toFixed(2)
 
     /// What counts as a press on this surface, in screen coordinates: the card, plus the
     /// language list while it is out. main.qml's outside-press rule reads it.
@@ -105,7 +105,7 @@ Window {
                     anchors.left: dotRing.right
                     anchors.leftMargin: 8
                     anchors.verticalCenter: parent.verticalCenter
-                    text: menu.capturing ? controller.modeLabel : qsTr("Selection capture is off")
+                    text: menu.capturing ? Controller.modeLabel : qsTr("Selection capture is off")
                     color: Tokens.text
                     font.pixelSize: 12
                     font.weight: Font.Bold
@@ -216,7 +216,7 @@ Window {
                     }
                     TapHandler {
                         onTapped: {
-                            controller.setUiLanguage(modelData.code);
+                            Controller.setUiLanguage(modelData.code);
                             menu.visible = false;
                         }
                     }

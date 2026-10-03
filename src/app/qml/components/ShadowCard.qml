@@ -47,14 +47,14 @@ Item {
 
         /// @brief Put the window where the pointer says it should be, from this drag's grab.
         function place() {
-            const at = controller.cursorPos();
+            const at = Controller.cursorPos();
             root.Window.window.x = Math.round(grabWindow.x + at.x - grabCursor.x);
             root.Window.window.y = Math.round(grabWindow.y + at.y - grabCursor.y);
         }
 
         onActiveChanged: {
             if (active) {
-                grabCursor = controller.cursorPos();
+                grabCursor = Controller.cursorPos();
                 grabWindow = Qt.point(root.Window.window.x, root.Window.window.y);
             } else {
                 // Once more on the way out, so the movement after the last tick is not left

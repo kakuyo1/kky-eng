@@ -11,6 +11,8 @@
 #include <QDate>
 #include <QDateTime>
 #include <QGuiApplication>
+#include <QJSEngine>
+#include <QQmlEngine>
 #include <QSet>
 
 #include <algorithm>
@@ -138,6 +140,24 @@ AppController::AppController(core::KnownStore& store, llm::LlmClient& llm, Mouse
 }
 
 AppController::~AppController() = default;
+
+// The QML singleton. The surfaces name this class as Controller, which is what lets a linter
+// see the properties they bind to; see the note on provide().
+AppController* AppController::instance_ = nullptr;
+
+void AppController::provide(AppController* instance)
+{
+    instance_ = instance;
+}
+
+AppController* AppController::create(QQmlEngine* engine, QJSEngine* scriptEngine)
+{
+    Q_UNUSED(engine)
+    Q_UNUSED(scriptEngine)
+    Q_ASSERT(instance_ != nullptr);
+    QQmlEngine::setObjectOwnership(instance_, QQmlEngine::CppOwnership);
+    return instance_;
+}
 
 void AppController::onSelectionReleased(QPoint anchor)
 {
