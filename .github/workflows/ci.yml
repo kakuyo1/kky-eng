@@ -24,7 +24,12 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # v5 is the release whose whole content is "run under node 24", which is what the
+      # deprecation notice asks for. v6 and v7 exist but change things this job does not use --
+      # where the checkout keeps git credentials, and which refs a pull_request_target may
+      # check out -- so this is as far as it needs to go; v5 wants runner 2.327.1, which the
+      # hosted images are.
+      - uses: actions/checkout@v5
 
       # The base install carries every component the configure step asks for: qtbase (Core,
       # Gui, Widgets, Network, and Test, which is where Qt6Test comes from), qtdeclarative
