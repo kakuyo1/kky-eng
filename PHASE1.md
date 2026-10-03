@@ -376,7 +376,7 @@ lens/
 ├── src/
 │   ├── core/                 # FilterCore / KnownStore / StatsStore / 日志入口 log.h / 测量点 profile.h
 │   ├── llm/                  # LlmClient + 纯函数内核 + 价目
-│   └── app/                  # 捕获组件 + AppController + 托盘 + main + qml/
+│   └── app/                  # 捕获组件 + AppController + 托盘 + main + qml/（表面在根，组件在 qml/components/）
 ├── test/                     # googletest/ 下的 unit / perf / smoke，以及样例集（独立于 src/）
 └── ui-prototypes/            # 设计原型（v1-halo-*.html）
 ```
@@ -464,6 +464,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 - **界面语言要调 `QQmlApplicationEngine::retranslate()`**：装翻译器不会让 QML 的 `qsTr` 绑定重算，托盘菜单当场变是因为 C++ 那侧自己接了 `uiLanguageChanged`，QML 表面没有对应动作。因此 `engine` 必须声明在接这个信号的 lambda 之前。
 - **换语言时信号的顺序不是随意的**：`setUiLanguage` 先发 `uiLanguageChanged`（它才装翻译器），再发 `settingsChanged` / `statsChanged`。反过来发，重算 `words()` 时用的还是旧翻译器，词汇弹窗会出现表头已变、行没变的样子——实测就是这样，先发 `statsChanged` 那一版没修好。
 - **点击外部关闭靠钩子**：表面各是独立 `Window`，落在别的窗口上的按下根本不会送进本进程，只有低层钩子看得见（`MouseSelectionHook::pointerPressed` → `AppController` 转发 → `main.qml` 的 `dismissOutside()`）。判 “外面” 用的是卡片矩形而非窗口矩形，四周 26 px 阴影边距算外面。
+- **`qml/` 下按 “是不是窗口” 分两处**（2026-10-03）：九个 `Window`（表面）留在 `qml/` 根，其余九件可复用件（`Icon` / `ShadowCard` / `Tokens` / `Segment` / `StatRow` / `MenuRow` / `DropdownField` / `Switch` / `SwitchRow`）进 `qml/components/`。两组同属一个 QML 模块（`qt_add_qml_module` 的 `QML_FILES` 里写子目录路径即可），Qt 给模块内每个文件隐式导入本模块的类型，**跨目录照样按类型名解析，谁也不需要写 import**——实机验过动作条与气泡照常渲染。判据取 “是不是窗口” 而非 “被几处用到”：`Switch` / `MenuRow` / `DropdownField` 今天各只被一处使用，它们仍是组件，而按使用次数切会把同类东西拆到两边。九个搬走的文件里没有一处 `qsTr`（文案一律由表面传入），所以两份 `.ts` 一行未动，只有 CMake 的路径要跟着改。
 
 ### 切片四：阶段二通道（未开始）
 

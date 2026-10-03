@@ -61,22 +61,18 @@ target_compile_definitions(lens PRIVATE
 # The token table is a single instance every surface reads, not one per surface. The
 # property has to be set before qt_add_qml_module looks at the file, not after: it decides
 # there whether to write a singleton entry into the module's qmldir.
-set_source_files_properties(qml/Tokens.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/components/Tokens.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
+# Two groups, split by what the file is rather than by where it is used. The nine windows are
+# the surfaces themselves -- one per thing the reader sees -- and they sit at the root so that
+# Main stays loadFromModule("Lens", "Main"). Everything else is a component a surface is built
+# out of, and lives in qml/components/. Both are the same QML module, so neither group names the
+# other in an import: Qt gives every file in the module an implicit import of its own types.
 qt_add_qml_module(lens
   URI Lens
   VERSION 1.0
   QML_FILES
     qml/Main.qml
-    qml/Tokens.qml
-    qml/Icon.qml
-    qml/ShadowCard.qml
-    qml/Segment.qml
-    qml/Switch.qml
-    qml/SwitchRow.qml
-    qml/StatRow.qml
-    qml/DropdownField.qml
-    qml/MenuRow.qml
     qml/TrayMenu.qml
     qml/SelectionBar.qml
     qml/Bubble.qml
@@ -85,6 +81,15 @@ qt_add_qml_module(lens
     qml/WordsPopup.qml
     qml/CostPopup.qml
     qml/SendConfirm.qml
+    qml/components/Tokens.qml
+    qml/components/Icon.qml
+    qml/components/ShadowCard.qml
+    qml/components/Segment.qml
+    qml/components/Switch.qml
+    qml/components/SwitchRow.qml
+    qml/components/StatRow.qml
+    qml/components/DropdownField.qml
+    qml/components/MenuRow.qml
 )
 
 # The icon art, addressed as :/icons/<name>.svg. BASE strips the source directory so the names
