@@ -1,5 +1,6 @@
 {
   "currency": "USD",
+  "display": { "currency": "CNY", "multiplier": 6.71, "asOf": "2026-10-02" },
   "unit": 1000000,
   "models": {
     "deepseek-flash": { "input": 0.15, "output": 0.6 },

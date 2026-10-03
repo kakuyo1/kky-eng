@@ -128,13 +128,7 @@ AppController::AppController(core::KnownStore& store, llm::LlmClient& llm, Mouse
         // No error surface is specified for phase 1, and a request that fails silently reads
         // as a broken app. The bubble carries the reason, with no status chip: it is not an
         // explanation, and nothing here pretends otherwise.
-        bubble_ = QVariantMap{{"word", pending_.surface},
-                              {"en", QString()},
-                              {"zh", message},
-                              {"status", QString()},
-                              {"x", pending_.anchor.x()},
-                              {"y", pending_.anchor.y()}};
-        emit bubbleChanged();
+        showNotice(message, pending_);
     });
 
     llm_.setExplanationLang(QString::fromStdString(store_.explanationLang()));
@@ -165,21 +159,26 @@ void AppController::beginSelection(QPoint anchor)
     }
 
     const QString text = std::get<QString>(grabbed);
-    const std::vector<core::Candidate> candidates =
-        core::filterWords(text.toStdString(), store_.known(), minFreqRank());
+    // What the selection is gets decided here, once, and the two items on the bar only route
+    // on the answer. That ordering is the specification, not a convenience: translate and
+    // explain are two ways into the same decision (UI.md section 4.9).
+    const core::Selection selection = core::classifySelection(text.toStdString(), store_.known(), minFreqRank());
 
     pending_ = Pending{anchor, text, QString(), QString(), QString()};
-    if (candidates.empty()) {
-        // Nothing worth explaining, but the bar still comes up: copying the selection is
-        // still something the reader asked for. Phase 1 has no sentence channel to fall back
-        // on, so the other two items have nothing to send (PHASE1.md section 3).
-        pending_.kind = QStringLiteral("sentence");
-        LENS_INFO("selection of {} character(s): no candidate, offering copy only", text.size());
-    } else {
-        pending_.kind = QStringLiteral("word");
-        pending_.surface = QString::fromStdString(candidates.front().surface);
-        pending_.lemma = QString::fromStdString(candidates.front().lemma);
-        LENS_INFO("selection of {} character(s): word channel, '{}' -> '{}'", text.size(), pending_.surface.toStdString(), pending_.lemma.toStdString());
+    switch (selection.kind) {
+        case core::SelectionKind::Sentence:
+            // Nothing worth explaining, but the bar still comes up: copying the selection is
+            // still something the reader asked for. There is no channel behind a sentence yet,
+            // so the other two items have nothing to send -- which explain() says out loud.
+            pending_.kind = QStringLiteral("sentence");
+            LENS_INFO("selection of {} character(s): no candidate, offering copy only", text.size());
+            break;
+        case core::SelectionKind::Word:
+            pending_.kind = QStringLiteral("word");
+            pending_.surface = QString::fromStdString(selection.candidates.front().surface);
+            pending_.lemma = QString::fromStdString(selection.candidates.front().lemma);
+            LENS_INFO("selection of {} character(s): word channel, '{}' -> '{}'", text.size(), pending_.surface.toStdString(), pending_.lemma.toStdString());
+            break;
     }
 
     emit selectionBarRequested(QVariantMap{{"x", anchor.x()},
@@ -224,7 +223,13 @@ void AppController::runSelectionAction(QString action, QString text)
 void AppController::explain(const Pending& pending)
 {
     if (pending.kind != QLatin1String("word")) {
+        // Returning in silence made the bar look broken: it hides itself on the tap, so a
+        // sentence selection answered the press with nothing happening at all, and the two
+        // items read as dead while only copy worked. The bubble already carries a request
+        // that failed; it carries this too, and by the same rules -- no status chip, because
+        // nothing was explained.
         LENS_INFO("no channel for a '{}' selection; nothing was sent", pending.kind.toStdString());
+        showNotice(tr("No word to explain in this selection"), pending);
         return;
     }
 
@@ -293,6 +298,20 @@ void AppController::showBubble(const QString& word, const QString& en, const QSt
                           {"x", anchor.x()},
                           {"y", anchor.y()}};
     LENS_INFO("bubble up for '{}'", word.toStdString());
+    emit bubbleChanged();
+}
+
+void AppController::showNotice(const QString& message, const Pending& pending)
+{
+    // The title line carries what the reader selected. A word selection names its word; a
+    // sentence has no single word to name, and an empty title would leave the card a float of
+    // text with nothing tying it back to the selection it is about.
+    bubble_ = QVariantMap{{"word", pending.surface.isEmpty() ? pending.text : pending.surface},
+                          {"en", QString()},
+                          {"zh", message},
+                          {"status", QString()},
+                          {"x", pending.anchor.x()},
+                          {"y", pending.anchor.y()}};
     emit bubbleChanged();
 }
 

@@ -374,4 +374,22 @@ std::vector<Candidate> filterWords(
     return out;
 }
 
+Selection classifySelection(
+    std::string_view text,
+    const std::unordered_set<std::string>& knownLemmas,
+    std::size_t minFreqRank)
+{
+    // A candidate is the whole test: the word channel has something to send exactly when one
+    // came back, and that is what decides the channel. Phase 2's entity check belongs here,
+    // ahead of this line, so that it too is decided once and before any button is pressed.
+    Selection selection;
+    selection.candidates = filterWords(text, knownLemmas, minFreqRank);
+    selection.kind = selection.candidates.empty() ? SelectionKind::Sentence : SelectionKind::Word;
+
+    LENS_TRACE("classifySelection: {} char(s) -> {}",
+               text.size(),
+               selection.kind == SelectionKind::Word ? "word" : "sentence");
+    return selection;
+}
+
 }

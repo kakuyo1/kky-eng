@@ -79,6 +79,12 @@ Window {
         panel.x = at.x;
         panel.y = at.y;
         panel.visible = true;
+        // `visible` alone is not enough. Every surface carries WindowStaysOnTopHint, but a
+        // click on the tray icon activates the taskbar -- which is topmost too and re-raises
+        // itself -- so a panel shown into that moment can land under it, with the bottom of
+        // the card hidden behind the taskbar it was opened from. Raising is the second half
+        // of showing a surface, here and in Bubble.show() / SelectionBar.openAt().
+        panel.raise();
     }
 
     /**
@@ -125,15 +131,24 @@ Window {
      * Turn a position the mouse hook reported into one a window can be placed at.
      *
      * The hook reads real screen pixels; windows are placed in device-independent pixels. At
-     * this machine's 125% they differ by that factor, and taking one for the other threw the
-     * action bar a quarter-screen off its own selection. Fields other than x and y ride along
-     * untouched.
+     * this machine's 125% they differ by that factor, and taking one for the other throws
+     * every surface a quarter-screen off what it belongs to.
+     *
+     * The copy is what makes the division stick. `controller.bubble` and its siblings are
+     * QVariantMaps, and the JS object QML hands back for one takes the assignment and keeps
+     * the old value -- measured on the real window, `payload.x = payload.x / ratio` left the
+     * bubble reading the raw physical x, so this function spent its whole life as a no-op and
+     * every surface sat at 1.25x of where it was meant to be. A freshly built object has no
+     * such trouble. Fields other than x and y ride along untouched.
      */
     function toDip(payload) {
         const ratio = screen.devicePixelRatio || 1;
-        payload.x = payload.x / ratio;
-        payload.y = payload.y / ratio;
-        return payload;
+        const out = {};
+        for (const key in payload)
+            out[key] = payload[key];
+        out.x = payload.x / ratio;
+        out.y = payload.y / ratio;
+        return out;
     }
 
     /**

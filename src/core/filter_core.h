@@ -85,4 +85,43 @@ std::vector<Candidate> filterWords(
     const std::unordered_set<std::string>& knownLemmas,
     std::size_t minFreqRank);
 
+/// @brief What a finished selection turned out to be, which decides the channel it takes.
+///
+/// Phase 2's entity channel joins this enumeration; the sentence channel already has its
+/// value. Nothing here is decided by the reader: translate and explain are two ways into
+/// the same decision, so it is settled when the selection is analysed, before any press
+/// (UI.md section 4.9).
+enum class SelectionKind {
+    Word,     ///< At least one candidate came back; the word channel has something to send.
+    Sentence, ///< No candidate. Phase 2's sentence and entity channels own this case.
+};
+
+/// @brief A selection, classified: what it is, and the words it would send.
+struct Selection {
+    SelectionKind kind = SelectionKind::Sentence;
+    std::vector<Candidate> candidates; ///< Empty unless kind is Word.
+};
+
+/**
+ * @brief Decide what a selection is, and produce the words a request would carry.
+ *
+ * One place decides this, and the surfaces only route on the answer -- so picking translate
+ * over explain cannot change the channel, and phase 2's entity channel is a branch here
+ * rather than a second opinion somewhere else.
+ *
+ * @param text         Raw excerpt, exactly as filterWords takes it.
+ * @param knownLemmas  Lemmas the reader has already marked as known.
+ * @param minFreqRank  Difficulty cut-off.
+ * @return The kind, and the candidates when there are any.
+ * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet.
+ *
+ * @note Sentence is the absence of a candidate, not a judgement about grammar: a lone word
+ *       the reader already knows lands there too. That is the honest answer -- there is
+ *       nothing left in the selection to explain.
+ */
+Selection classifySelection(
+    std::string_view text,
+    const std::unordered_set<std::string>& knownLemmas,
+    std::size_t minFreqRank);
+
 }

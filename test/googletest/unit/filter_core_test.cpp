@@ -127,6 +127,33 @@ TEST_F(CoreTest, ReplaysTheSampleCorpus)
     }
 }
 
+TEST_F(CoreTest, ClassifiesAWordSelectionAsTheWordChannel)
+{
+    const auto selection =
+        lens::core::classifySelection("The ubiquitous nature of modern software makes resilience essential.", {}, 3000);
+
+    EXPECT_EQ(selection.kind, lens::core::SelectionKind::Word);
+    // The first candidate is the one the bar's request would carry, so a regression that
+    // reordered the list shows up here rather than in a bubble naming the wrong word.
+    ASSERT_FALSE(selection.candidates.empty());
+    EXPECT_EQ(selection.candidates.front().surface, "ubiquitous");
+}
+
+TEST_F(CoreTest, ClassifiesEverythingElseAsASentence)
+{
+    // Glued junk and a stray number: nothing in it survives the filter, so the word channel
+    // has nothing to send.
+    EXPECT_EQ(lens::core::classifySelection("https://example.com/k8s report_final.txt 42 version2", {}, 0).kind,
+              lens::core::SelectionKind::Sentence);
+    // Nothing was selected at all.
+    EXPECT_EQ(lens::core::classifySelection("", {}, 0).kind, lens::core::SelectionKind::Sentence);
+    // A lone word the reader already knows: the filter drops it, and there is genuinely
+    // nothing left to explain, so this is not a misclassification.
+    const auto known = lens::core::classifySelection("ubiquitous", {"ubiquitous"}, 3000);
+    EXPECT_EQ(known.kind, lens::core::SelectionKind::Sentence);
+    EXPECT_TRUE(known.candidates.empty());
+}
+
 TEST_F(KnownStoreTest, FreshStoreHoldsTheDocumentedDefaults)
 {
     const auto store = KnownStore::load(path);

@@ -40,6 +40,9 @@ Window {
         bar.y = above >= 0 ? above : anchorY + gap - shadowMargin;
         bar.x = payload.x - shadowMargin;
         visible = true;
+        // Showing a surface is two steps: see Main.qml placePanel() for why `visible` on its
+        // own can leave a topmost window under the taskbar.
+        raise();
     }
 
     Item {

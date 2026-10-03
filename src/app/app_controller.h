@@ -135,9 +135,10 @@ public:
 
 signals:
     /// @brief Put the action bar up (or move it): {x, y, kind, text}.
-    /// @param kind "word" when the selection yields a candidate, "sentence" otherwise. Phase
-    ///             1 has no channel behind "sentence", so the bar's translate and explain
-    ///             have nothing to send and only copy does anything.
+    /// @param kind "word" when the selection yields a candidate, "sentence" otherwise. The bar
+    ///             draws the same three items either way -- UI.md section 4.9 keeps them
+    ///             ungreyed -- but under "sentence" only copy has a channel to send to, and a
+    ///             tap on the other two answers with a bubble saying so rather than nothing.
     void selectionBarRequested(QVariantMap payload);
 
     /// @brief A button went down somewhere on the desktop; forwarded from the mouse hook.
@@ -175,6 +176,12 @@ private:
 
     /// @brief Put an explanation up at the pending anchor.
     void showBubble(const QString& word, const QString& en, const QString& zh, const QPoint& anchor);
+
+    /// @brief Put a notice up where an explanation would have gone: no verdict, just the reason.
+    /// @param message Reader-facing text.
+    /// @param pending Supplies the title and the anchor; the status is left empty, because
+    ///                nothing was explained and claiming a verdict would be a lie.
+    void showNotice(const QString& message, const Pending& pending);
 
     /// @brief Ask the model, honouring DEV_SEND_CONFIRM.
     void requestExplanations(const QStringList& words);

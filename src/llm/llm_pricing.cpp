@@ -5,6 +5,7 @@
 #include <QJsonObject>
 
 #include <stdexcept>
+#include <string>
 
 #include "core/log.h"
 
@@ -25,9 +26,23 @@ Pricing Pricing::load(const std::filesystem::path& path)
     const QJsonObject root = doc.object();
     Pricing pricing;
     pricing.currency_ = root.value("currency").toString();
+    pricing.displayCurrency_ = pricing.currency_;
     pricing.unit_ = root.value("unit").toInteger();
     if (pricing.currency_.isEmpty() || pricing.unit_ <= 0)
         throw std::runtime_error("The price list states no currency or no unit: " + path.string());
+
+    // Optional: without a `display` block the surfaces show what the vendor quoted, which is
+    // what a price list on its own means. With one, the rates below stay the vendor's and the
+    // conversion is a separate, dated fact.
+    if (const QJsonObject display = root.value("display").toObject(); !display.isEmpty()) {
+        const QString code = display.value("currency").toString();
+        const double multiplier = display.value("multiplier").toDouble();
+        if (code.isEmpty() || multiplier <= 0.0)
+            throw std::runtime_error("The price list's display block names no currency or no positive multiplier: " + path.string());
+        pricing.displayCurrency_ = code;
+        pricing.displayMultiplier_ = multiplier;
+        pricing.rateAsOf_ = display.value("asOf").toString();
+    }
 
     const QJsonObject models = root.value("models").toObject();
     for (auto it = models.begin(); it != models.end(); ++it) {
@@ -42,7 +57,18 @@ Pricing Pricing::load(const std::filesystem::path& path)
     if (pricing.byModel_.isEmpty())
         throw std::runtime_error("The price list names no model: " + path.string());
 
-    LENS_INFO("pricing loaded: {} model(s) in {}", pricing.byModel_.size(), pricing.currency_.toStdString());
+    // The rate and its date are logged, not just stored: a converted figure on screen raises
+    // "where did that come from", and this is the answer that does not require opening a file.
+    std::string shown = pricing.displayCurrency_.toStdString();
+    if (pricing.displayMultiplier_ != 1.0) {
+        shown += " at " + std::to_string(pricing.displayMultiplier_);
+        if (!pricing.rateAsOf_.isEmpty())
+            shown += " (rate as of " + pricing.rateAsOf_.toStdString() + ")";
+    }
+    LENS_INFO("pricing loaded: {} model(s) quoted in {}, showing {}",
+              pricing.byModel_.size(),
+              pricing.currency_.toStdString(),
+              shown);
     return pricing;
 }
 
@@ -55,7 +81,8 @@ double Pricing::cost(const QString& model, const Usage& usage) const
     }
 
     const double unit = static_cast<double>(unit_);
-    return (usage.promptTokens / unit) * it->input + (usage.completionTokens / unit) * it->output;
+    const double quoted = (usage.promptTokens / unit) * it->input + (usage.completionTokens / unit) * it->output;
+    return quoted * displayMultiplier_;
 }
 
 }
