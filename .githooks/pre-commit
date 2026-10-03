@@ -54,7 +54,8 @@ docs/QML.md 0
 docs/adr/README.md 0
 docs/adr/0001-mouse-hook-own-thread.md 0
 docs/adr/0002-qml-split-by-window.md 0
-docs/adr/0003-instructions-live-in-agents-md.md 0'
+docs/adr/0003-instructions-live-in-agents-md.md 0
+docs/adr/0004-qml-module-on-the-static-library.md 0'
 
 staged=$(git diff --cached --name-only --diff-filter=ACM)
 
@@ -207,10 +208,15 @@ check_qml() {
     scripts/qml-lint.sh
 }
 
-status=0
-check_typography || status=1
-check_prototype_list || status=1
-check_formatting || status=1
-check_probes || status=1
-check_qml || status=1
-exit $status
+# "fail", not "status": every check below keeps its own running answer in a shell-wide
+# "status", so a dispatcher that used the same name would have an earlier failure wiped out by
+# the next check finishing cleanly. That is not hypothetical -- with "status" here, a document
+# over its typography budget was reported and then forgotten by a clean formatting run, and the
+# commit went through.
+fail=0
+check_typography || fail=1
+check_prototype_list || fail=1
+check_formatting || fail=1
+check_probes || fail=1
+check_qml || fail=1
+exit $fail
