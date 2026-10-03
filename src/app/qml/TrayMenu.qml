@@ -118,7 +118,7 @@ Window {
                 id: statsRow
                 width: parent.width
                 source: "qrc:/icons/ui-stats.svg"
-                label: qsTr("Today's statistics")
+                label: qsTr("Statistics")
                 note: menu.todayFigures
                 onPicked: {
                     menu.visible = false;

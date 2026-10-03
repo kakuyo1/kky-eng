@@ -4,19 +4,19 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="221"/>
-        <location filename="../src/app/qml/Bubble.qml" line="294"/>
+        <location filename="../src/app/qml/Bubble.qml" line="240"/>
+        <location filename="../src/app/qml/Bubble.qml" line="316"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="221"/>
-        <location filename="../src/app/qml/Bubble.qml" line="315"/>
+        <location filename="../src/app/qml/Bubble.qml" line="240"/>
+        <location filename="../src/app/qml/Bubble.qml" line="337"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="332"/>
+        <location filename="../src/app/qml/Bubble.qml" line="354"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒后自动消失</translation>
     </message>
@@ -57,17 +57,17 @@
 <context>
     <name>SelectionBar</name>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="128"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="131"/>
         <source>Translate</source>
         <translation>翻译</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="129"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="132"/>
         <source>Explain</source>
         <translation>解释</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="130"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="133"/>
         <source>Copy text</source>
         <translation>复制文本</translation>
     </message>
@@ -139,8 +139,13 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsPopup.qml" line="145"/>
-        <source>API</source>
+        <source>API KEY</source>
         <translation>API</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="311"/>
+        <source>Defaults</source>
+        <translation>恢复默认</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsPopup.qml" line="186"/>
@@ -176,11 +181,6 @@
         <location filename="../src/app/qml/SettingsPopup.qml" line="286"/>
         <source>Save</source>
         <translation>保存</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="311"/>
-        <source>Restore defaults</source>
-        <translation>恢复默认</translation>
     </message>
 </context>
 <context>
@@ -235,7 +235,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/TrayMenu.qml" line="121"/>
-        <source>Today&apos;s statistics</source>
+        <source>Statistics</source>
         <translation>今日统计</translation>
     </message>
     <message>
@@ -337,12 +337,12 @@
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="558"/>
-        <source>Auto mode</source>
+        <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="558"/>
-        <source>Manual mode</source>
+        <source>Manual</source>
         <translation>手动模式</translation>
     </message>
 </context>

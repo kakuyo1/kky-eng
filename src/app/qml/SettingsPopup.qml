@@ -142,7 +142,7 @@ Window {
                 width: parent.width
                 spacing: 7
                 Text {
-                    text: qsTr("API")
+                    text: qsTr("API KEY")
                     color: Tokens.muted
                     font.pixelSize: 12
                 }
@@ -308,7 +308,7 @@ Window {
                     Text {
                         id: resetLabel
                         anchors.centerIn: parent
-                        text: qsTr("Restore defaults")
+                        text: qsTr("Defaults")
                         color: Tokens.muted
                         font.pixelSize: 12
                         font.weight: Font.Bold

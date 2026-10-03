@@ -555,7 +555,7 @@ QString AppController::modeLabel() const
     // Automatic scanning is a phase-1 placeholder, so this is always the manual name; the
     // branch stays because the tray menu and tooltip both read the label from here and must
     // never disagree (PHASE1.md section 4.4).
-    return autoScan_ ? tr("Auto mode") : tr("Manual mode");
+    return autoScan_ ? tr("Auto") : tr("Manual");
 }
 
 QString AppController::busyLabel() const

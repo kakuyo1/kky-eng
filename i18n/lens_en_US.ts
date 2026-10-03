@@ -4,19 +4,19 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="221"/>
-        <location filename="../src/app/qml/Bubble.qml" line="294"/>
+        <location filename="../src/app/qml/Bubble.qml" line="240"/>
+        <location filename="../src/app/qml/Bubble.qml" line="316"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="221"/>
-        <location filename="../src/app/qml/Bubble.qml" line="315"/>
+        <location filename="../src/app/qml/Bubble.qml" line="240"/>
+        <location filename="../src/app/qml/Bubble.qml" line="337"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="332"/>
+        <location filename="../src/app/qml/Bubble.qml" line="354"/>
         <source>Disappears in %1s</source>
         <translation>Disappears in %1s</translation>
     </message>
@@ -57,17 +57,17 @@
 <context>
     <name>SelectionBar</name>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="128"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="131"/>
         <source>Translate</source>
         <translation>Translate</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="129"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="132"/>
         <source>Explain</source>
         <translation>Explain</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="130"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="133"/>
         <source>Copy text</source>
         <translation>Copy text</translation>
     </message>
@@ -139,8 +139,13 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsPopup.qml" line="145"/>
-        <source>API</source>
-        <translation>API</translation>
+        <source>API KEY</source>
+        <translation>API KEY</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="311"/>
+        <source>Defaults</source>
+        <translation>Defaults</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsPopup.qml" line="186"/>
@@ -176,11 +181,6 @@
         <location filename="../src/app/qml/SettingsPopup.qml" line="286"/>
         <source>Save</source>
         <translation>Save</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="311"/>
-        <source>Restore defaults</source>
-        <translation>Restore defaults</translation>
     </message>
 </context>
 <context>
@@ -235,8 +235,8 @@
     </message>
     <message>
         <location filename="../src/app/qml/TrayMenu.qml" line="121"/>
-        <source>Today&apos;s statistics</source>
-        <translation>Today&apos;s statistics</translation>
+        <source>Statistics</source>
+        <translation>Statistics</translation>
     </message>
     <message>
         <location filename="../src/app/qml/TrayMenu.qml" line="133"/>
@@ -337,13 +337,13 @@
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="558"/>
-        <source>Auto mode</source>
-        <translation>Auto mode</translation>
+        <source>Auto</source>
+        <translation>Auto</translation>
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="558"/>
-        <source>Manual mode</source>
-        <translation>Manual mode</translation>
+        <source>Manual</source>
+        <translation>Manual</translation>
     </message>
 </context>
 <context>
