@@ -1,5 +1,23 @@
 # TODO
 
+## 把 qmllint 的警告修到 0
+
+现状（2026-10-03）：`scripts/qml-lint.sh` 已接进 pre-commit 与 CI，阈值 130、只降不升。这 130 条是真的：
+直接拿 `qmllint` 喂松散的源文件会得 525 条（那些文件没有模块上下文，`Tokens` 与同目录组件全都解析不了），
+走 `qt_add_qml_module` 生成的响应文件才是 130 条。
+
+待办，按桶：
+
+- `controller.*` / `tray.*`（约 40 条）：换成 `qmlRegisterSingletonInstance` 注册的 QML 单例——`main.cpp`
+  里那条 `ponytail:` 注释说的是同一件事。QML 侧的调用点要从 `controller.foo` 改成 `Controller.foo`。
+- delegate 里的 `index` / `modelData.*`（约 49 条）：声明成 `required property`。
+- 嵌套组件里读外层 id（`root.*` / `list.*`，约 25 条）：`pragma ComponentBehavior: Bound`。**这会改 id 的
+  解析语义**，改完托盘菜单与四张面板要人眼过一遍——本机拍不到那几张。
+- 其余：`Main.qml` 的 `toDip()` 经由 `var` 拿 `QScreen`，`devicePixelRatio` 因此无法验证；`SelectionBar.qml`
+  在一处 `HoverHandler` 上读 `pressed`，该属性不存在，疑为真 bug。
+
+每修完一桶，把 `scripts/qml-lint.sh` 的 `BASELINE` 降到新的实测值。
+
 ## 中文字面比拉丁重一档
 
 现状：同一字重下，中文看着比旁边的拉丁粗一档，用户报中文字体加粗混乱。
@@ -10,7 +28,7 @@
 
 已尝试：`main.cpp` 里用 `QFont::setFamilies({"Segoe UI Variable", "Microsoft YaHei UI Light"})` 设应用字体（QML 的 `font.families` 属性根本不存在，只有这一层带得动列表），中文回落 Light。按墨量，中文正文对英文正文的比值降到 1.4 倍（中文笔画本就密，1.4 属正常区间），但用户仍报未修好。
 
-待办：真机上把 400 与 700、中文与拉丁两两并排渲染、逐行量墨量，先定位他看到的究竟是哪一处（可能根本不是正文，而是某个胶囊或数值）。若确属字面色差，候选是换掉整个中文面（随包带一份 Noto Sans SC 之类）或整体改用雅黑——两者都要动 `UI.md` §3.2 并记 ADR。
+待办：真机上把 400 与 700、中文与拉丁两两并排渲染、逐行量墨量，先定位他看到的究竟是哪一处（可能根本不是正文，而是某个胶囊或数值）。若确属字面色差，候选是换掉整个中文面（随包带一份 Noto Sans SC 之类）或整体改用雅黑——两者都要动 `UI.md` §3.2 并记 `docs/adr/`。
 
 ## 添加档位词书数据
 
@@ -28,6 +46,11 @@
 
 ## 接 CI
 
-现状：全库没有 CI。`lens_gtest_unit` 从建起就标着零网络、零密钥、可进 CI，却一直没有地方跑；`PHASE1.md` §9 的结论与 `TEST.md` 的运行记录全靠人工转写。提交前只有 `.githooks/pre-commit` 那一道文档门，C++ 侧没有任何自动门。
+现状（2026-10-03 起步）：`.github/workflows/ci.yml` 已落地——push / PR 到 `main` 触发，Windows runner +
+Qt 6.9.0（`jurplel/install-qt-action`，覆盖 preset 里那份本机路径），跑 `lens_gtest_unit` 作必过项，并
+一并构建 `lens`，好让 `src/app` 的编译错误也进闸。此前 `lens_gtest_unit` 从建起就标着零网络、零密钥、
+可进 CI，却一直没有地方跑。
 
-待办：等切片三（AppController + QML 表面）落完再动手——那时 `lens_gtest_unit` 覆盖的东西才算稳定，现在接等于给一个还在动的目标上锁。届时至少需要：Windows runner；Qt DLL 上 `PATH`（`unit` 链 `lens_llm`，`integration` 链 `lens_app`）；`lens_gtest_unit` 作必过项；`lens_gtest_integration` 里那两例真机用例不进 CI（要真实鼠标与剪贴板）；`.githooks/pre-commit` 的文档检查在 CI 里跑一份等价实现。
+待办：`lens_gtest_integration` 里那两例真机用例不进 CI（要真实鼠标与剪贴板），`smoke` 要真实密钥，
+两者都留人工。文档侧目前只有 `.githooks/pre-commit` 一道门，CI 里还没有等价实现——加之前先问它值不值
+这份维护成本（hook 已经守着同一批检查，但只在本地提交时跑）。

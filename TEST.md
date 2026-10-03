@@ -112,10 +112,21 @@ cmake --build --preset ninja-qt6-perf --target lens_gtest_perf
 - `ui-tray-rects.ps1`：打任务栏与通知区的窗口矩形，是 QML 侧位置的比对基准。托盘图标报的坐标是
   设备无关像素、自动隐藏的任务栏其矩形落在主屏下方，两件事都是拿它查出来的。
 
+另有一个不驱动也不拍照的：`mouse-stall-probe.ps1` 在应用启动的那几秒里连发 `mouse_event` 并给每次调用
+计时，报告慢过阈值的调用。它回答的是 “鼠标被抢走了吗”，不是 “界面画对了吗”——回归对象是钩子跑在自己线程
+上那条约束（`docs/QML.md` §5），一次运行三四十秒。
+
 一轮的顺序：先 `ui-tray-rects.ps1` 量基准，再起应用，用 `ui-input.ps1` 驱动，用 `ui-capture.ps1`
 截图，必要时 `-Profile` 或放大看像素。为看清而临时加进 QML 的东西（计时器、`console.log`）**提交前
-必须删干净**，用 `grep -rn PROBE src/` 确认。观察点本身由应用自己的日志承担：`logs/lens.log` 每行
-都刷，可以 `tail -f`。
+必须删干净**——`.githooks/pre-commit` 的第四项会拦下 `src/` 下带这两个串的暂存文件，手工确认是
+`grep -rn PROBE src/`。观察点本身由应用自己的日志承担：`logs/lens.log` 每行都刷，可以 `tail -f`。
+
+驱动时有两个坑，都是撞了六七次调用才摸出来的：
+
+- **焦点与拖拽必须落在同一个 PowerShell 进程里**。拆成两次调用，中间那次的控制台会抢走前台焦点，注入的
+  Ctrl+C 于是送去了控制台而不是被拖选的应用——取文拿到的是控制台里的东西，或者什么都没有。
+- **取词只认发生变化的剪贴板**。重选同一段文本之前要先用 `Set-Clipboard` 换掉剪贴板内容，否则钩子读回来
+  的还是上一次的字符串，日志只会说 `did not change within 250 ms`，看着像钩子没触发。
 
 ## 6 记录
 

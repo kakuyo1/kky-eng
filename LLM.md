@@ -1,7 +1,7 @@
 # LLM 协议
 > 本文件描述 Lens 与释义模型之间的线上格式。契约来源见 `PHASE1.md` §4.3 与 §5；**实际生效的定义在 `data/llm/` 目录**，代码只组装与校验，不内联任何提示词或字段名。
 
-服务：DeepSeek（OpenAI 兼容，BYOK）。端点 `POST {baseUrl}/chat/completions`，请求头 `Content-Type: application/json` 与 `Authorization: Bearer <API-KEY>`。
+服务：DeepSeek（OpenAI 兼容，BYOK）。端点 `POST {baseUrl}/chat/completions`，请求头 `Content-Type: application/json` 与 `Authorization: Bearer <API-KEY>`。`baseUrl = https://api.deepseek.com`；配置文件原值 `https://api.deepseek.com/anthropic` 是 Anthropic 格式的 base，对本调用不适用，已改。模型取 `settings.local.json` 的 `MODEL`（缺省 `deepseek-flash`）：`deepseek-flash` 即 DeepSeek-V4.1-Flash（支持 JSON Output），同代另有 `deepseek-v4-pro`；旧名 `deepseek-v4-flash` 仍被接受但模型已停服，请求实际由 V4.1-Flash 承接并按其价计费。
 
 ## 1 通道
 
@@ -13,9 +13,11 @@
 | 实体 | `data/llm/request.entity.json` | `data/llm/response.entity.schema.json` | 阶段二（`PHASE1.md` §2 占位） |
 | 句子 | `data/llm/request.sentence.json` | `data/llm/response.sentence.schema.json` | 阶段二（同上） |
 
+`llm_protocol.{h,cpp}` 加载并校验这些文件：缺文件、非法 JSON、必填值为空一律抛，**不回落内置默认值**——回落会正好掩盖这次抽离要防的漂移。
+
 ## 2 请求体
 
-字段与默认值全部来自该通道的 `request.<通道>.json`：
+组装后的请求体。除 `model` 来自 `settings.local.json` 的 `MODEL`，其余字段与默认值都来自该通道的 `request.<通道>.json`：
 
 ```json
 {
@@ -33,8 +35,8 @@
 
 - `messages[0]` 是系统提示词，取自 `request.word.json` 的 `systemPrompt.template`；末句由 `{outputLanguage}` 占位符按解释语言替换（`outputLanguage.en` / `outputLanguage.zh`）。提示词本身是英文。
 - `messages[1]` 是待查内容，**一行一个**。单词通道只发单词本身，发送前做脱敏兜底（邮箱 / 长数字 / URL 掩码成 `<email>` / `<num>` / `<url>`）。
-- `thinking` 必须显式设成 `disabled`：DeepSeek 默认开启思考模式，开着会白付 reasoning token 且更慢。
-- `max_tokens` 必须显式设：JSON 被截断时接口不报错，只把 `finish_reason` 置为 `length`。
+- `thinking` 必须显式设成 `disabled`：DeepSeek 默认开启思考模式（effort=high），开着会白付 reasoning token 且更慢。思考模式下 `temperature` 无效；`top_p` 仅思考模式生效（有效区间 0.95–1.0），非思考模式固定 1.0。
+- `max_tokens` 必须显式设（非思考模式缺省 8K）：JSON 被截断时接口不报错，只把 `finish_reason` 置为 `length`。
 - `response_format` 为 `json_object`，因此系统提示词里必须出现 `json` 字样并给出格式示例，缺了模型会一路吐空白到 `max_tokens` 用尽。
 
 ## 3 响应体
@@ -77,7 +79,7 @@
 | `en` | string | 一行英文释义 |
 | `zh` | string | 一行中文释义 |
 
-`usage` 在 envelope 层，不在载荷里，因此**不参与上面那套校验**：`parseUsage()` 从同一个响应体独立读 `prompt_tokens` / `completion_tokens`，缺失按 0 计并记警告。统计少一笔可忍，把一次成功的解释整批丢掉不可忍；`usage` 与解释内容是否合法互不影响（`PHASE1.md` §4.3）。金额不由线上格式给出，本地按 `data/llm/pricing.json` 乘算。
+`usage` 在 envelope 层，不在载荷里，因此**不参与上面那套校验**：`parseUsage()` 从同一个响应体独立读 `prompt_tokens` / `completion_tokens`，缺失按 0 计并记警告。统计少一笔可忍，把一次成功的解释整批丢掉不可忍；`usage` 与解释内容是否合法互不影响（`PHASE1.md` §4.3）。金额不由线上格式给出，见 §6。
 
 ## 4 校验规则
 
@@ -104,11 +106,19 @@
 | 500 | 服务端错误 |
 | 503 | 服务过载 |
 
-## 6 相关文件
+`failed(message)` 按上表分类；**任何分支都不得回显密钥**。
+
+## 6 金额与价目
+
+金额不由线上格式给出，本地按 `data/llm/pricing.json` 算（`llm_pricing.{h,cpp}`）。**价目是数据**：按模型名给输入 / 输出单价（每百万 token）与币种，改价是改数据，不重编译；价目缺失或模型不在表内时金额记 0 并记警告，不影响解释。
+
+**牌价与展示币种分开**（2026-10-03）：表里 0.15 / 0.6 是厂商的**美元**牌价，界面显示人民币。做法是 `display` 块写明目标币种与一个乘数（`multiplier`）及其取值日期（`asOf`），**牌价原样不动**——把 `currency` 直接改成 `CNY` 等于宣称厂商按人民币报价，那是说错。换算只在 `Pricing::cost()` 里发生一次，`currency()` 返回展示币种，故统计、花费、托盘提示三处无需各自知道还有另一种币。乘数是数据，会过期：启动时把乘数与日期一起记进日志，看到 ¥ 想问 “哪来的” 时不必翻文件。`display` 块缺失时展示币种回落到厂商币种。
+
+## 7 相关文件
 
 - `data/llm/request.word.json` — 请求模板、系统提示词、输出语言行
 - `data/llm/response.word.schema.json` — 响应 schema（校验真源）
-- `data/llm/pricing.json` — 按模型名给输入 / 输出单价（每百万 token）与币种，算金额用
+- `data/llm/pricing.json` — 价目数据，算金额用（§6）
 - `src/llm/llm_protocol.{h,cpp}` — 加载与访问上述协议文件
 - `src/llm/llm_pricing.{h,cpp}` — 加载价目、把 `Usage` 折成金额
 - `src/llm/llm_pure.{h,cpp}` — 组装请求体、校验响应、读 `usage`，均无网络

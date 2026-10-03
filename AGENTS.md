@@ -7,7 +7,7 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 - No commits unless explicitly requested, no AI attribution in commits or PRs.
 - UI work must comply with `UI.md` and `DESIGN.md`; implementation contract in `PHASE1.md`.
 - Designing or auditing a UI surface starts by loading the `taste-skill` skill; a surface that has been rendered is checked with `visual-qa`.
-- Keep `CONTEXT.md`, `DESIGN.md`, `UI.md`, and `PHASE1.md` in sync on any design change; record major trade-offs as ADRs.
+- Keep `CONTEXT.md`, `DESIGN.md`, `UI.md`, and `PHASE1.md` in sync on any design change; record major trade-offs in `docs/adr/`.
 - Default to Chinese in replies.
 - API key lives only in gitignored `settings.local.json` — never commit it, never log it, never echo it in errors.
 
@@ -17,10 +17,11 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 lens/
 ├── .claude           # project settings: the Qt skill family enabled (settings.json)
 ├── .clang-format     # code format spec
-├── .githooks         # pre-commit: doc typography budget + prototype-list check
+├── .githooks         # pre-commit: typography budget, prototype list, clang-format, PROBE, QML
 ├── data              # wordlist + llm/ (wire protocol as data)
+├── docs              # QML.md (how QML works here) + adr/ (major trade-offs)
 ├── i18n              # .ts translations; English is the source language
-├── scripts           # build.bat — Ninja + MSVC wrapper; ui-*.ps1 — driving and photographing the real surfaces (TEST.md § 5)
+├── scripts           # build.bat — Ninja + MSVC wrapper; *.ps1 — driving, photographing and timing the real surfaces (TEST.md § 5); qml-lint.sh — the QML gate
 ├── third_party       # vendored: nlohmann/json, spdlog, googletest
 ├── icons
 ├── logs              # runtime logs, rotating, gitignored but for .gitkeep
@@ -81,13 +82,22 @@ std::string lemmatize(std::string_view token);
 
 Log through the `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_ERROR` / `LENS_CRITICAL` macros in `src/core/log.h`.
 
+## Lint
+
+`.githooks/pre-commit` is the source of truth for the C++ and documentation checks: the tools, their fallback paths and the per-doc typography budgets all live there, and it checks only the files a commit touches, so a hand run is what covers the rest.
+
+QML is the exception. `scripts/qml-lint.sh`, called by the hook and by CI, owns its own argument list and its warning ratchet, because a .qml file only lints correctly beside its whole module.
+
 ## Reference Documents
 
-- `CONTEXT.md` — glossary
-- `DESIGN.md` — design decisions
-- `UI.md` — UI spec
-- `PHASE1.md` — phase 1 implementation contract (scope, module interfaces, prompt/schema)
-- `TEST.md` — tests: framework, targets, corpus, profiling, run records
-- `LLM.md` — wire format: request body, response envelope, validation rules, error codes
-- `ui-prototypes/v1-halo-*.html` — prototype, one file per surface
-- `TODO.md` — waiting for implement
+- `CONTEXT.md`: glossary
+- `DESIGN.md`: design decisions
+- `UI.md`: UI spec
+- `PHASE1.md`: phase 1 implementation contract (scope, module interfaces, prompt/schema)
+- `TEST.md`: framework, targets, corpus, profiling, run records
+- `LLM.md`: wire format, request body, response envelope, validation rules, error codes
+- `CODING_STANDARDS.md`: the judgement calls a review can make (C++ and QML)
+- `docs/QML.md`: QML facts, module layout, surfaces vs components, shadows, positioning, threading, fonts
+- `docs/adr/`: major trade-offs, one numbered file each; `README.md` has the numbering and template
+- `ui-prototypes/v1-halo-*.html`: prototype, one file per surface
+- `TODO.md`: waiting for implement

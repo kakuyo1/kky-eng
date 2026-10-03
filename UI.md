@@ -240,6 +240,9 @@
 | 字体 | `font.family: "Segoe UI"` / `"Microsoft YaHei UI"` |
 | 图标 | `icons/*.svg` 经 `qt_add_resources` 打进 `:/icons/`；QML 侧 `Icon.qml` 用 `Image` + `MultiEffect` 着色，一份白色描边的文件服务所有颜色与两种主题 |
 
+以上是 “用什么 Qt 类型实现哪张表面”。**怎么落地**（模块与目录、阴影怎么投、定位怎么算、跨线程能不能碰、
+字体族在哪设）见 `docs/QML.md`；这张表只回答选型。
+
 色值集中到一个 `QtObject` 常量表，组件引用令牌而非散落色值。主题切换 = 该 `QtObject` 持有浅色 / 黑夜两套值，设置项变更时整体替换；组件不感知主题，只读令牌。托盘图标为位图资源，需按主题备两套图。
 
 ## 待定建议
