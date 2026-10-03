@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 
 /**
@@ -32,6 +34,7 @@ Item {
             model: root.labels
 
             delegate: Rectangle {
+                id: cell
                 required property int index
                 required property var modelData
 
@@ -42,14 +45,14 @@ Item {
 
                 Text {
                     anchors.centerIn: parent
-                    text: modelData
-                    color: index === root.currentIndex ? Tokens.on : Tokens.muted
+                    text: cell.modelData
+                    color: cell.index === root.currentIndex ? Tokens.on : Tokens.muted
                     font.pixelSize: 12
-                    font.weight: index === root.currentIndex ? Font.Bold : Font.Normal
+                    font.weight: cell.index === root.currentIndex ? Font.Bold : Font.Normal
                 }
 
                 HoverHandler { cursorShape: Qt.PointingHandCursor }
-                TapHandler { onTapped: root.picked(index) }
+                TapHandler { onTapped: root.picked(cell.index) }
             }
         }
     }

@@ -1,25 +1,5 @@
 # TODO
 
-## 把 qmllint 的警告修到 0
-
-现状（2026-10-03）：`scripts/qml-lint.sh` 已接进 pre-commit、CI 与 `scripts/build.bat`，阈值 70、只降不升。
-直接拿 `qmllint` 喂松散的源文件会得 525 条（那些文件没有模块上下文，`Tokens` 与同目录组件全都解析不了），
-走 `qt_add_qml_module` 生成的响应文件才是真数。
-
-已做（130 → 70）：`controller.*` / `tray.*` 那 53 条。QML 模块改挂 `lens_app`，两个类成了真正的 QML 单例，
-QML 侧改名成 `Controller.` / `Tray.`；为什么值得改、代价是什么，见 `docs/adr/0004`。
-
-待办，按桶：
-
-- delegate 里的 `index` / `modelData.*`（约 20 条）：声明成 `required property`。
-- 嵌套组件里读外层 id（`root.*` / `list.*` / `clickable`，约 12 条）：`pragma ComponentBehavior: Bound`。
-  **这会改 id 的解析语义**，改完托盘菜单与四张面板要人眼过一遍——本机拍不到那几张。
-- `[missing-property]` 那 38 条：`Main.qml` 的 `toDip()` / `placeBeside()` 经由 `var` 拿 `QScreen`，
-  `virtualX` / `width` / `devicePixelRatio` 因此无法验证；`SelectionBar.qml` 在一处 `HoverHandler` 上读
-  `pressed`，该属性不存在，**疑为真 bug**。
-
-每修完一桶，把 `scripts/qml-lint.sh` 的 `BASELINE` 降到新的实测值。
-
 ## 选区钩子的合成拖拽用例一直红着
 
 现状（2026-10-03）：`lens_gtest_integration` 里 `SelectionHook.ReportsASynthesisedDragAtItsReleasePoint` 稳定

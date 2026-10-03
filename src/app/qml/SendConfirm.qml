@@ -27,8 +27,8 @@ Window {
         words = list;
         // Centred on whichever screen the app is on: this is a development gate, and it has
         // to be impossible to miss.
-        confirm.x = Math.round(screen.virtualX + (screen.width - width) / 2);
-        confirm.y = Math.round(screen.virtualY + (screen.height - height) / 2);
+        confirm.x = Math.round(Screen.virtualX + (Screen.width - width) / 2);
+        confirm.y = Math.round(Screen.virtualY + (Screen.height - height) / 2);
         visible = true;
         requestActivate();
     }

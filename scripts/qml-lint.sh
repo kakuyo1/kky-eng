@@ -13,6 +13,13 @@
 # configured against. When either is missing it says so and passes, the same contract the
 # other checks in .githooks/pre-commit keep.
 #
+# The types it judges are the ones that build tree carries. It resolves the module's own .qml
+# files through the qmldir among the build's copies of them, not through src/, so this sees a
+# .qml type as of the last build: a signal or a property added since then reads as missing on
+# whichever file handles it, which is a warning about the copies rather than about the commit.
+# CI builds before it lints and never meets that; a commit made straight from the hook does,
+# until the tree is next built.
+#
 # The count is a ratchet, like the typography budgets in that hook: lower it when you fix
 # warnings, never raise it to get a commit through.
 #
@@ -21,7 +28,7 @@
 
 set -u
 
-BASELINE=70
+BASELINE=0
 
 root=$(git rev-parse --show-toplevel 2>/dev/null)
 [ -n "$root" ] || root=$(cd "$(dirname "$0")/.." && pwd)

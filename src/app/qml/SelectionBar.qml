@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Window
 import QtQuick.Effects
@@ -135,11 +137,15 @@ Window {
 
                     delegate: Rectangle {
                         id: item
+                        required property var modelData
+
                         width: itemRow.width + 22
                         height: itemRow.height + 14
                         radius: Tokens.radiusField
                         color: hover.hovered ? Tokens.panel2 : "transparent"
-                        scale: hover.pressed ? 0.97 : 1.0
+                        // The press, not the hover: a HoverHandler has no `pressed`, so this
+                        // read gave undefined and the press never shrank the item.
+                        scale: press.pressed ? 0.97 : 1.0
                         Behavior on scale { NumberAnimation { duration: 150 } }
 
                         Row {
@@ -148,12 +154,12 @@ Window {
                             spacing: 7
                             Icon {
                                 anchors.verticalCenter: parent.verticalCenter
-                                source: modelData.source
+                                source: item.modelData.source
                                 color: Tokens.muted
                             }
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: modelData.label
+                                text: item.modelData.label
                                 color: Tokens.text
                                 font.pixelSize: 13
                                 font.weight: Font.Bold
@@ -162,8 +168,9 @@ Window {
 
                         HoverHandler { id: hover; cursorShape: Qt.PointingHandCursor }
                         TapHandler {
+                            id: press
                             onTapped: {
-                                Controller.runSelectionAction(modelData.action, bar.selectionText);
+                                Controller.runSelectionAction(item.modelData.action, bar.selectionText);
                                 bar.visible = false;
                             }
                         }

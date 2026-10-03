@@ -38,16 +38,21 @@ Window {
         const g = Tray.geometry;
         if (g.width > 0)
             return g;
-        return Qt.rect(screen.virtualX + screen.width - 56,
-                       screen.virtualY + screen.height - 48, 56, 48);
+        return Qt.rect(Screen.virtualX + Screen.width - 56,
+                       Screen.virtualY + Screen.height - 48, 56, 48);
     }
 
     /// @return The screen a point falls on, or this window's own when it falls on none.
     function screenFor(point) {
+        // QtQml's type information carries no `screens` member on Qt.application, though the
+        // real object has one, so the loop below is the one statement that has to be exempt
+        // from the member check.
+        // qmllint disable missing-property
         for (const s of Qt.application.screens)
             if (point.x >= s.virtualX && point.x < s.virtualX + s.width
                 && point.y >= s.virtualY && point.y < s.virtualY + s.height)
                 return s;
+        // qmllint enable missing-property
         return screen;
     }
 
@@ -142,7 +147,7 @@ Window {
      * such trouble. Fields other than x and y ride along untouched.
      */
     function toDip(payload) {
-        const ratio = screen.devicePixelRatio || 1;
+        const ratio = Screen.devicePixelRatio || 1;
         const out = {};
         for (const key in payload)
             out[key] = payload[key];
@@ -158,7 +163,7 @@ Window {
      * The card, not the window, is the surface: the 26px around it is shadow margin, and a
      * click there reads as a click outside.
      */
-    function contains(rect, point) {
+    function contains(rect: var, point: var): bool {
         return point.x >= rect.x && point.x <= rect.x + rect.width
             && point.y >= rect.y && point.y <= rect.y + rect.height;
     }
@@ -228,6 +233,10 @@ Window {
 
     TrayMenu {
         id: trayMenu
+        // The menu asks; the placement is here, because here is where every surface's
+        // placement lives.
+        onStatsRequested: root.showStats()
+        onSettingsRequested: root.showSettings()
     }
 
     Connections {

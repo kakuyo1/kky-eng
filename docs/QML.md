@@ -145,3 +145,23 @@
 只在图标被点时发一个 `menuRequested`。图标只有三个可达状态（自动扫描开 / 解释中 / 已关），第四态（预算
 耗尽）要等每日预算上限落地。
 
+## 8 qmllint
+
+下面几条是 qmllint 看不透的地方：照它给的提示改不动，得先知道它盲在哪。
+
+- **`Window.screen` 的成员它当作 `QObject`**：`virtualX` / `width` / `devicePixelRatio` 一律报
+  `missing-property`。改用 `Screen` attached 类型它就认得。本机实测（125%，两块屏）：`win.screen.virtualX`
+  与 `Screen.virtualX` 都是 0、`width` 都是 1536、`devicePixelRatio` 都是 1.25——取的是同一个屏，所以
+  `Main.qml` 的 `trayAnchor()` / `toDip()` 与 `SendConfirm.qml` 的居中都用 `Screen`。
+- **`Qt.application.screens` 它完全看不见**：真实对象上是 QScreen 列表，QtQml 的类型信息里没有这个成员。
+  没有等价写法，`Main.qml` 的 `screenFor()` 用 `// qmllint disable missing-property` 把那一个 `for` 豁免掉。
+- **delegate 的 `modelData` / `index` 分两层**：delegate 根自己的绑定可以直接写，**嵌套子项**（`Text` /
+  `Rectangle` / `TapHandler`）里必须写成 `<delegate 的 id>.modelData`，所以带 required 属性的 delegate 根都得
+  有 id。`pragma ComponentBehavior: Bound` 管的是另一件事——跨组件读外层 id（`root` / `list` / `menu` 这类），
+  它**不**让嵌套子项看见根上的 required 属性。只加 pragma 只消掉后者：本桶实测 70 → 55，剩下的 15 条全是
+  嵌套子项读根上的属性。
+- **一个名字在外层文件里 “能用” 不等于被声明**：文件级组件的上下文挂在创建它的上下文上，于是
+  `TrayMenu.qml` 里的 `root.showStats()` 会解析到 `Main.qml` 的根（两文件探针实测）。它能跑，但没有任何地方
+  声明它，qmllint 对这种名字只给一句 `Unqualified access`、不说该怎么办。表面之间的通信因此走信号：
+  `TrayMenu` 现在发 `statsRequested` / `settingsRequested`，由 `Main.qml` 接。
+

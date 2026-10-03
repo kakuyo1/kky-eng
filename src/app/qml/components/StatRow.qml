@@ -22,11 +22,11 @@ Item {
         // than the words in it.
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.leftMargin: clickable ? -8 : 0
-        anchors.rightMargin: clickable ? -8 : 0
+        anchors.leftMargin: root.clickable ? -8 : 0
+        anchors.rightMargin: root.clickable ? -8 : 0
         height: parent.height - 2
         radius: 8
-        color: clickable && rowHover.hovered ? Tokens.panel2 : "transparent"
+        color: root.clickable && rowHover.hovered ? Tokens.panel2 : "transparent"
     }
 
     Text {

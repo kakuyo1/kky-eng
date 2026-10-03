@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Window
 
@@ -111,6 +113,7 @@ Item {
                     model: root.options
 
                     delegate: Column {
+                        id: group
                         required property int index
                         required property var modelData
 
@@ -118,7 +121,8 @@ Item {
 
                         // A rule between groups, never before the first one.
                         Rectangle {
-                            visible: index > 0 && modelData.group !== root.options[index - 1].group
+                            visible: group.index > 0
+                                     && group.modelData.group !== root.options[group.index - 1].group
                             width: parent.width
                             height: 1
                             color: Tokens.line2
@@ -129,32 +133,32 @@ Item {
                             width: parent.width
                             height: root.rowHeight
                             radius: 8
-                            color: modelData.value === root.currentValue ? Tokens.ink
-                                                                         : (rowHover.hovered ? Tokens.panel2 : "transparent")
+                            color: group.modelData.value === root.currentValue ? Tokens.ink
+                                                                               : (rowHover.hovered ? Tokens.panel2 : "transparent")
 
                             Text {
                                 anchors.left: parent.left
                                 anchors.leftMargin: 11
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: modelData.label
-                                color: modelData.value === root.currentValue ? Tokens.on : Tokens.text
+                                text: group.modelData.label
+                                color: group.modelData.value === root.currentValue ? Tokens.on : Tokens.text
                                 font.pixelSize: 13
                             }
 
                             Text {
-                                visible: modelData.note !== ""
+                                visible: group.modelData.note !== ""
                                 anchors.right: parent.right
                                 anchors.rightMargin: 11
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: modelData.note
-                                color: modelData.value === root.currentValue ? Qt.rgba(1, 1, 1, 0.62) : Tokens.faint
+                                text: group.modelData.note
+                                color: group.modelData.value === root.currentValue ? Qt.rgba(1, 1, 1, 0.62) : Tokens.faint
                                 font.pixelSize: 11
                             }
 
                             HoverHandler { id: rowHover; cursorShape: Qt.PointingHandCursor }
                             TapHandler {
                                 onTapped: {
-                                    root.picked(modelData.value);
+                                    root.picked(group.modelData.value);
                                     list.visible = false;
                                 }
                             }

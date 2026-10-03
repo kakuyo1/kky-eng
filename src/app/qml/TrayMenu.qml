@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Window
 
@@ -38,6 +40,12 @@ Window {
 
     /// Whether the language list is unfolded.
     property bool listVisible: false
+
+    /// The two panels the menu opens. Where a panel goes is Main.qml's business, so the menu
+    /// asks for one rather than calling into the file that instantiated it: that file's `root`
+    /// id does resolve at runtime, but nothing declares it and nothing checks it.
+    signal statsRequested()
+    signal settingsRequested()
 
     /// The day's tally for the statistics row, in the shape the tray tooltip uses.
     readonly property string todayFigures: Controller.stats.todayPops + " " + qsTr("words")
@@ -122,7 +130,7 @@ Window {
                 note: menu.todayFigures
                 onPicked: {
                     menu.visible = false;
-                    root.showStats();
+                    menu.statsRequested();
                 }
             }
 
@@ -151,7 +159,7 @@ Window {
                 label: qsTr("Settings")
                 onPicked: {
                     menu.visible = false;
-                    root.showSettings();
+                    menu.settingsRequested();
                 }
             }
 
@@ -192,6 +200,7 @@ Window {
                 model: [{ code: "zh", name: "中文" }, { code: "en", name: "English" }]
 
                 Rectangle {
+                    id: option
                     required property var modelData
 
                     width: listColumn.width
@@ -204,8 +213,8 @@ Window {
                         anchors.left: parent.left
                         anchors.leftMargin: 11
                         anchors.verticalCenter: parent.verticalCenter
-                        text: modelData.name
-                        color: modelData.code === menu.language ? Tokens.on : Tokens.text
+                        text: option.modelData.name
+                        color: option.modelData.code === menu.language ? Tokens.on : Tokens.text
                         font.pixelSize: 13
                     }
 
@@ -216,7 +225,7 @@ Window {
                     }
                     TapHandler {
                         onTapped: {
-                            Controller.setUiLanguage(modelData.code);
+                            Controller.setUiLanguage(option.modelData.code);
                             menu.visible = false;
                         }
                     }

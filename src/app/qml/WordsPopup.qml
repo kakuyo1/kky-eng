@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Window
 
@@ -151,6 +153,7 @@ Window {
                     boundsBehavior: Flickable.StopAtBounds
 
                     delegate: Item {
+                        id: entry
                         required property var modelData
 
                         width: words.cardWidth - 40
@@ -165,7 +168,7 @@ Window {
                             anchors.left: parent.left
                             anchors.verticalCenter: parent.verticalCenter
                             width: parent.width - 130
-                            text: modelData.word
+                            text: entry.modelData.word
                             color: Tokens.text
                             font.pixelSize: 13
                             elide: Text.ElideRight
@@ -175,7 +178,7 @@ Window {
                             anchors.right: tag.left
                             anchors.rightMargin: 9
                             anchors.verticalCenter: parent.verticalCenter
-                            text: modelData.when
+                            text: entry.modelData.when
                             color: Tokens.faint
                             font.family: Tokens.monoFamily
                             font.pixelSize: 11
@@ -183,7 +186,7 @@ Window {
 
                         Rectangle {
                             id: tag
-                            visible: modelData.status !== ""
+                            visible: entry.modelData.status !== ""
                             anchors.right: parent.right
                             anchors.verticalCenter: parent.verticalCenter
                             width: tagLabel.width + 16
@@ -193,7 +196,7 @@ Window {
                             Text {
                                 id: tagLabel
                                 anchors.centerIn: parent
-                                text: modelData.status
+                                text: entry.modelData.status
                                 color: Tokens.muted
                                 font.pixelSize: 11
                                 // The same pill the bubble shows over the same verdict, so
