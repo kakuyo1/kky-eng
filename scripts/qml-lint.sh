@@ -10,8 +10,14 @@
 # drifting from it.
 #
 # Needs a configured build tree, and nothing else: qmllint is taken from the Qt the tree was
-# configured against. When either is missing it says so and passes, the same contract the
+# configured against. A machine with no tree at all says so and passes, the same contract the
 # other checks in .githooks/pre-commit keep.
+#
+# A tree that *was* configured and has no response file does not pass. It used to, and that is
+# how this step spent its whole life green on CI while checking nothing: the file it looked for
+# was left over from before the module moved onto lens_app (docs/adr/0004), CMake does not clean
+# up a file it stops generating, so the name went on resolving here and simply did not exist on
+# a freshly configured tree. A check that skips and passes is not a check.
 #
 # The types it judges are the ones that build tree carries. It resolves the module's own .qml
 # files through the qmldir among the build's copies of them, not through src/, so this sees a
@@ -34,18 +40,31 @@ root=$(git rev-parse --show-toplevel 2>/dev/null)
 [ -n "$root" ] || root=$(cd "$(dirname "$0")/.." && pwd)
 cd "$root" || exit 0
 
+# Named for the target the module is backed by, which is lens_app and not the lens executable:
+# the response file carries the module's own import paths and its .qrc, so the wrong one lints
+# the wrong file list.
+rsp_path="src/app/.rcc/qmllint/lens_app.rsp"
+
 build=""
 for candidate in build-ninja build; do
-    if [ -f "$candidate/src/app/.rcc/qmllint/lens.rsp" ]; then
+    if [ -f "$candidate/$rsp_path" ]; then
         build="$candidate"
         break
     fi
 done
 if [ -z "$build" ]; then
+    for candidate in build-ninja build; do
+        if [ -f "$candidate/build.ninja" ]; then
+            echo "qml-lint: $candidate is configured but carries no $rsp_path, so the ratchet"
+            echo "  cannot run. Reconfigure the tree. If the module's backing target has been"
+            echo "  renamed, the name above is what has to change with it."
+            exit 1
+        fi
+    done
     echo "qml-lint: no configured build tree with a qmllint response file; configure one first (skip)"
     exit 0
 fi
-rsp="$build/src/app/.rcc/qmllint/lens.rsp"
+rsp="$build/$rsp_path"
 
 # The response file names the Qt it was configured against as its second include path, which is
 # also where that Qt's qmllint lives. Using that one guarantees the lint matches the tree.
