@@ -1,6 +1,6 @@
-# 覆盖率报告
+# 测试覆盖率基线
 
-这一份盖两条线：`src/` 下的 C++ 行，与 QML 模块里被求值的表达式位置。两条线的工具、口径、分母构造方式都不同，**读数不可比，也不许平均**。想补哪一块看 [`docs/coverage-plan-2026-10-03.md`](../coverage-plan-2026-10-03.md)。
+这一份盖两条线：`src/` 下的 C++ 行，与 QML 模块里被求值的表达式位置。两条线的工具、口径、分母构造方式都不同，**读数不可比，也不许平均**。想补哪一块看 [`docs/metrics/coverage/coverage-plan-2026-10-03.md`](../coverage/coverage-plan-2026-10-03.md)。
 
 ## 1、报告信息
 
@@ -32,10 +32,10 @@ C++ 行覆盖 66.0%（998/1511）；QML 执行覆盖 80.4%（589/733）。
 
 四个读数最低的文件，各自的成因不同：
 
-- [`llm_client.cpp`](../../src/llm/llm_client.cpp) 12.7%（8/63）：真模型往返要走网络，`lens_gtest_smoke` 需要 key 且花钱，本轮没跑。
-- [`profile.cpp`](../../src/core/profile.cpp) 19.0%（11/58）：这棵树的 `LENS_ENABLE_PROFILE` 是关的，测量点编译成了空，读的低是构建配置的结果，不是测试缺口。
-- [`selection_text_grabber.cpp`](../../src/app/selection_text_grabber.cpp) 36.7%（72/196）：抓取路径要真的有别的窗口当前台，那条用例默认 skip。
-- [`app_controller.cpp`](../../src/app/app_controller.cpp) 43.6%（136/312）：`main()` 的编排（日志、配置、翻译、托盘、钩子的接线）只在 `lens.exe` 里跑，没有任何测试目标覆盖它。
+- [`llm_client.cpp`](../../../src/llm/llm_client.cpp) 12.7%（8/63）：真模型往返要走网络，`lens_gtest_smoke` 需要 key 且花钱，本轮没跑。
+- [`profile.cpp`](../../../src/core/profile.cpp) 19.0%（11/58）：这棵树的 `LENS_ENABLE_PROFILE` 是关的，测量点编译成了空，读的低是构建配置的结果，不是测试缺口。
+- [`selection_text_grabber.cpp`](../../../src/app/selection_text_grabber.cpp) 36.7%（72/196）：抓取路径要真的有别的窗口当前台，那条用例默认 skip。
+- [`app_controller.cpp`](../../../src/app/app_controller.cpp) 43.6%（136/312）：`main()` 的编排（日志、配置、翻译、托盘、钩子的接线）只在 `lens.exe` 里跑，没有任何测试目标覆盖它。
 
 另有 8 个 `src/` 文件一行都没报出来，原因见 3.3——那是口径，不是 0% 覆盖率。
 
@@ -85,27 +85,27 @@ QML 不在这条线里：`OpenCppCoverage` 只插桩机器码，QML 走的是完
 
 | 文件 | 覆盖行 | 可执行行 | 行覆盖率 |
 | --- | ---: | ---: | ---: |
-| [`core/filter_core.cpp`](../../src/core/filter_core.cpp) | 207 | 238 | 87.0% |
-| [`core/known_store.cpp`](../../src/core/known_store.cpp) | 101 | 109 | 92.7% |
-| [`core/stats_store.cpp`](../../src/core/stats_store.cpp) | 70 | 71 | 98.6% |
-| [`core/log.cpp`](../../src/core/log.cpp) | 23 | 31 | 74.2% |
-| [`core/profile.cpp`](../../src/core/profile.cpp) | 11 | 58 | 19.0% |
-| [`core/known_store.h`](../../src/core/known_store.h) | 3 | 3 | 100.0% |
-| [`core/stats_store.h`](../../src/core/stats_store.h) | 6 | 6 | 100.0% |
-| [`llm/llm_pure.cpp`](../../src/llm/llm_pure.cpp) | 89 | 95 | 93.7% |
-| [`llm/llm_pricing.cpp`](../../src/llm/llm_pricing.cpp) | 47 | 52 | 90.4% |
-| [`llm/llm_protocol.cpp`](../../src/llm/llm_protocol.cpp) | 75 | 87 | 86.2% |
-| [`llm/llm_client.cpp`](../../src/llm/llm_client.cpp) | 8 | 63 | 12.7% |
-| [`llm/llm_client.h`](../../src/llm/llm_client.h) | 5 | 6 | 83.3% |
-| [`llm/llm_pricing.h`](../../src/llm/llm_pricing.h) | 3 | 3 | 100.0% |
-| [`app/app_controller.cpp`](../../src/app/app_controller.cpp) | 136 | 312 | 43.6% |
-| [`app/selection_text_grabber.cpp`](../../src/app/selection_text_grabber.cpp) | 72 | 196 | 36.7% |
-| [`app/mouse_selection_hook.cpp`](../../src/app/mouse_selection_hook.cpp) | 88 | 110 | 80.0% |
-| [`app/tray.cpp`](../../src/app/tray.cpp) | 44 | 61 | 72.1% |
-| [`app/app_controller.h`](../../src/app/app_controller.h) | 2 | 2 | 100.0% |
-| [`app/selection_text_grabber.h`](../../src/app/selection_text_grabber.h) | 6 | 6 | 100.0% |
-| [`app/mouse_selection_hook.h`](../../src/app/mouse_selection_hook.h) | 1 | 1 | 100.0% |
-| [`app/tray.h`](../../src/app/tray.h) | 1 | 1 | 100.0% |
+| [`core/filter_core.cpp`](../../../src/core/filter_core.cpp) | 207 | 238 | 87.0% |
+| [`core/known_store.cpp`](../../../src/core/known_store.cpp) | 101 | 109 | 92.7% |
+| [`core/stats_store.cpp`](../../../src/core/stats_store.cpp) | 70 | 71 | 98.6% |
+| [`core/log.cpp`](../../../src/core/log.cpp) | 23 | 31 | 74.2% |
+| [`core/profile.cpp`](../../../src/core/profile.cpp) | 11 | 58 | 19.0% |
+| [`core/known_store.h`](../../../src/core/known_store.h) | 3 | 3 | 100.0% |
+| [`core/stats_store.h`](../../../src/core/stats_store.h) | 6 | 6 | 100.0% |
+| [`llm/llm_pure.cpp`](../../../src/llm/llm_pure.cpp) | 89 | 95 | 93.7% |
+| [`llm/llm_pricing.cpp`](../../../src/llm/llm_pricing.cpp) | 47 | 52 | 90.4% |
+| [`llm/llm_protocol.cpp`](../../../src/llm/llm_protocol.cpp) | 75 | 87 | 86.2% |
+| [`llm/llm_client.cpp`](../../../src/llm/llm_client.cpp) | 8 | 63 | 12.7% |
+| [`llm/llm_client.h`](../../../src/llm/llm_client.h) | 5 | 6 | 83.3% |
+| [`llm/llm_pricing.h`](../../../src/llm/llm_pricing.h) | 3 | 3 | 100.0% |
+| [`app/app_controller.cpp`](../../../src/app/app_controller.cpp) | 136 | 312 | 43.6% |
+| [`app/selection_text_grabber.cpp`](../../../src/app/selection_text_grabber.cpp) | 72 | 196 | 36.7% |
+| [`app/mouse_selection_hook.cpp`](../../../src/app/mouse_selection_hook.cpp) | 88 | 110 | 80.0% |
+| [`app/tray.cpp`](../../../src/app/tray.cpp) | 44 | 61 | 72.1% |
+| [`app/app_controller.h`](../../../src/app/app_controller.h) | 2 | 2 | 100.0% |
+| [`app/selection_text_grabber.h`](../../../src/app/selection_text_grabber.h) | 6 | 6 | 100.0% |
+| [`app/mouse_selection_hook.h`](../../../src/app/mouse_selection_hook.h) | 1 | 1 | 100.0% |
+| [`app/tray.h`](../../../src/app/tray.h) | 1 | 1 | 100.0% |
 
 头文件的 100% 是行数极少的结果（多数是一两个内联体），不要读成 “这块已经被测透了”。
 
@@ -119,40 +119,40 @@ QML 不在这条线里：`OpenCppCoverage` 只插桩机器码，QML 走的是完
 
 ## 5、QML 执行覆盖率
 
-Qt 没有 QML 的行覆盖率工具，这条路的取舍见 `TEST.md` §4 与 `scripts/qml-coverage.js` 的文件头，`src/app/qml/` 的规模与结构见 [`src-quality-2026-10-03.md`](src-quality-2026-10-03.md)。简单说：QML 里真正 “执行” 的是 JavaScript——属性绑定、signal handler、函数——而 profiler 恰好对每一次求值都记一条带文件与行号的事件，所以执行集有据可查。分母来自 `tree-sitter-qmljs` 的解析树：模块里每个非字面量的 `ui_property` 与 `ui_binding`，加上每个 `function_declaration`。
+Qt 没有 QML 的行覆盖率工具，这条路的取舍见 `TEST.md` §4 与 `scripts/qml-coverage.js` 的文件头，`src/app/qml/` 的规模与结构见 [`source-code-review-hotspots-2026-10-03.md`](source-code-review-hotspots-2026-10-03.md)。简单说：QML 里真正 “执行” 的是 JavaScript——属性绑定、signal handler、函数——而 profiler 恰好对每一次求值都记一条带文件与行号的事件，所以执行集有据可查。分母来自 `tree-sitter-qmljs` 的解析树：模块里每个非字面量的 `ui_property` 与 `ui_binding`，加上每个 `function_declaration`。
 
 **589/733 = 80.4%**，由 `lens_qtest_components` 与 `lens_qtest_surfaces` 两个目标共同跑出来。
 
 | 文件 | 执行 | 可求值位置 | 覆盖率 |
 | --- | ---: | ---: | ---: |
-| [`components/Tokens.qml`](../../src/app/qml/components/Tokens.qml) | 17 | 17 | 100% |
-| [`components/StatRow.qml`](../../src/app/qml/components/StatRow.qml) | 24 | 24 | 100% |
-| [`components/Switch.qml`](../../src/app/qml/components/Switch.qml) | 9 | 9 | 100% |
-| [`components/MenuRow.qml`](../../src/app/qml/components/MenuRow.qml) | 19 | 20 | 95% |
-| [`components/DropdownField.qml`](../../src/app/qml/components/DropdownField.qml) | 40 | 43 | 93% |
-| [`components/SwitchRow.qml`](../../src/app/qml/components/SwitchRow.qml) | 9 | 10 | 90% |
-| [`SelectionBar.qml`](../../src/app/qml/SelectionBar.qml) | 40 | 45 | 89% |
-| [`WordsPopup.qml`](../../src/app/qml/WordsPopup.qml) | 63 | 71 | 89% |
-| [`components/Segment.qml`](../../src/app/qml/components/Segment.qml) | 16 | 18 | 89% |
-| [`components/Icon.qml`](../../src/app/qml/components/Icon.qml) | 6 | 7 | 86% |
-| [`SendConfirm.qml`](../../src/app/qml/SendConfirm.qml) | 33 | 40 | 83% |
-| [`Bubble.qml`](../../src/app/qml/Bubble.qml) | 80 | 98 | 82% |
-| [`SettingsPopup.qml`](../../src/app/qml/SettingsPopup.qml) | 94 | 116 | 81% |
-| [`CostPopup.qml`](../../src/app/qml/CostPopup.qml) | 33 | 41 | 80% |
-| [`components/ShadowCard.qml`](../../src/app/qml/components/ShadowCard.qml) | 21 | 27 | 78% |
-| [`StatsPopup.qml`](../../src/app/qml/StatsPopup.qml) | 29 | 38 | 76% |
-| [`TrayMenu.qml`](../../src/app/qml/TrayMenu.qml) | 41 | 79 | 52% |
-| [`Main.qml`](../../src/app/qml/Main.qml) | 15 | 30 | 50% |
+| [`components/Tokens.qml`](../../../src/app/qml/components/Tokens.qml) | 17 | 17 | 100% |
+| [`components/StatRow.qml`](../../../src/app/qml/components/StatRow.qml) | 24 | 24 | 100% |
+| [`components/Switch.qml`](../../../src/app/qml/components/Switch.qml) | 9 | 9 | 100% |
+| [`components/MenuRow.qml`](../../../src/app/qml/components/MenuRow.qml) | 19 | 20 | 95% |
+| [`components/DropdownField.qml`](../../../src/app/qml/components/DropdownField.qml) | 40 | 43 | 93% |
+| [`components/SwitchRow.qml`](../../../src/app/qml/components/SwitchRow.qml) | 9 | 10 | 90% |
+| [`SelectionBar.qml`](../../../src/app/qml/SelectionBar.qml) | 40 | 45 | 89% |
+| [`WordsPopup.qml`](../../../src/app/qml/WordsPopup.qml) | 63 | 71 | 89% |
+| [`components/Segment.qml`](../../../src/app/qml/components/Segment.qml) | 16 | 18 | 89% |
+| [`components/Icon.qml`](../../../src/app/qml/components/Icon.qml) | 6 | 7 | 86% |
+| [`SendConfirm.qml`](../../../src/app/qml/SendConfirm.qml) | 33 | 40 | 83% |
+| [`Bubble.qml`](../../../src/app/qml/Bubble.qml) | 80 | 98 | 82% |
+| [`SettingsPopup.qml`](../../../src/app/qml/SettingsPopup.qml) | 94 | 116 | 81% |
+| [`CostPopup.qml`](../../../src/app/qml/CostPopup.qml) | 33 | 41 | 80% |
+| [`components/ShadowCard.qml`](../../../src/app/qml/components/ShadowCard.qml) | 21 | 27 | 78% |
+| [`StatsPopup.qml`](../../../src/app/qml/StatsPopup.qml) | 29 | 38 | 76% |
+| [`TrayMenu.qml`](../../../src/app/qml/TrayMenu.qml) | 41 | 79 | 52% |
+| [`Main.qml`](../../../src/app/qml/Main.qml) | 15 | 30 | 50% |
 
 三条读这份表的注意事项：
 
-- **未执行的 144 个位置里有 37 个是 `qsTr()` 标签。**无头跑不渲染，标签绑定永不求值。这不是缺口。真正没被点到的手（托盘菜单的语言下拉、设置面板的 Save / Defaults、气泡上的 “已知 / 新词”）在 [`docs/coverage-plan-2026-10-03.md`](../coverage-plan-2026-10-03.md) §4.1 里列着。
+- **未执行的 144 个位置里有 37 个是 `qsTr()` 标签。**无头跑不渲染，标签绑定永不求值。这不是缺口。真正没被点到的手（托盘菜单的语言下拉、设置面板的 Save / Defaults、气泡上的 “已知 / 新词”）在 [`docs/metrics/coverage/coverage-plan-2026-10-03.md`](../coverage/coverage-plan-2026-10-03.md) §4.1 里列着。
 - **这个数看不见分支。**一个绑定只要对象被创建就会求值一次，所以 “`checked` 为真和为假两条路都测过没有” 它答不上来。要那个得另建断言，不在这个口径里。
 - **它依赖构建树是新的。**QML 编进二进制，改了 `.qml` 没重新链接测试目标，量到的就是旧模块。本轮踩过一次：一次覆盖率运行里 `lens_qtest_surfaces` 报了 4 条 `Cannot assign to non-existent property "contentActive"`，`TrayMenu.qml` 只读到 19%；重新构建之后同一条用例全绿，那个文件变成 52%。当时那棵树正被另一个进程改着 `.qml`，落后于源码。
 
 ## 6、接下来做什么
 
-补测的清单、顺序与判据写在 [`docs/coverage-plan-2026-10-03.md`](../coverage-plan-2026-10-03.md)，本报告不重复。一句话：先修 §4.2 那条红例，再按 “离线纯函数 → 网络接缝 → 真机失败分支 → QML 的手” 的次序推。
+补测的清单、顺序与判据写在 [`docs/metrics/coverage/coverage-plan-2026-10-03.md`](../coverage/coverage-plan-2026-10-03.md)，本报告不重复。一句话：先修 §4.2 那条红例，再按 “离线纯函数 → 网络接缝 → 真机失败分支 → QML 的手” 的次序推。
 
 两个数都**不设阈值**。同一棵不改的树，C++ 那条线会在 66.0%–66.6% 之间自己摆（§4.2），QML 那条线的分母又混着口径造成的空位，拿它们卡构建会卡在天气上。要做趋势就按日期存报告比。CI 现在每次跑完会把两份原始数据传成 artifact，不卡构建。
 

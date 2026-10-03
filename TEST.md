@@ -185,7 +185,7 @@ sh scripts/qml-coverage.sh
   一次，同一个文件读 19% 与 52%。同理适用于 C++ 那条线。
 
 数字读出来之后怎么写、往哪写，见 `docs/metrics/` 里按日期存的那份报告；补什么、按什么顺序补，
-见 `docs/coverage-plan-2026-10-03.md`。
+见 `docs/metrics/coverage/coverage-plan-2026-10-03.md`。
 
 ## 5 UI 表面
 

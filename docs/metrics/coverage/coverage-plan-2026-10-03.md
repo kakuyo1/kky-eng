@@ -2,7 +2,7 @@
 
 ## 1、从哪里出发
 
-读数出自同一天的两份运行结果，原始数据见 [`docs/metrics/coverage-2026-10-03.md`](metrics/coverage-2026-10-03.md)：
+读数出自同一天的两份运行结果，原始数据见 [`docs/metrics/code-quality/test-coverage-baseline-2026-10-03.md`](../code-quality/test-coverage-baseline-2026-10-03.md)：
 
 | 线 | 口径 | 读数 | 原始数据 |
 | --- | --- | ---: | --- |
