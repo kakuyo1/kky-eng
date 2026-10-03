@@ -111,24 +111,19 @@ jobs:
       # tree-sitter, for the parse tree the QML scan counts its denominator from. It is the
       # same dependency the AST metrics use, so this is the one install both share.
       #
-      # The grammar has no prebuilt binary for this platform, so npm builds it with node-gyp,
-      # and the compiler it finds has to be one node-gyp can read. ilammy/msvc-dev-cmd picked
-      # the newest Visual Studio on the image, 2026 (18.x), and npm's bundled node-gyp cannot
-      # parse an 18.x version string: it reports "unknown version undefined", then "could not
-      # find any Visual Studio installation to use", and stops. That reads like a missing
-      # install and is not one -- the image also carries VS 2022 (17.14).
-      #
-      # Naming the version is not enough on its own: node-gyp checks the VCINSTALLDIR the
-      # dev-cmd step left in the environment and uses that installation without looking
-      # further. So this enters the 2022 environment itself. vswhere finds it rather than a
-      # hardcoded edition path, and the throw says what to do if a future image drops it.
+      # The grammar has no prebuilt binary for this platform, so npm builds it with node-gyp
+      # instead of downloading one -- and the runner's default Visual Studio is now 2026,
+      # which installs as 18.x. node-gyp could not read an 18.x version string until 12.1.0:
+      # before that it reports "unknown version undefined", then "could not find any Visual
+      # Studio installation to use", and stops, which reads like a missing install and is not
+      # one. npm 11.6.3 is the first that bundles node-gyp 12.1, and the runner is on npm 10,
+      # so moving npm is what fixes it. Pinning the job to windows-2022 would also work and
+      # was the wrong direction: it buys a compiler the image is retiring rather than a tool
+      # that can read the one it ships.
       - name: Install QML metric dependencies
-        shell: pwsh
         run: |
-          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-          $vs = & $vswhere -latest -version "[17.0,18.0)" -property installationPath
-          if (-not $vs) { throw "no Visual Studio 2022 on this image, and npm's node-gyp cannot read a newer one" }
-          cmd /c "call `"$vs\VC\Auxiliary\Build\vcvars64.bat`" >nul && npm ci"
+          npm install -g "npm@^11.6.3"
+          npm ci
 
       # qmlprofiler comes from the Qt the action installed, already on PATH. It launches the
       # two QTest binaries itself, so this is the same pair of suites the steps above ran,
