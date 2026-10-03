@@ -7,7 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Qt meta-object compiler, needed by the QObject classes in lens_llm / lens_app.
 set(CMAKE_AUTOMOC ON)
 
-find_package(Qt6 6.2 REQUIRED COMPONENTS Core Network Gui Quick Widgets Svg LinguistTools)
+# Test and QuickTest are for test/qtest/ alone: a QTest run needs a QGuiApplication and a Qt
+# Quick scene, which is what that directory exists to get.
+find_package(Qt6 6.2 REQUIRED COMPONENTS Core Network Gui Quick Widgets Svg LinguistTools Test QuickTest)
 
 # Qt's own defaults for QML modules: resources under :/qt/qml/, and a qmldir for every extra
 # directory holding .qml files. Setting both here keeps the configure step quiet.

@@ -14,18 +14,25 @@
 test/
 ├── eval_corpus.json      # 自检样例集，兼行为规格（§3）
 ├── records/              # 运行记录，gitignored（§5）
-└── googletest/
-    ├── support.h         # 仓库根 + 词表与屈折表的加载（无 Qt）
-    ├── llm_support.h     # 线上协议加载（含 Qt，只有 LLM 侧目标包含）
-    ├── unit/             # 离线，必绿
-    ├── integration/      # 真机 Windows API，人工执行
-    ├── perf/             # 只测量，不对时间下断言
-    └── smoke/            # 真模型，人工执行
+├── googletest/           # 不需要窗口的那一半
+│   ├── support.h         # 仓库根 + 词表与屈折表的加载（无 Qt）
+│   ├── llm_support.h     # 线上协议加载（含 Qt，只有 LLM 侧目标包含）
+│   ├── unit/             # 离线，必绿
+│   ├── integration/      # 真机 Windows API，人工执行
+│   ├── perf/             # 只测量，不对时间下断言
+│   └── smoke/            # 真模型，人工执行
+└── qtest/                # 要一个窗口、要跑 QML 的那一半
+    ├── main.cpp          # 每个 QTest 目标共用的 runner
+    ├── setup.{h,cpp}     # 表面目标要的 Controller / Tray，见 §2
+    ├── testutil.js       # 两个目录共用的走树助手
+    ├── components/       # 组件级用例（tst_*.qml）
+    └── surfaces/         # 表面级用例（tst_*.qml）加 settings.json
 ```
 
-目录名按用例性质分组：`unit` / `integration` / `e2e` / `perf` / `smoke`。当前 `unit`、
-`integration`、`perf`、`smoke` 有内容；`e2e` 等第一个用例出现时再建目录——git 不跟踪空目录。
-Qt 与 QML 侧的测试将来用 QTest 另立 `test/qtest/`，与这里平行，不混在一起。
+`googletest/` 的目录名按用例性质分组：`unit` / `integration` / `e2e` / `perf` / `smoke`。当前
+`unit`、`integration`、`perf`、`smoke` 有内容；`e2e` 等第一个用例出现时再建目录——git 不跟踪空
+目录。QML 与 Qt 侧的测试用 QTest，另立在 `test/qtest/`，与那里平行，不混在一起：它们要一个
+`QGuiApplication` 和一个 Qt Quick 场景，gtest 两样都给不了。
 
 ## 2 目标与运行
 
@@ -35,10 +42,18 @@ Qt 与 QML 侧的测试将来用 QTest 另立 `test/qtest/`，与这里平行，
 | `lens_gtest_integration` | 选区捕获：手势规则 / 终端排除 / 钩子与剪贴板的真机往返 | 动选区入口时，人工执行 |
 | `lens_gtest_perf` | FilterCore 吞吐 + profiling 报告 | 动内核时 |
 | `lens_gtest_smoke` | 1 词真模型往返 | 动 LLM 链路时，人工执行 |
+| `lens_qtest_components` | `qml/components/` 那八个的接线与交互 | 动组件时，无头，可进 CI |
+| `lens_qtest_surfaces` | 表面：Main 的摆放与关闭、托盘菜单、三张面板、行动条 | 动表面时，无头，可进 CI |
 
 ```
 PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
   ./build-ninja/test/googletest/lens_gtest_unit.exe
+
+PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_QPA_PLATFORM=offscreen QT_FORCE_STDERR_LOGGING=1 \
+  ./build-ninja/test/qtest/lens_qtest_components.exe
+
+PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_QPA_PLATFORM=offscreen QT_FORCE_STDERR_LOGGING=1 \
+  ./build-ninja/test/qtest/lens_qtest_surfaces.exe
 ```
 
 - 链接 `lens_llm` 或 `lens_app` 的目标需要 Qt DLL 在 `PATH` 上（即 `unit` / `integration` /
@@ -48,7 +63,25 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
   `Captured`、哨兵串还在剪贴板上。剪贴板存还原本身另有 `ClipboardSnapshot.*` 三例自动覆盖，不依赖这一条——把它交给人工的那段时间里，它正是坏的。那三例直接操真实的剪贴板，而剪贴板是全机共享的：约 35 次运行里见过 3 次失败，都在别的进程刚写过剪贴板之后，按需复现不了，加重试也没挡住。所以那里单次失败先重跑一次再当信号看，成因仍未知，如实记着。提权窗口（任务管理器、管理员控制台）会被 UIPI 挡下注入，表现为超时而不是报错，别拿它试；终端类进程按名字排除，是故意的。
 - 那两例真机用例会合成鼠标事件，指针会被移动并复位；拖拽落点是一个测试自己创建的顶层小窗口，不会点到读者的界面。
 - 不接 ctest：`gtest_discover_tests` 会在构建期执行测试程序，等于要求构建环境也把 Qt DLL 摆在
-  `PATH` 上，不值得这层耦合。
+  `PATH` 上，不值得这层耦合。QTest 侧同理，同样不接。
+- QTest 的用例是 `.qml`，从源码树直接读，不进任何模块的 `QML_FILES`，所以 qmllint 不看它们，那
+  条棘轮不受影响。它们要 `import Lens` 才跑得起来，因此目标链 `lens_app` 与 `lens_appplugin`：
+  静态插件只有它的 init 对象被链进来才导入，少了这一条，组件会以 “不是类型” 而不是以断言失败
+  的形式消失。
+- 用例文件的根是一个 `Item`，`TestCase` 是它的孩子而不是根。`TestCase` 自带 `visible: false`，
+  挂在它下面的东西于是收不到鼠标事件——而鼠标事件正是这个目标替掉人眼的那一半。
+- 图标资源挂在 `lens` 可执行文件上，不在 `lens_app` 里，于是 `qrc:/icons/*.svg` 在两个 QTest 目
+  标里都加载不了，每个用例刷几条 `QML Image: Cannot open`。没有一条断言依赖图标。
+- 两个目标的差别只有一处：`lens_qtest_surfaces` 编译 `setup.cpp` 时定义 `LENS_QTEST_SINGLETONS`，
+  组件目标不定义。`Controller` / `Tray` 的工厂在没人 `provide()` 时断言、Debug 下直接崩进程，而
+  引擎自己造不出来（构造函数要 store、client 与 hook），所以 setup 照 `main()` 的做法造好再交出
+  去——只是**不装鼠标钩子、不显示托盘图标**。组件用例碰不到这两样，也就不必背一份配置。
+- 表面用例跑的是签入的 `surfaces/settings.json`，不是 `settings.local.json`，两个理由：断言要在每
+  台机器上看到同一组值，而设置面板的 setter 会落盘——指向仓库里那份，一条切换主题的用例就会改掉一
+  个被跟踪的文件。setup 把夹具拷进临时目录再加载，进程退出时删掉。
+- 夹具里 `selectionCapture` 写的是字符串 `"false"`，不是 JSON 布尔。`writeDocument` 写的是字符
+  串，`documentString` 也只认字符串，写成 `false` 会被当作缺省值 `"true"` 静默忽略——这是手改这份
+  文档时最先踩到的一格。
 - 冒烟：`LENS_SMOKE_WORD=ubiquitous ./build-ninja/test/googletest/lens_gtest_smoke.exe`。词取自
   `LENS_SMOKE_WORD`，缺省 `ubiquitous`。`settings.local.json` 缺 URL / MODEL / API-KEY 时报 skip
   而不是失败——要 key、要花钱、结论靠人看，所以它不进 CI。密钥读进内存后不打印、不进日志、不进
@@ -98,7 +131,9 @@ cmake --build --preset ninja-qt6-perf --target lens_gtest_perf
 
 ## 5 UI 表面
 
-表面没有主窗口，全部靠触发才出现，所以真机验证只能靠驱动与拍照。`scripts/ui-*.ps1` 是三个这样的工具，
+表面没有主窗口，全部靠触发才出现，所以真机验证只能靠驱动与拍照。能脱离屏幕断言的那部分已经搬进
+`lens_qtest_surfaces`（§2）：摆放、关闭规则、面板上的数字、托盘菜单那几个派生值，都不再需要快门。
+剩下的仍是这里的事——卡片对没对齐、阴影糊不糊、图标画出来没有。`scripts/ui-*.ps1` 是三个这样的工具，
 都是 PowerShell，都先把自己设成 per-monitor-v2 感知——不设的话截到的是 Windows 已经拉伸过的位图，
 糊与偏移都会被量成假的。
 

@@ -1,0 +1,17 @@
+{
+  "level": 2,
+  "explanationLang": "zh",
+  "theme": "dark",
+  "uiLanguage": "en",
+  "selectionCapture": "false",
+  "history": [
+    { "word": "ubiquitous", "time": "2026-01-02 09:14", "verdict": "known" },
+    { "word": "run", "time": "2026-01-02 09:12", "verdict": "new" },
+    { "word": "run", "time": "2026-01-02 09:10", "verdict": "" },
+    { "word": "panel", "time": "2026-01-01 21:40", "verdict": "" }
+  ],
+  "daily": {
+    "2026-01-01": { "pops": 4, "learned": 1, "fresh": 3, "promptTokens": 1000, "completionTokens": 500 },
+    "2026-01-02": { "pops": 7, "learned": 3, "fresh": 4, "promptTokens": 2000, "completionTokens": 1000 }
+  }
+}

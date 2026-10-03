@@ -26,7 +26,7 @@ lens/
 ├── icons
 ├── logs              # runtime logs, rotating, gitignored but for .gitkeep
 ├── src
-├── test              # gtest targets: unit / integration / perf / smoke, separate from src/
+├── test              # gtest (unit / integration / perf / smoke) and qtest targets, separate from src/
 └── ui-prototypes/
      └── v1-halo-{tray-menu,stats,words,cost,settings,bubble,selection-bar}.html
 ```
@@ -42,7 +42,7 @@ Toolchain (verified): cmake 4.0.1 · Ninja 1.12.1 · MSVC 19.44
 
 ## Test
 
-Tests live under `test/googletest/` (gtest): `unit/` offline, `integration/` real Windows APIs (human-run), `perf/` measurement, `smoke/` real model, with `e2e/` the name for what comes next. QML and widget tests will arrive under `test/qtest/` with QTest, not here.
+Tests live under `test/googletest/` (gtest): `unit/` offline, `integration/` real Windows APIs (human-run), `perf/` measurement, `smoke/` real model, with `e2e/` the name for what comes next. The Qt and QML side is `test/qtest/` (QTest), which needs a window; it is not here.
 
 ```
 PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
