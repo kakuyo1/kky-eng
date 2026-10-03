@@ -49,7 +49,7 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
   ./build-ninja/test/googletest/lens_gtest_unit.exe
 ```
 
-`TEST.md` owns the rest: the targets, the corpus format, the profiling facility and its build tree, and the run-record convention.
+`TEST.md` owns the rest: the targets, the corpus format, the profiling facility and its build tree, the coverage scan, and the run-record convention.
 
 Targets: `lens_core` (no Qt) → `lens_llm` → `lens_app`. The `lens_gtest_*` targets are standalone and never shipped — see `PHASE1.md` §4.5.
 

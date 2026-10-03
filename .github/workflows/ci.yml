@@ -10,6 +10,12 @@
 #
 # Not here on purpose: lens_gtest_integration needs a real mouse and the real clipboard, and
 # lens_gtest_smoke needs a real model and an API key. Both stay human-run; see TEST.md section 2.
+# The coverage steps below inherit that split and run four of the targets, not five.
+#
+# The coverage steps report and do not gate. The numbers move on their own between runs of an
+# unchanged tree -- one known-red case in lens_gtest_integration leaves lines covered or not
+# depending on how the timing falls, which is worth about a percentage point on the total -- so
+# a threshold would fail on the weather. TEST.md section 4 carries the scope of both scans.
 
 name: CI
 
@@ -56,7 +62,7 @@ jobs:
       # targets are named for the same reason: qmllint reads the module's QML, not the C++ the
       # surfaces are driven by, and neither step would touch a new .cpp on its own.
       - name: Build
-        run: cmake --build --preset ninja-qt6 --target lens lens_gtest_unit lens_qtest_components lens_qtest_surfaces
+        run: cmake --build --preset ninja-qt6 --target lens lens_gtest_unit lens_gtest_perf lens_qtest_components lens_qtest_surfaces
 
       # Rides on the tree the configure step just wrote: scripts/qml-lint.sh reads the qmllint
       # response file CMake leaves there and takes qmllint from the Qt that file names.
@@ -85,3 +91,42 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
           QT_FORCE_STDERR_LOGGING: 1
+
+      # The image carries neither of the two coverage tools. OpenCppCoverage ships as one
+      # executable that reads a binary's PDB, so installing it is the whole setup; the version
+      # is pinned the way Qt's is, and TEST.md section 4 has the same line for a dev machine.
+      - name: Install OpenCppCoverage
+        run: |
+          $url = "https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-0.9.9.0/OpenCppCoverageSetup-x64-0.9.9.0.exe"
+          Invoke-WebRequest -Uri $url -OutFile "$env:TEMP\OpenCppCoverageSetup.exe"
+          Start-Process -FilePath "$env:TEMP\OpenCppCoverageSetup.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait
+        shell: pwsh
+
+      # The four targets a runner can run. lens_gtest_integration is left out here even though
+      # the script's default includes it: it drives the real mouse and clipboard.
+      - name: Coverage (C++)
+        run: bash scripts/coverage.sh test/records/coverage lens_gtest_unit lens_gtest_perf lens_qtest_components lens_qtest_surfaces
+        shell: bash
+
+      # tree-sitter, for the parse tree the QML scan counts its denominator from. It is the
+      # same dependency the AST metrics use, so this is the one install both share.
+      - name: Install QML metric dependencies
+        run: npm ci
+
+      # qmlprofiler comes from the Qt the action installed, already on PATH. It launches the
+      # two QTest binaries itself, so this is the same pair of suites the steps above ran,
+      # measured instead of just checked.
+      - name: Coverage (QML)
+        run: bash scripts/qml-coverage.sh
+        shell: bash
+
+      # always(), because a red case is exactly when the report is worth reading. The two files
+      # are the raw data behind the report under docs/metrics/.
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: |
+            test/records/coverage/coverage.xml
+            test/records/qmlcov/qml-coverage.json
