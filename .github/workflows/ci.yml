@@ -1,0 +1,56 @@
+# The gate that was missing. lens_gtest_unit has been offline, key-free and CI-ready since it
+# was written (PHASE1.md section 4.5), but nothing ever ran it -- it held only as long as
+# someone remembered to run it by hand. This is deliberately the smallest pipeline that closes
+# that gap.
+#
+# Not here on purpose: lens_gtest_integration needs a real mouse and the real clipboard, and
+# lens_gtest_smoke needs a real model and an API key. Both stay human-run; see TEST.md section 2.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  unit:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The base install carries every component the configure step asks for: qtbase (Core,
+      # Gui, Widgets, Network), qtdeclarative (Quick), qtsvg, qttools (LinguistTools). It also
+      # puts Qt's bin on PATH, which is what the test executable needs for the Qt DLLs.
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.9.0'
+          arch: win64_msvc2022_64
+          cache: true
+
+      # Ninja cannot find MSVC by itself -- the same reason scripts/build.bat enters the Visual
+      # Studio environment before driving CMake. The runner has VS 2022, so nothing installs.
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      # The preset bakes in this machine's Qt (B:/qtt/6.9.0/msvc2022_64). Override it with
+      # wherever the action put Qt; the rest of the preset is meant to be used as written.
+      - name: Configure
+        run: cmake --preset ninja-qt6 -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
+
+      # lens is built alongside the test so a compile error in src/app fails the gate too --
+      # lens_gtest_unit links only lens_core and lens_llm, and would not notice.
+      - name: Build
+        run: cmake --build --preset ninja-qt6 --target lens lens_gtest_unit
+
+      # Rides on the tree the configure step just wrote: scripts/qml-lint.sh reads the qmllint
+      # response file CMake leaves there and takes qmllint from the Qt that file names.
+      - name: QML lint
+        run: bash scripts/qml-lint.sh
+        shell: bash
+
+      - name: Unit tests
+        run: ./build-ninja/test/googletest/lens_gtest_unit.exe
+        env:
+          QT_FORCE_STDERR_LOGGING: 1

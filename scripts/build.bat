@@ -42,3 +42,15 @@ if not exist "build-ninja\build.ninja" (
 )
 
 cmake --build --preset ninja-qt6 %*
+if errorlevel 1 exit /b 1
+
+REM The QML lint needs the response file CMake writes when it configures the tree, and that tree
+REM is this script's doing, so it runs here rather than in the pre-commit hook. A machine with no
+REM sh on PATH (a bare cmd session) skips it instead of failing the build, the same contract the
+REM hook keeps when one of its tools is missing. Its exit code is this script's.
+where sh >nul 2>&1
+if errorlevel 1 (
+  echo [build] sh is not on PATH, skipping the QML lint
+) else (
+  sh scripts/qml-lint.sh
+)

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Lens pre-commit: the three checks that are mechanical and cheap.
+# Lens pre-commit: the five checks that are mechanical and cheap.
 #
 # 1. Chinese typography, as a ratchet. Several docs carry errors that predate this hook --
 #    English prose tripping Chinese rules, mostly -- so each doc is compared against the
@@ -11,8 +11,15 @@
 # 3. C++ formatting. The tree was formatted once by hand and then left to drift; this is what
 #    stops that. clang-format is not on PATH on this machine, so the copy Visual Studio ships is
 #    looked for as a fallback.
+# 4. Probe scaffolding. TEST.md section 5 says anything added to src/ to see what is going on --
+#    a timer, a console.log -- has to be gone before the commit lands. Those are deterministic
+#    strings, so a grep settles it; leaving it to memory is what this check replaces.
+# 5. QML. The odd one out: a .qml file only lints correctly beside its whole module, so this
+#    runs the full set instead of the staged subset, and it wants a configured build tree.
+#    scripts/qml-lint.sh owns the arguments, the count and the reasoning.
 #
-# Only what this commit touches is checked, which keeps a commit hook under a few seconds.
+# Only what this commit touches is checked, which keeps a commit hook under a few seconds. The
+# QML check is the exception, and it is the one that only runs when a .qml file is staged.
 #
 # Setup, once per clone:  git config core.hooksPath .githooks
 #
@@ -33,15 +40,21 @@ set -u
 cd "$(git rev-parse --show-toplevel)" || exit 0
 
 # Per-doc error budgets. Ratchet: lower on cleanup, never raise to pass.
-BASELINES='AGENTS.md 46
+BASELINES='AGENTS.md 19
 CLAUDE.md 0
+CODING_STANDARDS.md 0
 CONTEXT.md 0
 DESIGN.md 11
 LLM.md 0
 PHASE1.md 0
 TEST.md 0
 TODO.md 12
-UI.md 27'
+UI.md 27
+docs/QML.md 0
+docs/adr/README.md 0
+docs/adr/0001-mouse-hook-own-thread.md 0
+docs/adr/0002-qml-split-by-window.md 0
+docs/adr/0003-instructions-live-in-agents-md.md 0'
 
 staged=$(git diff --cached --name-only --diff-filter=ACM)
 
@@ -59,8 +72,15 @@ check_typography() {
         # Both streams: zhlint prints the offending lines on stderr and the verdict on
         # stdout. Keeping only stdout counts zero every time, which is a check that always
         # passes -- the failure mode this hook exists to avoid.
-        report=$(npx -y zhlint --config "$config" "$doc" 2>&1)
-        if ! printf '%s\n' "$report" | grep -qE 'errors\.|No error found'; then
+        #
+        # The backslash swap is not cosmetic. zhlint prints the path as it found it, which on
+        # Windows means "docs\adr\README.md", while the staged name git hands us is
+        # "docs/adr/README.md". The count greps anchor on the name, so without this every doc
+        # below the root counts zero and silently passes.
+        report=$(npx -y zhlint --config "$config" "$doc" 2>&1 | tr '\\' '/')
+        # "Found 1 error." is singular -- matching only "errors\." would let a doc with exactly
+        # one error report no verdict.
+        if ! printf '%s\n' "$report" | grep -qE '[0-9]+ errors?\.|No error found'; then
             echo "pre-commit: zhlint gave no verdict for $doc, skipping typography"
             continue
         fi
@@ -155,8 +175,42 @@ EOF
     return $status
 }
 
+# The two markers TEST.md section 5 names. Matched as written, so a comment about them -- like
+# the one in TEST.md, or this one -- has to live outside src/ to stay out of the way.
+PROBE_PATTERN='PROBE|console\.log'
+
+check_probes() {
+    printf '%s\n' "$staged" | grep -q '^src/' || return 0
+
+    status=0
+    for file in $staged; do
+        case "$file" in
+            src/*) ;;
+            *) continue ;;
+        esac
+        [ -f "$file" ] || continue
+
+        hits=$(grep -nE "$PROBE_PATTERN" "$file" || true)
+        [ -n "$hits" ] || continue
+
+        echo "pre-commit: $file still carries probe scaffolding"
+        printf '%s\n' "$hits" | head -10
+        echo "  delete it before committing -- TEST.md section 5 says why"
+        status=1
+    done
+    return $status
+}
+
+check_qml() {
+    printf '%s\n' "$staged" | grep -q '^src/app/qml/' || return 0
+    [ -x scripts/qml-lint.sh ] || { echo "pre-commit: scripts/qml-lint.sh not found, skipping QML lint"; return 0; }
+    scripts/qml-lint.sh
+}
+
 status=0
 check_typography || status=1
 check_prototype_list || status=1
 check_formatting || status=1
+check_probes || status=1
+check_qml || status=1
 exit $status
