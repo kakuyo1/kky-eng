@@ -5,11 +5,13 @@
 
 #include "mouse_selection_hook.h"
 
-#include <QTimer>
-
 #include <cstdint>
 #include <cstdlib>
+#include <condition_variable>
+#include <functional>
+#include <mutex>
 #include <optional>
+#include <thread>
 
 #include "core/log.h"
 
@@ -103,21 +105,45 @@ bool overOurWindow(POINT pt)
 
 GestureTracker g_tracker;
 MouseSelectionHook* g_owner = nullptr;
-HHOOK g_handle = nullptr;
 
-/// @brief Report a press to the event loop, keeping the callback itself O(1).
+// The hook's own thread, and the only thing it does is wait for messages.
+//
+// Windows calls a WH_MOUSE_LL callback on the thread that installed the hook, and holds the
+// mouse until that thread answers -- up to LowLevelHooksTimeout, 300 ms by default. The main
+// thread owns the window, the word list, the store and the renderer, so it will always have
+// something that blocks for longer than a mouse may wait: measured on the real machine, at
+// startup alone, three inputs at 312 ms apiece while it compiled the QML and built the first
+// frame. Installing the hook later only moves which work is caught, so it lives here instead.
+HHOOK g_handle = nullptr;
+DWORD g_hookThreadId = 0;
+DWORD g_hookError = 0;
+std::thread g_hookThread;
+std::mutex g_startMutex;
+std::condition_variable g_started;
+bool g_startDone = false;
+
+/// @brief Report an event to the loop that owns the surfaces, keeping the callback O(1).
+///
+/// A queued invocation rather than a direct emit or a zero-delay timer: the callback runs on the
+/// hook's thread, and the controller's connections have to be delivered on the thread that owns
+/// the surfaces. Queued delivery is what Qt documents for exactly this.
+void postToOwner(MouseSelectionHook* owner, std::function<void()> report)
+{
+    QMetaObject::invokeMethod(owner, std::move(report), Qt::QueuedConnection);
+}
+
 void emitPressedLater(const POINT& pt)
 {
     MouseSelectionHook* const owner = g_owner;
     const QPoint at(pt.x, pt.y);
-    QTimer::singleShot(0, owner, [owner, at] { emit owner->pointerPressed(at); });
+    postToOwner(owner, [owner, at] { emit owner->pointerPressed(at); });
 }
 
 /**
- * The hook itself. Windows calls it on the thread that installed the hook, within a budget
- * it enforces silently: a callback that overruns LowLevelHooksTimeout gets the hook removed
- * with no error anywhere. So this does O(1) work and nothing else — the signal goes out
- * through a zero-delay timer, leaving the injection and its wait to the event loop.
+ * The hook itself. Runs on the hook's own thread, within a budget Windows enforces silently: a
+ * callback that overruns LowLevelHooksTimeout gets the hook removed with no error anywhere. So
+ * this does O(1) work and nothing else -- the signal is queued rather than emitted, leaving the
+ * injection and its wait to the thread that owns the surfaces.
  */
 LRESULT CALLBACK lowLevelMouseProc(int code, WPARAM wParam, LPARAM lParam)
 {
@@ -141,7 +167,7 @@ LRESULT CALLBACK lowLevelMouseProc(int code, WPARAM wParam, LPARAM lParam)
                     // Qt's signals are public, so this is legal; the class's own code would
                     // read the same way.
                     MouseSelectionHook* const owner = g_owner;
-                    QTimer::singleShot(0, owner, [owner, point = *anchor] { emit owner->selectionReleased(point); });
+                    postToOwner(owner, [owner, point = *anchor] { emit owner->selectionReleased(point); });
                 }
                 break;
 
@@ -152,6 +178,38 @@ LRESULT CALLBACK lowLevelMouseProc(int code, WPARAM wParam, LPARAM lParam)
 
     // Always chain on: something else may legitimately have installed a hook too.
     return CallNextHookEx(nullptr, code, wParam, lParam);
+}
+
+/// @brief Runs on the hook's own thread: install, then pump until asked to stop.
+void hookThreadMain()
+{
+    // A thread gets its message queue on the first peek, and PostThreadMessage cannot reach this
+    // thread until it has one -- which is how the destructor asks it to leave.
+    MSG msg;
+    PeekMessageW(&msg, nullptr, WM_USER, WM_USER, PM_NOREMOVE);
+
+    g_handle = SetWindowsHookExW(WH_MOUSE_LL, &lowLevelMouseProc, GetModuleHandleW(nullptr), 0);
+    {
+        const std::lock_guard<std::mutex> lock(g_startMutex);
+        g_hookThreadId = GetCurrentThreadId();
+        g_hookError = g_handle == nullptr ? GetLastError() : 0;
+        g_startDone = true;
+    }
+    g_started.notify_all();
+
+    if (g_handle == nullptr)
+        return;
+
+    while (GetMessageW(&msg, nullptr, 0, 0) > 0) {
+        TranslateMessage(&msg);
+        DispatchMessageW(&msg);
+    }
+
+    // Unhooked here rather than from the destructor: this is the thread the callback runs on, so
+    // it is the only one that can know no callback is in flight.
+    UnhookWindowsHookEx(g_handle);
+    g_handle = nullptr;
+    g_owner = nullptr;
 }
 
 } // namespace
@@ -174,17 +232,24 @@ MouseSelectionHook::MouseSelectionHook(QObject* parent)
 
 MouseSelectionHook::~MouseSelectionHook()
 {
-    if (installed_ && g_owner == this && g_handle != nullptr) {
-        UnhookWindowsHookEx(g_handle);
-        g_handle = nullptr;
-        g_owner = nullptr;
-    }
+    if (!installed_ || g_owner != this)
+        return;
+
+    // Ask the hook's thread to leave and wait for it: it unhooks on the way out, from the thread
+    // the callback runs on, which is the only place that can know none is in flight.
+    if (g_hookThreadId != 0)
+        PostThreadMessageW(g_hookThreadId, WM_QUIT, 0, 0);
+    if (g_hookThread.joinable())
+        g_hookThread.join();
+    installed_ = false;
 }
 
 bool MouseSelectionHook::install()
 {
     if (installed_) return true;
 
+    // Read on this thread, before the hook starts: the tracker is touched only by the callback
+    // afterwards, and starting the thread is what publishes these values to it.
     const int dragX = GetSystemMetrics(SM_CXDRAG);
     const int dragY = GetSystemMetrics(SM_CYDRAG);
     g_tracker.dragSlopPx = dragX > dragY ? dragX : dragY;
@@ -192,15 +257,22 @@ bool MouseSelectionHook::install()
     g_tracker.doubleClickSlopPx = GetSystemMetrics(SM_CXDOUBLECLK);
 
     g_owner = this;
-    g_handle = SetWindowsHookExW(WH_MOUSE_LL, &lowLevelMouseProc, GetModuleHandleW(nullptr), 0);
+    {
+        std::unique_lock<std::mutex> lock(g_startMutex);
+        g_startDone = false;
+        g_hookThread = std::thread(hookThreadMain);
+        g_started.wait(lock, [] { return g_startDone; });
+    }
+
     if (g_handle == nullptr) {
-        LENS_CRITICAL("MouseSelectionHook::install: SetWindowsHookEx failed with error {}", GetLastError());
+        LENS_CRITICAL("MouseSelectionHook::install: SetWindowsHookEx failed with error {}", g_hookError);
         g_owner = nullptr;
+        g_hookThread.join();
         return false;
     }
 
     installed_ = true;
-    LENS_INFO("MouseSelectionHook::install: listening (drag slop {} px, double click {} ms, click slop {} px)", g_tracker.dragSlopPx, g_tracker.doubleClickMs, g_tracker.doubleClickSlopPx);
+    LENS_INFO("MouseSelectionHook::install: listening on its own thread (drag slop {} px, double click {} ms, click slop {} px)", g_tracker.dragSlopPx, g_tracker.doubleClickMs, g_tracker.doubleClickSlopPx);
     return true;
 }
 

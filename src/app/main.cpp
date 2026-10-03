@@ -169,8 +169,6 @@ int main(int argc, char* argv[])
                                                model.isEmpty() ? QStringLiteral("deepseek-flash") : model});
 
     MouseSelectionHook hook;
-    if (!hook.install())
-        return 1;
 
     AppController controller(store, llm, hook, pricing);
 
@@ -202,6 +200,17 @@ int main(int argc, char* argv[])
 
     engine.loadFromModule("Lens", "Main");
     if (engine.rootObjects().isEmpty())
+        return 1;
+
+    // Installed here, and not one line earlier. A WH_MOUSE_LL hook is called on the thread that
+    // installed it, so from install() until that thread is back in a message loop the mouse
+    // waits on it and then waits out the shell's 300 ms hook timeout -- measured on the real
+    // machine, three events at 312 ms apiece while the QML above was compiled and its nine
+    // windows built, which is what a reader feels as the pointer being yanked away as the app
+    // comes up. Everything above this line blocks this thread and none of it needs the hook:
+    // the controller has been connected to it since it was constructed, and nothing the
+    // surfaces read comes from it.
+    if (!hook.install())
         return 1;
 
     LENS_INFO("Lens is up");
