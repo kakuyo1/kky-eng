@@ -3,6 +3,11 @@
 # someone remembered to run it by hand. This is deliberately the smallest pipeline that closes
 # that gap.
 #
+# The two QTest targets belong here for the same reason, and needed nothing new to get in: they
+# want a QGuiApplication and a Qt Quick scene, not a screen, so QT_QPA_PLATFORM=offscreen puts
+# the whole QML side -- components and surfaces -- inside a key-free job. What each of them
+# covers, and the several ways a QTest harness goes quiet rather than red, are TEST.md section 2.
+#
 # Not here on purpose: lens_gtest_integration needs a real mouse and the real clipboard, and
 # lens_gtest_smoke needs a real model and an API key. Both stay human-run; see TEST.md section 2.
 
@@ -22,8 +27,10 @@ jobs:
       - uses: actions/checkout@v4
 
       # The base install carries every component the configure step asks for: qtbase (Core,
-      # Gui, Widgets, Network), qtdeclarative (Quick), qtsvg, qttools (LinguistTools). It also
-      # puts Qt's bin on PATH, which is what the test executable needs for the Qt DLLs.
+      # Gui, Widgets, Network, and Test, which is where Qt6Test comes from), qtdeclarative
+      # (Quick, and QuickTest, which is built out of its src/qmltest), qtsvg, qttools
+      # (LinguistTools). It also puts Qt's bin on PATH, which is what the test executables need
+      # for the Qt DLLs.
       - uses: jurplel/install-qt-action@v4
         with:
           version: '6.9.0'
@@ -39,10 +46,12 @@ jobs:
       - name: Configure
         run: cmake --preset ninja-qt6 -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
 
-      # lens is built alongside the test so a compile error in src/app fails the gate too --
-      # lens_gtest_unit links only lens_core and lens_llm, and would not notice.
+      # lens is built alongside the tests so a compile error in src/app fails the gate too --
+      # lens_gtest_unit links only lens_core and lens_llm, and would not notice. The QTest
+      # targets are named for the same reason: qmllint reads the module's QML, not the C++ the
+      # surfaces are driven by, and neither step would touch a new .cpp on its own.
       - name: Build
-        run: cmake --build --preset ninja-qt6 --target lens lens_gtest_unit
+        run: cmake --build --preset ninja-qt6 --target lens lens_gtest_unit lens_qtest_components lens_qtest_surfaces
 
       # Rides on the tree the configure step just wrote: scripts/qml-lint.sh reads the qmllint
       # response file CMake leaves there and takes qmllint from the Qt that file names.
@@ -53,4 +62,21 @@ jobs:
       - name: Unit tests
         run: ./build-ninja/test/googletest/lens_gtest_unit.exe
         env:
+          QT_FORCE_STDERR_LOGGING: 1
+
+      # QT_QPA_PLATFORM=offscreen is what makes these two headless -- they build real windows,
+      # and offscreen is the platform that gives them one without a screen. On a runner there
+      # is a console, so QT_FORCE_STDERR_LOGGING is belt and braces here rather than the
+      # necessity it is on the development machine; it is set so a failure reads the same in
+      # both places, which is the command TEST.md section 2 documents.
+      - name: Component tests
+        run: ./build-ninja/test/qtest/lens_qtest_components.exe
+        env:
+          QT_QPA_PLATFORM: offscreen
+          QT_FORCE_STDERR_LOGGING: 1
+
+      - name: Surface tests
+        run: ./build-ninja/test/qtest/lens_qtest_surfaces.exe
+        env:
+          QT_QPA_PLATFORM: offscreen
           QT_FORCE_STDERR_LOGGING: 1
