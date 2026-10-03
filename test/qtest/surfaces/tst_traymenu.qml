@@ -36,6 +36,7 @@ Item {
         function make() {
             const menu = createTemporaryObject(menuComponent, root);
             verify(menu);
+            menu.contentActive = true;
             wait(50);
             return menu;
         }
@@ -43,6 +44,19 @@ Item {
         /// @return The menu's own texts, keyed by what they say about the controller.
         function stateLine(menu) {
             return Util.textWith(Util.textsUnder(menu), [Controller.modeLabel, qsTr("Selection capture is off")]);
+        }
+
+        function test_rowsAreCreatedOnFirstOpen() {
+            const menu = createTemporaryObject(menuComponent, root);
+            verify(menu);
+            compare(menu.contentActive, false);
+            compare(Util.textsUnder(menu).length, 0);
+            const initialHeight = menu.height;
+
+            menu.contentActive = true;
+            tryCompare(menu, "contentActive", true);
+            verify(Util.textWith(Util.textsUnder(menu), [qsTr("Statistics")]));
+            verify(menu.height > initialHeight, "the opened menu has no room for its rows");
         }
 
         function test_theStateLineSaysWhetherCaptureIsOn() {

@@ -11,8 +11,11 @@
 #include <QFont>
 #include <QCoreApplication>
 #include <QQmlApplicationEngine>
+#include <QTimer>
+#include <QVariant>
 #include <QTranslator>
 #include <QUrl>
+#include <QVector>
 
 #include <filesystem>
 #include <memory>
@@ -215,6 +218,37 @@ int main(int argc, char* argv[])
     // surfaces read comes from it.
     if (!hook.install())
         return 1;
+
+#if defined(QT_QML_DEBUG)
+    const QByteArray profileScenario = qgetenv("LENS_QML_PROFILE_SCENARIO");
+    if (not profileScenario.isEmpty()) {
+        QObject* const root = engine.rootObjects().constFirst();
+        QVector<int> steps;
+        if (profileScenario == "startup")
+            steps = {7};
+        else if (profileScenario == "tray")
+            steps = {0, 1, 7};
+        else if (profileScenario == "navigation")
+            steps = {2, 3, 4, 2, 7};
+        else if (profileScenario == "settings")
+            steps = {5, 7};
+        else if (profileScenario == "bubble")
+            steps = {6, 7};
+        else
+            steps = {0, 1, 2, 3, 4, 5, 6, 7};
+
+        for (qsizetype index = 0; index < steps.size(); ++index) {
+            const int step = steps.at(index);
+            QTimer::singleShot(1500 + static_cast<int>(index) * 900, &app, [root, step] {
+                const bool invoked = QMetaObject::invokeMethod(root,
+                                                               "profileScenario",
+                                                               Q_ARG(QVariant, QVariant::fromValue(step)));
+                if (!invoked)
+                    LENS_WARN("QML profile scenario step {} could not be invoked", step);
+            });
+        }
+    }
+#endif
 
     LENS_INFO("Lens is up");
     return app.exec();

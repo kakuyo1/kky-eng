@@ -31,6 +31,10 @@ option(DEV_SEND_CONFIRM "Dev: force consent before sending to LLM" OFF)
 # how lens_core is built, so turning it on means a rebuild of that target, not a rerun.
 option(LENS_ENABLE_PROFILE "Compile lens_core profile instrumentation in" OFF)
 
+# QML profiler builds need the engine's debugging hooks. Keep this off for normal builds: it
+# changes the executable's instrumentation and is only useful for a dedicated measurement tree.
+option(LENS_ENABLE_QML_DEBUG "Compile the lens executable with QML debugging enabled" OFF)
+
 # Vendored dependencies. spdlog builds its own static library; see third_party/spdlog.
 add_subdirectory(third_party/spdlog)
 
@@ -42,6 +46,10 @@ add_subdirectory(third_party/googletest)
 add_subdirectory(src/core)
 add_subdirectory(src/llm)
 add_subdirectory(src/app)
+
+if(LENS_ENABLE_QML_DEBUG)
+  target_compile_definitions(lens PRIVATE QT_QML_DEBUG)
+endif()
 
 # Defined here rather than inside src/app so the value is the same everywhere, and so a
 # release build simply does not contain the consent dialog's code.

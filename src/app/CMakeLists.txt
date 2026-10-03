@@ -74,6 +74,11 @@ target_compile_definitions(lens PRIVATE
 # there whether to write a singleton entry into the module's qmldir.
 set_source_files_properties(qml/components/Tokens.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
+# The URI is Lens, so generated QML tooling files belong below a Lens directory. Keeping the
+# target path aligned makes CMake generate the qmllint response file in every build tree,
+# including the dedicated profiler tree.
+set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Lens")
+
 # Two groups, split by what the file is rather than by where it is used. The nine windows are
 # the surfaces themselves -- one per thing the reader sees -- and they sit at the root so that
 # Main stays loadFromModule("Lens", "Main"). Everything else is a component a surface is built

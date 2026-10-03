@@ -132,6 +132,40 @@ Window {
         root.placePanel(wordsPopup, root.trayAnchor());
     }
 
+    function showTrayMenu() {
+        root.hidePanels(trayMenu);
+        trayMenu.contentActive = true;
+        trayMenu.listVisible = false;
+        root.placePanel(trayMenu, root.trayAnchor());
+    }
+
+    // Debug-only automation called by main.cpp when QT_QML_DEBUG and the profiling scenario
+    // environment flag are both enabled. The sequence uses the same surface entry points as
+    // the reader, but avoids a tray-coordinate dependency in repeatable profiler runs.
+    function profileScenario(step) {
+        if (step === 0) {
+            root.showTrayMenu();
+        } else if (step === 1) {
+            trayMenu.listVisible = true;
+        } else if (step === 2) {
+            trayMenu.visible = false;
+            root.showStats();
+        } else if (step === 3) {
+            root.showCost();
+        } else if (step === 4) {
+            root.showWords();
+        } else if (step === 5) {
+            root.showSettings();
+        } else if (step === 6) {
+            bubble.show({word: "profile", en: "profile run", zh: "profile run", status: "new", x: 500, y: 500});
+        } else if (step === 7) {
+            root.hidePanels(null);
+            bubble.visible = false;
+            bar.visible = false;
+            Qt.quit();
+        }
+    }
+
     /**
      * Turn a position the mouse hook reported into one a window can be placed at.
      *
@@ -268,9 +302,7 @@ Window {
         function onMenuRequested() {
             // Opening the menu is one of the reader's own gestures, so it takes the screen the
             // same way picking a row from it does.
-            root.hidePanels(trayMenu);
-            trayMenu.listVisible = false;
-            root.placePanel(trayMenu, root.trayAnchor());
+            root.showTrayMenu();
         }
     }
 }
