@@ -4,7 +4,7 @@
     {
       "name": "ninja-qt6",
       "displayName": "Ninja + Qt 6.9 (MSVC)",
-      "description": "Fast incremental builds. Requires the MSVC environment: run inside a vcvars64 shell (see CLAUDE.md).",
+      "description": "Fast incremental builds. Requires the MSVC environment: run inside a vcvars64 shell (see AGENTS.md).",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build-ninja",
       "cacheVariables": {

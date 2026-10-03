@@ -1,7 +1,7 @@
 # 测试
 
 > 本文是测试的唯一出处：框架、目录、目标、运行方式、样例集格式、profiling 与记录约定。
-> `CLAUDE.md` 的 Test 与 Profiling 两节只留指针；`PHASE1.md` §4.5 与 §4.6 只留契约要点。
+> `AGENTS.md` 的 Test 与 Profiling 两节只留指针；`PHASE1.md` §4.5 与 §4.6 只留契约要点。
 > 设计总览见 `DESIGN.md`，模块接口见 `PHASE1.md`。
 
 ## 1 框架与目录
@@ -80,7 +80,7 @@ cmake --build --preset ninja-qt6-perf --target lens_gtest_perf
 ./build-ninja-perf/test/googletest/lens_gtest_perf.exe
 ```
 
-（与 `ninja-qt6` 一样需要 MSVC 环境，见 `CLAUDE.md` 的 Build 一节。）
+（与 `ninja-qt6` 一样需要 MSVC 环境，见 `AGENTS.md` 的 Build 一节。）
 
 三条必须守住：
 

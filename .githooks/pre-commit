@@ -6,7 +6,8 @@
 #    budget recorded below rather than held to zero. Lower a number when you clean a doc up;
 #    a raise to make a commit pass is the hook doing its job.
 # 2. The prototype list, in the two places that name it. It has drifted twice already: a new
-#    surface landed in ui-prototypes/ and in UI.md but not in CLAUDE.md's tree.
+#    surface landed in ui-prototypes/ and in UI.md but not in AGENTS.md's tree. AGENTS.md is
+#    where the project instructions live; CLAUDE.md is a one-line import of it.
 # 3. C++ formatting. The tree was formatted once by hand and then left to drift; this is what
 #    stops that. clang-format is not on PATH on this machine, so the copy Visual Studio ships is
 #    looked for as a fallback.
@@ -32,7 +33,8 @@ set -u
 cd "$(git rev-parse --show-toplevel)" || exit 0
 
 # Per-doc error budgets. Ratchet: lower on cleanup, never raise to pass.
-BASELINES='CLAUDE.md 61
+BASELINES='AGENTS.md 61
+CLAUDE.md 0
 CONTEXT.md 0
 DESIGN.md 11
 LLM.md 0
@@ -85,12 +87,12 @@ normalize() {
 }
 
 check_prototype_list() {
-    printf '%s\n' "$staged" | grep -qE '^(ui-prototypes/|CLAUDE\.md$|UI\.md$)' || return 0
+    printf '%s\n' "$staged" | grep -qE '^(ui-prototypes/|AGENTS\.md$|CLAUDE\.md$|UI\.md$)' || return 0
 
     from_disk=$(ls ui-prototypes/v1-halo-*.html 2>/dev/null | sed 's|.*/v1-halo-||; s|\.html$||' | sort | tr '\n' ',' | sed 's/,$//')
     want=$(normalize "$from_disk")
 
-    for doc in CLAUDE.md UI.md; do
+    for doc in AGENTS.md UI.md; do
         listed=$(grep -o 'v1-halo-{[^}]*}\.html' "$doc" | head -1 | sed 's|v1-halo-{||; s|}.*||')
         got=$(normalize "$listed")
 
