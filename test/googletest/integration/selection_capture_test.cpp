@@ -6,7 +6,10 @@
  * Three of the four groups run unattended. The gesture rule and the exclusion list are pure
  * assertions. The hook case drives the pointer with SendInput, which a low-level hook sees
  * exactly like real input, so it proves the hook and its deferred signal for real rather than
- * through a mock.
+ * through a mock. Its drag lands on a window a child process owns, because the hook ignores any
+ * press over a window of its own process (the rule that keeps a drag on one of the app's own
+ * surfaces from being read as a selection); the child is this same executable re-run in probe
+ * mode, see main().
  *
  * The last one cannot be automated: it needs a drag over another application, so it reports a
  * skip unless LENS_HOOK_SMOKE is set and then waits for a human. What it adds is what only a
@@ -28,6 +31,7 @@
 #include <iterator>
 #include <optional>
 #include <string>
+#include <string_view>
 
 #include <QCoreApplication>
 #include <QEventLoop>
@@ -62,6 +66,9 @@ constexpr int kHookWaitMs = 20'000;
 /// How far the synthesised drag travels. Well past any plausible SM_CXDRAG, so the gesture
 /// rule cannot reject it for the wrong reason.
 constexpr int kDragPx = 40;
+
+/// The switch that turns this executable into the probe-window child instead of a test run.
+constexpr const char* kProbeWindowArg = "--lens-probe-window";
 
 /// @return A name for the status, so a failure message says something a reader can act on
 ///         instead of a number.
@@ -226,26 +233,57 @@ void sendDrag(POINT start, int dx)
     SendInput(static_cast<UINT>(std::size(events)), events, sizeof(INPUT));
 }
 
-/**
- * @brief A small topmost window for the synthesised drag to land on.
- *
- * A synthetic click has to go somewhere, and letting it find the reader's own window is how
- * a test deletes somebody's file. This one belongs to the test, so hitting it does nothing,
- * and WS_EX_NOACTIVATE keeps it from taking focus from whatever the reader was doing.
- *
- * The system's own STATIC class is used so no window class has to be registered, and the
- * caller destroys it.
- */
-HWND createProbeWindow()
+/// @brief The title prefix the probe-window child names its window with; the parent appends the
+///        child's pid so the two halves can find each other without a pipe.
+constexpr wchar_t kProbeTitlePrefix[] = L"Lens probe ";
+
+/// @brief Start this executable in probe mode: a child that owns the landing window.
+///
+/// The landing window has to belong to *another process*. The hook ignores any press over a
+/// window of its own process — that is the rule that keeps a drag on one of the app's own
+/// surfaces from being read as a selection — so a probe owned by the test would be dropped for
+/// the right reason and the case could only ever go red. A child of the test is the smallest
+/// owner that is not the test.
+///
+/// @return The child's process id, or 0 when it could not be started.
+DWORD spawnProbeWindowProcess()
 {
-    return CreateWindowExW(WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, L"STATIC", L"Lens probe", WS_POPUP | WS_VISIBLE, 80, 80, 220, 48, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+    wchar_t executable[MAX_PATH] = {};
+    if (GetModuleFileNameW(nullptr, executable, MAX_PATH) == 0) return 0;
+
+    const std::wstring argument(kProbeWindowArg, kProbeWindowArg + std::strlen(kProbeWindowArg));
+    std::wstring command = L"\"" + std::wstring(executable) + L"\" " + argument;
+    STARTUPINFOW startup{};
+    startup.cb = sizeof(startup);
+    PROCESS_INFORMATION child{};
+    if (CreateProcessW(nullptr, command.data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &startup, &child) == 0)
+        return 0;
+
+    CloseHandle(child.hThread);
+    CloseHandle(child.hProcess); // the id is all this side needs; the child is killed below
+    return child.dwProcessId;
 }
 
-/// @brief Move the pointer back and get rid of the probe window.
-void dismissProbe(HWND probe, POINT original)
+/// @brief Wait for the probe child to put its window up.
+/// @return The window, or nullptr when the child never made one.
+HWND waitForProbeWindow(DWORD pid)
+{
+    const std::wstring title = kProbeTitlePrefix + std::to_wstring(pid);
+    for (int attempt = 0; attempt < 100; ++attempt) {
+        if (HWND found = FindWindowW(nullptr, title.c_str())) return found;
+        Sleep(20);
+    }
+    return nullptr;
+}
+
+/// @brief Move the pointer back and stop the probe child.
+void dismissProbe(DWORD probePid, POINT original)
 {
     SetCursorPos(original.x, original.y);
-    if (probe != nullptr) DestroyWindow(probe);
+    if (HANDLE child = OpenProcess(PROCESS_TERMINATE, FALSE, probePid)) {
+        TerminateProcess(child, 0);
+        CloseHandle(child);
+    }
 }
 
 /**
@@ -394,10 +432,17 @@ TEST(ClipboardSnapshot, ARestoreWithoutATakeLeavesTheClipboardAlone)
 /// Everything about the hook that can be checked without a hand on the mouse. Synthetic input
 /// reaches a low-level hook the same way real input does, so driving the pointer ourselves
 /// tests the gesture rule and the deferred signal for real rather than through a mock.
+///
+/// The drag lands on a window owned by a child process. It has to: the hook drops any press over
+/// a window of its own process — the rule that keeps a drag on one of the app's own surfaces from
+/// being read as a selection — so a landing window the test owns would be refused for the right
+/// reason and the case could only ever report "the hook reported nothing".
 TEST(SelectionHook, ReportsASynthesisedDragAtItsReleasePoint)
 {
-    const HWND probe = createProbeWindow();
-    ASSERT_TRUE(probe != nullptr) << "could not create the probe window, error " << GetLastError();
+    const DWORD probePid = spawnProbeWindowProcess();
+    ASSERT_NE(probePid, 0u) << "could not start the probe window child, error " << GetLastError();
+    const HWND probe = waitForProbeWindow(probePid);
+    ASSERT_TRUE(probe != nullptr) << "the probe window child never put its window up";
 
     RECT bounds{};
     const bool measured = GetWindowRect(probe, &bounds) != 0;
@@ -425,7 +470,7 @@ TEST(SelectionHook, ReportsASynthesisedDragAtItsReleasePoint)
 
     POINT landed{};
     GetCursorPos(&landed);
-    dismissProbe(probe, original);
+    dismissProbe(probePid, original);
 
     ASSERT_TRUE(measured) << "could not measure the probe window";
     ASSERT_TRUE(installed) << "the low-level mouse hook could not be installed";
@@ -522,8 +567,32 @@ TEST(SelectionGrab, CapturesTheSelectionAndPutsTheClipboardBack)
     EXPECT_EQ(*afterwards, sentinel) << "the reader's clipboard did not come back";
 }
 
+/// @brief Probe-window mode: put up the window a synthesised drag lands on, then pump until the
+///        parent kills this process.
+///
+/// Runs as a child of the test (see ReportsASynthesisedDragAtItsReleasePoint). The window is a
+/// plain STATIC one, so hitting it does nothing, and WS_EX_NOACTIVATE keeps the press from
+/// pulling focus off whatever the reader was doing. The title carries this pid so the parent can
+/// find the window without a pipe.
+int runProbeWindowHost()
+{
+    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
+    const std::wstring title = kProbeTitlePrefix + std::to_wstring(GetCurrentProcessId());
+    CreateWindowExW(WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, L"STATIC", title.c_str(), WS_POPUP | WS_VISIBLE, 80, 80, 220, 48, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+
+    MSG message;
+    while (GetMessageW(&message, nullptr, 0, 0) > 0) {
+        TranslateMessage(&message);
+        DispatchMessageW(&message);
+    }
+    return 0;
+}
+
 int main(int argc, char** argv)
 {
+    if (argc > 1 && std::string_view(argv[1]) == kProbeWindowArg) return runProbeWindowHost();
+
     ::testing::InitGoogleTest(&argc, argv);
 
     // The hook hands back the screen coordinates Windows reports to it, which are physical
