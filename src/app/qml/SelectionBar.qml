@@ -145,12 +145,6 @@ Window {
                         height: itemRow.height + 14
                         radius: Tokens.radiusField
                         color: hover.hovered ? Tokens.panel2 : "transparent"
-                        Behavior on color {
-                            ColorAnimation {
-                                duration: Tokens.motion.press
-                                easing.type: Tokens.motion.easing
-                            }
-                        }
                         // The press, not the hover: a HoverHandler has no `pressed`, so this
                         // read gave undefined and the press never shrank the item.
                         scale: press.pressed ? 0.97 : 1.0

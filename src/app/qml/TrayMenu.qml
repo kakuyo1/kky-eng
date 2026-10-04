@@ -223,12 +223,6 @@ Window {
                         radius: 8
                         color: modelData.code === menu.language ? Tokens.ink
                                                                 : (rowHover.hovered ? Tokens.panel2 : "transparent")
-                        Behavior on color {
-                            ColorAnimation {
-                                duration: Tokens.motion.press
-                                easing.type: Tokens.motion.easing
-                            }
-                        }
 
                         Text {
                             anchors.left: parent.left

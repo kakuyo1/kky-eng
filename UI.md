@@ -226,11 +226,13 @@
 | 按钮按压 | `scale(.97)`，`Tokens.motion.press`（150 ms） | 按下 |
 | 开关切换 | 底色与滑块位置，`Tokens.motion.press`（150 ms） | 点击 |
 | 菜单 / 浮层出现 | 卡片淡入 + 上移 8 px，`Tokens.motion.pop`（180 ms） | 打开 |
-| 行 hover 填充 | 底色，`Tokens.motion.press`（150 ms） | 指针进入 |
 | 词汇列表行的进出 | 行高 + 透明度，`Tokens.motion.pop`（180 ms） | 分段筛选变化 |
 
 动效仅用于反馈与状态变化，克制，不加转场。时长与缓动一律取 `Tokens.motion`，表面不写毫秒数；四张面板、
 托盘菜单、通知与下拉列表的出现都走 `ShadowCard.qml` 这一处。
+
+行 hover 填充不算动效：它是状态指示，底色瞬时点亮、瞬时熄灭，不加过渡。真机反馈过——过渡会让指针一路
+划过时两行同时亮着，或快划时一行都不亮。
 
 **减少动效**：本应用没有 `prefers-reduced-motion`，那是 Web 的概念。开关就是 Windows 的
 “辅助功能 → 视觉效果 → 动画效果”，读法是 `SystemParametersInfoW(SPI_GETCLIENTAREAANIMATION)`
