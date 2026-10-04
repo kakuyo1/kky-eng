@@ -44,14 +44,28 @@ Item {
             return panel;
         }
 
-        /// @return The figures panel's rows, keyed by label.
-        function figuresOf(panel) {
-            const rows = Util.findAll(panel, function (o) {
+        /// @return The panel's rows, in the order the panel declares them.
+        function rowsOf(panel) {
+            return Util.findAll(panel, function (o) {
                 return o.toString().indexOf("StatRow_QMLTYPE") === 0;
             });
+        }
+
+        /// @return The rows' main figures, keyed by label.
+        function figuresOf(panel) {
+            const rows = rowsOf(panel);
             const byLabel = {};
             for (let i = 0; i < rows.length; ++i)
                 byLabel[rows[i].label] = rows[i].value;
+            return byLabel;
+        }
+
+        /// @return The rows' secondary figures, keyed by label; empty where a row carries none.
+        function notesOf(panel) {
+            const rows = rowsOf(panel);
+            const byLabel = {};
+            for (let i = 0; i < rows.length; ++i)
+                byLabel[rows[i].label] = rows[i].note;
             return byLabel;
         }
 
@@ -75,15 +89,24 @@ Item {
             compare(figures["All time"], qsTr("%1 words").arg(Controller.words.length));
         }
 
+        /// The other dimension the cost panel was asked for: every row still draws the amount,
+        /// and the three buckets the controller prices draw the tokens behind that amount in
+        /// their secondary slot. The daily average is derived, not a bucket, so it has none.
         function test_theCostPanelShowsTheSameFiguresInTheOtherDimension() {
             const cost = make(costComponent);
             const figures = figuresOf(cost);
+            const notes = notesOf(cost);
 
             compare(heroOf(cost), Controller.cost.currency + Controller.cost.month.toFixed(2));
             compare(figures["Today"], Controller.cost.currency + Controller.cost.today.toFixed(2));
             compare(figures["Yesterday"], Controller.cost.currency + Controller.cost.yesterday.toFixed(2));
             compare(figures["This week"], Controller.cost.currency + Controller.cost.week.toFixed(2));
             compare(figures["Daily average"], Controller.cost.currency + Controller.cost.dailyAverage.toFixed(2));
+
+            compare(notes["Today"], qsTr("%1 tokens").arg(String(Controller.cost.todayTokens)));
+            compare(notes["Yesterday"], qsTr("%1 tokens").arg(String(Controller.cost.yesterdayTokens)));
+            compare(notes["This week"], qsTr("%1 tokens").arg(String(Controller.cost.weekTokens)));
+            compare(notes["Daily average"], "", "the daily average has no token bucket to draw");
         }
 
         /// @return The word each row is showing, for the rows the filter lets through.

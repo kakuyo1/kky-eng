@@ -40,6 +40,25 @@ Item {
             compare(chevronOf(make({ clickable: true })).visible, true);
         }
 
+        /// The secondary figure. It carries as much as a token count can (the cost panel's),
+        /// which is why it is a slot of its own rather than words appended to `value`.
+        function test_theNoteIsDrawnOnlyWhenGiven() {
+            const plain = make({});
+            const plainNotes = Util.findAll(plain, (o) => o.value === "");
+            compare(plainNotes.length, 1, "a row should declare exactly one note slot");
+            compare(plainNotes[0].visible, false, "an empty note should draw nothing");
+
+            const noted = make({ note: "128000 tokens" });
+            const notes = Util.findAll(noted, (o) => o.value === "128000 tokens");
+            compare(notes.length, 1);
+            compare(notes[0].visible, true);
+
+            const main = Util.findAll(noted, (o) => o.value === "128");
+            compare(main.length, 1);
+            verify(notes[0].x + notes[0].width <= main[0].x,
+                   "the note runs into the main figure it sits in front of");
+        }
+
         function test_onlyAClickableRowReportsATap() {
             const plain = make({ clickable: false });
             let plainTaps = 0;
