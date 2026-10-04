@@ -71,11 +71,15 @@ target_link_libraries(lens
   PRIVATE lens_app lens_core Qt6::Quick Qt6::Svg
 )
 
-# Where the word list, the protocol files and the settings document live.
+# The two paths a build tree has and an installed copy does not. Neither is the only answer
+# any more: main.cpp prefers data/ beside the executable, which is where installer/lens.iss
+# puts it, and keeps the settings document in %APPDATA% -- these are the fallbacks that keep a
+# build tree working, where nothing writes either one next to build-ninja/src/app/lens.exe.
 #
-# ponytail: absolute paths, baked in at configure time. This is a development build; a
-# shipped one needs the data in a resource and the settings somewhere under the user's
-# profile, which is a packaging change rather than a code one.
+# LENS_DATA_DIR is where the word list and the protocol files are read from when there is no
+# data/ beside the executable. LENS_SETTINGS_PATH is the document a first run after the
+# packaging change carries into the profile once, so an API key already configured keeps
+# working; nothing writes it afterwards.
 target_compile_definitions(lens PRIVATE
   LENS_DATA_DIR="${CMAKE_SOURCE_DIR}/data"
   LENS_SETTINGS_PATH="${CMAKE_SOURCE_DIR}/settings.local.json"

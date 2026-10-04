@@ -20,7 +20,7 @@ class QNetworkAccessManager;
 
 namespace lens::llm {
 
-/// @brief Connection settings, loaded from settings.local.json.
+/// @brief Connection settings, loaded from the reader's settings document.
 struct Config {
     QUrl baseUrl;   ///< OpenAI-format base, e.g. https://api.deepseek.com (no /anthropic).
     QString apiKey; ///< Bearer token. Never logged, never echoed in errors.

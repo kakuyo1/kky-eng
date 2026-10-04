@@ -12,6 +12,7 @@
 #include <QFontDatabase>
 #include <QCoreApplication>
 #include <QQmlApplicationEngine>
+#include <QStandardPaths>
 #include <QTimer>
 #include <QVariant>
 #include <QTranslator>
@@ -21,6 +22,7 @@
 #include <filesystem>
 #include <memory>
 #include <stdexcept>
+#include <system_error>
 
 #include "app_controller.h"
 #include "core/filter_core.h"
@@ -40,15 +42,83 @@ using lens::core::KnownStore;
 
 namespace {
 
+/// The data directory configure baked in: where a build tree reads from. A shipped build has
+/// data/ beside the executable instead, and that one wins. See dataDirectory().
+constexpr const char* kBuildDataDir = LENS_DATA_DIR;
+
+/// The settings document at the repository root, which a first run after the packaging change
+/// copies into the reader's profile once. See settingsPath().
+constexpr const char* kDevSettingsPath = LENS_SETTINGS_PATH;
+
+/// @return @p text as a std::filesystem::path, for the loaders that take one.
+std::filesystem::path toPath(const QString& text)
+{
+    return std::filesystem::path{text.toStdWString()};
+}
+
+/// @return @p path as the log wants it: UTF-8, whatever the account is named.
+std::string narrow(const std::filesystem::path& path)
+{
+    return QString::fromStdWString(path.wstring()).toStdString();
+}
+
 /**
- * Where the app reads its data from.
+ * @brief Where the word list and the protocol files are read from.
  *
- * ponytail: baked in at configure time, which is right for a development build and wrong for
- * a shipped one -- the data files and the word list will have to move into a Qt resource
- * before this can be handed to anyone.
+ * The installer puts them beside the executable -- `<install>\data` -- which makes the package
+ * relocatable and compiles nothing about the machine into it. A build tree has no `data/` next
+ * to `build-ninja/src/app/lens.exe` (nothing writes one), so running from a build tree is
+ * unchanged: it reads the path configure baked in.
+ *
+ * @return `<applicationDirPath>/data` when that is a directory, else the baked-in path.
  */
-constexpr const char* kDataDir = LENS_DATA_DIR;
-constexpr const char* kSettingsPath = LENS_SETTINGS_PATH;
+std::filesystem::path dataDirectory()
+{
+    const std::filesystem::path installed = toPath(QCoreApplication::applicationDirPath()) / "data";
+    std::error_code ec;
+    if (std::filesystem::is_directory(installed, ec))
+        return installed;
+    return toPath(QString::fromUtf8(kBuildDataDir));
+}
+
+/**
+ * @brief Where the settings document lives: the reader's profile, never the install folder.
+ *
+ * `%APPDATA%\Lens\settings.json`, from QStandardPaths::AppDataLocation with the application
+ * name main() sets and no organization name -- naming one would add a directory level for a
+ * name the product does not use. The install folder is wrong for this file twice over: it can
+ * be read-only under Program Files, and it is shared by every account, while the document
+ * carries one reader's API key and word marks.
+ *
+ * The document used to live at the repository root. A first run whose profile copy is missing
+ * copies that one over, once, so a key already configured keeps working. Only the path is ever
+ * logged -- the document holds the key, and its contents do not belong in a log.
+ *
+ * @param legacy Document to carry over from, when the profile has none yet.
+ * @return The path to load and save; its directory exists on return unless it could not be
+ *         created at all.
+ */
+std::filesystem::path settingsPath(const std::filesystem::path& legacy)
+{
+    const std::filesystem::path target =
+        toPath(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)) / "settings.json";
+
+    std::error_code ec;
+    std::filesystem::create_directories(target.parent_path(), ec);
+    if (ec) {
+        LENS_WARN("settings directory {} could not be created: {}", narrow(target.parent_path()), ec.message());
+        return target;
+    }
+
+    if (!std::filesystem::exists(target, ec) && std::filesystem::exists(legacy, ec)) {
+        std::filesystem::copy_file(legacy, target, ec);
+        if (ec)
+            LENS_WARN("the settings document was not carried over from {}: {}", narrow(legacy), ec.message());
+        else
+            LENS_INFO("settings carried over from {} to {}", narrow(legacy), narrow(target));
+    }
+    return target;
+}
 
 /// @brief The setting's language code, and the locale whose .qm carries it.
 ///
@@ -140,10 +210,11 @@ int main(int argc, char* argv[])
     lens::log::init();
     lens::log::installQtMessageHandler();
 
+    const std::filesystem::path dataDir = dataDirectory();
     try {
-        lens::core::loadWordlist(std::filesystem::path(kDataDir) / "wordlist.txt");
-        lens::core::loadIrregulars(std::filesystem::path(kDataDir) / "irregulars.tsv");
-        const std::filesystem::path protocolDir = std::filesystem::path(kDataDir) / "llm";
+        lens::core::loadWordlist(dataDir / "wordlist.txt");
+        lens::core::loadIrregulars(dataDir / "irregulars.tsv");
+        const std::filesystem::path protocolDir = dataDir / "llm";
         lens::llm::loadLlmProtocol(lens::llm::Channel::Word, protocolDir);
         lens::llm::loadLlmProtocol(lens::llm::Channel::Entity, protocolDir);
         lens::llm::loadLlmProtocol(lens::llm::Channel::Sentence, protocolDir);
@@ -154,11 +225,13 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    KnownStore store = KnownStore::load(std::filesystem::path(kSettingsPath));
+    const std::filesystem::path settings = settingsPath(toPath(QString::fromUtf8(kDevSettingsPath)));
+    LENS_INFO("settings document: {}", narrow(settings));
+    KnownStore store = KnownStore::load(settings);
 
     const auto pricing = [&] {
         try {
-            return lens::llm::Pricing::load(std::filesystem::path(kDataDir) / "llm" / "pricing.json");
+            return lens::llm::Pricing::load(dataDir / "llm" / "pricing.json");
         } catch (const std::exception& e) {
             // A missing price list costs the cost surfaces their figures and nothing else.
             LENS_ERROR("costs will read as zero: {}", e.what());

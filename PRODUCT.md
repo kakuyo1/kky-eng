@@ -57,9 +57,12 @@
 - **词汇列表按词去重**（2026-10-03）：同一个词的多次判定只占一行，取最新一次；弹词次数照记。词汇弹窗的标题总量给的是**去重后的词数**（即列表行数），统计面板的历史累计仍是弹词次数，两者可以不等。取舍：只改展示侧的转换，不动 history 的写入与每日计数——数据保持流水语义，将来要改去重规则不必回溯历史。
 - **统一字面与混排数字**（2026-10-03）：应用优先使用 Noto Sans SC，让 Latin 与中文共享同一字体面；缺失时回退到原系统栈。混排值由 `MixedText` 按 CJK / 非 CJK run 拆开，中文使用应用字体，数字 / 货币使用 Cascadia Code。取舍：混排值增加少量 QML 子项，但同时保留中文一致性和数字清晰度。
 
-## 存储形状（`settings.local.json`）
+## 存储形状（`%APPDATA%\Lens\settings.json`）
 
 本地状态落在一份 JSON 文档里（`PHASE1.md` §4.2），它同时承载 LLM API 配置（密钥），因此边界是隐私边界。
+文档住在读者的 `%APPDATA%`（2026-10-05 起，`main.cpp` 的 `settingsPath()`），**不进安装目录**：那里可能只读，
+且全机共用，而这份文档是一个读者的密钥与词库。仓库根的 `settings.local.json` 只是它的开发来源，首次运行
+整份拷过去一次。
 形状与写入规则（2026-10-02 / 2026-10-03 定）：
 
 - **保存只覆写自己的键**：从加载时的整份文档出发，改 `level` / `explanationLang` / `known` / `cache`
@@ -69,7 +72,7 @@
 - **缓存按（解释语言 + 词根）分键**：切语言不串味。缓存条目必须带 `ipa` 字段，但**可为空**（缩写 / 标识符没有音标，2026-10-04 起 `ipa` 可选）：缺这个字段的是更早写的旧条目，按未命中处理，重新问一次模型即补全，下一次保存把它从文件里带走——未命中就是迁移，没有单独的迁移代码。
 - `known` 存成 `lemma → bool` 映射（true = 已会 / false = 新词），absent = 未标记；`known()` 是其中 true
   的派生视图，喂给 `filterWords` 的 known-set 只认已会——新词按 `GLOSSARY.md` 定义仍会再弹。
-- **文档的所有者只能有一个**：`StatsStore` 与 `KnownStore` **共用 settings.local.json，但 StatsStore 不
+- **文档的所有者只能有一个**：`StatsStore` 与 `KnownStore` **共用 settings.json，但 StatsStore 不
   自己读写文件**——构造时绑定 `KnownStore::document()` 交出的那份文档，只写 `history` / `daily` 两键，
   落盘仍由 `KnownStore::save()` 一次写完。两个类各自持一份文档的话，后存的一方会把先存的一方的改动整体
   覆盖——用户的标记或密钥就这么没了。
@@ -95,7 +98,7 @@
 ## 阶段一（真 LLM 直连）
 
 - 阶段一取词范围：选区（鼠标钩子 → Ctrl+C 取文）真可用；扫描 / 截图 / 悬停依赖 OCR，一律占位不可触发。实施细节见 `PHASE1.md`。
-- 密钥边界：API key 仅存本地 `settings.local.json`（gitignored），不提交、不入日志。
+- 密钥边界：API key 仅存本地 `%APPDATA%\Lens\settings.json`，不提交、不入日志。
 - 其余模块划分与已锁定决策不变。
 
 ## 留待后续迭代

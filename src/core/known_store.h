@@ -13,9 +13,10 @@
  * @brief Local state that survives restarts: which words the reader knows, how they were
  *        marked, at what difficulty level, and the cached explanations.
  *
- * Everything lives in one JSON document (settings.local.json) that also carries the LLM
- * API configuration. The file is loaded once and rewritten on every change; keys this
- * class does not recognise are passed through untouched and never dropped.
+ * Everything lives in one JSON document -- settings.json in the reader's profile, the path
+ * main.cpp works out -- that also carries the LLM API configuration. The file is loaded once
+ * and rewritten on every change; keys this class does not recognise are passed through
+ * untouched and never dropped.
  */
 
 namespace lens::core {

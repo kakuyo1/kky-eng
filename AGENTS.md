@@ -9,7 +9,7 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 - Designing or auditing a UI surface starts by loading the `taste-skill` skill; a surface that has been rendered is checked with `visual-qa`.
 - Keep `GLOSSARY.md`, `PRODUCT.md`, `UI.md`, and `PHASE1.md` in sync on any design change; record major trade-offs in `docs/adr/`.
 - Default to Chinese in replies.
-- API key lives only in gitignored `settings.local.json` — never commit it, never log it, never echo it in errors.
+- The API key lives in `%APPDATA%\Lens\settings.json`, the reader's own profile and never the install directory; it is never logged, never echoed in errors, never committed. The repository's gitignored `settings.local.json` is that document's development source, copied over once on a first run (`src/app/main.cpp`, `PHASE1.md` § 6).
 
 ## Project Structure
 
@@ -23,6 +23,7 @@ lens/
 ├── data              # wordlist + llm/ (wire protocol as data)
 ├── docs              # QML.md (how QML works here) + adr/ (major trade-offs)
 ├── i18n              # .ts translations; English is the source language
+├── installer         # lens.iss — the Inno Setup script; version.iss.in, filled from project()
 ├── scripts           # build.bat — Ninja + MSVC wrapper; *.ps1 — driving, photographing and timing the real surfaces (TEST.md § 5); qml-lint.sh — the QML gate
 ├── third_party       # vendored: nlohmann/json, spdlog, googletest
 ├── icons

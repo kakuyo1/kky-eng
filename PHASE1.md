@@ -133,7 +133,7 @@ struct WordCache { std::string ipa, en, zh; };
 
 class KnownStore {
 public:
-    static KnownStore load(std::filesystem::path path);   // settings.local.json
+    static KnownStore load(std::filesystem::path path);   // %APPDATA%\Lens\settings.json
     bool isKnown(const std::string& lemma) const;
     void mark(const std::string& lemma, bool learned);     // 已会 / 新词
     const std::unordered_set<std::string>& known() const;  // 喂 FilterCore::filterWords
@@ -192,7 +192,7 @@ public:
 ```
 
 统计三个弹窗（统计 / 词汇 / 花费）的数据层就是上表，此前没有归属，切片三补上（2026-10-03）。它与
-`KnownStore` 共用 settings.local.json 的规则、`history` 的上限、token 与金额的分工，见
+`KnownStore` 共用 settings.json 的规则、`history` 的上限、token 与金额的分工，见
 `PRODUCT.md`“存储形状”。
 
 ### 4.3 LlmClient（QObject，异步）
@@ -373,7 +373,7 @@ QML 表面：设置浮层、选区动作条、解释气泡、统计弹窗及其�
 
 ## 6 隐私与密钥边界
 
-- API key **仅存本地** `settings.local.json`（gitignored），不提交、不入日志、不写入本会话记忆。输入经设置浮层（掩码显示）或配置文件。
+- API key **仅存本地** `%APPDATA%\Lens\settings.json`（`main.cpp` 的 `settingsPath()`），不提交、不入日志、不写入本会话记忆。输入经设置浮层（掩码显示）或配置文件。仓库根的 `settings.local.json`（gitignored）是这份文档的开发来源，首次运行时整份拷进 `%APPDATA%` 一次，此后不再读它；安装目录里**不放**这份文档，它可能在 `Program Files` 下只读，且是全机共用的。
 - 发送最小化：单词通道只发单词本身，脱敏兜底；绝不发送整屏或快照全文。
 - **档位与界面语言不进请求**：档位只影响本地词表与 known-set 预置（见 `GLOSSARY.md` 档位条目）。2026-10-02 的系统提示词曾写进 “CET-4 level or above”，属违规，已删；提示词只说取最常见义项，判断全在本地。
 - 注意：本次会话中曾粘贴真实 key（已进对话记录），建议开发完成后轮换。
@@ -385,7 +385,8 @@ lens/
 ├── CMakeLists.txt
 ├── CMakePresets.json         # preset ninja-qt6（首选）+ vs-qt6（备选）
 ├── .clang-format
-├── settings.local.json       # 本地密钥与设置，gitignored
+├── settings.local.json       # 开发机的密钥与设置，gitignored；首次运行拷进 %APPDATA%
+├── installer/                # lens.iss（Inno Setup 安装包）与 CMake 生成的 version.iss
 ├── scripts/build.bat         # 进 VS 环境后驱动 ninja（首配一次，之后纯增量）
 ├── API.md                    # LLM 线上格式说明（请求 / 响应 / 校验 / 错误码）
 ├── TEST.md                   # 测试：框架 / 目标 / 样例集 / profiling / 记录
@@ -420,7 +421,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Qt 6 + CMake 工具链 | **已完成**：Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`，preset `ninja-qt6`（首选）/ `vs-qt6`（备选）                                                                                                                                               |
 | 静态词表            | **已完成**：`data/wordlist.txt` 已落盘                                                                                                                                                                                                                        |
-| 密钥注入            | **已完成**：`settings.local.json` 已在仓库根且已 gitignore                                                                                                                                                                                                    |
+| 密钥注入            | **已完成**：密钥与设置在 `%APPDATA%\Lens\settings.json`（2026-10-05 起），开发机的 `settings.local.json` 已 gitignore                                                                                                                                                                                                    |
 | DeepSeek API 核验   | **已完成**（2026-10-02）：模型名 `deepseek-flash` / `deepseek-v4-pro`；`response_format: {"type":"json_object"}` 支持，且要求 prompt 含 `json` 字样与格式示例；OpenAI 格式端点为 `{baseUrl}/chat/completions`。结论与落地细节见 `API.md` §6。 |
 
 预检四项已全部完成，可以动工。核验渠道说明：本机未装 `uv` / `mcp` 包、也没有 `CONTEXT7_API_KEY`，`context7` 不可用；改直接抓 DeepSeek 官方文档（`api-docs.deepseek.com`，国内直连可达，且是更权威的一手来源）。
