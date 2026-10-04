@@ -39,6 +39,17 @@ enum class GrabStatus : std::uint8_t {
     EmptyText,        ///< The clipboard changed but carried no text.
 };
 
+/// @brief A grab that produced text, and what the clipboard did while it was read.
+struct GrabbedText {
+    QString text;                   ///< The selection, trimmed of surrounding whitespace.
+    bool clipboardReplaced = false; ///< Another process wrote the clipboard after our copy
+                                    ///< landed -- a clipboard manager looking at the change, or
+                                    ///< the reader copying something themselves. The text is
+                                    ///< still the selection, but the snapshot was left in place
+                                    ///< rather than put back over the newer content, so what is
+                                    ///< on the clipboard now is theirs.
+};
+
 /**
  * @brief Whether an injected Ctrl+C would do something destructive in this process.
  *
@@ -121,12 +132,13 @@ public:
      * it changes or kGrabDeadlineMs passes, driving a nested event loop so Windows messages
      * — and the mouse hook — keep flowing while it waits. Takes tens of milliseconds.
      *
-     * @return The copied text trimmed of surrounding whitespace, or the GrabStatus saying
-     *         why there is none. The reason is logged too.
+     * @return The selection, or the GrabStatus saying why there is none. The reason is logged
+     *         too. A successful grab also says whether the clipboard was written by another
+     *         process while the selection was being read (see GrabbedText).
      * @note Never call this from the mouse hook callback: the wait would overrun the budget
      *       Windows gives a low-level hook. Re-entering it returns ClipboardBusy.
      */
-    std::variant<QString, GrabStatus> grab();
+    std::variant<GrabbedText, GrabStatus> grab();
 
 private:
     bool grabbing_ = false;

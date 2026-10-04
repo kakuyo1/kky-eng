@@ -38,10 +38,10 @@ test/
 
 | 目标 | 内容 | 何时跑 |
 | --- | --- | --- |
-| `lens_gtest_unit` | 样例集 / KnownStore 往返 / LLM 纯函数 | 每次改动，可进 CI |
+| `lens_gtest_unit` | 样例集 / KnownStore 与 StatsStore 往返 / LLM 纯函数 / 词汇导出与 app 接缝的纯部分 | 每次改动，可进 CI |
 | `lens_gtest_integration` | 选区捕获：手势规则 / 终端排除 / 钩子与剪贴板的真机往返 | 动选区入口时，人工执行 |
 | `lens_gtest_perf` | FilterCore 吞吐 + profiling 报告 | 动内核时 |
-| `lens_gtest_smoke` | 1 词真模型往返 | 动 LLM 链路时，人工执行 |
+| `lens_gtest_smoke` | 1 词真模型往返，一次进程最多 3 次真实调用 | 动 LLM 链路时，人工执行 |
 | `lens_qtest_components` | `qml/components/` 那八个的接线与交互 | 动组件时，无头，可进 CI |
 | `lens_qtest_surfaces` | 表面：Main 的摆放与关闭、托盘菜单、三张面板、行动条 | 动表面时，无头，可进 CI |
 
@@ -92,6 +92,9 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_QPA_PLATFORM=offscreen QT_FORCE_STDER
   `LENS_SMOKE_WORD`，缺省 `ubiquitous`。`settings.local.json` 缺 URL / MODEL / API-KEY 时报 skip
   而不是失败——要 key、要花钱、结论靠人看，所以它不进 CI。密钥读进内存后不打印、不进日志、不进
   失败消息。
+- 冒烟会自己数钱：每发一次真实请求计一次，累计到上限（`LENS_SMOKE_MAX_CALLS`，缺省 3）之后改为
+  skip，理由写在 skip 消息里。上限按**一次进程**算，不是按用例算——钱是按进程花出去的。放着不管的
+  二进制因此不会一直花，而 skip 也不是失败，跑完仍是一份绿报告。
 - `LENS_LOG_LEVEL=trace` 提高日志级别。
 
 ## 3 样例集

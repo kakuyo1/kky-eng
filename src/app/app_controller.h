@@ -111,22 +111,37 @@ public:
     /// @brief Store a new API key. Write-only: nothing reads it back to a surface.
     Q_INVOKABLE void setApiKey(QString key);
 
+    /// @brief Set what happens when another process writes the clipboard during a grab.
+    /// @param policy "topmost" to raise a notice about it, "silent" to let the gesture pass
+    ///        unanswered. Anything else is refused and logged.
+    Q_INVOKABLE void setClipboardPolicy(QString policy);
+
+    /// @brief Start Lens with the reader's session, or stop doing so.
+    /// @param on Written to the registry under HKCU; see autostart.h.
+    Q_INVOKABLE void setAutostart(bool on);
+
     /// @brief Told by the bubble when the pointer enters or leaves it.
     /// @note The five-second timer lives in QML, which owns the view. This only records the
     ///       state, because the controller has no reason to duplicate the countdown.
     Q_INVOKABLE void bubbleHoverChanged(bool hovering);
 
-    /// @brief Drop the current bubble, e.g. when its timer expires.
+    /// @brief Drop the current pop, e.g. when the bubble's timer expires.
     Q_INVOKABLE void dismissBubble();
-
-    /// @brief Send the pending explanation; DEV_SEND_CONFIRM builds only.
-    Q_INVOKABLE void confirmSend();
-
-    /// @brief Drop the pending explanation; DEV_SEND_CONFIRM builds only.
-    Q_INVOKABLE void cancelSend();
 
     /// @return The bubble's contents, or an empty map when no bubble is up.
     QVariantMap bubble() const;
+
+    /**
+     * @brief The reason a pop had nothing to explain: {title, body, kind}.
+     *
+     * The bubble is not an error reporter any more. A request that failed and a selection with
+     * nothing to look up both arrive here instead, and no verdict is claimed -- nothing was
+     * explained. The keys are defined in notice.h.
+     *
+     * @return The current notice, or an empty map when there is none. It is cleared by an
+     *         explanation going up, by dismissBubble(), and by the next notice replacing it.
+     */
+    QVariantMap notice() const;
 
     /// @return Levels, languages, theme, toggles: everything the settings popup binds to.
     QVariantMap settings() const;
@@ -137,7 +152,20 @@ public:
     /// @return The words popup's rows, newest first.
     QVariantList words() const;
 
-    /// @return The cost popup's figures.
+    /**
+     * @brief The words list as plain text, one lemma per line, for the reader to save.
+     *
+     * The rows are words()'s, and the scopes are the words popup's own filter. Nothing is
+     * picked or written here: the surface takes the path from a file dialog and writes what
+     * this returns, which is what keeps the text itself assertable without Qt.
+     *
+     * @param scope "all", "known", or "new"; anything else is logged and exports nothing.
+     * @return The text, or empty when no row matches the scope.
+     */
+    Q_INVOKABLE QString exportWords(QString scope);
+
+    /// @return The cost popup's figures. Amounts are computed from the current price list and
+    ///         the token counts are the stored ones (PRODUCT.md "存储形状").
     QVariantMap cost() const;
 
     /// @return "Manual" or "Auto", the mode name the tray menu and tooltip share.
@@ -147,6 +175,7 @@ public:
     QString busyLabel() const;
 
     Q_PROPERTY(QVariantMap bubble READ bubble NOTIFY bubbleChanged)
+    Q_PROPERTY(QVariantMap notice READ notice NOTIFY noticeChanged)
     Q_PROPERTY(QVariantMap settings READ settings NOTIFY settingsChanged)
     Q_PROPERTY(QVariantMap stats READ stats NOTIFY statsChanged)
     Q_PROPERTY(QVariantList words READ words NOTIFY statsChanged)
@@ -169,15 +198,13 @@ signals:
     void pointerPressed(QPoint at);
 
     void bubbleChanged();
+    void noticeChanged();
     void settingsChanged();
     void statsChanged();
     void busyChanged();
 
     /// @brief The interface language changed; the .qm has to be swapped.
     void uiLanguageChanged(QString lang);
-
-    /// @brief DEV_SEND_CONFIRM: ask before this leaves the machine.
-    void confirmSendRequest(QStringList words);
 
 private:
     /// @brief What main() handed to provide(); see the note there.
@@ -199,15 +226,28 @@ private:
     void explain(const Pending& pending);
 
     /// @brief Put an explanation up at the pending anchor.
-    void showBubble(const QString& word, const QString& en, const QString& zh, const QPoint& anchor);
+    /// @param ipa Pronunciation in slashes, beside the word rather than behind the language
+    ///            switch: UI.md section 4.3 draws it next to the word itself.
+    void showBubble(const QString& word, const QString& ipa, const QString& en, const QString& zh, const QPoint& anchor);
 
     /// @brief Put a notice up where an explanation would have gone: no verdict, just the reason.
-    /// @param message Reader-facing text.
-    /// @param pending Supplies the title and the anchor; the status is left empty, because
-    ///                nothing was explained and claiming a verdict would be a lie.
-    void showNotice(const QString& message, const Pending& pending);
+    /// @param title What the notice is about; see noticeTitle().
+    /// @param body  Reader-facing reason.
+    /// @param kind  kNoticeInfo or kNoticeError, from notice.h.
+    void showNotice(const QString& title, const QString& body, const QString& kind);
 
-    /// @brief Ask the model, honouring DEV_SEND_CONFIRM.
+    /// @return What a notice calls the selection it answers: the word when there is one, the
+    ///         selection text otherwise. A sentence has no single word to name, and an untitled
+    ///         card floats with nothing tying it to the selection it is about.
+    static QString noticeTitle(const Pending& pending);
+
+    /// @brief Drop the notice, telling the surface only when there was one.
+    void clearNotice();
+
+    /// @brief Drop the bubble, telling the surface only when there was one.
+    void clearBubble();
+
+    /// @brief Ask the model for the explanations of a batch of words.
     void requestExplanations(const QStringList& words);
 
     /// @return What one day's tokens come to at the current price list.
@@ -231,11 +271,9 @@ private:
 
     Pending pending_;    ///< Valid while an action bar is up.
     QVariantMap bubble_; ///< Empty when nothing is up.
+    QVariantMap notice_; ///< Empty when there is nothing to report.
     QString busyLabel_;
     bool autoScan_ = false;
-
-    /// DEV_SEND_CONFIRM only: the words waiting for consent.
-    QStringList pendingSend_;
 };
 
 }

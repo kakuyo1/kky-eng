@@ -21,8 +21,13 @@
 namespace lens::core {
 
 /// @brief A cached explanation for one lemma, in one explanation language.
+/// @note `ipa` is required, not optional: a bubble drawn from the cache shows the word and its
+///       pronunciation, and an entry without one would be a bubble missing a field that the
+///       model always sends. An entry that has no `ipa` is therefore not a cache entry at all,
+///       which is how a document written before the field existed heals itself (see
+///       KnownStore::load).
 struct WordCache {
-    std::string en, zh;
+    std::string ipa, en, zh;
 };
 
 /**

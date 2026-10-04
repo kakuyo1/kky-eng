@@ -157,7 +157,7 @@
 - **`Window.screen` 的成员它当作 `QObject`**：`virtualX` / `width` / `devicePixelRatio` 一律报
   `missing-property`。改用 `Screen` attached 类型它就认得。本机实测（125%，两块屏）：`win.screen.virtualX`
   与 `Screen.virtualX` 都是 0、`width` 都是 1536、`devicePixelRatio` 都是 1.25——取的是同一个屏，所以
-  `Main.qml` 的 `trayAnchor()` / `toDip()` 与 `SendConfirm.qml` 的居中都用 `Screen`。
+  `Main.qml` 的 `trayAnchor()` / `toDip()` 都用 `Screen`。
 - **`Qt.application.screens` 它完全看不见**：真实对象上是 QScreen 列表，QtQml 的类型信息里没有这个成员。
   没有等价写法，`Main.qml` 的 `screenFor()` 用 `// qmllint disable missing-property` 把那一个 `for` 豁免掉。
 - **delegate 的 `modelData` / `index` 分两层**：delegate 根自己的绑定可以直接写，**嵌套子项**（`Text` /

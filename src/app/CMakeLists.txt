@@ -15,6 +15,7 @@ add_library(lens_app STATIC
   mouse_selection_hook.cpp
   selection_text_grabber.cpp
   app_controller.cpp
+  autostart.cpp
   tray.cpp
 )
 
@@ -107,7 +108,6 @@ qt_add_qml_module(lens_app
     qml/StatsPopup.qml
     qml/WordsPopup.qml
     qml/CostPopup.qml
-    qml/SendConfirm.qml
     qml/components/Tokens.qml
     qml/theme/Light.qml
     qml/theme/Dark.qml

@@ -65,11 +65,6 @@ if(MSVC)
   add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/utf-8>)
 endif()
 
-# Dev only: require a consent dialog before any request leaves for the LLM. OFF for release.
-# Public, because the gate lives at the call site in AppController: the macro decides whether
-# that branch is compiled in at all, so the flag has to reach whoever includes the header.
-option(DEV_SEND_CONFIRM "Dev: force consent before sending to LLM" OFF)
-
 # Compile the lens_core measurement points in (core/profile.h). Off by default: it changes
 # how lens_core is built, so turning it on means a rebuild of that target, not a rerun.
 option(LENS_ENABLE_PROFILE "Compile lens_core profile instrumentation in" OFF)
@@ -92,12 +87,6 @@ add_subdirectory(src/app)
 
 if(LENS_ENABLE_QML_DEBUG)
   target_compile_definitions(lens PRIVATE QT_QML_DEBUG)
-endif()
-
-# Defined here rather than inside src/app so the value is the same everywhere, and so a
-# release build simply does not contain the consent dialog's code.
-if(DEV_SEND_CONFIRM)
-  target_compile_definitions(lens_app PUBLIC DEV_SEND_CONFIRM)
 endif()
 
 # Self-check target: links lens_core + lens_llm, built on the host only, never shipped.

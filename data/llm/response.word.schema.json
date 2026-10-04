@@ -10,9 +10,10 @@
       "description": "One entry per requested word, echoed in any order.",
       "items": {
         "type": "object",
-        "required": ["word", "en", "zh"],
+        "required": ["word", "ipa", "en", "zh"],
         "properties": {
           "word": { "type": "string", "description": "The input word, spelled exactly as requested." },
+          "ipa": { "type": "string", "description": "IPA pronunciation, in slashes." },
           "en": { "type": "string", "description": "One-line English definition." },
           "zh": { "type": "string", "description": "One-line Chinese definition." }
         }

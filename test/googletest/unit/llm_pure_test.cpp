@@ -65,7 +65,7 @@ QString results(const QString& items)
 
 const QStringList kAskedFor{"ubiquitous"};
 const QString kGoodResult =
-    QStringLiteral(R"({"word":"ubiquitous","en":"existing everywhere","zh":"无处不在的"})");
+    QStringLiteral(R"({"word":"ubiquitous","ipa":"/juːˈbɪkwɪtəs/","en":"existing everywhere","zh":"无处不在的"})");
 
 } // namespace
 
@@ -115,6 +115,9 @@ TEST_F(LlmTest, RequestBodyKeepsTheDeepSeekContract)
         // response_format json_object is only accepted when the prompt mentions JSON.
         EXPECT_TRUE(system.contains("json", Qt::CaseInsensitive));
         EXPECT_TRUE(system.contains("\"results\"")) << "the prompt shows no format example";
+        // The model copies the example's field names, so every required field has to be in
+        // it -- the schema's required list is not in the prompt.
+        EXPECT_TRUE(system.contains("\"ipa\"")) << "the format example leaves out the IPA field";
         EXPECT_TRUE(user.contains("ubiquitous") && user.contains("resilience"))
             << "the user message dropped a requested word";
         // The shared body never names a language, so its presence tracks the switch.
@@ -132,6 +135,7 @@ TEST_F(LlmTest, AcceptsAWellFormedResponse)
     const auto& explanations = std::get<QVector<WordExplanation>>(result);
     ASSERT_EQ(explanations.size(), 1);
     EXPECT_EQ(explanations.at(0).word, QStringLiteral("ubiquitous"));
+    EXPECT_EQ(explanations.at(0).ipa, QString::fromUtf8("/juːˈbɪkwɪtəs/")) << "the IPA was dropped on the way out";
     EXPECT_EQ(explanations.at(0).zh, QString::fromUtf8("无处不在的"));
 }
 
@@ -144,15 +148,18 @@ TEST_F(LlmTest, RejectsTheWholeBatchOnAnyMalformedResponse)
         {"finish_reason=length, the JSON was cut off", envelope(kGoodResult, QStringLiteral("length"))},
         {"content is not JSON", envelope(QStringLiteral("not json at all"))},
         {"no results key", envelope(QStringLiteral("{}"))},
-        {"missing field (no zh)", envelope(results(QStringLiteral(R"({"word":"ubiquitous","en":"x"})")))},
+        {"missing field (no ipa)", envelope(results(QStringLiteral(R"({"word":"ubiquitous","en":"x","zh":"y"})")))},
+        {"missing field (no zh)", envelope(results(QStringLiteral(R"({"word":"ubiquitous","ipa":"/x/","en":"x"})")))},
         {"empty field (no en)",
-         envelope(results(QStringLiteral(R"({"word":"ubiquitous","en":"","zh":"y"})")))},
+         envelope(results(QStringLiteral(R"({"word":"ubiquitous","ipa":"/x/","en":"","zh":"y"})")))},
+        {"empty field (no ipa)",
+         envelope(results(QStringLiteral(R"({"word":"ubiquitous","ipa":"","en":"x","zh":"y"})")))},
         {"misspelled echo",
-         envelope(results(QStringLiteral(R"({"word":"ubiquitos","en":"x","zh":"y"})")))},
+         envelope(results(QStringLiteral(R"({"word":"ubiquitos","ipa":"/x/","en":"x","zh":"y"})")))},
         {"missing echo", envelope(results(QString()))},
         {"extra echo",
          envelope(results(QStringLiteral(
-             R"({"word":"ubiquitous","en":"x","zh":"y"},{"word":"extra","en":"x","zh":"y"})")))},
+             R"({"word":"ubiquitous","ipa":"/x/","en":"x","zh":"y"},{"word":"extra","ipa":"/x/","en":"x","zh":"y"})")))},
     };
 
     for (const auto& item : cases) {

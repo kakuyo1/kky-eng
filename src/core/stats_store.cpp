@@ -2,6 +2,7 @@
 #include "core/log.h"
 
 #include <algorithm>
+#include <unordered_set>
 
 namespace lens::core {
 namespace {
@@ -90,6 +91,27 @@ void StatsStore::recordUsage(const std::string& minute, long long promptTokens, 
     day.promptTokens += promptTokens;
     day.completionTokens += completionTokens;
     writeBack();
+}
+
+std::string exportLemmas(const std::vector<HistoryEntry>& history, ExportScope scope)
+{
+    const auto wanted = [scope](const HistoryEntry& entry) {
+        if (scope == ExportScope::Known) return entry.verdict == "known";
+        if (scope == ExportScope::New) return entry.verdict == "new";
+        return true;
+    };
+
+    // One line per lemma, taken at its newest entry -- the same dedup the words popup does,
+    // so a word shown twice is one line here as it is one row there.
+    std::unordered_set<std::string> seen;
+    std::string text;
+    for (const HistoryEntry& entry : history) {
+        if (!seen.insert(entry.lemma).second || !wanted(entry))
+            continue;
+        text += entry.lemma;
+        text += '\n';
+    }
+    return text;
 }
 
 void StatsStore::writeBack()

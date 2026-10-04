@@ -88,8 +88,9 @@ protected:
         store.setLevel(4);
         store.setExplanationLang("zh");
         // A real Chinese definition, kept non-ASCII on purpose: this is what proves the JSON
-        // round trip survives UTF-8, which an ASCII stand-in would not.
-        store.cachePut("ubiquitous", {"existing everywhere", "无处不在的"});
+        // round trip survives UTF-8, which an ASCII stand-in would not. The IPA stands in for
+        // the same reason: a bubble has to be able to show the pronunciation from the cache.
+        store.cachePut("ubiquitous", {"/juːˈbɪkwɪtəs/", "existing everywhere", "无处不在的"});
         store.save();
     }
 
@@ -229,8 +230,31 @@ TEST_F(KnownStoreTest, SurvivesASaveAndReload)
 
     const auto hit = store.cacheGet("ubiquitous");
     ASSERT_TRUE(hit.has_value());
+    EXPECT_EQ(hit->ipa, "/juːˈbɪkwɪtəs/") << "the pronunciation did not survive the round trip";
     EXPECT_EQ(hit->en, "existing everywhere");
     EXPECT_EQ(hit->zh, "无处不在的");
+}
+
+/// The pronunciation is required of a cache entry, so a document written before the field
+/// existed reads as empty rather than as a bubble that is missing a line. That miss is the
+/// whole migration: the next lookup asks the model and writes a complete entry, and the entry
+/// that could not be read goes out of the file on the save that follows.
+TEST_F(KnownStoreTest, ACachedEntryWithoutAPronunciationIsNotAnEntry)
+{
+    std::ofstream(path) << R"({"cache":{"en":{"ubiquitous":{"en":"existing everywhere","zh":"无处不在的"}}}})";
+
+    auto store = KnownStore::load(path);
+    EXPECT_FALSE(store.cacheGet("ubiquitous").has_value());
+
+    store.cachePut("resilience", {"/rɪˈzɪliəns/", "the capacity to recover", "恢复力"});
+    store.save();
+
+    std::ifstream in(path);
+    ASSERT_TRUE(in);
+    const auto doc = nlohmann::json::parse(in, nullptr, false);
+    ASSERT_TRUE(doc.is_object());
+    EXPECT_FALSE(doc["cache"]["en"].contains("ubiquitous")) << "the unreadable entry should not be written back";
+    EXPECT_TRUE(doc["cache"]["en"].contains("resilience"));
 }
 
 TEST_F(KnownStoreTest, KeysTheCacheByExplanationLanguage)
