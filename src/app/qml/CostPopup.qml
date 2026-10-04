@@ -4,6 +4,11 @@ import QtQuick.Window
 /**
  * What the explanations have cost (UI.md section 4.8): the month in the hero, four figures
  * underneath. Same shape as the statistics panel, a different dimension.
+ *
+ * The three rows the controller buckets carry the tokens their amount was priced from as well as
+ * the amount: the count in StatRow's quieter `note` slot, the amount in `value`, so the four
+ * amounts keep one right edge. The daily average is a derived figure rather than a bucket, so
+ * the controller prices no token count for it and the row carries the amount alone.
  */
 Window {
     id: cost
@@ -94,24 +99,33 @@ Window {
             Rectangle { width: parent.width; height: 1; color: Tokens.line2 }
             Item { width: 1; height: 6 }
 
+            // The token count goes in the note slot rather than in front of the amount in
+            // `value`: the amount keeps the bold right-aligned face and the four of them keep
+            // one right edge, and the count is quiet enough to sit there at 11px. String(), not
+            // the raw number, is the house way of spelling an integer.
             StatRow {
                 width: parent.width
                 label: qsTr("Today")
+                note: qsTr("%1 tokens").arg(String(Controller.cost.todayTokens))
                 value: Controller.cost.currency + Controller.cost.today.toFixed(2)
             }
             StatRow {
                 width: parent.width
                 label: qsTr("Yesterday")
+                note: qsTr("%1 tokens").arg(String(Controller.cost.yesterdayTokens))
                 value: Controller.cost.currency + Controller.cost.yesterday.toFixed(2)
             }
             StatRow {
                 width: parent.width
                 label: qsTr("This week")
+                note: qsTr("%1 tokens").arg(String(Controller.cost.weekTokens))
                 value: Controller.cost.currency + Controller.cost.week.toFixed(2)
             }
             StatRow {
                 width: parent.width
                 label: qsTr("Daily average")
+                // A derived average, not a bucket: cost() prices no token count for it, so the
+                // row carries the amount alone rather than a figure invented here.
                 value: Controller.cost.currency + Controller.cost.dailyAverage.toFixed(2)
             }
         }
