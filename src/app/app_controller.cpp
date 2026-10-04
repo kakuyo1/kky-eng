@@ -193,12 +193,25 @@ void AppController::beginSelection(QPoint anchor)
             pending_.kind = QStringLiteral("sentence");
             LENS_INFO("selection of {} character(s): no candidate, offering copy only", text.size());
             break;
-        case core::SelectionKind::Word:
+        case core::SelectionKind::Word: {
+            // The bar carries one word, and it is the first candidate still new to the reader:
+            // the list holds every word the excerpt had, the articles and the marked-known
+            // ones among them, and sending the article a sentence opens with would be
+            // nonsense. When every candidate is known or mastered the first one stands in --
+            // a word the reader selected by hand is one they want explained, whatever they
+            // once marked (TODO.md item 0).
+            const auto& candidates = selection.candidates;
+            const auto fresh = std::find_if(candidates.begin(), candidates.end(), [](const core::Candidate& candidate) {
+                return candidate.state == core::CandidateState::New;
+            });
+            const core::Candidate& word = fresh != candidates.end() ? *fresh : candidates.front();
+
             pending_.kind = QStringLiteral("word");
-            pending_.surface = QString::fromStdString(selection.candidates.front().surface);
-            pending_.lemma = QString::fromStdString(selection.candidates.front().lemma);
+            pending_.surface = QString::fromStdString(word.surface);
+            pending_.lemma = QString::fromStdString(word.lemma);
             LENS_INFO("selection of {} character(s): word channel, '{}' -> '{}'", text.size(), pending_.surface.toStdString(), pending_.lemma.toStdString());
             break;
+        }
     }
 
     emit selectionBarRequested(QVariantMap{{"x", anchor.x()},
@@ -309,8 +322,10 @@ void AppController::showBubble(const QString& word, const QString& en, const QSt
     // on screen. The word's own margin is what decides, and a change to it lands on the next
     // bubble rather than on the one already up.
     const bool wantsChinese = store_.explanationLang() == "zh";
-    // A word the reader is being asked about is by definition one they have not marked as
-    // known, so a fresh bubble is always a new word; only a verdict can change that.
+    // The mark is read here rather than carried in from the selection: a word selected by hand
+    // can be one the reader marked known long ago, and the chip says so from the start rather
+    // than only after the next verdict. A notice has no status at all, which is what keeps
+    // its title -- the selection's text, not a lemma -- out of the feedback buttons.
     bubble_ = QVariantMap{{"word", word},
                           {"en", wantsChinese ? QString() : en},
                           {"zh", wantsChinese ? zh : QString()},

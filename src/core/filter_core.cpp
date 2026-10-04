@@ -361,13 +361,23 @@ std::vector<Candidate> filterWords(
         if (!hasVowel(surface)) continue;
 
         const std::string lemma = lemmatize(surface);
-        if (!inTable(lemma)) continue;               // static word list: absent means drop
-        if (rankOf(lemma) <= minFreqRank) continue;  // within the level's range: mastered
-        if (knownLemmas.count(lemma) != 0) continue; // known set
-        if (!seen.insert(lemma).second) continue;    // same lemma once per excerpt
+        if (!inTable(lemma)) continue;            // static word list: absent means drop
+        if (!seen.insert(lemma).second) continue; // same lemma once per excerpt
 
-        LENS_TRACE("filterWords: candidate surface='{}' lemma='{}'", surface, lemma);
-        out.push_back({surface, lemma});
+        // What the reader has already said about the word annotates it; it does not take the
+        // candidate away (TODO.md item 0). An explicit selection is a request to explain the
+        // word whatever they once marked, and phase 2's automatic scanning is the caller that
+        // will skip these states. Known outranks Mastered: the reader's own mark is the more
+        // specific statement of the two.
+        const CandidateState state = knownLemmas.count(lemma) != 0  ? CandidateState::Known
+                                     : rankOf(lemma) <= minFreqRank ? CandidateState::Mastered
+                                                                    : CandidateState::New;
+
+        LENS_TRACE("filterWords: candidate surface='{}' lemma='{}' state={}",
+                   surface,
+                   lemma,
+                   static_cast<int>(state));
+        out.push_back({surface, lemma, state});
     }
 
     LENS_TRACE("filterWords: {} chars -> {} candidate(s), minFreqRank={}", size, out.size(), minFreqRank);

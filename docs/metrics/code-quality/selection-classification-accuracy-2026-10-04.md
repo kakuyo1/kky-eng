@@ -1,0 +1,87 @@
+# 选区类型判定准确率报告
+
+## 1、报告信息
+
+| 项目 | 内容 |
+| --- | --- |
+| 回答的问题 | 当前的单层判定（`classifySelection` 的 kind 与候选序列）在样例集上错在哪里，是否需要一个多层级策略 |
+| 生成日期 | 2026-10-04 |
+| 被测代码 | `src/core/filter_core.cpp`（单层：出候选 = Word，无候选 = Sentence） |
+| 样例集 | `test/eval_corpus.json`，1001 段 |
+| 运行方式 | `lens_gtest_unit` 的 `CoreTest.ReplaysTheSampleCorpus`，Debug（`build-ninja`） |
+| 运行轮次 | 3 轮 |
+
+判定是纯函数，不依赖时间与环境，三轮结果逐字相同；本报告仍按 `TEST.md` §4 的约定记三轮，并报区间。
+
+## 2、结论
+
+**不需要多层级策略。**单层判定在样例集上的差异全部集中在一条轴上——已知词库与档位词频带被当作候选的删除条件。除此之外 664 段（占 66.3%）全部命中，没有一段是 “本该是句子却被判成单词” 这类层级问题。
+
+| 轮次 | 命中 | 未命中 | 命中率 |
+| ---: | ---: | ---: | ---: |
+| 1 | 665 | 336 | 66.43% |
+| 2 | 665 | 336 | 66.43% |
+| 3 | 665 | 336 | 66.43% |
+
+区间：三轮同为 66.43%，极差 0。这个数字是按轴加权的，不是无偏估计——样例集是改后行为的规格，凡是带 known / minFreqRank 的段落按定义就会红。真正的结论在下面的分轴表里。
+
+## 3、分轴结果
+
+| 段落性质 | 段数 | 未命中 | 未命中率 |
+| --- | ---: | ---: | ---: |
+| 既不带 known 也不带 minFreqRank | 664 | 0 | 0.0% |
+| 只带 minFreqRank（档位词频带） | 173 | 172 | 99.4% |
+| 只带 known（已知词库） | 163 | 163 | 100.0% |
+| 两者都带 | 1 | 1 | 100.0% |
+
+只带 minFreqRank 的那 173 段里有 1 段命中：该段的候选全部落在词频带之外，删不删都一样。
+
+未命中的形态只有两种，都是同一条规则的两个面：
+
+- 候选中位于档位词频带内的词被丢掉。例：`The ubiquitous nature of modern software makes resilience essential.`（minFreqRank 3000）期望 `the / ubiquitous / nature / modern / software / makes / resilience / essential`，实际只回 `ubiquitous / software / resilience / essential`。
+- 候选中已被读者标记为已知的词被丢掉。例：`ubiquitous` 单独出现在 known 集合里时期望仍是候选，实际整段被判成 `Sentence`。
+
+## 4、样例集与来源
+
+样例集 1001 段，全部由 `scripts/check-eval-corpus.py` 按 `PHASE1.md` §4.1 与 `src/core/filter_core.h` 的规则校验过（质检 0 项）。按来源分：
+
+| 来源 | 段数 | 期望值怎么来的 |
+| --- | ---: | --- |
+| 边界串 | 336 | 逐条手写。两字母词、三字母词、全大写缩写、含数字 / 连字 / 点号的粘连串、无元音串、不在词表里的词、词表里恰好收了的行话、混合大小写品牌——每条都能按规则当场核对 |
+| 词形还原 | 165 | 逐条手写。后缀规则与不规则表的每一支各若干条，外加规则**故意不做**的还原（nicer / used / seed / news / means） |
+| 散文（`prose:` 前缀） | 303 | 手写主张「这段里的每个词表词都是候选」，文本由人读、由检查脚本核对每个 token 都过得了硬过滤 |
+| 混合散文 | 186 | 句子里混入缩写、数字、粘连串、行话；期望由规则算出（不是跑实现），notes 里逐字列出每个被丢 token 的原因 |
+| 去重 | 10 | 逐条手写，同段同 lemma 只留首次出现 |
+| 复述旧条目 | 1 | 旧样例集第 1 条改按新契约写 |
+
+散文的期望是一句手写的主张（“这段的每个 token 都是候选”），混合散文的期望按规则算出；两族都没有跑实现去取答案。边界、还原、去重三族则是逐条手写并逐条可核的，也是这次质检真的抓到东西的那部分（抓出 143 项笔误与规则误解，另有 12 条还原期望经查词表秩后修正）。
+
+## 5、复现
+
+当前实现（判定已改）跑这份样例集，查的是残留误判，应为 0：
+
+```
+./scripts/build.bat --target lens_gtest_unit
+PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
+  ./build-ninja/test/googletest/lens_gtest_unit.exe --gtest_filter='*Replays*'
+python scripts/check-eval-corpus.py
+```
+
+每轮输出末尾一行 `corpus: 1001 entries, N mismatched`，N 就是上表里的未命中数。改动样例集或 `filterWords` 之后重跑同一条命令即可。
+
+改前那组数（命中 665 / 未命中 336）：判定改掉之后，同一份样例集在旧实现上再也跑不出来——要复现得把实现退回去，样例集保持当前这份。在 `main` 的 `src/core/filter_core.{h,cpp}`、`src/app/app_controller.cpp`、`test/googletest/unit/filter_core_test.cpp` 上跑：
+
+```
+git checkout main -- src/core/filter_core.h src/core/filter_core.cpp \
+  src/app/app_controller.cpp test/googletest/unit/filter_core_test.cpp
+./scripts/build.bat --target lens_gtest_unit
+./build-ninja/test/googletest/lens_gtest_unit.exe --gtest_filter='*Replays*'
+git checkout HEAD -- src/ test/
+```
+
+旧用例只断言 surface 序列，所以数的是 “未命中的段落数”（按 `Google Test trace` 里的 `corpus #N` 去重）；`Candidate` 的 surface 序列相同即 kind 相同，两条口径在这份样例集上等价。
+
+## 6、本次顺带发现
+
+- `data/irregulars.tsv` 第 3293 行是 `offer → off`，于是 `offer` 的词根被还原成 `off`（`off` 词频序 122，`offer` 897）。`PHASE1.md` §4.1 把 offer 列为 “伪还原，安全落回自身” 的例子，与该数据不符。样例集按数据现状写（`offer → off`），并在该条 note 里标出这处不一致。
+- 两字母词干会被 `pushIfInTable` 的三字母下限挡下，因此 being / doing / going / does 都保留原形，不会还原成 be / do / go。

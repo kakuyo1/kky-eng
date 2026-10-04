@@ -58,26 +58,45 @@ void loadIrregulars(const std::filesystem::path& path);
  */
 std::string lemmatize(std::string_view token);
 
+/// @brief Where a candidate stands with the reader. The module records it; the caller acts.
+///
+/// Known and Mastered are kept apart because they are told apart: one is the reader's own
+/// mark, the other the level's frequency band. Either way the word stays a candidate, since
+/// a selection the reader made by hand is a request to explain it whatever they once marked
+/// (TODO.md item 0). Phase 2's automatic scanning is the caller that will want to skip them.
+enum class CandidateState {
+    New,      ///< Neither marked nor inside the level's band.
+    Known,    ///< The reader marked it as known.
+    Mastered, ///< Inside the level's frequency band.
+};
+
 /// @brief A word worth explaining, in both the form seen and its dictionary form.
 struct Candidate {
-    std::string surface; ///< The form as written, lower-cased (e.g. "running").
-    std::string lemma;   ///< The dictionary form (e.g. "run").
+    std::string surface;                        ///< The form as written, lower-cased (e.g. "running").
+    std::string lemma;                          ///< The dictionary form (e.g. "run").
+    CandidateState state = CandidateState::New; ///< What the reader has already said about it.
 };
 
 /**
- * @brief Filter an excerpt down to the words the reader probably does not know.
+ * @brief Filter an excerpt down to the words it is made of.
  *
  * Pure pipeline with no I/O; the known set and the frequency cut-off are injected so the
  * module stays dependency-free and testable. Stages, in order: tokenise and hard-filter
- * -> skip all-caps -> lemmatise -> whitelist against the word list -> difficulty cut-off
- * -> skip known lemmas.
+ * -> skip all-caps -> lemmatise -> whitelist against the word list -> de-duplicate by lemma
+ * -> record each survivor's state.
+ *
+ * The known set and the frequency cut-off annotate a candidate; they never remove one. What
+ * removes a word is the hard filter, and that is the whole test for whether it is a word at
+ * all: length, case, a vowel, glued punctuation, and membership of the static word list.
  *
  * @param text         Raw excerpt, typically pasted from the clipboard.
- * @param knownLemmas  Lemmas the reader has already marked as known.
- * @param minFreqRank  Difficulty cut-off: words at or above this rank count as mastered.
- *                     The level-to-rank mapping is not settled yet; see TODO.md.
- * @return Candidates in order of first appearance, de-duplicated by lemma.
- *         An empty vector means nothing needs explaining.
+ * @param knownLemmas  Lemmas the reader has already marked as known; a hit is recorded as
+ *                     CandidateState::Known.
+ * @param minFreqRank  Difficulty cut-off: a lemma ranked at or above it is recorded as
+ *                     CandidateState::Mastered. The level-to-rank mapping is not settled
+ *                     yet; see TODO.md.
+ * @return Every surviving word, in order of first appearance, de-duplicated by lemma.
+ *         An empty vector means the excerpt holds no word from the static list at all.
  * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet.
  */
 std::vector<Candidate> filterWords(
@@ -92,18 +111,18 @@ std::vector<Candidate> filterWords(
 /// the same decision, so it is settled when the selection is analysed, before any press
 /// (UI.md section 4.9).
 enum class SelectionKind {
-    Word,     ///< At least one candidate came back; the word channel has something to send.
-    Sentence, ///< No candidate. Phase 2's sentence and entity channels own this case.
+    Word,     ///< At least one word came back; the word channel has something to send.
+    Sentence, ///< No word at all. Phase 2's sentence and entity channels own this case.
 };
 
-/// @brief A selection, classified: what it is, and the words it would send.
+/// @brief A selection, classified: what it is, and the candidates it carries.
 struct Selection {
     SelectionKind kind = SelectionKind::Sentence;
     std::vector<Candidate> candidates; ///< Empty unless kind is Word.
 };
 
 /**
- * @brief Decide what a selection is, and produce the words a request would carry.
+ * @brief Decide what a selection is, and produce the candidates a request would choose from.
  *
  * One place decides this, and the surfaces only route on the answer -- so picking translate
  * over explain cannot change the channel, and phase 2's entity channel is a branch here
@@ -115,9 +134,11 @@ struct Selection {
  * @return The kind, and the candidates when there are any.
  * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet.
  *
- * @note Sentence is the absence of a candidate, not a judgement about grammar: a lone word
- *       the reader already knows lands there too. That is the honest answer -- there is
- *       nothing left in the selection to explain.
+ * @note Word means "this excerpt is made of words", not "it holds one worth showing": a
+ *       sentence of common English lands there with every word mastered, and so does a lone
+ *       word the reader marked known. Sentence is the absence of any word from the static
+ *       list -- junk, a URL, a number. Which candidate a request carries is the caller's
+ *       decision, taken from each candidate's state.
  */
 Selection classifySelection(
     std::string_view text,

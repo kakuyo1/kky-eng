@@ -14,6 +14,7 @@
 | --- | --- |
 | [`test-coverage-baseline-2026-10-03.md`](code-quality/test-coverage-baseline-2026-10-03.md) | 哪些 C++ 行与 QML 求值位置被测试跑过 |
 | [`source-code-review-hotspots-2026-10-03.md`](code-quality/source-code-review-hotspots-2026-10-03.md) | 哪些源码文件与函数应优先审阅 |
+| [`selection-classification-accuracy-2026-10-04.md`](code-quality/selection-classification-accuracy-2026-10-04.md) | 单层选区类型判定错在哪里，是否需要多层级策略 |
 
 ## runtime-performance
 
