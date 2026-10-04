@@ -56,7 +56,8 @@ Window {
                 width: parent.width
                 text: confirm.words.join("\n")
                 color: Tokens.text
-                font.family: Tokens.monoFamily
+                font.family: confirm.words.join("\n").search(/[\u3400-\u9fff]/) >= 0
+                             ? "" : Tokens.monoFamily
                 font.pixelSize: 13
                 wrapMode: Text.Wrap
             }

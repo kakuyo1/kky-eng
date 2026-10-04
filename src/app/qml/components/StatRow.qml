@@ -37,16 +37,15 @@ Item {
         font.pixelSize: 13
     }
 
-    Text {
+    MixedText {
         id: valueText
         anchors.right: chevron.left
         anchors.rightMargin: root.clickable ? 6 : 0
         anchors.verticalCenter: parent.verticalCenter
-        text: root.value
+        value: root.value
         color: Tokens.text
-        font.family: Tokens.monoFamily
-        font.pixelSize: 13
-        font.weight: Font.Bold
+        pixelSize: 13
+        weight: Font.Bold
     }
 
     Icon {

@@ -55,7 +55,8 @@ docs/adr/README.md 0
 docs/adr/0001-mouse-hook-own-thread.md 0
 docs/adr/0002-qml-split-by-window.md 0
 docs/adr/0003-instructions-live-in-agents-md.md 0
-docs/adr/0004-qml-module-on-the-static-library.md 0'
+docs/adr/0004-qml-module-on-the-static-library.md 0
+docs/adr/0005-cjk-latin-shared-face.md 0'
 
 staged=$(git diff --cached --name-only --diff-filter=ACM)
 

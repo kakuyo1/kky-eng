@@ -9,6 +9,50 @@
 
 #include "setup.h"
 
+#include <QFont>
+#include <QFontDatabase>
+#include <QGuiApplication>
+#include <QQmlContext>
+#include <QQmlEngine>
+
+namespace {
+
+void installUiFonts()
+{
+    const int latin = QFontDatabase::addApplicationFont(QStringLiteral("C:/Windows/Fonts/SegUIVar.ttf"));
+    const int chinese = QFontDatabase::addApplicationFont(QStringLiteral("C:/Windows/Fonts/msyhl.ttc"));
+    const int chineseRegular = QFontDatabase::addApplicationFont(QStringLiteral("C:/Windows/Fonts/msyh.ttc"));
+    const int noto = QFontDatabase::addApplicationFont(QStringLiteral("C:/Windows/Fonts/NotoSansSC-VF.ttf"));
+    const int mono = QFontDatabase::addApplicationFont(QStringLiteral("C:/Windows/Fonts/CascadiaCode.ttf"));
+    if (latin < 0 or chinese < 0 or chineseRegular < 0 or mono < 0)
+        qFatal("could not load the Windows UI font files for the offscreen snapshot");
+
+    const QString lightFamily = QFontDatabase::applicationFontFamilies(chinese).value(0);
+    const QString regularFamily = QFontDatabase::applicationFontFamilies(chineseRegular).value(0);
+    const QString notoFamily = noto >= 0 ? QFontDatabase::applicationFontFamilies(noto).value(0) : QString{};
+    if (lightFamily.isEmpty() or regularFamily.isEmpty())
+        qFatal("could not resolve the Windows Chinese font families for the offscreen snapshot");
+
+    QFont uiFont;
+    const QString mode = qEnvironmentVariable("LENS_QA_FONT_MODE", "current");
+    if (mode == QLatin1String("yahei-light"))
+        uiFont.setFamilies({lightFamily, QStringLiteral("Segoe UI Variable")});
+    else if (mode == QLatin1String("yahei"))
+        uiFont.setFamilies({regularFamily, QStringLiteral("Segoe UI Variable")});
+    else if (mode == QLatin1String("noto-light") and not notoFamily.isEmpty()) {
+        uiFont.setFamilies({notoFamily, QStringLiteral("Segoe UI Variable")});
+        uiFont.setWeight(QFont::Light);
+    } else if (mode == QLatin1String("noto") and not notoFamily.isEmpty())
+        uiFont.setFamilies({notoFamily, QStringLiteral("Segoe UI Variable")});
+    else if (not notoFamily.isEmpty())
+        uiFont.setFamilies({notoFamily, QStringLiteral("Segoe UI Variable")});
+    else
+        uiFont.setFamilies({QStringLiteral("Segoe UI Variable"), QStringLiteral("Microsoft YaHei UI Light")});
+    QGuiApplication::setFont(uiFont);
+}
+
+} // namespace
+
 #ifdef LENS_QTEST_SINGLETONS
 
 #include <QCoreApplication>
@@ -98,7 +142,9 @@ Singletons& singletons()
 
 void LensTestSetup::qmlEngineAvailable(QQmlEngine* engine)
 {
-    Q_UNUSED(engine)
+    installUiFonts();
+
+    engine->rootContext()->setContextProperty("lensQaSnapshotDir", qEnvironmentVariable("LENS_QA_SNAPSHOT_DIR"));
 
     Singletons& one = singletons();
     AppController::provide(one.controller.get());
@@ -109,7 +155,8 @@ void LensTestSetup::qmlEngineAvailable(QQmlEngine* engine)
 
 void LensTestSetup::qmlEngineAvailable(QQmlEngine* engine)
 {
-    Q_UNUSED(engine)
+    installUiFonts();
+    engine->rootContext()->setContextProperty("lensQaSnapshotDir", qEnvironmentVariable("LENS_QA_SNAPSHOT_DIR"));
 }
 
 #endif

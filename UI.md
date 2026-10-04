@@ -82,8 +82,8 @@
 
 ### 3.2 字体
 
-- 主字体 = **应用字体**，在 `main.cpp` 里设一次：Segoe UI Variable + 中文回落 Microsoft YaHei UI Light。为什么不在 QML 里设：QML 的 `font.family` 只收**一个**名字（写成逗号串会整串匹配不到、全站落到 Tahoma，2026-10-03 用 `Text.fontInfo` 实测），而列表属性 `font.families` 在 QML 的 font 值类型上不存在，只有 `QFont::setFamilies` 带得动列表。中文回落到 **Light** 而非系统默认：Microsoft YaHei UI 的常规体比 Segoe UI Variable 重一档，同权重下中文标签看着像加了粗（按墨量实测）。QML 侧因此不写字体族，只在等宽数字处写 `Tokens.monoFamily`
-- 数字：`font-variant-numeric: tabular-nums`，统计类数字对齐
+- 主字体 = **应用字体**，在 `main.cpp` 里设一次：优先使用系统 `Noto Sans SC`，缺失时回退到 Segoe UI Variable + Microsoft YaHei UI Light。QML 的 `font.family` 只收一个名字，字体族列表只能由 `QFont::setFamilies` 设置。QML 侧不覆盖应用字体，除非控件明确需要等宽数字
+- 纯数字 / 金额使用 `Cascadia Code`，统计类数字对齐；含中文的混排值由 `MixedText` 分成 CJK 与非 CJK run，中文沿用应用字体，数字 / 货币继续等宽，不再让整行一起变糊
 - **字重只有两档**：正文、释义、行标签、元信息用 `400`；标题、按钮、标签胶囊、统计数值用 `700`。`600` / `650` 及任何中间值取消。
 - 依据（2026-10-03 实测）：系统栈里只有 Latin 是连续权重，中文回落的 Microsoft YaHei UI 只有 Regular / Bold 两档。用 `600` 时拉丁文是真 SemiBold、中文被吸附到 Bold，同一行中英混排（如 `4 词`）会渲染成两种粗细；改用 `700` 两边才真正同粗。代价是标题比原型重一档。
 - 字号表：
@@ -123,7 +123,7 @@
 - 分隔线：1 px `line2`，上下留 5 px 余量
 - 退出项为危险项：文字与图标用 `danger`
 - 语言项带子菜单：贴菜单左缘展开的第二张卡片（宽 ≥104 px、圆角 11 px、菜单级阴影），项为 中文 / English，当前项墨底白字；行右侧显示当前值
-- 项顺序：今日统计（右侧等宽小字：128 词 · ¥0.42）/ 语言（右侧当前值 + 子菜单）/ 设置 / 退出
+- 项顺序：今日统计（右侧混排小字：128 词 · ¥0.42）/ 语言（右侧当前值 + 子菜单）/ 设置 / 退出
 
 ### 4.3 解释气泡（核心表面）
 
@@ -173,7 +173,7 @@
 - 打开的那张子面板**替换**本面板，不叠在上面：这三张同一时刻只有一张在屏幕上，子面板右上角的返回箭头回到本面板
 - 「历史累计」与词汇弹窗的标题总量**同值**，都是去重后的词数（即词汇列表的行数），由同一个来源给出，不会漂
 - 花费行默认显示今天的金额，明细见花费弹窗
-- 数字一律等宽字体，与托盘菜单的 `128 词 · ¥0.42` 同规格
+- 纯数字和金额使用等宽字体；含中文单位的混排值沿用应用字体，与托盘菜单的 `128 词 · ¥0.42` 保持一致
 
 ### 4.7 词汇弹窗
 
@@ -237,7 +237,7 @@
 | 词汇弹窗 | `Popup` 内嵌 `ListView`（`clip: true` + 自绘滚动条），锚定在统计弹窗的「历史累计」行 |
 | 花费弹窗 | `Popup`，锚定在统计弹窗的「花费」行 |
 | 设置浮层 | `Popup`，`modality` 轻量，关闭时淡出 |
-| 字体 | `font.family: "Segoe UI"` / `"Microsoft YaHei UI"` |
+| 字体 | `QFont::setFamilies()`：优先 Noto Sans SC，缺失时回退 Segoe UI Variable + Microsoft YaHei UI Light |
 | 图标 | `icons/*.svg` 经 `qt_add_resources` 打进 `:/icons/`；QML 侧 `Icon.qml` 用 `Image` + `MultiEffect` 着色，一份白色描边的文件服务所有颜色与两种主题 |
 
 以上是 “用什么 Qt 类型实现哪张表面”。**怎么落地**（模块与目录、阴影怎么投、定位怎么算、跨线程能不能碰、

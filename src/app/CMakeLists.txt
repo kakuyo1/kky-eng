@@ -116,6 +116,7 @@ qt_add_qml_module(lens_app
     qml/components/StatRow.qml
     qml/components/DropdownField.qml
     qml/components/MenuRow.qml
+    qml/components/MixedText.qml
 )
 
 # The icon art, addressed as :/icons/<name>.svg. BASE strips the source directory so the names

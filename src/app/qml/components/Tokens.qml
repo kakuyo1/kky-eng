@@ -48,15 +48,10 @@ QtObject {
      * because QML cannot express what it needs to be.
      *
      * A Text names at most one family, and naming one replaces whatever it would have
-     * inherited. The UI font has to be a *list* -- Segoe UI Variable, then Microsoft YaHei UI
-     * Light for the Chinese it has no glyphs for -- and only QFont can carry that. Bold and
-     * regular Chinese then come from real faces rather than from Windows' default, which is a
-     * step too heavy beside the Latin.
+     * inherited. The application prefers one face for Latin and CJK; MixedText is the exception
+     * that deliberately splits a localized value into separate font runs.
      *
-     * Naming a family here costs this Text that fallback, so the Chinese inside a figure --
-     * the unit in "128 词 · ¥0.42" -- is drawn in Windows' own fallback and reads heavier than
-     * the Chinese around it. ponytail: three strings, and splitting the unit out of the run
-     * is the fix if it ever shows.
+     * Components that need a monospaced face use this family for non-CJK runs only.
      */
     readonly property string monoFamily: "Cascadia Code"
 }

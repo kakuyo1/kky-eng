@@ -52,14 +52,14 @@ Item {
         }
     }
 
-    Text {
+    MixedText {
         visible: root.note !== ""
+        id: noteText
         anchors.right: parent.right
         anchors.rightMargin: 11
         anchors.verticalCenter: parent.verticalCenter
-        text: root.note
+        value: root.note
         color: Tokens.faint
-        font.family: Tokens.monoFamily
-        font.pixelSize: 11
+        pixelSize: 11
     }
 }

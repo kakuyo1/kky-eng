@@ -9,6 +9,7 @@
 
 #include <QApplication>
 #include <QFont>
+#include <QFontDatabase>
 #include <QCoreApplication>
 #include <QQmlApplicationEngine>
 #include <QTimer>
@@ -125,13 +126,15 @@ int main(int argc, char* argv[])
     // The UI font, set here and not in QML because QML cannot express it: a Text's font value
     // type has no families list, and naming a family there replaces the one it would inherit.
     //
-    // The second entry is Chinese's face, named rather than left to Windows. Microsoft YaHei
-    // UI's regular is a step heavier than Segoe UI Variable's, so at the same weight a Chinese
-    // label reads as bold beside a Latin one -- measured by ink on the real window, and it is
-    // the Light face that lands next to Segoe UI Variable. It is only consulted for glyphs the
-    // first family has no cover for, which is exactly the Chinese.
+    // Use one face for Latin and CJK when the Windows installation provides it. Mixing a Latin
+    // face with a Chinese fallback at the same nominal weight makes the Chinese glyphs visibly
+    // darker because the two faces have different stroke density. Mixed numeric values split
+    // their runs in MixedText.qml, so digits can still use the crisp monospace face.
     QFont uiFont;
-    uiFont.setFamilies({QStringLiteral("Segoe UI Variable"), QStringLiteral("Microsoft YaHei UI Light")});
+    if (QFontDatabase::hasFamily(QStringLiteral("Noto Sans SC")))
+        uiFont.setFamilies({QStringLiteral("Noto Sans SC"), QStringLiteral("Segoe UI Variable")});
+    else
+        uiFont.setFamilies({QStringLiteral("Segoe UI Variable"), QStringLiteral("Microsoft YaHei UI Light")});
     QGuiApplication::setFont(uiFont);
 
     lens::log::init();

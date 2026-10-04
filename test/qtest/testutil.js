@@ -62,3 +62,17 @@ function textWith(texts, candidates) {
     }
     return null;
 }
+
+/// Save a snapshot of `item` as `<dir>/<name>.png`, and say whether one was written.
+///
+/// The silent (offscreen) screenshot path. A case passes its own TestCase (for the inherited
+/// `grabImage`) plus the `lensQaSnapshotDir` context property, which setup.cpp fills from the
+/// LENS_QA_SNAPSHOT_DIR environment variable and scripts/qml-snapshot.ps1 sets. An empty `dir`
+/// means no snapshot was asked for, so the call returns false and the case skips rather than
+/// writing a stray file. The method and its uses are TEST.md section 5.
+function saveSnapshot(testCase, item, dir, name) {
+    if (!dir)
+        return false;
+    testCase.grabImage(item).save(dir + "/" + name + ".png");
+    return true;
+}

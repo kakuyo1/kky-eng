@@ -209,6 +209,14 @@ sh scripts/qml-coverage.sh
 计时，报告慢过阈值的调用。它回答的是 “鼠标被抢走了吗”，不是 “界面画对了吗”——回归对象是钩子跑在自己线程
 上那条约束（`docs/QML.md` §5），一次运行三四十秒。
 
+还有一条既不驱动、也不显示窗口的路：`qml-snapshot.ps1` 用 Qt 的 `offscreen` 平台跑 QTest，把真实 QML 场景
+渲进内存图再写成 PNG。它不显示窗口、不动鼠标、不抓桌面，所以不受桌面遮挡影响，也不需要人工在屏幕前。方法
+分两处：`setup.cpp` 用 `QFontDatabase::addApplicationFont` 逐个载入 Windows 字体文件，再把输出目录经
+`lensQaSnapshotDir` 交给每个引擎——offscreen 平台本身不带字体，不载就是满屏方框；用例调用 `testutil.js` 的
+`saveSnapshot(testCase, item, name)`，内部走 `TestCase.grabImage(item)` 再 `save()`。脚本设好
+`QT_QPA_PLATFORM=offscreen` 与 `LENS_QA_SNAPSHOT_DIR` 后驱动目标，默认写到 `test/records/snapshots/`。它验的
+是渲染结果本身——字形、字重、对齐、配色；摆放与交互仍归 §2 的 `lens_qtest_surfaces` 和上面那三件套。
+
 一轮的顺序：先 `ui-tray-rects.ps1` 量基准，再起应用，用 `ui-input.ps1` 驱动，用 `ui-capture.ps1`
 截图，必要时 `-Profile` 或放大看像素。为看清而临时加进 QML 的东西（计时器、`console.log`）**提交前
 必须删干净**——`.githooks/pre-commit` 的第四项会拦下 `src/` 下带这两个串的暂存文件，手工确认是

@@ -174,14 +174,13 @@ Window {
                             elide: Text.ElideRight
                         }
 
-                        Text {
+                        MixedText {
                             anchors.right: tag.left
                             anchors.rightMargin: 9
                             anchors.verticalCenter: parent.verticalCenter
-                            text: entry.modelData.when
+                            value: entry.modelData.when
                             color: Tokens.faint
-                            font.family: Tokens.monoFamily
-                            font.pixelSize: 11
+                            pixelSize: 11
                         }
 
                         Rectangle {

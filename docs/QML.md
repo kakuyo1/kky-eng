@@ -125,10 +125,9 @@
   串，Qt 当成一个名字找，找不到就整站落到 Tahoma——`Text.fontInfo` 在真窗口上读回来的就是这个），而列表
   属性 `font.families` 在 QML 的 font 值类型上根本不存在（赋值即
   `Cannot assign to non-existent property "families"`）。所以 `QGuiApplication::setFont` 收一个
-  `QFont::setFamilies({"Segoe UI Variable", "Microsoft YaHei UI Light"})`，QML 侧**不再写字体族**，靠
-  继承。中文必须点名落到 Light：Microsoft YaHei UI 的常规体比 Segoe UI Variable 重一档，同权重下中文
-  标签看着像加了粗，按墨量实测才定的案。代价是等宽那几个 `Text` 一旦写 `font.family: Tokens.monoFamily`
-  就丢掉这条回落，字符串里的中文（128 词的那个单位）走系统回落、比周围略重，只有三处。
+  `QFont::setFamilies({"Noto Sans SC", "Segoe UI Variable"})`，Noto 缺失时回到原系统栈。QML 侧默认靠继承，
+  不把单个字体族写到整段混排文本上。纯数字 / 金额可以写 `font.family: Tokens.monoFamily`；混排值使用
+  `MixedText` 拆 run，让数字 / 货币保留 Cascadia Code，中文 run 继承应用字体。
 - **标题行的图标贴右锚定，不用固定占位**：原先的 `Item { width: parent.width - 40 }` 是按英文标题估的，
   中文标题一变宽就把关闭按钮整个挤出卡片外（放大实测）。改成左锚标题、右锚图标行。
 - **界面出现前仍有约 1.5 s，其中 `loadFromModule` 占 810–923 ms**：临时埋点（已删）测出这一段几乎全在
@@ -164,4 +163,3 @@
   `TrayMenu.qml` 里的 `root.showStats()` 会解析到 `Main.qml` 的根（两文件探针实测）。它能跑，但没有任何地方
   声明它，qmllint 对这种名字只给一句 `Unqualified access`、不说该怎么办。表面之间的通信因此走信号：
   `TrayMenu` 现在发 `statsRequested` / `settingsRequested`，由 `Main.qml` 接。
-

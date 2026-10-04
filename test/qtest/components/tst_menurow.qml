@@ -28,26 +28,21 @@ Item {
             return row;
         }
 
-        /// @return The row's label and note, in the order they are declared.
-        function textsOf(row) {
-            const texts = Util.textsUnder(row);
-            compare(texts.length, 2);
-            return texts;
-        }
-
         function test_theNoteIsShownOnlyWhenThereIsOne() {
             const bare = make({});
-            compare(textsOf(bare)[1].visible, false, "an empty note left a gap on the right");
-            compare(textsOf(bare)[1].text, "");
+            const bareTexts = Util.textsUnder(bare);
+            compare(bareTexts.length, 1);
 
             const noted = make({ note: "2" });
-            compare(textsOf(noted)[1].visible, true);
-            compare(textsOf(noted)[1].text, "2");
+            const notedTexts = Util.textsUnder(noted);
+            compare(notedTexts.length, 2);
+            compare(notedTexts[1].visible, true);
+            compare(notedTexts[1].text, "2");
         }
 
         function test_theDangerRowIsDrawnInTheDangerColour() {
-            compare(textsOf(make({}))[0].color, Tokens.text);
-            compare(textsOf(make({ danger: true }))[0].color, Tokens.danger);
+            compare(Util.textsUnder(make({}))[0].color, Tokens.text);
+            compare(Util.textsUnder(make({ danger: true }))[0].color, Tokens.danger);
         }
 
         function test_pickingTheRowReports() {
