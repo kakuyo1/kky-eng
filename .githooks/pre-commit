@@ -61,7 +61,18 @@ docs/adr/0005-cjk-latin-shared-face.md 0'
 staged=$(git diff --cached --name-only --diff-filter=ACM)
 
 check_typography() {
-    command -v npx >/dev/null 2>&1 || { echo "pre-commit: npx not found, skipping typography"; return 0; }
+    # zhlint from PATH when it is installed (npm i -g zhlint), because the npx fallback
+    # resolves the package name against the registry on every call: one network round trip
+    # per staged doc, which came to minutes of the hook's run time when the proxy was down.
+    # The fallback stays for a machine that has not installed it, and for CI.
+    if command -v zhlint >/dev/null 2>&1; then
+        run_zhlint() { zhlint "$@"; }
+    elif command -v npx >/dev/null 2>&1; then
+        run_zhlint() { npx -y zhlint "$@"; }
+    else
+        echo "pre-commit: neither zhlint nor npx found, skipping typography"
+        return 0
+    fi
 
     config="$HOME/.claude/skills/zhlint/assets/zhlintrc.json"
     [ -f "$config" ] || { echo "pre-commit: $config not found, skipping typography"; return 0; }
@@ -79,7 +90,7 @@ check_typography() {
         # Windows means "docs\adr\README.md", while the staged name git hands us is
         # "docs/adr/README.md". The count greps anchor on the name, so without this every doc
         # below the root counts zero and silently passes.
-        report=$(npx -y zhlint --config "$config" "$doc" 2>&1 | tr '\\' '/')
+        report=$(run_zhlint --config "$config" "$doc" 2>&1 | tr '\\' '/')
         # "Found 1 error." is singular -- matching only "errors\." would let a doc with exactly
         # one error report no verdict.
         if ! printf '%s\n' "$report" | grep -qE '[0-9]+ errors?\.|No error found'; then
@@ -95,7 +106,7 @@ check_typography() {
             lines=$(printf '%s\n' "$report" | grep -oE "^$doc:[0-9]+" | cut -d: -f2 | sort -nu | head -10 | tr '\n' ' ')
             echo "pre-commit: $doc has $count typography errors, its budget is $limit"
             echo "  affected lines: $lines"
-            echo "  messages: npx -y zhlint --config \"\$HOME/.claude/skills/zhlint/assets/zhlintrc.json\" $doc"
+            echo "  messages: zhlint --config \"\$HOME/.claude/skills/zhlint/assets/zhlintrc.json\" $doc"
             echo "  (the budget only goes down; fix the line rather than raise it)"
             status=1
         fi
