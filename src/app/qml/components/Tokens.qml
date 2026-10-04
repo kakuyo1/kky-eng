@@ -3,12 +3,14 @@ pragma Singleton
 import QtQuick
 
 /**
- * The colour and type table every surface reads, from UI.md section 3.
+ * The colour, type and motion table every surface reads, from UI.md section 3 and its motion
+ * table.
  *
  * The colours themselves live in qml/theme/, one file per theme; this file builds both tables
  * and forwards the active one's values under the token names the surfaces use. A surface never
  * names a colour directly: it asks for a token, and the light or dark value comes back.
- * Switching the theme is one assignment to theme, and nothing else has to know.
+ * Switching the theme is one assignment to theme, and nothing else has to know. The durations
+ * and curves in qml/theme/Motion.qml come through the same way, under `motion`.
  */
 QtObject {
     id: tokens
@@ -21,6 +23,11 @@ QtObject {
     /// come from. A third theme is another file in qml/theme/ and one more arm in each line.
     readonly property Light lightTheme: Light {}
     readonly property Dark darkTheme: Dark {}
+
+    /// Durations and curves, built and forwarded the same way: theme/Motion.qml holds them,
+    /// and a surface reads Tokens.motion.<token> rather than writing a millisecond itself.
+    /// Whether they are all zero is Windows' answer, read once by SystemMotion.
+    readonly property Motion motion: Motion {}
 
     readonly property color bg: dark ? darkTheme.bg : lightTheme.bg
     readonly property color panel: dark ? darkTheme.panel : lightTheme.panel
