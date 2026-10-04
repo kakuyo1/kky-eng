@@ -37,8 +37,18 @@ target_link_libraries(lens_app
 # ClipboardSnapshot records why its round trip is not usable here.
 target_link_libraries(lens_app PRIVATE user32)
 
+# RC, so the resource script below compiles. The root project() lists CXX alone and the root
+# CMakeLists is another branch's file, but enable_language is directory scoped: turning it on
+# here covers this directory and everything under it, and this is the only directory with a
+# resource script to compile.
+enable_language(RC)
+
+# main.cpp, the .qm files, and the icon the shell draws for lens.exe. lens.rc names lens.ico
+# by a path relative to itself, so the resource compiler reads the art beside the script and
+# no machine path is written into either file.
 qt_add_executable(lens
   main.cpp
+  ${CMAKE_SOURCE_DIR}/icons/lens.rc
 )
 
 # The module's QML files reach the executable through lens_app's resources, but the C++ types
@@ -127,11 +137,18 @@ qt_add_qml_module(lens_app
 # carrying its own two colours; the ui- files are the surfaces' outlines, stroked in white and
 # tinted from QML, so one file serves every surface and both themes.
 #
+# lens.svg is the product mark itself -- the ring and the centre dot every other file here is a
+# recolouring of. It is stroked in white like the ui- set, so the tray menu's first line draws it
+# through Icon and it takes the theme's colour; the tray art and lens.ico are its geometry with
+# the ink baked in, since a shell icon has no QML to tint it. The .ico and the .rc that carries
+# it are the executable's rather than resources, so they are named in the executable above.
+#
 # It hangs off lens_app and not off the executable, for the same reason the QML module does: a
 # resource only resolves in a binary that carries it, and the surfaces are the ones reading these
 # -- every QTest target links lens_app, so on `lens` each of them drew a missing image and printed
 # a warning per case. The executable still gets them, since it links lens_app.
 set(LENS_ICONS
+  ${CMAKE_SOURCE_DIR}/icons/lens.svg
   ${CMAKE_SOURCE_DIR}/icons/tray-auto-ondark.svg
   ${CMAKE_SOURCE_DIR}/icons/tray-auto-onlight.svg
   ${CMAKE_SOURCE_DIR}/icons/tray-busy-ondark.svg

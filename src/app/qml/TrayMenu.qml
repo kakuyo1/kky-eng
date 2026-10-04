@@ -87,8 +87,14 @@ Window {
                 width: menu.cardWidth - 2 * menu.padding
                 spacing: 0
 
-                // The state line: the dot says whether a selection is captured at all, the text
-                // names what the app is doing.
+                // The state line: the product mark carries the state -- ok green while a
+                // selection is being captured, faint when it is not -- and the text names what
+                // the app is doing. The mark stands where UI.md section 4.2 used to draw an
+                // anonymous dot: it says the same thing, and says whose app this is.
+                //
+                // Its inset and its size are the rows' beneath it (11 px, 15 px), so the mark
+                // sits in the same column as the statistics, language and settings glyphs
+                // instead of starting a second one.
                 Item {
                     width: parent.width
                     height: 34
@@ -101,26 +107,17 @@ Window {
                         color: Tokens.line2
                     }
 
-                    Rectangle {
-                        id: dotRing
+                    Icon {
+                        id: mark
                         anchors.left: parent.left
                         anchors.leftMargin: 11
                         anchors.verticalCenter: parent.verticalCenter
-                        width: 13
-                        height: 13
-                        radius: Tokens.radiusPill
-                        color: menu.capturing ? Tokens.okBg : Tokens.panel2
-                    }
-                    Rectangle {
-                        anchors.centerIn: dotRing
-                        width: 7
-                        height: 7
-                        radius: Tokens.radiusPill
+                        source: "qrc:/icons/lens.svg"
                         color: menu.capturing ? Tokens.ok : Tokens.faint
                     }
                     Text {
-                        anchors.left: dotRing.right
-                        anchors.leftMargin: 8
+                        anchors.left: mark.right
+                        anchors.leftMargin: 9
                         anchors.verticalCenter: parent.verticalCenter
                         text: menu.capturing ? Controller.modeLabel : qsTr("Selection capture is off")
                         color: Tokens.text

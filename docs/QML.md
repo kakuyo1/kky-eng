@@ -152,7 +152,30 @@
 ——`Menu` 曾按 “Windows 原生可靠” 选过 `QMenu`（`Qt.labs.platform` 的实验性 QML 类型在 6.9 上右键菜单
 不生效，仍弃用），代价是画不成 `UI.md` §4.2 的卡片；现改为一个普通表面（`qml/TrayMenu.qml`），`Tray`
 只在图标被点时发一个 `menuRequested`。图标只有三个可达状态（自动扫描开 / 解释中 / 已关），第四态（预算
-耗尽）要等每日预算上限落地。
+耗尽）要等每日预算上限落地；琥珀色的那一份 art（`icons/tray-budget-*.svg`）已经在这里，`tray.h` 的类注记
+写着它为什么先放进来。
+
+**一族图标只有一个几何**。`icons/lens.svg` 是产品标本身：24×24 的坐标系里，外圆环 `r=7`、描边 2.1，中心
+实心点 `r=2.9`。它和 `ui-*.svg` 一样描白色、由 QML 染色，所以托盘菜单的首行用 `Icon` 取它，绿（`ok`）与
+灰（`faint`）跟着主题与取词状态走。八个 `tray-<状态>-<任务栏>.svg` 是同一几何各自带色——shell 的位图没有
+QML 给它染色，深浅两套只能各写一份。
+
+**可执行文件的图标也是它**：`icons/lens.ico` 由 `icons/lens.rc` 的一句 `ICON` 编进 `lens.exe`，
+`src/app/CMakeLists.txt` 里 `enable_language(RC)` 只为它开（根 `CMakeLists.txt` 的 `project()` 没有 RC，
+也不去动它）。`.ico` 是二进制，源仍在 `lens.svg`：把白色换成品牌绿（`Tokens.ok` 的浅色值）后按
+16 / 20 / 24 / 32 / 48 / 256 栅格化，覆盖 100% 与 125% / 150% 缩放下 shell 的那几个槽位。重做时：
+
+```sh
+python - <<'PY'
+import cairosvg, io
+from PIL import Image
+svg = open('icons/lens.svg').read().replace('#ffffff', '#2f9e6e')
+big = Image.open(io.BytesIO(cairosvg.svg2png(bytestring=svg.encode(), output_width=256, output_height=256))).convert('RGBA')
+big.save('icons/lens.ico', sizes=[(16,16),(20,20),(24,24),(32,32),(48,48),(256,256)])
+PY
+```
+
+（cairosvg 与 Pillow，两者都不在构建工具链里，只有重做这一张图时才需要。）
 
 ## 8 qmllint
 
