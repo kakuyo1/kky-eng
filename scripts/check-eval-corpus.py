@@ -149,6 +149,24 @@ def reductions(word: str) -> list[str]:
     return stems
 
 
+def is_title_case_token(token: str) -> bool:
+    return len(token) >= 2 and token[0].isupper() and token[1:].islower() and token.isalpha()
+
+
+def is_entity_selection(text: str) -> bool:
+    tokens = [token.strip(".,!?;:()[]{}\"'") for token in text.split()]
+    if not 2 <= len(tokens) <= 5 or any(not token for token in tokens):
+        return False
+
+    title_case = 0
+    for token in tokens:
+        if is_title_case_token(token):
+            title_case += 1
+        elif token.lower() not in {"of", "the", "and", "for"}:
+            return False
+    return title_case >= 2
+
+
 def check_entry(index: int, entry: dict, ranks: dict[str, int]) -> list[str]:
     """@return One message per thing this entry leaves unaccounted for."""
     where = f"entry {index}"
@@ -163,8 +181,14 @@ def check_entry(index: int, entry: dict, ranks: dict[str, int]) -> list[str]:
     kind = entry["expectKind"]
     known = set(entry.get("known", []))
 
-    if kind not in ("Word", "Sentence"):
-        problems.append(f"{where}: expectKind '{kind}' is neither Word nor Sentence")
+    if kind not in ("Word", "Entity", "Sentence"):
+        problems.append(f"{where}: expectKind '{kind}' is neither Word, Entity, nor Sentence")
+    if kind == "Entity":
+        if expect:
+            problems.append(f"{where}: Entity entries must leave expect empty")
+        if not is_entity_selection(text):
+            problems.append(f"{where}: Entity text does not meet the conservative phrase rule")
+        return problems
     wanted = "Word" if expect else "Sentence"
     if kind != wanted:
         problems.append(f"{where}: expectKind is '{kind}' but expect is {'empty' if not expect else 'not empty'}")

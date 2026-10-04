@@ -27,11 +27,12 @@ struct Config {
     QString model;  ///< Model name, e.g. "deepseek-flash".
 };
 
-/// @brief One explained word as returned by the model.
-/// @note `ipa` is the pronunciation in slashes, and the schema requires it on the same terms
-///       as the other three; see `data/llm/response.word.schema.json`.
-struct WordExplanation {
-    QString word, ipa, en, zh;
+/// @brief One explanation as returned by the model.
+/// @note `title` is `word` on the word channel and the echoed sentence or entity otherwise.
+///       `ipa` is required only by the word schema; sentence and entity responses have three
+///       fields (`title`, `en`, `zh`).
+struct Explanation {
+    QString title, ipa, en, zh;
 };
 
 /// @brief Token counts the service reports for one call, for the cost surfaces.
@@ -65,8 +66,11 @@ public:
     ///
     /// The channel is decided locally, before anything is sent, and selects the request
     /// template and the response schema. Defaults to Channel::Word, the only channel
-    /// phase 1 produces; the entity and sentence channels arrive with phase 2.
+    /// phase 1 produces.
     void setChannel(Channel channel);
+
+    /// @brief Select the loaded prompt preset for the next request.
+    void setPreset(const QString& preset);
 
     /// @return The model name as sent on the wire, which is the key the price list uses.
     QString model() const
@@ -77,7 +81,7 @@ public:
 signals:
     /// @brief Emitted with the validated explanations, in the order the words were asked for.
     /// @param usage Token counts from the same response, all zero when it carried none.
-    void batchFinished(QVector<WordExplanation> results, Usage usage);
+    void batchFinished(QVector<Explanation> results, Usage usage);
 
     /// @brief Emitted on transport, HTTP status, or response-validation failure.
     /// @param message Reader-facing reason, already routed through translation.
@@ -93,6 +97,7 @@ public slots:
 private:
     Config config_;
     Channel channel_ = Channel::Word;
+    QString preset_ = QStringLiteral("default");
     QString lang_ = QStringLiteral("en");
     QNetworkAccessManager* manager_;
 };

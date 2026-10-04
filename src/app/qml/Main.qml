@@ -157,7 +157,7 @@ Window {
         } else if (step === 5) {
             root.showSettings();
         } else if (step === 6) {
-            bubble.show({word: "profile", en: "profile run", zh: "profile run", status: "new", x: 500, y: 500});
+            bubble.show({title: "profile", type: "word", ipa: "/ˈproʊfaɪl/", en: "profile run", zh: "profile run", status: "new", x: 500, y: 500});
         } else if (step === 7) {
             root.hidePanels(null);
             bubble.visible = false;

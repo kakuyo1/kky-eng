@@ -27,8 +27,9 @@ Window {
     width: content.implicitWidth + 2 * shadowMargin
     height: content.implicitHeight + 2 * shadowMargin
 
-    /// The word and its explanation, as the controller hands them over.
-    property string word: ""
+    /// The word, entity, or sentence title and its explanation, as the controller hands them over.
+    property string title: ""
+    property string type: "" ///< "word", "entity", or "sentence".
     property string ipa: "" ///< Pronunciation in slashes, beside the word (app_controller.h).
     property string english: ""
     property string chinese: ""
@@ -66,11 +67,12 @@ Window {
 
     function show(payload) {
         dragging = false; // a fresh bubble is never mid-drag
-        word = payload.word;
-        ipa = payload.ipa;
-        english = payload.en;
-        chinese = payload.zh;
-        status = payload.status;
+        title = payload.title || "";
+        type = payload.type || "";
+        ipa = payload.ipa || "";
+        english = payload.en || "";
+        chinese = payload.zh || "";
+        status = payload.status || "";
         remainingMs = dismissAfterMs;
         visible = true;
         place(payload);
@@ -256,27 +258,29 @@ Window {
                 width: parent.width - 32
                 spacing: 0
 
-                // The tag row is absent when there is no status: a failed request has no
-                // verdict to report, and inventing one would be a lie about what happened.
+                // Word bubbles show the learning verdict; entity and sentence bubbles show only
+                // their channel label and never invent a word verdict.
                 Rectangle {
-                    visible: bubble.status !== ""
+                    visible: bubble.type !== ""
                     width: tag.width + 16
                     height: 17
                     radius: Tokens.radiusPill
-                    color: bubble.status === "known" ? Tokens.panel2 : Tokens.okBg
+                    color: bubble.type !== "word" ? "transparent" : bubble.status === "known" ? Tokens.panel2 : Tokens.okBg
+                    border.width: bubble.type !== "word" ? 1 : 0
+                    border.color: Tokens.line
 
                     Text {
                         id: tag
                         anchors.centerIn: parent
-                        text: bubble.status === "known" ? qsTr("Known") : qsTr("New")
-                        color: bubble.status === "known" ? Tokens.muted : Tokens.okText
+                        text: bubble.type === "entity" ? qsTr("Entity") : bubble.type === "sentence" ? qsTr("Sentence") : bubble.status === "known" ? qsTr("Known") : qsTr("New")
+                        color: bubble.type !== "word" ? Tokens.muted : bubble.status === "known" ? Tokens.muted : Tokens.okText
                         font.pixelSize: 11
                         font.weight: Font.Bold
                     }
                 }
 
-                // The word and its pronunciation share one line: the IPA is set beside the word,
-                // the way a dictionary prints it, rather than behind the explanation. Read only --
+                // The title and its pronunciation share one line for word bubbles: IPA is set
+                // beside the word, the way a dictionary prints it. Read only --
                 // it is not a control, and nothing about it invites a press. The pair is placed by
                 // hand rather than by a RowLayout: a layout with no item left to grow does not
                 // keep the slack at the end -- measured, a 30 px word and its pronunciation 36 px
@@ -293,7 +297,7 @@ Window {
                         // ends in an ellipsis rather than running under its own IPA.
                         width: Math.min(implicitWidth, wordRow.width - (ipaText.visible ? ipaText.implicitWidth + 7 : 0))
                         topPadding: 8
-                        text: bubble.word
+                        text: bubble.title
                         color: Tokens.text
                         font.pixelSize: 20
                         font.weight: Font.Bold
@@ -306,7 +310,7 @@ Window {
                         // from its top to that baseline, padding included.
                         x: wordText.width + 7
                         y: wordText.baselineOffset - baselineOffset
-                        visible: bubble.ipa !== ""
+                        visible: bubble.type === "word" && bubble.ipa !== ""
                         text: bubble.ipa
                         color: Tokens.faint
                         font.pixelSize: 13 // the prototype's 12.5 px, as the definition line rounds it
@@ -380,7 +384,7 @@ Window {
                             HoverHandler { cursorShape: Qt.PointingHandCursor }
                             TapHandler {
                                 id: knownTap
-                                onTapped: Controller.mark(bubble.word, true)
+                                onTapped: Controller.mark(bubble.title, true)
                             }
                         }
 
@@ -401,7 +405,7 @@ Window {
                             HoverHandler { cursorShape: Qt.PointingHandCursor }
                             TapHandler {
                                 id: newTap
-                                onTapped: Controller.mark(bubble.word, false)
+                                onTapped: Controller.mark(bubble.title, false)
                             }
                         }
                     }

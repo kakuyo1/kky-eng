@@ -26,6 +26,7 @@ Window {
 
     /// The selection the actions apply to, set by main.qml alongside openAt().
     property string selectionText: ""
+    property string selectionKind: "word"
 
     /// @param payload The controller's {x, y, kind, text}; only x and y are used here.
     function openAt(payload) {
@@ -38,6 +39,7 @@ Window {
         // card a shadow-margin right of the selection and another one, plus the gap, above it --
         // which read as the bar not belonging to the text at all.
         const anchorY = payload.y;
+        selectionKind = payload.kind;
         const above = anchorY - gap - height + shadowMargin;
         bar.y = above >= 0 ? above : anchorY + gap - shadowMargin;
         bar.x = payload.x - shadowMargin;

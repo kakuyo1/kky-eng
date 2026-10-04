@@ -15,11 +15,14 @@
 
 namespace lens::test {
 
-/// @brief Load the word channel's request template and response schema, once.
+/// @brief Load all request templates and response schemas, once.
 inline void requireLlmProtocolLoaded()
 {
     static const bool loaded = [] {
-        lens::llm::loadLlmProtocol(lens::llm::Channel::Word, sourceDir() / "data" / "llm");
+        const auto dir = sourceDir() / "data" / "llm";
+        lens::llm::loadLlmProtocol(lens::llm::Channel::Word, dir);
+        lens::llm::loadLlmProtocol(lens::llm::Channel::Entity, dir);
+        lens::llm::loadLlmProtocol(lens::llm::Channel::Sentence, dir);
         return true;
     }();
     (void)loaded;

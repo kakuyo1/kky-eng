@@ -18,9 +18,9 @@ namespace {
 // the strings would silently never reach the .ts files.
 
 /// @brief Render a channel's system prompt with the output-language line filled in.
-QString renderSystemPrompt(Channel channel, const QString& explanationLang)
+QString renderSystemPrompt(Channel channel, const QString& explanationLang, const QString& preset)
 {
-    const RequestTemplate& tmpl = requestTemplate(channel);
+    const PromptTemplate& tmpl = promptTemplate(channel, preset);
 
     QString line = tmpl.outputLanguageLine.value(explanationLang);
     if (line.isEmpty()) {
@@ -52,21 +52,25 @@ QString maskSensitive(const QString& text)
     return masked;
 }
 
-QByteArray buildRequestBody(const Config& config, Channel channel, const QStringList& words, const QString& explanationLang)
+QByteArray buildRequestBody(const Config& config,
+                            Channel channel,
+                            const QStringList& inputs,
+                            const QString& explanationLang,
+                            const QString& preset)
 {
     const RequestTemplate& tmpl = requestTemplate(channel);
 
     QStringList masked;
-    masked.reserve(words.size());
-    for (const auto& word : words)
-        masked << maskSensitive(word);
+    masked.reserve(inputs.size());
+    for (const auto& input : inputs)
+        masked << maskSensitive(input);
 
     const QJsonObject body{
         {"model", config.model},
         {"messages",
          QJsonArray{
              QJsonObject{{"role", "system"},
-                         {"content", renderSystemPrompt(channel, explanationLang)}},
+                         {"content", renderSystemPrompt(channel, explanationLang, preset)}},
              QJsonObject{{"role", "user"}, {"content", masked.join(QLatin1Char('\n'))}},
          }},
         {"response_format", tmpl.responseFormat},
@@ -75,15 +79,15 @@ QByteArray buildRequestBody(const Config& config, Channel channel, const QString
         {"stream", tmpl.stream},
     };
 
-    LENS_TRACE("buildRequestBody: {} item(s) for channel '{}', model='{}', lang='{}'", words.size(), channelKey(channel), config.model.toStdString(), explanationLang.toStdString());
+    LENS_TRACE("buildRequestBody: {} item(s) for channel '{}', preset '{}', model='{}', lang='{}'", inputs.size(), channelKey(channel), preset.toStdString(), config.model.toStdString(), explanationLang.toStdString());
     return QJsonDocument(body).toJson(QJsonDocument::Compact);
 }
 
-std::variant<QVector<WordExplanation>, QString> parseExplanations(Channel channel,
-                                                                  const QByteArray& responseBody,
-                                                                  const QStringList& expectedWords)
+std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
+                                                              const QByteArray& responseBody,
+                                                              const QStringList& expectedInputs)
 {
-    using Result = std::variant<QVector<WordExplanation>, QString>;
+    using Result = std::variant<QVector<Explanation>, QString>;
 
     /// Reject the whole batch, naming the reason once for both the caller and the log.
     const auto reject = [](const QString& reason) -> Result {
@@ -128,7 +132,8 @@ std::variant<QVector<WordExplanation>, QString> parseExplanations(Channel channe
     // Presence is gated on the response schema, so adding a required field is a data edit.
     const QStringList& requiredFields = requiredResultFields(channel);
 
-    QHash<QString, WordExplanation> byWord;
+    const QString titleField = channel == Channel::Word ? QStringLiteral("word") : QStringLiteral("title");
+    QHash<QString, Explanation> byTitle;
     for (const auto& item : resultsValue.toArray()) {
         if (!item.isObject())
             return reject(QCoreApplication::translate(
@@ -142,39 +147,41 @@ std::variant<QVector<WordExplanation>, QString> parseExplanations(Channel channe
                                                           "\"%1\".")
                                   .arg(field));
 
-        // The struct mirrors the word channel's schema; the gate above is what the schema
-        // actually governs.
-        WordExplanation e{obj.value("word").toString(), obj.value("ipa").toString(), obj.value("en").toString(), obj.value("zh").toString()};
-        // Presence is the schema's business; emptiness is not. A field the schema requires
-        // but the model left blank would render as an empty bubble, so it fails here.
-        if (e.word.isEmpty() || e.ipa.isEmpty() || e.en.isEmpty() || e.zh.isEmpty())
+        Explanation e{obj.value(titleField).toString(),
+                      obj.value(QStringLiteral("ipa")).toString(),
+                      obj.value(QStringLiteral("en")).toString(),
+                      obj.value(QStringLiteral("zh")).toString()};
+        // Presence is the schema's business; emptiness is not. IPA is word-specific, while the
+        // shared bubble title and both language definitions are required by every channel.
+        if (e.title.isEmpty() || e.en.isEmpty() || e.zh.isEmpty() ||
+            (channel == Channel::Word && e.ipa.isEmpty()))
             return reject(QCoreApplication::translate("lens::llm",
                                                       "A results entry has an empty field "
-                                                      "(word=%1).")
-                              .arg(e.word));
-        if (byWord.contains(e.word))
+                                                      "(title=%1).")
+                              .arg(e.title));
+        if (byTitle.contains(e.title))
             return reject(QCoreApplication::translate("lens::llm",
-                                                      "The model echoed the same word twice: %1.")
-                              .arg(e.word));
-        byWord.insert(e.word, e);
+                                                      "The model echoed the same title twice: %1.")
+                              .arg(e.title));
+        byTitle.insert(e.title, e);
     }
 
-    if (byWord.size() != expectedWords.size())
+    if (byTitle.size() != expectedInputs.size())
         return reject(QCoreApplication::translate("lens::llm",
-                                                  "The model echoed %1 word(s) for the %2 that "
+                                                  "The model echoed %1 result(s) for the %2 that "
                                                   "were asked for.")
-                          .arg(byWord.size())
-                          .arg(expectedWords.size()));
+                          .arg(byTitle.size())
+                          .arg(expectedInputs.size()));
 
     // Restore request order. The order the model chose carries no meaning.
-    QVector<WordExplanation> ordered;
-    ordered.reserve(expectedWords.size());
-    for (const auto& word : expectedWords) {
-        const auto it = byWord.constFind(word);
-        if (it == byWord.cend())
+    QVector<Explanation> ordered;
+    ordered.reserve(expectedInputs.size());
+    for (const auto& input : expectedInputs) {
+        const auto it = byTitle.constFind(input);
+        if (it == byTitle.cend())
             return reject(QCoreApplication::translate(
                               "lens::llm", "The model never echoed \"%1\".")
-                              .arg(word));
+                              .arg(input));
         ordered.push_back(*it);
     }
 

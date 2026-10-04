@@ -69,6 +69,12 @@ void LlmClient::setChannel(Channel channel)
     channel_ = channel;
 }
 
+void LlmClient::setPreset(const QString& preset)
+{
+    LENS_TRACE("LlmClient::setPreset: '{}' -> '{}'", preset_.toStdString(), preset.toStdString());
+    preset_ = preset;
+}
+
 void LlmClient::explainWords(QStringList words)
 {
     if (words.isEmpty()) {
@@ -92,12 +98,14 @@ void LlmClient::explainWords(QStringList words)
     request.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
     request.setTransferTimeout(kTimeoutMs);
 
-    LENS_INFO("explaining {} item(s) on channel '{}' with '{}'", words.size(), channelKey(channel_), config_.model.toStdString());
+    const Channel channel = channel_;
+    const QString preset = preset_;
+    LENS_INFO("explaining {} item(s) on channel '{}' preset '{}' with '{}'", words.size(), channelKey(channel), preset.toStdString(), config_.model.toStdString());
     LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kTimeoutMs);
 
     QNetworkReply* reply =
-        manager_->post(request, buildRequestBody(config_, channel_, words, lang_));
-    connect(reply, &QNetworkReply::finished, this, [this, reply, words] {
+        manager_->post(request, buildRequestBody(config_, channel, words, lang_, preset));
+    connect(reply, &QNetworkReply::finished, this, [this, reply, words, channel] {
         reply->deleteLater();
 
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
@@ -113,13 +121,13 @@ void LlmClient::explainWords(QStringList words)
         }
 
         const QByteArray body = reply->readAll();
-        const auto parsed = parseExplanations(channel_, body, words);
+        const auto parsed = parseExplanations(channel, body, words);
         if (const auto* message = std::get_if<QString>(&parsed)) {
             emit failed(*message);
             return;
         }
         LENS_INFO("received {} explanation(s)", words.size());
-        emit batchFinished(std::get<QVector<WordExplanation>>(parsed), parseUsage(body));
+        emit batchFinished(std::get<QVector<Explanation>>(parsed), parseUsage(body));
     });
 }
 

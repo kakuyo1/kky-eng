@@ -70,6 +70,26 @@ LoadedProtocol& slotFor(Channel channel)
     return g_protocols[static_cast<std::size_t>(channel)];
 }
 
+PromptTemplate loadPrompt(const QJsonObject& preset, const std::filesystem::path& file)
+{
+    const QJsonObject prompt = preset.value("systemPrompt").toObject();
+
+    PromptTemplate loaded;
+    loaded.systemPromptTemplate = requireString(prompt, "template", file);
+    const QJsonObject lines = prompt.value("outputLanguage").toObject();
+    for (auto it = lines.begin(); it != lines.end(); ++it)
+        loaded.outputLanguageLine.insert(it.key(), it.value().toString());
+
+    if (!loaded.systemPromptTemplate.contains(QLatin1String(kOutputLanguagePlaceholder)))
+        throw std::runtime_error(std::string("prompt template has no ") + kOutputLanguagePlaceholder +
+                                 " placeholder in " + file.string());
+    if (!loaded.outputLanguageLine.contains(QStringLiteral("en")))
+        throw std::runtime_error("missing 'systemPrompt.outputLanguage.en' in " + file.string());
+    if (!loaded.outputLanguageLine.contains(QStringLiteral("zh")))
+        throw std::runtime_error("missing 'systemPrompt.outputLanguage.zh' in " + file.string());
+    return loaded;
+}
+
 } // namespace
 
 const char* channelKey(Channel channel)
@@ -90,26 +110,24 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
     const std::filesystem::path schemaFile = dir / ("response." + key + ".schema.json");
 
     const QJsonObject root = readJsonObject(requestFile);
-    const QJsonObject prompt = root.value("systemPrompt").toObject();
-
     RequestTemplate request;
-    request.systemPromptTemplate = requireString(prompt, "template", requestFile);
     request.responseFormat = root.value("responseFormat").toObject();
     request.thinking = root.value("thinking").toObject();
     request.maxTokens = root.value("maxTokens").toInt();
     request.stream = root.value("stream").toBool();
 
-    const QJsonObject lines = prompt.value("outputLanguage").toObject();
-    for (auto it = lines.begin(); it != lines.end(); ++it)
-        request.outputLanguageLine.insert(it.key(), it.value().toString());
-
-    if (!request.systemPromptTemplate.contains(QLatin1String(kOutputLanguagePlaceholder)))
-        throw std::runtime_error(std::string("prompt template has no ") + kOutputLanguagePlaceholder +
-                                 " placeholder in " + requestFile.string());
-    if (!request.outputLanguageLine.contains(QStringLiteral("en")))
-        throw std::runtime_error("missing 'systemPrompt.outputLanguage.en' in " + requestFile.string());
-    if (!request.outputLanguageLine.contains(QStringLiteral("zh")))
-        throw std::runtime_error("missing 'systemPrompt.outputLanguage.zh' in " + requestFile.string());
+    const QJsonObject presets = root.value("presets").toObject();
+    if (presets.isEmpty()) {
+        request.prompts.insert(QStringLiteral("default"), loadPrompt(root, requestFile));
+    } else {
+        for (auto it = presets.begin(); it != presets.end(); ++it) {
+            if (!it.value().isObject())
+                throw std::runtime_error("preset '" + it.key().toStdString() + "' is not an object in " + requestFile.string());
+            request.prompts.insert(it.key(), loadPrompt(it.value().toObject(), requestFile));
+        }
+    }
+    if (request.prompts.isEmpty())
+        throw std::runtime_error("no prompt presets in " + requestFile.string());
     if (request.maxTokens <= 0)
         throw std::runtime_error("'maxTokens' must be positive in " + requestFile.string());
     requireNonEmpty(request.responseFormat, "responseFormat", requestFile);
@@ -135,8 +153,7 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
     slot.requiredFields = std::move(required);
     slot.loaded = true;
 
-    LENS_INFO("llm protocol loaded for channel '{}': {} required result field(s), max_tokens={}", key, slot.requiredFields.size(), slot.request.maxTokens);
-    LENS_TRACE("channel '{}' system prompt is {} chars", key, slot.request.systemPromptTemplate.size());
+    LENS_INFO("llm protocol loaded for channel '{}': {} preset(s), {} required result field(s), max_tokens={}", key, slot.request.prompts.size(), slot.requiredFields.size(), slot.request.maxTokens);
 }
 
 const RequestTemplate& requestTemplate(Channel channel)
@@ -146,6 +163,16 @@ const RequestTemplate& requestTemplate(Channel channel)
         throw std::logic_error(std::string("lens::llm::requestTemplate: channel '") + channelKey(channel) +
                                "' has not been loaded");
     return slot.request;
+}
+
+const PromptTemplate& promptTemplate(Channel channel, const QString& preset)
+{
+    const RequestTemplate& request = requestTemplate(channel);
+    const auto it = request.prompts.constFind(preset);
+    if (it == request.prompts.cend())
+        throw std::logic_error("lens::llm::promptTemplate: preset '" + preset.toStdString() +
+                               "' is not loaded for channel '" + channelKey(channel) + "'");
+    return it.value();
 }
 
 const QStringList& requiredResultFields(Channel channel)

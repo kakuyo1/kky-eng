@@ -1,0 +1,26 @@
+{
+  "presets": {
+    "translate": {
+      "systemPrompt": {
+        "template": "Translate the selected sentence naturally and accurately. Preserve its meaning, tone, and important ambiguity. Reply with valid JSON in exactly this shape:\n{\"results\":[{\"title\":\"...\",\"en\":\"...\",\"zh\":\"...\"}]}\nEcho the sentence exactly as written, with nothing added and nothing dropped.\n{outputLanguage}",
+        "outputLanguage": {
+          "en": "Make the English translation the main one.",
+          "zh": "Make the Chinese translation the main one."
+        }
+      }
+    },
+    "explain": {
+      "systemPrompt": {
+        "template": "Explain the selected sentence concisely. Clarify difficult grammar, idioms, and implied meaning without adding context that was not supplied. Reply with valid JSON in exactly this shape:\n{\"results\":[{\"title\":\"...\",\"en\":\"...\",\"zh\":\"...\"}]}\nEcho the sentence exactly as written, with nothing added and nothing dropped.\n{outputLanguage}",
+        "outputLanguage": {
+          "en": "Make the English explanation the main one.",
+          "zh": "Make the Chinese explanation the main one."
+        }
+      }
+    }
+  },
+  "responseFormat": { "type": "json_object" },
+  "thinking": { "type": "disabled" },
+  "maxTokens": 4096,
+  "stream": false
+}

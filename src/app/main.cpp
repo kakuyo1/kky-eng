@@ -143,7 +143,10 @@ int main(int argc, char* argv[])
     try {
         lens::core::loadWordlist(std::filesystem::path(kDataDir) / "wordlist.txt");
         lens::core::loadIrregulars(std::filesystem::path(kDataDir) / "irregulars.tsv");
-        lens::llm::loadLlmProtocol(lens::llm::Channel::Word, std::filesystem::path(kDataDir) / "llm");
+        const std::filesystem::path protocolDir = std::filesystem::path(kDataDir) / "llm";
+        lens::llm::loadLlmProtocol(lens::llm::Channel::Word, protocolDir);
+        lens::llm::loadLlmProtocol(lens::llm::Channel::Entity, protocolDir);
+        lens::llm::loadLlmProtocol(lens::llm::Channel::Sentence, protocolDir);
     } catch (const std::exception& e) {
         // Without the word list there is no pipeline at all, and without the protocol there is
         // nothing to send. Neither failure is recoverable at runtime.

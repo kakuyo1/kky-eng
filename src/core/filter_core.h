@@ -106,13 +106,14 @@ std::vector<Candidate> filterWords(
 
 /// @brief What a finished selection turned out to be, which decides the channel it takes.
 ///
-/// Phase 2's entity channel joins this enumeration; the sentence channel already has its
-/// value. Nothing here is decided by the reader: translate and explain are two ways into
-/// the same decision, so it is settled when the selection is analysed, before any press
-/// (UI.md section 4.9).
+/// Nothing here is decided by the reader: translate and explain are two ways into the same
+/// decision, so it is settled when the selection is analysed, before any press (UI.md section
+/// 4.9). Entity detection is deliberately conservative: only a complete phrase with at least
+/// two adjacent Title Case tokens qualifies, never a single capitalized token.
 enum class SelectionKind {
     Word,     ///< At least one word came back; the word channel has something to send.
-    Sentence, ///< No word at all. Phase 2's sentence and entity channels own this case.
+    Entity,   ///< A complete multi-token Title Case phrase was selected.
+    Sentence, ///< No word or entity phrase was recognized; the sentence channel owns this case.
 };
 
 /// @brief A selection, classified: what it is, and the candidates it carries.

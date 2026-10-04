@@ -6517,5 +6517,23 @@
     "expectKind": "Word",
     "minFreqRank": 3000,
     "known": ["the", "ubiquitous"]
+  },
+  {
+    "note": "entity: two adjacent Title Case tokens",
+    "text": "New York",
+    "expect": [],
+    "expectKind": "Entity"
+  },
+  {
+    "note": "entity: two adjacent Title Case tokens",
+    "text": "United States",
+    "expect": [],
+    "expectKind": "Entity"
+  },
+  {
+    "note": "entity: a single capitalized token is not promoted",
+    "text": "London",
+    "expect": ["london"],
+    "expectKind": "Word"
   }
 ]

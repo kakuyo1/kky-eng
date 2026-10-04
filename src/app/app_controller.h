@@ -90,6 +90,8 @@ public:
     Q_INVOKABLE QPoint cursorPos() const;
 
     /// @brief The action bar's answer: "translate", "explain", or "copy".
+    /// @note On a sentence selection, translate and explain choose the matching prompt preset;
+    ///       on an entity selection both names use the same default preset.
     /// @param text  The selection, echoed back by the surface.
     Q_INVOKABLE void runSelectionAction(QString action, QString text);
 
@@ -202,10 +204,8 @@ public:
 
 signals:
     /// @brief Put the action bar up (or move it): {x, y, kind, text}.
-    /// @param kind "word" when the selection yields a candidate, "sentence" otherwise. The bar
-    ///             draws the same three items either way -- UI.md section 4.9 keeps them
-    ///             ungreyed -- but under "sentence" only copy has a channel to send to, and a
-    ///             tap on the other two answers with a bubble saying so rather than nothing.
+    /// @param kind "word", "entity", or "sentence". The bar draws the same three items for every
+    ///             kind; sentence actions choose a preset and entity actions share one preset.
     void selectionBarRequested(QVariantMap payload);
 
     /// @brief A button went down somewhere on the desktop; forwarded from the mouse hook.
@@ -231,21 +231,27 @@ private:
     struct Pending {
         QPoint anchor;
         QString text;    ///< The selection as copied, verbatim.
-        QString kind;    ///< "word" or "sentence".
+        QString kind;    ///< "word", "entity", or "sentence".
         QString surface; ///< The word as written, e.g. "running".
         QString lemma;   ///< Its dictionary form, e.g. "run". Requests and the cache use this.
+        QString preset;  ///< Prompt preset, normally "default" except for sentence actions.
     };
 
     /// @brief Copy the selection out and decide what it is; empty when nothing is up.
     void beginSelection(QPoint anchor);
 
-    /// @brief Look the word up: cache first, then the model.
+    /// @brief Look the pending selection up: word cache first, then the model.
     void explain(const Pending& pending);
 
     /// @brief Put an explanation up at the pending anchor.
-    /// @param ipa Pronunciation in slashes, beside the word rather than behind the language
-    ///            switch: UI.md section 4.3 draws it next to the word itself.
-    void showBubble(const QString& word, const QString& ipa, const QString& en, const QString& zh, const QPoint& anchor);
+    /// @param type "word", "entity", or "sentence"; only word carries IPA and a verdict.
+    /// @param ipa Pronunciation in slashes, present only for a word explanation.
+    void showBubble(const QString& title,
+                    const QString& type,
+                    const QString& ipa,
+                    const QString& en,
+                    const QString& zh,
+                    const QPoint& anchor);
 
     /// @brief Put a notice up where an explanation would have gone: no verdict, just the reason.
     /// @param title What the notice is about; see noticeTitle().

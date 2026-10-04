@@ -20,14 +20,13 @@
  * The response schema is the single source of truth for the required field list, so the
  * validation cannot drift away from what API.md documents.
  *
- * @note Only the word channel is specified today; the entity and sentence channels are
- *       phase-2 placeholders (PHASE1.md section 2). Adding one means dropping
- *       `request.<channel>.json` and `response.<channel>.schema.json` into the directory.
+ * A channel may expose more than one prompt preset. Sentence has separate translate and explain
+ * presets; entity uses one default preset for both action-bar buttons.
  */
 
 namespace lens::llm {
 
-/// Placeholder inside RequestTemplate::systemPromptTemplate that the output-language line
+/// Placeholder inside PromptTemplate::systemPromptTemplate that the output-language line
 /// is substituted into.
 inline constexpr const char* kOutputLanguagePlaceholder = "{outputLanguage}";
 
@@ -37,14 +36,19 @@ enum class Channel : std::uint8_t { Word = 0,
                                     Sentence,
                                     Count };
 
-/// @brief Request half of one channel's protocol, from `request.<channel>.json`.
-struct RequestTemplate {
+/// @brief One channel preset's system prompt, from `request.<channel>.json`.
+struct PromptTemplate {
     QString systemPromptTemplate;               ///< Carries kOutputLanguagePlaceholder.
     QHash<QString, QString> outputLanguageLine; ///< "en" / "zh" -> closing prompt line.
-    QJsonObject responseFormat;                 ///< Passed through as `response_format`.
-    QJsonObject thinking;                       ///< Passed through as `thinking`.
-    int maxTokens = 0;                          ///< Output token cap.
-    bool stream = false;                        ///< A batch is answered whole.
+};
+
+/// @brief Request half of one channel's protocol, from `request.<channel>.json`.
+struct RequestTemplate {
+    QHash<QString, PromptTemplate> prompts; ///< Preset name -> system prompt.
+    QJsonObject responseFormat;             ///< Passed through as `response_format`.
+    QJsonObject thinking;                   ///< Passed through as `thinking`.
+    int maxTokens = 0;                      ///< Output token cap.
+    bool stream = false;                    ///< A batch is answered whole.
 };
 
 /// @return The lowercase channel name used in file names and log lines, e.g. "word".
@@ -66,6 +70,15 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir);
 /// @return The loaded request template for @p channel.
 /// @throws std::logic_error If that channel has not been loaded.
 const RequestTemplate& requestTemplate(Channel channel);
+
+/**
+ * @brief Return one named prompt preset for a loaded channel.
+ * @param channel Channel whose request file was loaded.
+ * @param preset Preset name, or "default" for the ordinary channel prompt.
+ * @return The prompt and its language-specific closing lines.
+ * @throws std::logic_error If the channel or preset has not been loaded.
+ */
+const PromptTemplate& promptTemplate(Channel channel, const QString& preset = QStringLiteral("default"));
 
 /// @return Field names every element of `results` must carry, read from that channel's
 ///         response schema `items.required`.
