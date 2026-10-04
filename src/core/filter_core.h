@@ -89,6 +89,13 @@ struct Candidate {
  * removes a word is the hard filter, and that is the whole test for whether it is a word at
  * all: length, case, a vowel, glued punctuation, and membership of the static word list.
  *
+ * One explicit exception: when the whole selection is a single all-caps letters-only token
+ * ("QML", "NASA"), it is an acronym the reader picked by hand, so it becomes a candidate -- the
+ * lower-cased token itself -- whatever those gates say. The static list holds few acronyms and
+ * QML has no vowel, so without this a selected acronym would fall through to the sentence
+ * channel. Inside continuous prose the all-caps run is still skipped; only a selection that is
+ * exactly this one token qualifies.
+ *
  * @param text         Raw excerpt, typically pasted from the clipboard.
  * @param knownLemmas  Lemmas the reader has already marked as known; a hit is recorded as
  *                     CandidateState::Known.
@@ -136,10 +143,11 @@ struct Selection {
  * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet.
  *
  * @note Word means "this excerpt is made of words", not "it holds one worth showing": a
- *       sentence of common English lands there with every word mastered, and so does a lone
- *       word the reader marked known. Sentence is the absence of any word from the static
- *       list -- junk, a URL, a number. Which candidate a request carries is the caller's
- *       decision, taken from each candidate's state.
+ *       sentence of common English lands there with every word mastered, so does a lone word
+ *       the reader marked known, and so does a lone all-caps acronym (see filterWords).
+ *       Sentence is the absence of any word from the static list -- junk, a URL, a number.
+ *       Which candidate a request carries is the caller's decision, taken from each candidate's
+ *       state.
  */
 Selection classifySelection(
     std::string_view text,

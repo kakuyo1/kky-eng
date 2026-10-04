@@ -151,10 +151,10 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
                       obj.value(QStringLiteral("ipa")).toString(),
                       obj.value(QStringLiteral("en")).toString(),
                       obj.value(QStringLiteral("zh")).toString()};
-        // Presence is the schema's business; emptiness is not. IPA is word-specific, while the
-        // shared bubble title and both language definitions are required by every channel.
-        if (e.title.isEmpty() || e.en.isEmpty() || e.zh.isEmpty() ||
-            (channel == Channel::Word && e.ipa.isEmpty()))
+        // Presence is the schema's business; emptiness is not. The bubble title and both
+        // language definitions are required by every channel. IPA is optional even for a word:
+        // a lone acronym has no pronunciation, so an empty one is not a failure.
+        if (e.title.isEmpty() || e.en.isEmpty() || e.zh.isEmpty())
             return reject(QCoreApplication::translate("lens::llm",
                                                       "A results entry has an empty field "
                                                       "(title=%1).")

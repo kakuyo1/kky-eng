@@ -188,12 +188,9 @@ TEST_F(LlmTest, RejectsTheWholeBatchOnAnyMalformedResponse)
         {"finish_reason=length, the JSON was cut off", envelope(kGoodResult, QStringLiteral("length"))},
         {"content is not JSON", envelope(QStringLiteral("not json at all"))},
         {"no results key", envelope(QStringLiteral("{}"))},
-        {"missing field (no ipa)", envelope(results(QStringLiteral(R"({"word":"ubiquitous","en":"x","zh":"y"})")))},
         {"missing field (no zh)", envelope(results(QStringLiteral(R"({"word":"ubiquitous","ipa":"/x/","en":"x"})")))},
         {"empty field (no en)",
          envelope(results(QStringLiteral(R"({"word":"ubiquitous","ipa":"/x/","en":"","zh":"y"})")))},
-        {"empty field (no ipa)",
-         envelope(results(QStringLiteral(R"({"word":"ubiquitous","ipa":"","en":"x","zh":"y"})")))},
         {"misspelled echo",
          envelope(results(QStringLiteral(R"({"word":"ubiquitos","ipa":"/x/","en":"x","zh":"y"})")))},
         {"missing echo", envelope(results(QString()))},
@@ -206,6 +203,20 @@ TEST_F(LlmTest, RejectsTheWholeBatchOnAnyMalformedResponse)
         SCOPED_TRACE(item.what);
         EXPECT_FALSE(accepted(parseExplanations(Channel::Word, item.body, kAskedFor)));
     }
+}
+
+TEST_F(LlmTest, AcceptsAWordResponseWithoutIPAForAnAcronym)
+{
+    // IPA is optional even on the word channel: a lone acronym has no pronunciation, and a
+    // lone all-caps selection is routed there. The bubble simply draws no pronunciation line.
+    const auto parsed = parseExplanations(
+        Channel::Word,
+        envelope(results(QStringLiteral(R"({"word":"qml","en":"a UI markup language","zh":"一种界面标记语言"})"))),
+        {"qml"});
+    ASSERT_TRUE(accepted(parsed)) << errorOf(parsed).toStdString();
+    const auto& result = std::get<QVector<Explanation>>(parsed).at(0);
+    EXPECT_EQ(result.title, "qml");
+    EXPECT_TRUE(result.ipa.isEmpty());
 }
 
 TEST_F(LlmTest, ReadsTokenUsageOffTheEnvelope)

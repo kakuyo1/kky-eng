@@ -516,274 +516,274 @@
     "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "THE",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["the"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "NASA",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["nasa"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "API",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["api"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "OK",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ok"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "JSON",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["json"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "HTTPS",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["https"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "HTTP",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["http"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "URL",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["url"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "SQL",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["sql"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "CPU",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["cpu"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "GPU",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["gpu"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "RAM",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ram"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "ROM",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["rom"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "USB",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["usb"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "HTML",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["html"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "CSS",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["css"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "IDE",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ide"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "CLI",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["cli"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "GUI",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["gui"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "SDK",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["sdk"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "AWS",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["aws"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "CEO",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ceo"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "CFO",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["cfo"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "IPO",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ipo"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "KPI",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["kpi"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "ROI",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["roi"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "SLA",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["sla"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "TCP",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["tcp"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "UDP",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["udp"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "FTP",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ftp"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "SSH",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ssh"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "DNS",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["dns"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "DHCP",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["dhcp"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "VPN",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["vpn"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "TLS",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["tls"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "SSL",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ssl"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "XML",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["xml"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "YAML",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["yaml"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "TOML",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["toml"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "CSV",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["csv"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "PDF",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["pdf"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "PNG",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["png"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "JPEG",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["jpeg"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "GIF",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["gif"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "SVG",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["svg"],
+    "expectKind": "Word"
   },
   {
     "note": "all caps: skipped as an abbreviation",
@@ -798,148 +798,148 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "WAV",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["wav"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "ZIP",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["zip"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "EXE",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["exe"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "DLL",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["dll"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "TTY",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["tty"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "EOF",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["eof"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "TODO",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["todo"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "NOTE",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["note"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "FIXME",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["fixme"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "WARNING",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["warning"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "ERROR",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["error"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "DEBUG",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["debug"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "INFO",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["info"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "TRUE",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["true"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "FALSE",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["false"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "NONE",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["none"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "MAIN",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["main"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "INDEX",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["index"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "ROOT",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["root"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "ADMIN",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["admin"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "USER",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["user"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "TEST",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["test"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "BUILD",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["build"],
+    "expectKind": "Word"
   },
   {
-    "note": "all caps: skipped as an abbreviation",
+    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
     "text": "RELEASE",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["release"],
+    "expectKind": "Word"
   },
   {
     "note": "mixed case: not a word-list entry once lower-cased",

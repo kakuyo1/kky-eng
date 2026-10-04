@@ -110,3 +110,26 @@ V3 后的实际输出为 `corpus: 1004 entries, 0 mismatched`，独立脚本输�
 
 这三轮只说明新增三段后当前实现的测量口径；与第 2 节 T2 的七轮区间不能当作严格性能回归，
 因为语料量与运行轮次不同。
+
+## 8 孤立全大写缩写改走单词通道（2026-10-04）
+
+需求侧观察：在 VS Code 里选中 `QML`（3 个全大写字母）被判成 `Sentence`。查证后，`Sentence` 是 T2 语料
+的刻意设计（95 条全大写字样注释 “all caps: skipped as an abbreviation”），且 `QML` 同时踩到无元音与
+不在静态词表两道过滤。定夺：**整个选区就是单个全大写字母 token 时改走单词通道**，连续正文里的全大写仍
+跳过。规则与响应侧放宽（word schema 的 `ipa` 由必填改可选）见 `PHASE1.md` §4.1 落地注记。
+
+语料变更：69 条单 token 全大写条目由 `Sentence` 改为 `Word`（`expect` 取小写 token），`MP3` / `MP4`
+因含数字属粘连串仍为 `Sentence`。`check-eval-corpus.py` 增加 `is_lone_acronym` 规则。
+
+| 指标 | 改前 | 改后 |
+| --- | ---: | ---: |
+| 语料段数 | 1004 | 1004 |
+| 单 token 全大写 → Word | 0 | 69 |
+| 单 token 全大写 → Sentence | 71 | 2（`MP3` / `MP4`） |
+| corpus mismatched | 0 | 0 |
+| 独立检查脚本问题数 | 0 | 0 |
+
+改后实际输出：`corpus: 1004 entries, 0 mismatched`；`python scripts/check-eval-corpus.py` 输出
+`corpus: 1004 entries, 0 problem(s)`；`lens_gtest_unit` 45 绿（新增
+`ClassifiesALoneAllCapsTokenAsTheWordChannel` 与 `AcceptsAWordResponseWithoutIPAForAnAcronym` 两例）。
+本节的改前数字取自上表第 1 行的 T2 基线；旧编号与旧数字不改。

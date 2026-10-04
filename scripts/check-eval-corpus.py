@@ -72,6 +72,19 @@ def tokens(text: str) -> list[str]:
     return out
 
 
+def is_lone_acronym(text: str) -> bool:
+    """True when the whole selection is one all-caps letters-only token (>= 2 letters).
+
+    The reader picked exactly this token, so it is an acronym they asked about, not a shouted
+    word inside prose: the all-caps, vowel, and static-list gates do not apply to it.
+    """
+    toks = tokens(text)
+    if len(toks) != 1:
+        return False
+    token = toks[0]
+    return len(token) >= 2 and token.isascii() and token.isalpha() and token == token.upper() and token != token.lower()
+
+
 def reject_reason(token: str, ranks: dict[str, int]) -> str | None:
     """@return Why the token is not a candidate, or None when it is one."""
     if any(not ch.isalpha() or not ch.isascii() for ch in token):
@@ -211,9 +224,10 @@ def check_entry(index: int, entry: dict, ranks: dict[str, int]) -> list[str]:
     # Every token either survives into expect or is excluded by a named rule. A survivor that
     # is absent is the interesting case: it is either a missed expectation or a lemma the
     # excerpt already carried (de-duplication), which is why the two are called apart.
+    lone_acronym = is_lone_acronym(text)
     for token in tokens(text):
         lowered = token.lower()
-        reason = reject_reason(token, ranks)
+        reason = None if lone_acronym else reject_reason(token, ranks)
         if lowered in expect:
             if reason is not None:
                 problems.append(f"{where}: expect carries '{lowered}', which {reason}")

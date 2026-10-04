@@ -93,6 +93,36 @@ bool isEntitySelection(std::string_view text)
     return titleCaseCount >= 2;
 }
 
+/// @return The token when the whole (trimmed) selection is one all-caps letters-only token of
+/// at least two letters, else an empty view. The reader picked exactly this, so it is an acronym
+/// they asked about -- the all-caps, vowel, and static-list gates do not apply to it.
+std::string_view loneAcronymToken(std::string_view text)
+{
+    std::size_t head = 0;
+    std::size_t tail = text.size();
+    while (head < tail && isSpace(text[head]))
+        ++head;
+    while (tail > head && isSpace(text[tail - 1]))
+        --tail;
+    const std::string_view body = text.substr(head, tail - head);
+    std::size_t first = 0;
+    std::size_t last = body.size();
+    while (first < last && !isAlnum(body[first]))
+        ++first;
+    while (last > first && !isAlnum(body[last - 1]))
+        --last;
+    const std::string_view token = body.substr(first, last - first);
+    if (token.size() < 2)
+        return {};
+    for (char c : token) {
+        if (c >= 'a' && c <= 'z')
+            return {}; // mixed case: normal prose, not a lone acronym
+        if (!isLetter(c))
+            return {}; // a digit or interior punctuation (MP3, R2D2, two words) disqualified it
+    }
+    return token;
+}
+
 char toLower(char c)
 {
     return (c >= 'A' && c <= 'Z') ? static_cast<char>(c - 'A' + 'a') : c;
@@ -372,6 +402,26 @@ std::vector<Candidate> filterWords(
 
     std::vector<Candidate> out;
     std::unordered_set<std::string> seen; // de-duplication keyed by lemma
+
+    // A selection that is one all-caps token is an acronym the reader picked by hand, so it is a
+    // word candidate whatever the gates say -- the static list does not hold most acronyms, and
+    // QML has no vowel either. In continuous prose the all-caps run stays skipped; only a
+    // selection that is exactly this token qualifies (see check-eval-corpus.py's lone-acronym
+    // rule and test/eval_corpus.json).
+    if (const std::string_view acronym = loneAcronymToken(text); !acronym.empty()) {
+        const std::string surface = lower(acronym);
+        const std::string lemma = lemmatize(surface); // RUNNING -> run; an acronym stands as-is
+        const CandidateState state = knownLemmas.count(lemma) != 0                    ? CandidateState::Known
+                                     : inTable(lemma) && rankOf(lemma) <= minFreqRank ? CandidateState::Mastered
+                                                                                      : CandidateState::New;
+        LENS_TRACE("filterWords: lone acronym '{}' -> surface='{}' lemma='{}' state={}",
+                   acronym,
+                   surface,
+                   lemma,
+                   static_cast<int>(state));
+        out.push_back({surface, lemma, state});
+        return out;
+    }
 
     const std::size_t size = text.size();
     std::size_t i = 0;

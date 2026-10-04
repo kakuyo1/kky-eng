@@ -75,15 +75,16 @@ KnownStore KnownStore::load(std::filesystem::path path)
             for (auto entry = lang.value().begin(); entry != lang.value().end(); ++entry) {
                 const nlohmann::json& e = entry.value();
                 if (!e.is_object()) continue;
-                // No ipa means the entry predates the field, so it is dropped rather than
-                // loaded: reading it would put a bubble with no pronunciation on screen
-                // forever. Dropping it here is the whole migration -- the next lookup of that
-                // word is a miss, asks the model, writes a complete entry back, and takes the
-                // unreadable one out of the file on the next save.
-                const std::string ipa = e.value("ipa", std::string());
-                if (ipa.empty()) continue;
+                // An entry written before the ipa field existed has no "ipa" key, so it is
+                // dropped rather than loaded: reading it would put a bubble with no
+                // pronunciation on screen forever. Dropping it here is the whole migration --
+                // the next lookup of that word is a miss, asks the model, writes a complete
+                // entry back, and takes the unreadable one out of the file on the next save.
+                // An empty ipa, though, is a legitimate entry now (an acronym has none), so
+                // only the missing key disqualifies it.
+                if (!e.contains("ipa")) continue;
                 store.cache_[cacheKey(lang.key(), entry.key())] =
-                    WordCache{ipa, e.value("en", std::string()), e.value("zh", std::string())};
+                    WordCache{e.value("ipa", std::string()), e.value("en", std::string()), e.value("zh", std::string())};
             }
         }
     }

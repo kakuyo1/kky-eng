@@ -10,7 +10,7 @@
       "description": "One entry per requested word, echoed in any order.",
       "items": {
         "type": "object",
-        "required": ["word", "ipa", "en", "zh"],
+        "required": ["word", "en", "zh"],
         "properties": {
           "word": { "type": "string", "description": "The input word, spelled exactly as requested." },
           "ipa": { "type": "string", "description": "IPA pronunciation, in slashes." },

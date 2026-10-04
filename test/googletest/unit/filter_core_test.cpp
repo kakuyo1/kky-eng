@@ -172,6 +172,31 @@ TEST_F(CoreTest, ClassifiesAWordSelectionAsTheWordChannel)
     EXPECT_EQ(fresh->surface, "ubiquitous");
 }
 
+TEST_F(CoreTest, ClassifiesALoneAllCapsTokenAsTheWordChannel)
+{
+    // The reader selected exactly one acronym, so it is a word even though the static list does
+    // not hold it and it has no vowel (QML). The all-caps gate is for a shouted word inside
+    // prose, not for an explicit one-token selection.
+    const auto selection = lens::core::classifySelection("QML", {}, 3000);
+    EXPECT_EQ(selection.kind, lens::core::SelectionKind::Word);
+    ASSERT_EQ(selection.candidates.size(), 1u);
+    EXPECT_EQ(selection.candidates.front().surface, "qml");
+    EXPECT_EQ(selection.candidates.front().lemma, "qml");
+    EXPECT_EQ(selection.candidates.front().state, lens::core::CandidateState::New);
+
+    // A lone all-caps real word still reduces to its lemma.
+    const auto reduced = lens::core::classifySelection("RUNNING", {}, 0);
+    ASSERT_EQ(reduced.candidates.size(), 1u);
+    EXPECT_EQ(reduced.candidates.front().lemma, "run");
+
+    // The same acronym inside continuous prose is still skipped: only a selection that is exactly
+    // this token qualifies.
+    const auto prose = lens::core::classifySelection("the QML source", {}, 3000);
+    EXPECT_EQ(prose.kind, lens::core::SelectionKind::Word);
+    for (const auto& candidate : prose.candidates)
+        EXPECT_NE(candidate.surface, "qml") << "an all-caps token inside prose must stay skipped";
+}
+
 TEST_F(CoreTest, ClassifiesJunkAsASentence)
 {
     // Glued junk and a stray number: nothing in it survives the filter, so the word channel
@@ -254,11 +279,12 @@ TEST_F(KnownStoreTest, SurvivesASaveAndReload)
     EXPECT_EQ(hit->zh, "无处不在的");
 }
 
-/// The pronunciation is required of a cache entry, so a document written before the field
-/// existed reads as empty rather than as a bubble that is missing a line. That miss is the
-/// whole migration: the next lookup asks the model and writes a complete entry, and the entry
-/// that could not be read goes out of the file on the save that follows.
-TEST_F(KnownStoreTest, ACachedEntryWithoutAPronunciationIsNotAnEntry)
+/// An entry written before the ipa field existed has no key, so it reads as empty rather than as
+/// a bubble that is missing a line. That miss is the whole migration: the next lookup asks the
+/// model and writes a complete entry, and the entry that could not be read goes out of the file
+/// on the save that follows. An empty ipa is a legitimate entry now (an acronym has none), so
+/// only the missing key is dropped.
+TEST_F(KnownStoreTest, ACachedEntryFromBeforeTheIPAFieldIsNotAnEntry)
 {
     std::ofstream(path) << R"({"cache":{"en":{"ubiquitous":{"en":"existing everywhere","zh":"无处不在的"}}}})";
 
