@@ -282,42 +282,42 @@
         <translation>出国考试</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="264"/>
+        <location filename="../src/app/app_controller.cpp" line="277"/>
         <source>No word to explain in this selection</source>
         <translation>这段选择里没有可解释的单词</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="288"/>
+        <location filename="../src/app/app_controller.cpp" line="301"/>
         <source>Explaining…</source>
         <translation>正在解释…</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="563"/>
+        <location filename="../src/app/app_controller.cpp" line="578"/>
         <source>Today %1</source>
         <translation>今天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="565"/>
+        <location filename="../src/app/app_controller.cpp" line="580"/>
         <source>Yesterday %1</source>
         <translation>昨天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="572"/>
+        <location filename="../src/app/app_controller.cpp" line="587"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="574"/>
+        <location filename="../src/app/app_controller.cpp" line="589"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="680"/>
+        <location filename="../src/app/app_controller.cpp" line="695"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="680"/>
+        <location filename="../src/app/app_controller.cpp" line="695"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>

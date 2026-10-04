@@ -282,42 +282,42 @@
         <translation>Study-abroad exams</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="264"/>
+        <location filename="../src/app/app_controller.cpp" line="277"/>
         <source>No word to explain in this selection</source>
         <translation>No word to explain in this selection</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="288"/>
+        <location filename="../src/app/app_controller.cpp" line="301"/>
         <source>Explaining…</source>
         <translation>Explaining…</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="563"/>
+        <location filename="../src/app/app_controller.cpp" line="578"/>
         <source>Today %1</source>
         <translation>Today %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="565"/>
+        <location filename="../src/app/app_controller.cpp" line="580"/>
         <source>Yesterday %1</source>
         <translation>Yesterday %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="572"/>
+        <location filename="../src/app/app_controller.cpp" line="587"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="574"/>
+        <location filename="../src/app/app_controller.cpp" line="589"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="680"/>
+        <location filename="../src/app/app_controller.cpp" line="695"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="680"/>
+        <location filename="../src/app/app_controller.cpp" line="695"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>
