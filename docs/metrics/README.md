@@ -25,4 +25,12 @@
 | [`qml-language-list-lazy-loading-validation-2026-10-03.md`](runtime-performance/qml-language-list-lazy-loading-validation-2026-10-03.md) | 语言列表延迟加载是否把成本移出启动 |
 | [`qml-tray-menu-lazy-loading-experiment-2026-10-03.md`](runtime-performance/qml-tray-menu-lazy-loading-experiment-2026-10-03.md) | 托盘菜单正文延迟加载前后对比 |
 
+## resource-footprint
+
+| 文件 | 回答的问题 |
+| --- | --- |
+| [`package-size-2026-10-05.md`](resource-footprint/package-size-2026-10-05.md) | 安装包里哪些东西占地方，能减掉哪几项 |
+| [`idle-memory-2026-10-05.md`](resource-footprint/idle-memory-2026-10-05.md) | 空闲时进程占多少内存，占在哪 |
+| [`memory-leak-2026-10-05.md`](resource-footprint/memory-leak-2026-10-05.md) | 长时间运行与真实使用会不会让内存只涨不跌 |
+
 补测清单见 [`coverage/coverage-plan-2026-10-03.md`](coverage/coverage-plan-2026-10-03.md)。

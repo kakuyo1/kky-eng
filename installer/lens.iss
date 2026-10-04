@@ -3,9 +3,10 @@
 ;
 ;     cmake --build build-ninja-release --target installer
 ;
-; Run it in the release tree (scripts\build-release.bat): the target exists in both trees, and
-; pointing it at the debug one would package a debug binary. The number of the version lives in
-; project() alone -- CMake generates the include below from it, so a release bumps one place.
+; Run it in the release tree (scripts\build-release.bat): the payload below is named by tree, so
+; from the debug tree the deploy would land there and this script would pack the release tree
+; anyway. The number of the version lives in project() alone -- CMake generates the include below
+; from it, so a release bumps one place.
 ;
 ; Two things the installer deliberately does not do.
 ;
