@@ -24,7 +24,8 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 
 .cost{width:280px;margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);padding:18px 20px 16px}
 .cs-h{display:flex;align-items:center;font-size:14px;font-weight:650}
-.cs-h svg{margin-left:auto;width:15px;height:15px;color:var(--faint)}
+.cs-h .hdr-ico{margin-left:auto;display:flex;align-items:center;gap:6px}
+.cs-h svg{width:15px;height:15px;color:var(--faint)}
 
 .cs-hero{margin:16px 0 4px}
 .cs-hero b{display:block;font-family:var(--mono);font-size:32px;font-weight:600;letter-spacing:-.02em;line-height:1.1}
@@ -32,7 +33,8 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 
 .cs-sep{height:1px;background:var(--line2);margin:14px 0 6px}
 .cs-row{display:flex;align-items:center;padding:6px 0;font-size:12.5px;color:var(--muted)}
-.cs-row b{margin-left:auto;color:var(--text);font-weight:600;font-family:var(--mono)}
+.cs-row .tokens{margin-left:auto;margin-right:6px;color:var(--faint);font-size:11px;font-family:var(--mono)}
+.cs-row b{color:var(--text);font-weight:600;font-family:var(--mono)}
 
 .themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:var(--f);font-size:11.5px;cursor:pointer}
 .themebtn:hover{color:var(--text)}
@@ -41,14 +43,14 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 </head>
 <body>
 <div class="cost">
-  <div class="cs-h">花费<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></div>
+  <div class="cs-h">花费<span class="hdr-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></span></div>
 
   <div class="cs-hero"><b>¥11.40</b><span>本月花费</span></div>
 
   <div class="cs-sep"></div>
-  <div class="cs-row">今天<b>¥0.42</b></div>
-  <div class="cs-row">昨天<b>¥0.36</b></div>
-  <div class="cs-row">本周<b>¥2.86</b></div>
+  <div class="cs-row">今天<span class="tokens">8320 tokens</span><b>¥0.42</b></div>
+  <div class="cs-row">昨天<span class="tokens">7040 tokens</span><b>¥0.36</b></div>
+  <div class="cs-row">本周<span class="tokens">24160 tokens</span><b>¥2.86</b></div>
   <div class="cs-row">日均<b>¥0.38</b></div>
 </div>
 <button class="themebtn" id="tb">黑夜</button>

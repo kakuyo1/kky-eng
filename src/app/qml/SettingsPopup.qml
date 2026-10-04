@@ -5,7 +5,8 @@ import QtQuick.Window
  * The settings panel (UI.md section 4.4).
  *
  * Every control applies as it is changed; only the API key waits for Save, because a
- * half-typed key is not a key. The three capture switches keep OCR and automatic scanning
+ * half-typed key is not a key. The panel keeps single-value settings flat and reserves a
+ * visible group for the three capture switches. The OCR and automatic scanning switches stay
  * visible but inert: they are phase-1 placeholders, and a surface that greys a control
  * without a word of explanation is what PHASE1.md section 2 asks for.
  */
@@ -58,7 +59,7 @@ Window {
             x: 20
             y: 18
             width: settings.cardWidth - 40
-            spacing: 15
+            spacing: 12
 
             // The close icon is anchored to the right edge rather than pushed there by a
             // spacer: a spacer sized around the English title lands the glyph past the card
@@ -166,6 +167,9 @@ Window {
                         color: Tokens.text
                         font.pixelSize: 13
                         selectByMouse: true
+                        // The parent handler covers the two side margins; this one covers the
+                        // TextInput itself, so the whole field keeps one affordance.
+                        HoverHandler { cursorShape: Qt.PointingHandCursor }
                         // The stored key is never read back, so the field starts empty and
                         // shows the prototype's placeholder instead of a masked copy of it.
                         Text {
@@ -280,31 +284,13 @@ Window {
                     color: Tokens.muted
                     font.pixelSize: 12
                 }
-                Rectangle {
+                // The registry is the state, so the switch shows what the controller read back
+                // rather than what was asked for: a policy that forbids the Run key leaves it off.
+                SwitchRow {
                     width: parent.width
-                    implicitHeight: startup.implicitHeight + 8
-                    radius: Tokens.radiusGroup
-                    color: Tokens.panel2
-                    border.width: 1
-                    border.color: Tokens.line
-
-                    Column {
-                        id: startup
-                        x: 12
-                        y: 4
-                        width: parent.width - 24
-                        spacing: 0
-
-                        // The registry is the state, so the switch shows what the controller
-                        // read back rather than what was asked for: a policy that forbids the
-                        // Run key leaves it off.
-                        SwitchRow {
-                            width: parent.width
-                            label: qsTr("Launch at sign-in")
-                            checked: Controller.settings.autostart
-                            onToggled: (on) => Controller.setAutostart(on)
-                        }
-                    }
+                    label: qsTr("Launch at sign-in")
+                    checked: Controller.settings.autostart
+                    onToggled: (on) => Controller.setAutostart(on)
                 }
             }
 
@@ -374,6 +360,9 @@ Window {
                             Controller.setLevel(2);
                             Controller.setExplanationLang("en");
                             Controller.setTheme("light");
+                            Controller.setSelectionCapture(true);
+                            Controller.setClipboardPolicy("topmost");
+                            Controller.setAutoScan(false);
                         }
                     }
                 }
