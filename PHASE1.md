@@ -109,7 +109,7 @@ Selection classifySelection(
 ```cpp
 namespace lens::core {
 
-struct WordCache { std::string en, zh; };
+struct WordCache { std::string ipa, en, zh; };
 
 class KnownStore {
 public:
@@ -135,6 +135,7 @@ public:
 
 - `setLevel` 越界抛 `std::out_of_range`；`load` 见越界值回落默认档。
 - 档位序号到词频阈值（`filterWords` 的 `minFreqRank`）的映射尚未落地，属 AppController 切片，配合 `TODO.md` 词书数据一起做。
+- **一条缓存必须带音标**（2026-10-04 加 `ipa`）：气泡从缓存出，而音标是气泡的一格，缺了它那颗气泡就少一行。所以 `load` 丢掉没有 `ipa` 的记录（旧文档里的老记录），下一次查同一个词就是未命中，重新问模型并写回完整的一条——未命中就是迁移，没有单独的迁移代码。
 
 ```cpp
 namespace lens::core {
@@ -271,18 +272,21 @@ signals:
   渲染方式留给表面。清空时机：弹出新解释时、`dismissBubble()` 时、以及被下一条通知替换时。通知**不带锚点**
   ——它不属于某一次选区，落点由表面自己定。
 - **剪贴板被别的进程抢走时不再写回**：抓取期间剪贴板若被改写（剪贴板管理器、或读者自己复制了别的），
-  把快照写回会毁掉对方刚放下的内容，于是快照留在原地、返回 `ClipboardReplaced`，是否说明由
-  `clipboardPolicy` 决定：`topmost`（缺省）弹通知说明，`silent` 什么都不显示。读者自己的剪贴板在那一刻
-  已经丢了，两种选择都救不回来。
+  把快照写回会毁掉对方刚放下的内容，于是快照留在原地，`GrabbedText::clipboardReplaced` 记下这件事。
+  **读到的文本仍然有效**——它是在第二次写入之前读出来的——所以这不是一次失败的抓取，缺的只是读者的
+  剪贴板（那一刻已经丢了，救不回来）。`clipboardPolicy` 因此只回答一个问题：这次还要不要弹。`topmost`
+  （缺省）照常弹，表面显示时本来就会 `raise()`（`docs/QML.md` §2），置顶正是这个值的意思；`silent`
+  这一次什么都不弹，读者自己再选一次即可。
 - **开机自启**：`settings()` 多一个 `autostart`，写入 HKCU 的 Run 项（`src/app/autostart.{h,cpp}`）。键名与
   命令行由纯函数拼装，可离线断言；真正的注册表写入是机器状态，属人工用例。
 - **词汇可导出**：`exportWords(scope)` 返回纯文本（一行一个词根，与 `data/wordlist.txt` 同形），不选路径、
   不写文件——路径由表面从文件对话框取。三个 scope 就是词汇弹窗的三个筛选，行集与 `words()` 一致。词汇弹窗
   的行多带一个 `pops`（该词被弹过几次），由历史在展示时数出，存储形状不动；历史留 2000 条（§4.2），
   次数随之封顶。
-- **单词行带音标**：响应 schema 与 `WordExplanation` 都加了 `ipa`（§5、`API.md` §3），原先 “阶段一不放
-  音标位” 那条随之作废。缓存（`WordCache`，§4.2）仍是 `en` / `zh` 两项，所以命中缓存的那一次没有音标——
-  要让缓存也带，是存储形状的改动，留给后面的切片，别把这次的数据编辑当成已经接通。
+- **单词行带音标**：响应 schema、`WordExplanation`（§4.3）、气泡载荷与缓存（`WordCache`，§4.2）都加了
+  `ipa`，原先 “阶段一不放音标位” 那条随之作废。四处的顺序一致（`word` / `ipa` / `en` / `zh`），气泡的
+  `bubble` 映射里 `ipa` 排在 `word` 之后、两种释义之前；它不是释义，所以不随 “解释语言” 切换而清空——
+  命不命中缓存都拿得到。存储形状的这一处改动记在 `PRODUCT.md`“存储形状”，缺音标的旧缓存按未命中处理。
 
 落地注记（2026-10-03）：
 

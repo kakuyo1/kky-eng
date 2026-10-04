@@ -327,7 +327,7 @@ SelectionTextGrabber::SelectionTextGrabber(QObject* parent)
     : QObject(parent)
 {}
 
-std::variant<QString, GrabStatus> SelectionTextGrabber::grab()
+std::variant<GrabbedText, GrabStatus> SelectionTextGrabber::grab()
 {
     if (grabbing_) {
         // The nested event loop in waitForClipboardChange pumps messages, so the mouse hook
@@ -402,8 +402,6 @@ std::variant<QString, GrabStatus> SelectionTextGrabber::grab()
     }
     grabbing_ = false;
 
-    if (replaced)
-        return GrabStatus::ClipboardReplaced;
     if (!landed) {
         LENS_TRACE("SelectionTextGrabber::grab: the clipboard did not change within {} ms", kGrabDeadlineMs);
         return GrabStatus::CopyTimedOut;
@@ -417,7 +415,10 @@ std::variant<QString, GrabStatus> SelectionTextGrabber::grab()
     if (text.isEmpty()) return GrabStatus::EmptyText;
 
     LENS_INFO("SelectionTextGrabber::grab: captured {} characters from '{}'", text.size(), processName);
-    return text;
+    // The text is the selection either way: it was read before the second writer could change
+    // it. What the caller needs to know is that the clipboard no longer holds what the reader
+    // left on it, which is the flag's whole meaning (clipboardPolicy decides what to do).
+    return GrabbedText{text, replaced};
 }
 
 }

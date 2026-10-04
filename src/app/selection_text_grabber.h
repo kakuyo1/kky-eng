@@ -27,20 +27,27 @@ namespace lens::app {
 
 /// @brief Why one grab attempt ended the way it did.
 enum class GrabStatus : std::uint8_t {
-    Captured = 0,      ///< The text came back.
-    ForegroundIsSelf,  ///< The foreground window belongs to this process; injecting would
-                       ///< target our own surfaces, so nothing was sent.
-    ProcessExcluded,   ///< The foreground process is one where Ctrl+C means "interrupt".
-    ClipboardBusy,     ///< The clipboard could not be taken; without a snapshot to restore,
-                       ///< clobbering it is not allowed. Also returned on re-entry.
-    CopyTimedOut,      ///< Nothing came back: there was no window to copy from, the clipboard
-                       ///< did not change before the deadline, the application ignored the
-                       ///< synthetic input, or an elevated window dropped it (UIPI).
-    EmptyText,         ///< The clipboard changed but carried no text.
-    ClipboardReplaced, ///< Another process wrote the clipboard while the selection was being
-                       ///< read. What was read cannot be trusted to be the selection, and the
-                       ///< snapshot was left in place rather than put back over the newer
-                       ///< content; the caller decides whether the reader hears about it.
+    Captured = 0,     ///< The text came back.
+    ForegroundIsSelf, ///< The foreground window belongs to this process; injecting would
+                      ///< target our own surfaces, so nothing was sent.
+    ProcessExcluded,  ///< The foreground process is one where Ctrl+C means "interrupt".
+    ClipboardBusy,    ///< The clipboard could not be taken; without a snapshot to restore,
+                      ///< clobbering it is not allowed. Also returned on re-entry.
+    CopyTimedOut,     ///< Nothing came back: there was no window to copy from, the clipboard
+                      ///< did not change before the deadline, the application ignored the
+                      ///< synthetic input, or an elevated window dropped it (UIPI).
+    EmptyText,        ///< The clipboard changed but carried no text.
+};
+
+/// @brief A grab that produced text, and what the clipboard did while it was read.
+struct GrabbedText {
+    QString text;                   ///< The selection, trimmed of surrounding whitespace.
+    bool clipboardReplaced = false; ///< Another process wrote the clipboard after our copy
+                                    ///< landed -- a clipboard manager looking at the change, or
+                                    ///< the reader copying something themselves. The text is
+                                    ///< still the selection, but the snapshot was left in place
+                                    ///< rather than put back over the newer content, so what is
+                                    ///< on the clipboard now is theirs.
 };
 
 /**
@@ -125,12 +132,13 @@ public:
      * it changes or kGrabDeadlineMs passes, driving a nested event loop so Windows messages
      * — and the mouse hook — keep flowing while it waits. Takes tens of milliseconds.
      *
-     * @return The copied text trimmed of surrounding whitespace, or the GrabStatus saying
-     *         why there is none. The reason is logged too.
+     * @return The selection, or the GrabStatus saying why there is none. The reason is logged
+     *         too. A successful grab also says whether the clipboard was written by another
+     *         process while the selection was being read (see GrabbedText).
      * @note Never call this from the mouse hook callback: the wait would overrun the budget
      *       Windows gives a low-level hook. Re-entering it returns ClipboardBusy.
      */
-    std::variant<QString, GrabStatus> grab();
+    std::variant<GrabbedText, GrabStatus> grab();
 
 private:
     bool grabbing_ = false;

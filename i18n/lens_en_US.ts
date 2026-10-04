@@ -282,47 +282,42 @@
         <translation>Study-abroad exams</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="260"/>
+        <location filename="../src/app/app_controller.cpp" line="264"/>
         <source>No word to explain in this selection</source>
         <translation>No word to explain in this selection</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="280"/>
+        <location filename="../src/app/app_controller.cpp" line="288"/>
         <source>Explaining…</source>
         <translation>Explaining…</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="335"/>
-        <source>Another program changed the clipboard while the selection was being read.</source>
-        <translation>Another program changed the clipboard while the selection was being read.</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="556"/>
+        <location filename="../src/app/app_controller.cpp" line="563"/>
         <source>Today %1</source>
         <translation>Today %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="558"/>
+        <location filename="../src/app/app_controller.cpp" line="565"/>
         <source>Yesterday %1</source>
         <translation>Yesterday %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="565"/>
+        <location filename="../src/app/app_controller.cpp" line="572"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="567"/>
+        <location filename="../src/app/app_controller.cpp" line="574"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="673"/>
+        <location filename="../src/app/app_controller.cpp" line="680"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="673"/>
+        <location filename="../src/app/app_controller.cpp" line="680"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>

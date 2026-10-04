@@ -121,9 +121,9 @@ AppController::AppController(core::KnownStore& store, llm::LlmClient& llm, Mouse
         }
 
         const llm::WordExplanation& first = results.front();
-        store_.cachePut(first.word.toStdString(), {first.en.toStdString(), first.zh.toStdString()});
+        store_.cachePut(first.word.toStdString(), {first.ipa.toStdString(), first.en.toStdString(), first.zh.toStdString()});
         store_.save();
-        showBubble(first.word, first.en, first.zh, pending_.anchor);
+        showBubble(first.word, first.ipa, first.en, first.zh, pending_.anchor);
         emit statsChanged();
     });
 
@@ -174,20 +174,24 @@ void AppController::beginSelection(QPoint anchor)
 {
     const auto grabbed = grabber_->grab();
     if (const auto* status = std::get_if<GrabStatus>(&grabbed)) {
-        if (*status == GrabStatus::ClipboardReplaced) {
-            // The one status with a setting behind it: the reader's own copy is what the
-            // clipboard holds now, so whether they hear about the abandoned pop is theirs to
-            // choose (clipboardPolicy).
-            clipboardReplaced();
-            return;
-        }
         // Expected outcomes, not faults: a release inside our own surface, a terminal, or a
         // drag over something that does not copy. The grabber has already logged the reason.
         LENS_DEBUG("selection at ({}, {}) produced no text (status {})", anchor.x(), anchor.y(), static_cast<int>(*status));
         return;
     }
 
-    const QString text = std::get<QString>(grabbed);
+    const GrabbedText& captured = std::get<GrabbedText>(grabbed);
+    // Another process wrote the clipboard while the selection was being read, so the snapshot
+    // was left in place and the reader's own clipboard is gone. The text is still the
+    // selection, and whether that interrupts the pop is the reader's call: topmost (the
+    // default) carries on -- the surfaces raise themselves on the way up, which is the point
+    // of the name -- and silent drops this one without a surface.
+    if (captured.clipboardReplaced && documentString("clipboardPolicy", QStringLiteral("topmost")) == QLatin1String("silent")) {
+        LENS_INFO("the clipboard was rewritten during the grab; the policy is silent, so the selection is dropped");
+        return;
+    }
+
+    const QString text = captured.text;
     // What the selection is gets decided here, once, and the two items on the bar only route
     // on the answer. That ordering is the specification, not a convenience: translate and
     // explain are two ways into the same decision (UI.md section 4.9).
@@ -265,7 +269,11 @@ void AppController::explain(const Pending& pending)
         LENS_INFO("cache hit for '{}'; nothing was sent", pending.lemma.toStdString());
         stats_.recordPop(pending.lemma.toStdString(), nowMinute().toStdString());
         store_.save();
-        showBubble(pending.lemma, QString::fromStdString(cached->en), QString::fromStdString(cached->zh), pending.anchor);
+        showBubble(pending.lemma,
+                   QString::fromStdString(cached->ipa),
+                   QString::fromStdString(cached->en),
+                   QString::fromStdString(cached->zh),
+                   pending.anchor);
         emit statsChanged();
         return;
     }
@@ -285,16 +293,18 @@ void AppController::requestExplanations(const QStringList& words)
     llm_.explainWords(words);
 }
 
-void AppController::showBubble(const QString& word, const QString& en, const QString& zh, const QPoint& anchor)
+void AppController::showBubble(const QString& word, const QString& ipa, const QString& en, const QString& zh, const QPoint& anchor)
 {
     // Only the language the reader asked for goes to the surface: UI.md section 4.3's two
     // lines made "explanation language" look like it did nothing, because both were always
     // on screen. The word's own margin is what decides, and a change to it lands on the next
-    // bubble rather than on the one already up.
+    // bubble rather than on the one already up. The pronunciation is not a definition, so it
+    // goes out whichever language is chosen.
     const bool wantsChinese = store_.explanationLang() == "zh";
     // A word the reader is being asked about is by definition one they have not marked as
     // known, so a fresh bubble is always a new word; only a verdict can change that.
     bubble_ = QVariantMap{{"word", word},
+                          {"ipa", ipa},
                           {"en", wantsChinese ? QString() : en},
                           {"zh", wantsChinese ? zh : QString()},
                           {"status", store_.isKnown(word.toStdString()) ? QStringLiteral("known") : QStringLiteral("new")},
@@ -323,19 +333,6 @@ QString AppController::noticeTitle(const Pending& pending)
     // single word to name, and an untitled card floats with nothing tying it to what it is
     // about.
     return pending.surface.isEmpty() ? pending.text : pending.surface;
-}
-
-void AppController::clipboardReplaced()
-{
-    if (documentString("clipboardPolicy", QStringLiteral("topmost")) == QLatin1String("silent")) {
-        LENS_INFO("the clipboard was written during the grab; the policy is silent, so nothing is shown");
-        return;
-    }
-
-    // topmost, and the default for anything else: say it. The reader's clipboard is theirs to
-    // put back by hand, and a gesture answered with no surface at all reads as broken. No
-    // title: there is no selection this belongs to -- the grab is what did not finish.
-    showNotice(QString(), tr("Another program changed the clipboard while the selection was being read."), kNoticeError);
 }
 
 void AppController::clearNotice()

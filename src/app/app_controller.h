@@ -226,7 +226,9 @@ private:
     void explain(const Pending& pending);
 
     /// @brief Put an explanation up at the pending anchor.
-    void showBubble(const QString& word, const QString& en, const QString& zh, const QPoint& anchor);
+    /// @param ipa Pronunciation in slashes, beside the word rather than behind the language
+    ///            switch: UI.md section 4.3 draws it next to the word itself.
+    void showBubble(const QString& word, const QString& ipa, const QString& en, const QString& zh, const QPoint& anchor);
 
     /// @brief Put a notice up where an explanation would have gone: no verdict, just the reason.
     /// @param title What the notice is about; see noticeTitle().
@@ -238,10 +240,6 @@ private:
     ///         selection text otherwise. A sentence has no single word to name, and an untitled
     ///         card floats with nothing tying it to the selection it is about.
     static QString noticeTitle(const Pending& pending);
-
-    /// @brief Decide what to do about a clipboard another process wrote during the grab.
-    ///        Reads `clipboardPolicy`: raise a notice, or say nothing.
-    void clipboardReplaced();
 
     /// @brief Drop the notice, telling the surface only when there was one.
     void clearNotice();

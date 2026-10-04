@@ -75,8 +75,15 @@ KnownStore KnownStore::load(std::filesystem::path path)
             for (auto entry = lang.value().begin(); entry != lang.value().end(); ++entry) {
                 const nlohmann::json& e = entry.value();
                 if (!e.is_object()) continue;
+                // No ipa means the entry predates the field, so it is dropped rather than
+                // loaded: reading it would put a bubble with no pronunciation on screen
+                // forever. Dropping it here is the whole migration -- the next lookup of that
+                // word is a miss, asks the model, writes a complete entry back, and takes the
+                // unreadable one out of the file on the next save.
+                const std::string ipa = e.value("ipa", std::string());
+                if (ipa.empty()) continue;
                 store.cache_[cacheKey(lang.key(), entry.key())] =
-                    WordCache{e.value("en", std::string()), e.value("zh", std::string())};
+                    WordCache{ipa, e.value("en", std::string()), e.value("zh", std::string())};
             }
         }
     }
@@ -164,7 +171,7 @@ void KnownStore::save() const
     nlohmann::json cache = nlohmann::json::object();
     for (const auto& [key, entry] : cache_) {
         const std::size_t sep = key.find(kSep);
-        cache[key.substr(0, sep)][key.substr(sep + 1)] = {{"en", entry.en}, {"zh", entry.zh}};
+        cache[key.substr(0, sep)][key.substr(sep + 1)] = {{"ipa", entry.ipa}, {"en", entry.en}, {"zh", entry.zh}};
     }
     doc["cache"] = std::move(cache);
 

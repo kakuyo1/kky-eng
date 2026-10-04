@@ -48,6 +48,7 @@ namespace {
 
 using lens::app::Gesture;
 using lens::app::GrabStatus;
+using lens::app::GrabbedText;
 using lens::app::isExcludedProcess;
 using lens::app::isSelectionGesture;
 
@@ -73,7 +74,6 @@ const char* statusName(GrabStatus status)
         case GrabStatus::ClipboardBusy: return "ClipboardBusy";
         case GrabStatus::CopyTimedOut: return "CopyTimedOut";
         case GrabStatus::EmptyText: return "EmptyText";
-        case GrabStatus::ClipboardReplaced: return "ClipboardReplaced";
     }
     return "unknown";
 }
@@ -507,13 +507,13 @@ TEST(SelectionGrab, CapturesTheSelectionAndPutsTheClipboardBack)
     lens::app::SelectionTextGrabber grabber;
     const auto result = grabber.grab();
 
-    const QString* text = std::get_if<QString>(&result);
-    ASSERT_TRUE(text != nullptr) << "the grab failed with status "
-                                 << statusName(*std::get_if<GrabStatus>(&result));
+    const GrabbedText* captured = std::get_if<GrabbedText>(&result);
+    ASSERT_TRUE(captured != nullptr) << "the grab failed with status "
+                                     << statusName(*std::get_if<GrabStatus>(&result));
 
-    std::cout << "  captured: \"" << text->toStdString() << "\"\n";
+    std::cout << "  captured: \"" << captured->text.toStdString() << "\"\n";
 
-    EXPECT_EQ(*text, expected) << "the captured text is not what was selected";
+    EXPECT_EQ(captured->text, expected) << "the captured text is not what was selected";
 
     // Distinguish "the clipboard came back empty" from "it could not be read at all": the
     // first is the data-loss bug, the second is a lock, and they need different fixes.

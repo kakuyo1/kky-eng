@@ -82,6 +82,8 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH lrelease i18n/lens_en_US.ts i18n/lens_zh
 
 `lupdate` appends new strings as `unfinished` and leaves existing translations alone, so rerunning is safe. Write the Chinese into `lens_zh_CN.ts` and copy the source text into `lens_en_US.ts`; `lrelease` is the check, and the goal is zero unfinished. The `.qm` files are build output and stay gitignored.
 
+Removing a string needs `lupdate -no-obsolete`: plain `lupdate` keeps the vanished entries in the file as `<translation type="vanished">`, so a deleted surface's strings go on sitting there with nothing to read them.
+
 `lupdate` reads literal arguments only, so every `tr()` spells out its context and its string at the call site; routing them through a helper that takes the context as a parameter extracts nothing.
 
 ## Code Style
