@@ -24,7 +24,12 @@ Item {
         anchors.fill: parent
         radius: height / 2
         color: root.checked ? Tokens.ink : Tokens.line
-        Behavior on color { ColorAnimation { duration: 150 } }
+        Behavior on color {
+            ColorAnimation {
+                duration: Tokens.motion.press
+                easing.type: Tokens.motion.easing
+            }
+        }
 
         Rectangle {
             id: knob
@@ -34,7 +39,12 @@ Item {
             y: 2
             x: root.checked ? track.width - width - 2 : 2
             color: root.checked ? Tokens.on : (Tokens.dark ? Tokens.faint : Tokens.panel)
-            Behavior on x { NumberAnimation { duration: 150 } }
+            Behavior on x {
+                NumberAnimation {
+                    duration: Tokens.motion.press
+                    easing.type: Tokens.motion.easing
+                }
+            }
         }
     }
 

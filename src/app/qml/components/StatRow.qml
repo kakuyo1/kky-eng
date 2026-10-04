@@ -34,6 +34,12 @@ Item {
         height: parent.height - 2
         radius: 8
         color: root.clickable && rowHover.hovered ? Tokens.panel2 : "transparent"
+        Behavior on color {
+            ColorAnimation {
+                duration: Tokens.motion.press
+                easing.type: Tokens.motion.easing
+            }
+        }
     }
 
     Text {

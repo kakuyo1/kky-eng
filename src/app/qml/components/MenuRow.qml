@@ -24,6 +24,12 @@ Item {
         anchors.fill: parent
         radius: Tokens.radiusField
         color: hover.hovered ? Tokens.panel2 : "transparent"
+        Behavior on color {
+            ColorAnimation {
+                duration: Tokens.motion.press
+                easing.type: Tokens.motion.easing
+            }
+        }
     }
 
     HoverHandler {

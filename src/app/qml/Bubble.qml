@@ -353,8 +353,18 @@ Window {
                     height: show ? actions.height + 25 : 0
                     clip: true
                     opacity: show ? 1 : 0
-                    Behavior on height { NumberAnimation { duration: 220; easing.type: Easing.InOutQuad } }
-                    Behavior on opacity { NumberAnimation { duration: 220 } }
+                    Behavior on height {
+                        NumberAnimation {
+                            duration: Tokens.motion.bubble
+                            easing.type: Tokens.motion.easing
+                        }
+                    }
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: Tokens.motion.bubble
+                            easing.type: Tokens.motion.easing
+                        }
+                    }
 
                     Rectangle {
                         anchors.top: parent.top
@@ -378,6 +388,12 @@ Window {
                             border.width: 1
                             border.color: Tokens.line
                             scale: knownTap.pressed ? 0.97 : 1.0
+                            Behavior on scale {
+                                NumberAnimation {
+                                    duration: Tokens.motion.press
+                                    easing.type: Tokens.motion.easing
+                                }
+                            }
                             Text {
                                 id: knownLabel
                                 anchors.centerIn: parent
@@ -399,6 +415,12 @@ Window {
                             radius: Tokens.radiusPill
                             color: Tokens.ink
                             scale: newTap.pressed ? 0.97 : 1.0
+                            Behavior on scale {
+                                NumberAnimation {
+                                    duration: Tokens.motion.press
+                                    easing.type: Tokens.motion.easing
+                                }
+                            }
                             Text {
                                 id: newLabel
                                 anchors.centerIn: parent
