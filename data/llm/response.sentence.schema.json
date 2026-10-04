@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lens sentence explanation response",
+  "description": "The object the model is asked to return inside choices[0].message.content.",
+  "type": "object",
+  "required": ["results"],
+  "properties": {
+    "results": {
+      "type": "array",
+      "description": "One entry per requested sentence, echoed in any order.",
+      "items": {
+        "type": "object",
+        "required": ["title", "en", "zh"],
+        "properties": {
+          "title": { "type": "string", "description": "The input sentence, exactly as requested." },
+          "en": { "type": "string", "description": "One-line English translation or explanation." },
+          "zh": { "type": "string", "description": "One-line Chinese translation or explanation." }
+        }
+      }
+    }
+  }
+}

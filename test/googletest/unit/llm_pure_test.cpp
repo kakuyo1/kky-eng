@@ -28,12 +28,12 @@ namespace {
 using lens::llm::Channel;
 using lens::llm::Config;
 using lens::llm::Usage;
-using lens::llm::WordExplanation;
+using lens::llm::Explanation;
 using lens::llm::buildRequestBody;
 using lens::llm::maskSensitive;
 using lens::llm::parseExplanations;
 using lens::llm::parseUsage;
-using LlmResult = std::variant<QVector<WordExplanation>, QString>;
+using LlmResult = std::variant<QVector<Explanation>, QString>;
 
 // TEST_F pastes the fixture name into a class definition, so it has to be unqualified.
 using lens::test::LlmTest;
@@ -47,7 +47,7 @@ QString errorOf(const LlmResult& result)
 
 bool accepted(const LlmResult& result)
 {
-    return std::holds_alternative<QVector<WordExplanation>>(result);
+    return std::holds_alternative<QVector<Explanation>>(result);
 }
 
 /// @brief Wrap @p content the way the chat-completions envelope does.
@@ -132,11 +132,51 @@ TEST_F(LlmTest, AcceptsAWellFormedResponse)
     const auto result = parseExplanations(Channel::Word, envelope(results(kGoodResult)), kAskedFor);
 
     ASSERT_TRUE(accepted(result)) << errorOf(result).toStdString();
-    const auto& explanations = std::get<QVector<WordExplanation>>(result);
+    const auto& explanations = std::get<QVector<Explanation>>(result);
     ASSERT_EQ(explanations.size(), 1);
-    EXPECT_EQ(explanations.at(0).word, QStringLiteral("ubiquitous"));
+    EXPECT_EQ(explanations.at(0).title, QStringLiteral("ubiquitous"));
     EXPECT_EQ(explanations.at(0).ipa, QString::fromUtf8("/juːˈbɪkwɪtəs/")) << "the IPA was dropped on the way out";
     EXPECT_EQ(explanations.at(0).zh, QString::fromUtf8("无处不在的"));
+}
+
+TEST_F(LlmTest, UsesSentencePresetsAndTheSharedEntityPreset)
+{
+    const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
+
+    const auto translated = QJsonDocument::fromJson(
+        buildRequestBody(config, Channel::Sentence, {"New York is busy."}, "en", "translate"));
+    const auto explained = QJsonDocument::fromJson(
+        buildRequestBody(config, Channel::Sentence, {"New York is busy."}, "en", "explain"));
+    const auto entity = QJsonDocument::fromJson(
+        buildRequestBody(config, Channel::Entity, {"New York"}, "en"));
+
+    ASSERT_TRUE(translated.isObject());
+    ASSERT_TRUE(explained.isObject());
+    ASSERT_TRUE(entity.isObject());
+    const auto translatedPrompt = translated.object().value("messages").toArray().at(0).toObject().value("content").toString();
+    const auto explainedPrompt = explained.object().value("messages").toArray().at(0).toObject().value("content").toString();
+    const auto entityPrompt = entity.object().value("messages").toArray().at(0).toObject().value("content").toString();
+    EXPECT_TRUE(translatedPrompt.contains("Translate"));
+    EXPECT_TRUE(explainedPrompt.contains("Explain"));
+    EXPECT_TRUE(entityPrompt.contains("named entity"));
+    EXPECT_FALSE(translatedPrompt == explainedPrompt);
+}
+
+TEST_F(LlmTest, ParsesTheThreeFieldEntityAndSentenceShapeWithoutIPA)
+{
+    const QString entityContent = QStringLiteral(
+        R"({"results":[{"title":"New York","en":"a city","zh":"一座城市"}]})");
+    const auto entity = parseExplanations(Channel::Entity, envelope(entityContent), {"New York"});
+    ASSERT_TRUE(accepted(entity)) << errorOf(entity).toStdString();
+    const auto& entityResult = std::get<QVector<Explanation>>(entity).at(0);
+    EXPECT_EQ(entityResult.title, "New York");
+    EXPECT_TRUE(entityResult.ipa.isEmpty());
+
+    const QString sentenceContent = QStringLiteral(
+        R"({"results":[{"title":"New York is busy.","en":"The city is busy.","zh":"纽约很忙。"}]})");
+    const auto sentence = parseExplanations(Channel::Sentence, envelope(sentenceContent), {"New York is busy."});
+    ASSERT_TRUE(accepted(sentence)) << errorOf(sentence).toStdString();
+    EXPECT_EQ(std::get<QVector<Explanation>>(sentence).at(0).title, "New York is busy.");
 }
 
 TEST_F(LlmTest, RejectsTheWholeBatchOnAnyMalformedResponse)

@@ -126,7 +126,10 @@ TEST_F(CoreTest, ReplaysTheSampleCorpus)
         ASSERT_NO_THROW(got = lens::core::classifySelection(text, known, minFreqRank))
             << "text: " << text;
 
-        const std::string kind = got.kind == lens::core::SelectionKind::Word ? "Word" : "Sentence";
+        const std::string kind = got.kind == lens::core::SelectionKind::Word
+                                     ? "Word"
+                                 : got.kind == lens::core::SelectionKind::Entity ? "Entity"
+                                                                                 : "Sentence";
         std::vector<std::string> wantLemmas;
         if (item.contains("expectLemmas"))
             wantLemmas = item.at("expectLemmas").get<std::vector<std::string>>();
@@ -189,6 +192,22 @@ TEST_F(CoreTest, ClassifiesJunkAsASentence)
     EXPECT_EQ(mastered.kind, lens::core::SelectionKind::Word);
     ASSERT_EQ(mastered.candidates.size(), 1u);
     EXPECT_EQ(mastered.candidates.front().state, lens::core::CandidateState::Mastered);
+}
+
+TEST_F(CoreTest, ClassifiesOnlyMultiTokenTitleCasePhrasesAsEntities)
+{
+    const auto entity = lens::core::classifySelection("New York", {}, 0);
+    EXPECT_EQ(entity.kind, lens::core::SelectionKind::Entity);
+    EXPECT_TRUE(entity.candidates.empty());
+
+    const auto anotherEntity = lens::core::classifySelection("United States", {}, 0);
+    EXPECT_EQ(anotherEntity.kind, lens::core::SelectionKind::Entity);
+
+    const auto singleToken = lens::core::classifySelection("London", {}, 0);
+    EXPECT_NE(singleToken.kind, lens::core::SelectionKind::Entity);
+
+    const auto mixedSentence = lens::core::classifySelection("I visited New York", {}, 0);
+    EXPECT_NE(mixedSentence.kind, lens::core::SelectionKind::Entity);
 }
 
 TEST_F(KnownStoreTest, FreshStoreHoldsTheDocumentedDefaults)

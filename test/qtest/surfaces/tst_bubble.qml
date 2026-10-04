@@ -32,7 +32,8 @@ Item {
             const bubble = createTemporaryObject(bubbleComponent, root);
             verify(bubble);
             bubble.show({
-                word: "serendipity",
+                 title: "serendipity",
+                 type: "word",
                 ipa: "/ˌserənˈdɪpəti/",
                 en: "the occurrence of events by chance in a happy way",
                 zh: "机缘巧合",

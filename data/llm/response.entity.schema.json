@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lens entity explanation response",
+  "description": "The object the model is asked to return inside choices[0].message.content.",
+  "type": "object",
+  "required": ["results"],
+  "properties": {
+    "results": {
+      "type": "array",
+      "description": "One entry per requested entity, echoed in any order.",
+      "items": {
+        "type": "object",
+        "required": ["title", "en", "zh"],
+        "properties": {
+          "title": { "type": "string", "description": "The input entity, spelled exactly as requested." },
+          "en": { "type": "string", "description": "One-line English explanation." },
+          "zh": { "type": "string", "description": "One-line Chinese explanation." }
+        }
+      }
+    }
+  }
+}

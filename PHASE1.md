@@ -1,22 +1,21 @@
-# 阶段一实现规格（Phase 1：单词解释）
+# 阶段一实现规格（Phase 1：单词、实体与句子解释）
 
 > 设计总览见 `PRODUCT.md`，术语见 `GLOSSARY.md`，UI 规格见 `UI.md`。本文件是阶段一的实施契约：接口先行，UI 完整，未实现功能占位不可触发。
 
 ## 1 范围与状态
 
-- **目标**：单词解释通道端到端可用（不含 OCR），UI 各表面完整，未实现功能一律占位、不可触发。
+- **目标**：单词、实体与句子解释通道端到端可用（不含 OCR），UI 各表面完整，未实现功能一律占位、不可触发。
 - **取词**：选区（低层鼠标钩子监听拖选松手，注入 Ctrl+C 取剪贴板，真可用）+ `lens_gtest_unit` 自检。扫描、截图、悬停依赖 OCR，本阶段全部占位。
 - **LLM**：真模型直连（DeepSeek，OpenAI 兼容，BYOK）。替代 PRODUCT 原 “假 LLM 先跑通” 原型路径，取舍记录见 `PRODUCT.md`。
-- **状态**：切片一（离线内核）、切片二（LLM 客户端）与切片三（AppController + QML 表面）均已落地。`lens_core`（FilterCore / KnownStore / StatsStore）、`lens_llm`（LlmClient + 纯函数内核 + 价目）、`src/app`（捕获组件 + AppController + 托盘 + QML 七个表面）齐备，可执行目标 `lens` 已能起来。`lens_gtest_unit` 29 例全绿，见第 9 节；冒烟走 `lens_gtest_smoke`，需人手动执行。工具链已确认：Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`，preset `ninja-qt6`（首选）；`data/wordlist.txt` 88,918 行。切片四（阶段二通道）未开始。
+- **状态**：切片一（离线内核）、切片二（LLM 客户端）、切片三（AppController + QML 表面）与 V3 的实体 / 句子通道均已落地。`lens_core`（FilterCore / KnownStore / StatsStore）、`lens_llm`（LlmClient + 纯函数内核 + 价目）、`src/app`（捕获组件 + AppController + 托盘 + QML 表面）齐备，可执行目标 `lens` 已能起来。冒烟走 `lens_gtest_smoke`，需人手动执行。工具链已确认：Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`，preset `ninja-qt6`（首选）；`data/wordlist.txt` 88,918 行。
 
 ## 2 非目标（本阶段占位）
 
 | 功能                       | 依赖                 | 占位方式                                             |
 | -------------------------- | -------------------- | ---------------------------------------------------- |
 | 扫描（自动模式，稳定快照） | OCR + 前台进程白名单 | 设置「自动扫描」开关禁用                             |
-| 悬停取词 / 实体通道        | OCR + 词框           | 设置面板不暴露开关；不产生实体气泡                   |
+| 悬停取词                    | OCR + 词框           | 设置面板不暴露开关；不产生悬停实体气泡                 |
 | 截图                       | OCR                  | 设置「OCR」开关禁用                                  |
-| 句子通道                   | 选区语义             | 不产生句子气泡；动作条上的翻译 / 解释会以浮层说明无可用通道 |
 | 误弹反馈入口               | 反馈闭环             | 浮层不提供该入口（设计见`GLOSSARY.md`「误弹反馈」） |
 | 每日预算上限               | 计费统计             | 预算耗尽托盘态不触发                                 |
 | 扫描冷却 / 内容指纹        | 快照管道             | 选区文本只按「文本不同」防重                         |
@@ -28,22 +27,23 @@ UI 上占位项：控件存在但 `enabled: false`——文案转 `faint`、开�
 ```
 拖选松手（低层鼠标钩子 WH_MOUSE_LL：LBUTTONUP 且按下期间确实拖动过，双击 / 三击选词选段同理）
   → AppController.onSelectionReleased(anchor)：注入 Ctrl+C → 读剪贴板（存还原）→ 选区类型判定
-     （判定的唯一入口是 FilterCore.classifySelection：出候选 = Word；一个候选都没有 =
-       Sentence，句子 / 实体通道属阶段二，见 §2。候选带 New / Known / Mastered 状态，
+      （判定的唯一入口是 FilterCore.classifySelection：实体短语 = Entity；有候选 = Word；
+        其余 = Sentence。候选带 New / Known / Mastered 状态，
        后两者只标注不删，见 §4.1）
   → 选区动作条弹出（翻译 / 解释 / 复制文本。前两项是同一决策的两个入口，见 `UI.md` §4.10）
   → 复制文本 → 本地结束，不发请求。
-  → 翻译 / 解释 → 同一条路，通道由上面判的类型定；阶段一只有 Word 走得通
-  → Sentence：不发请求，以浮层说明没有可解释的单词（动作条三项一律可用，见 §4.4）
-  → KnownStore 缓存查（lemma + 解释语言）命中？ 直接弹。
-  → LlmClient.explainWords（发送前脱敏）
+   → 翻译 / 解释 → 同一条路，通道由上面判的类型定；Sentence 再按动作选择 preset
+   → Entity：实体通道；Sentence：句子通道（翻译 / 解释选择对应预设）
+   → Word：KnownStore 缓存查（lemma + 解释语言）命中？直接弹
+   → Entity / Sentence：只发送原选区文本，不查单词缓存
+   → LlmClient.explainWords（发送前脱敏）
   → DeepSeek（一次批量 HTTP，严格 JSON）
   → 响应按 schema 校验 + 回显核对（第三方不可信）
-  → 缓存写 → 浮层弹词（锚点同上）
-  → 用户 [已会]/[新词] → KnownStore 回写
+   → Word：缓存写 → 浮层弹词 → 用户 [已会]/[新词] → KnownStore 回写
+   → Entity / Sentence：浮层弹标题与释义，不显示 IPA / verdict，不写入单词缓存与词汇统计
 ```
 
-阶段一单次复制最多弹 1 个词（`filterWords` 的首个 `New` 候选，即选区内最先出现的、读者尚未掌握的实词；整段都被标过或都在档位带内时取首个候选），5 秒自动消失；鼠标悬浮时计时挂起、永不消失，移出后重新计时。悬停同时展开反馈按钮——规格见 `UI.md`。（多词错峰属多气泡场景，阶段一单气泡不涉及。）无候选时动作条照样弹出，三项一律可用；翻译与解释不发请求，改由浮层说明没有可解释的单词——动作条点完即自隐，若此处静默，读者看到的是一次毫无反应的点击（`UI.md` §4.10 不灰化，反馈只能落在 “点了之后”）。
+单次选区最多弹 1 个词（`filterWords` 的首个 `New` 候选，即选区内最先出现的、读者尚未掌握的实词；整段都被标过或都在档位带内时取首个候选），或弹 1 个实体 / 句子结果。5 秒自动消失；鼠标悬浮时计时挂起、永不消失，移出后重新计时。悬停只对单词解释展开 [已会] / [新词] 按钮——规格见 `UI.md`。（多词错峰属多气泡场景，当前单气泡不涉及。）动作条三项一律可用：句子的翻译 / 解释分别选择对应预设，实体的两个按钮共用同一预设，复制始终本地结束。
 
 ## 4 模块接口（契约先行）
 
@@ -76,10 +76,11 @@ std::vector<Candidate> filterWords(
     const std::unordered_set<std::string>& knownLemmas,  // 命中即标 Known
     std::size_t minFreqRank);   // 档位 → 词表词频阈值（词书数据未就绪时的近似，见 TODO.md）；命中即标 Mastered
 
-// 选区是什么，决定它走哪条通道。阶段二的实体通道并入本枚举。
+// 选区是什么，决定它走哪条通道。实体判定只接受完整的多 token Title Case 短语。
 enum class SelectionKind {
     Word,      // 出了候选（任何状态）：word 通道有东西可发
-    Sentence,  // 一个候选都没有：阶段二的句子 / 实体通道接管
+    Entity,    // 至少两个相邻的 Title Case token：entity 通道
+    Sentence,  // 没有候选，也不是实体短语：sentence 通道
 };
 
 struct Selection {
@@ -87,8 +88,8 @@ struct Selection {
     std::vector<Candidate> candidates;   // 非 Word 时为空
 };
 
-// 类型判定的唯一入口。出参同时带着候选，免得再跑一遍 filterWords，也给阶段二的实体分支
-// 留出唯一的落点。按钮不参与判定：翻译与解释是同一决策的两个入口（`UI.md` §4.10）。
+// 类型判定的唯一入口。出参同时带着候选，免得再跑一遍 filterWords。按钮不参与判定：
+// 翻译与解释是同一决策的两个入口（`UI.md` §4.10），句子只在这里记录选区类型。
 Selection classifySelection(
     std::string_view text,
     const std::unordered_set<std::string>& knownLemmas,
@@ -97,9 +98,9 @@ Selection classifySelection(
 }
 ```
 
-判定次序：分词硬过滤（含元音、长度 ≥3、无数字、去 URL/邮箱/粘连串）→ 全大写跳过 → 词根还原 → 静态词表白名单（不在表即丢）→ 按 lemma 去重 → 给每个幸存候选标状态（New / Known / Mastered）。句中首字母大写的普通词本阶段按单词通道处理（实体分类属阶段二，`ponytail:` 简化，验证期观察误弹）。
+判定次序：先识别完整的多 token Title Case 实体短语（至少两个 token，单个首字母大写词不算），再进行单词分词硬过滤（含元音、长度 ≥3、无数字、去 URL / 邮箱 / 粘连串）→ 全大写跳过 → 词根还原 → 静态词表白名单（不在表即丢）→ 按 lemma 去重 → 给每个幸存候选标状态（New / Known / Mastered）。实体规则刻意保守，无法满足时回到 Word 或 Sentence。
 
-**known-set 与档位阈值只标注，不删候选**（2026-10-04）：它们是候选的状态，不是候选的删除条件——读者手选一段文字就是在要求解释它，而他可能早忘了自己标过的词。于是 `SelectionKind::Word` 的含义变成 “这段里有词表词”，而不是 “这段里有值得弹的词”；整段不含任何词表词（URL、数字、乱码）才落 `Sentence`。取舍与实测见 `docs/metrics/code-quality/selection-classification-accuracy-2026-10-04.md`。
+**known-set 与档位阈值只标注，不删候选**（2026-10-04）：它们是候选的状态，不是候选的删除条件——读者手选一段文字就是在要求解释它，而他可能早忘了自己标过的词。于是 `SelectionKind::Word` 的含义变成 “这段里有词表词”，而不是 “这段里有值得弹的词”；实体短语先于该规则判定，剩余文本没有词表词才落 `Sentence`。取舍与实测见 `docs/metrics/code-quality/selection-classification-accuracy-2026-10-04.md`。
 
 落地注记（2026-10-02，与测试样例集一并定）：
 
@@ -195,7 +196,7 @@ public:
 namespace lens::llm {
 
 struct Config { QUrl baseUrl; QString apiKey; QString model; };
-struct WordExplanation { QString word, ipa, en, zh; };
+struct Explanation { QString title, ipa, en, zh; }; // word：四字段；entity / sentence：title、en、zh 三字段
 struct Usage { int promptTokens = 0; int completionTokens = 0; };  // 响应 usage 字段
 
 class LlmClient : public QObject {
@@ -203,7 +204,7 @@ class LlmClient : public QObject {
 public:
     explicit LlmClient(Config, QObject* parent = nullptr);
 signals:
-    void batchFinished(QVector<WordExplanation> results, Usage usage);  // 校验通过
+    void batchFinished(QVector<Explanation> results, Usage usage);  // 校验通过
     void failed(QString message);                                       // 网络 / schema 失败
 public slots:
     void explainWords(QStringList words);                               // 一次 HTTP，批量
@@ -282,9 +283,10 @@ signals:
 
 落地注记（2026-10-04，接缝先行）：
 
-- **通知是它自己的一张卡片，不是气泡的一格**：请求失败与 “没有可解释的单词” 原先都往气泡里塞一段文字，
+- **通知是它自己的一张卡片，不是气泡的一格**：请求失败与选区抓取失败原先都往气泡里塞一段文字，
   气泡因此兼任错误播报。现在两者都走 `notice`——`{title, body, kind}`（`src/app/notice.h`），不带 status
-  chip，因为什么都没被解释；气泡重新只装解释。`kind` 只有 `info`（无通道）与 `error`（请求失败）两个值，
+  chip，因为什么都没被解释；气泡重新只装解释。`kind` 有 `info` 与 `error` 两个值，当前生产路径（网络、密钥、
+  schema、剪贴板拒绝、终端排除与抓取失败）都走 `error`；无可用通道在三通道落地后已不存在，`info` 暂无路径。
   渲染方式留给表面。清空时机：弹出新解释时、`dismissNotice()` 时、以及被下一条通知替换时。通知**不带锚点**
   ——它不属于某一次选区，落点由表面自己定。解释的 `dismissBubble()` 只清解释，避免旧窗口的关闭回调清掉当前通知。
 - **剪贴板被别的进程抢走时不再写回**：抓取期间剪贴板若被改写（剪贴板管理器、或读者自己复制了别的），
@@ -294,8 +296,9 @@ signals:
   （缺省）照常弹，表面显示时本来就会 `raise()`（`docs/QML.md` §2），置顶正是这个值的意思；`silent`
   这一次什么都不弹，读者自己再选一次即可；快照无法取得、前台是终端或无法注入复制时，则显示未锚定的
   `error` 通知。
-- **通知路径的覆盖边界**：无可用通道、网络失败、schema 校验失败、缺少 API key、剪贴板拒绝与终端排除都能
-  到达通知卡片。每日预算上限仍是阶段二占位项，当前没有生产事件，也不以 fixture 冒充已覆盖。
+- **通知路径的覆盖边界**：网络失败、schema 校验失败、缺少 API key、剪贴板拒绝、终端排除与选区抓取失败都能
+  到达通知卡片；无可用通道那条路径被三通道取代（每次选区都有通道）。每日预算上限仍是阶段二占位项，当前
+  没有生产事件，也不以 fixture 冒充已覆盖。
 - **开机自启**：`settings()` 多一个 `autostart`，写入 HKCU 的 Run 项（`src/app/autostart.{h,cpp}`）。键名与
   命令行由纯函数拼装，可离线断言；真正的注册表写入是机器状态，属人工用例。
 - **词汇可导出**：`exportWords(scope)` 返回纯文本（一行一个词根，与 `data/wordlist.txt` 同形），不选路径、
@@ -303,17 +306,17 @@ signals:
   的三个筛选，行集与 `words()` 一致。词汇弹窗
   的行多带一个 `pops`（该词被弹过几次），由历史在展示时数出，存储形状不动；历史留 2000 条（§4.2），
   次数随之封顶。
-- **单词行带音标**：响应 schema、`WordExplanation`（§4.3）、气泡载荷与缓存（`WordCache`，§4.2）都加了
+- **单词行带音标**：单词响应 schema、`Explanation`（§4.3）、气泡载荷与缓存（`WordCache`，§4.2）都加了
   `ipa`，原先 “阶段一不放音标位” 那条随之作废。四处的顺序一致（`word` / `ipa` / `en` / `zh`），气泡的
-  `bubble` 映射里 `ipa` 排在 `word` 之后、两种释义之前；它不是释义，所以不随 “解释语言” 切换而清空——
+  `bubble` 映射里 `ipa` 排在 `title` 之后、两种释义之前；它不是释义，所以不随 “解释语言” 切换而清空——
   命不命中缓存都拿得到。存储形状的这一处改动记在 `PRODUCT.md`“存储形状”，缺音标的旧缓存按未命中处理。
 
 落地注记（2026-10-03）：
 
 - **接口形状**：`bubble` 与 `settings` 都是 `QVariantMap`，不是 QObject 模型——表面数量个位数、字段都是标量，为每个表面写一个 `QAbstractItemModel` 是给 QML 添一层没人问的间接。`modeLabel` 一个属性喂托盘菜单首行与 tooltip 两处（`UI.md` §4.2 / §4.5），分两处拼字符串必然漂移。`cost` 的五个数在 C++ 算：本月 / 今天 / 昨天 / 本周 / 日均的日期运算用 `QDate`，core 侧只存 token 与按日计数（§4.2）。
 - **5 秒计时归 QML**：自动消失与悬停挂起是视图行为（`UI.md` §4.3），计时的持有者在 QML；`bubbleHoverChanged` 只让 C++ 知道状态，不参与计时。否则计时器要跨进程边界地和悬停事件对齐。
-- **类型判定从 `beginSelection` 里提出来**：判定原本是行内一句 `candidates.empty()`，现收到 `core::classifySelection`（§4.1），出参是 `SelectionKind` 加候选。两条理由：它要可单测，而 `lens_gtest_unit` 不链接 `lens_app`，所以只能落在 `lens_core`；阶段二的实体分支需要一个唯一的落点，各写各的分支正是这一条要挡掉的。`beginSelection` 改按 `switch (kind)` 取值而非再看一次 `empty()`——枚举穷尽时编译器会在加通道那一刻报错，这正是要的。
-- **无通道时不再静默**：`explain()` 原先对非 word 选区直接 `return`，而动作条点完即 `visible = false`，于是选一段非单词文本点翻译 / 解释，看到的是动作条自己消失、什么都没发生，读起来就是 “只有复制能用”——尽管解释在那段选择上同样什么都没做。现在走 `showNotice()`，与请求失败同一条路，落到 `notice` 上（2026-10-04 起不经气泡）：通知不带 status chip，说明放 body，标题放选区文本（句子没有单个词可命名，空标题会让卡片悬在半空）。判定悬停展开的已会 / 新词按钮因此加了一条前提 `status !== ""`——通知的标题不是词，在那里按下会把整句当作 lemma 写进词库。`UI.md` §4.10 的 “三项一律可用、不灰化” 保持不变，反馈只能落在点之后，这是那条规格的直接推论。
+- **类型判定从 `beginSelection` 里提出来**：判定原本是行内一句 `candidates.empty()`，现收到 `core::classifySelection`（§4.1），出参是 `SelectionKind` 加候选。实体、单词、句子的路由在同一处决定，按钮不参与判定；`lens_gtest_unit` 可直接覆盖这条无 Qt 规则。`beginSelection` 按 `switch (kind)` 取值而非再看一次 `empty()`——枚举穷尽时编译器会在加通道那一刻报错。
+- **三通道的气泡边界**：word 解释保留 `ipa`、单词缓存、已会 / 新词 verdict 与词汇统计；entity / sentence 只显示 `title` 与解释，不显示 IPA / verdict，也不写入单词缓存与弹词历史。实体的两个动作共用 `default` 预设，句子的 `translate` / `explain` 分别选择同名预设。（三通道落地后每条选区都有通道，气泡不再兼职播报失败；抓取失败走 `notice`，见上一条。）
 
 落地注记（2026-10-02）：
 
@@ -350,11 +353,11 @@ QML 表面：设置浮层、选区动作条、解释气泡、统计弹窗及其�
 
 线上格式的完整说明（请求体、响应体、校验规则、错误码）见 **`API.md`**；这里只记契约要点。
 
-目标模型：DeepSeek（OpenAI 兼容）。**提示词与 schema 都是数据，不是代码**——单词通道的一份在 `data/llm/request.word.json` 与 `data/llm/response.word.schema.json`，改提示词或加字段是改数据，不用重编译。
+目标模型：DeepSeek（OpenAI 兼容）。**提示词与 schema 都是数据，不是代码**——三通道的请求与响应文件在 `data/llm/`，句子请求文件包含 `translate` / `explain` 两个预设，改提示词或加字段是改数据，不用重编译。
 
-落地注记（2026-10-02，与切片四一起定）：按通道拆分文件、系统提示词用英文且只切末句、响应 schema 是校验
-的唯一真源、`llm_protocol` 加载失败一律抛而不回落默认值——见 `API.md`。实体与句子通道的提示词与响应字段名
-尚未定义，属阶段二（§2）。
+落地注记（2026-10-02，与 V3 一并定）：按通道拆分文件、系统提示词用英文且只切末句、响应 schema 是校验
+的唯一真源、`llm_protocol` 加载失败一律抛而不回落默认值——见 `API.md`。word schema 是 `word / ipa / en / zh`，
+entity 与 sentence schema 是 `title / en / zh`，IPA 只属于单词。
 
 ## 6 隐私与密钥边界
 
@@ -422,6 +425,9 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 - 选区捕获（2026-10-03）：`lens_gtest_integration` 15 例中 14 例通过、1 例跳过。机器已验证——手势规则（含阈值边界、双击 / 三击、反向拖动）、终端排除名单的大小写与全路径匹配、钩子装上后能收到拖拽并按松手坐标发出锚点（拖拽由 `SendInput` 合成，低层钩子对合成事件与真实事件一视同仁）、前台是自己时取文拒绝执行，以及剪贴板存还原的三面（内容被顶掉后还原、非文本格式一并还原、没取过快照时不许动剪贴板）。真人手测过一次（2026-10-03，Windows 记事本 11.2607 商店版）：注入的 Ctrl+C 确实取到了选区，十字相符——契约里那句 “凡能复制的应用都通” 有实证了。同一次的日志还给出了逐格式拷贝的量化理由：记事本一次 Ctrl+C 往剪贴板放了 4 种格式，快照全数取回并全数还原，**只存文本会毁掉其中 3 种**。
 - **剪贴板的存还原用 OLE 是错的**（2026-10-03 实测推翻）：`OleGetClipboard` 取出的 `IDataObject` 交给 `OleSetClipboard` 一律失败，`CLIPBRD_E_CANT_CLOSE` 或 `CLIPBRD_E_CANT_OPEN`；中间有没有变化、内容由本进程还是别的进程（`clip.exe` 验过）放入，结果都一样，而同一次运行里 `OleSetClipboard(nullptr)` 却成功，所以坏的是对象往返而非 setter。现在的做法是裸开剪贴板逐格式读出字节，还原时空盘再逐格式写回；位图 / 调色板 / 增强图元文件 / owner-display 族这类句柄格式按名跳过并记日志；`ole32` 不再需要。这条错误原先只有人工用例能碰，改成三个离线用例后当场复现。
 - 全链手测：复制真实英文句 → 浮层弹词 → [已会]/[新词] 回写 → 复弹不重复。
+- V3 离线验证（2026-10-04）：`lens_gtest_unit` 43 例全绿；语料 1004 段回放 `0 mismatched`，独立语料检查 `0 problem(s)`；两条 sentence preset 与 entity 三字段响应各有纯函数断言，并有 loopback mocked HTTP 往返。
+- V3 表面验证（2026-10-04）：`lens_qtest_surfaces` 43 例通过、1 例按快照目录跳过；`lens_qtest_components` 44 例通过、1 例按快照目录跳过；新增 `tst_channels.qml` 独立覆盖三类动作条与 entity / sentence 气泡。
+- V3 的 `lens_gtest_smoke` 仍未执行真实请求，避免未经批准产生费用；人工命令见 `TEST.md` §2，结果待 supervisor / user 批准后记录。
 - 切片三（2026-10-03）：`lens_gtest_unit` 29 例全绿——切片一的 11 例之外，新增 `StatsStore` 8 例（往返、判定回填、上限截断、畸形文档、与 `KnownStore` 共用文档时的互不覆盖）、`parseUsage` 3 例、价目 5 例（含展示币种与乘数）、`classifySelection` 2 例。
 - 切片三界面：`lens` 起来无 QML 警告，七个表面在真实桌面渲染核对过（截图）：选区动作条、解释气泡、统计 / 词汇 / 花费三弹窗、设置浮层。界面语言切到中文后各表面文案为中文（`i18n` 共 84 条、`lrelease` 报 0 unfinished）；托盘图标资源加载成功（`QIcon::isNull()` 为假）。占位项按 §2 灰化且不响应。
 - **切片三的端到端验收尚未跑**：三条验收里 “复制真实英文句、浮层弹词、[已会] / [新词] 回写、复弹不重复” 这条需要真实鼠标操作与一次真实的模型往返，属人手动，未执行。因此 “选区取词在真机上从手势走到气泡” 这条链目前只有各段的证据，没有整条的证据。
@@ -464,7 +470,8 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 
 窗口与表面、阴影、定位、拖动、跨线程、字体的实现约束，见 `docs/QML.md`。
 
-### 切片四：阶段二通道（未开始）
+### 切片四：阶段二通道（V3 已完成，OCR 仍占位）
 
-- **范围**：OCR 取词（扫描 / 悬停 / 截图）、实体通道、句子通道、误弹反馈入口、每日预算上限（§2 全部占位项）。
-- **前置**：`data/llm/request.<通道>.json` 与 `response.<通道>.schema.json` 的提示词与响应字段名要先有契约。通道骨架（`Channel` 枚举、按通道加载器、`setChannel`）已就位，内容未定。
+- **V3 范围**：选区实体与句子解释。实体使用一个 `default` 预设，句子使用 `translate` / `explain` 两个预设；两类响应均为 `title / en / zh` 三字段，不进入单词缓存与 verdict。实体分类只接受至少两个相邻的 Title Case token，单个首字母大写 token 不升级为实体。
+- **剩余范围**：OCR 取词（扫描 / 悬停 / 截图）、误弹反馈入口、每日预算上限仍是占位项，设置中不可触发。
+- **交付**：`data/llm/` 的三通道请求与 schema、`llm_protocol` 的 preset loader、`LlmClient` 的 channel / preset 路由、`FilterCore` 的实体分支、`AppController` 的三通道动作路由与独立 QML 通道测试。

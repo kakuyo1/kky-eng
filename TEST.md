@@ -100,7 +100,7 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_QPA_PLATFORM=offscreen QT_FORCE_STDER
 ## 3 样例集
 
 `test/eval_corpus.json` 是**行为规格**。每段一项：`text`（必填）、`expect`（必填，surface 序列）、
-`expectKind`（必填，`"Word"` / `"Sentence"`，与 `expect` 是否为空一致）、`expectLemmas`（选填）、
+`expectKind`（必填，`"Word"` / `"Entity"` / `"Sentence"`；Entity 的 `expect` 必须为空）、`expectLemmas`（选填）、
 `minFreqRank`（选填，缺省 0）、`known`（选填）、`note`（选填）。`minFreqRank` 与 `known` 现在只给
 候选**标状态**，不删候选（`PHASE1.md` §4.1），所以带这两项的段落，`expect` 与不带时相同——这正是
 它们要钉住的那条。
@@ -108,9 +108,9 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_QPA_PLATFORM=offscreen QT_FORCE_STDER
 改 FilterCore 的行为先改样例集，`lens_gtest_unit` 红了再动 `src/`。样例集撞出误判就在那里加一段，
 不要先把断言放宽。
 
-`scripts/check-eval-corpus.py` 按 `PHASE1.md` §4.1 的规则独立校验样例集（不走实现）：每个 token
-要么进 `expect`，要么有一条具名规则把它们排除；`expectKind` 与 `expect` 是否为空必须一致。改完
-样例集跑一次，它是期望值之外的那道独立核对。
+`scripts/check-eval-corpus.py` 按 `PHASE1.md` §4.1 的规则独立校验样例集（不走实现）：普通 Word / Sentence
+段落中每个 token 要么进 `expect`，要么有一条具名规则把它排除；Entity 段落必须满足至少两个相邻
+Title Case token 的保守短语规则。改完样例集跑一次，它是期望值之外的那道独立核对。
 
 ## 4 Profiling 与覆盖率
 

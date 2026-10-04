@@ -33,6 +33,66 @@ bool isSpace(char c)
 {
     return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f';
 }
+
+std::string lower(std::string_view s);
+
+std::string trimPunctuation(std::string_view token)
+{
+    std::size_t first = 0;
+    std::size_t last = token.size();
+    while (first < last && !isLetter(token[first]))
+        ++first;
+    while (last > first && !isLetter(token[last - 1]))
+        --last;
+    return std::string(token.substr(first, last - first));
+}
+
+bool isTitleCaseToken(const std::string& token)
+{
+    if (token.size() < 2 || !isLetter(token.front()) || token.front() < 'A' || token.front() > 'Z')
+        return false;
+    for (std::size_t i = 1; i < token.size(); ++i)
+        if (token[i] < 'a' || token[i] > 'z')
+            return false;
+    return true;
+}
+
+bool isEntitySelection(std::string_view text)
+{
+    std::vector<std::string> tokens;
+    std::size_t start = 0;
+    while (start < text.size()) {
+        while (start < text.size() && isSpace(text[start]))
+            ++start;
+        const std::size_t end = text.find_first_of(" \t\n\r\v\f", start);
+        const std::size_t stop = end == std::string_view::npos ? text.size() : end;
+        if (start < stop) {
+            const std::string token = trimPunctuation(text.substr(start, stop - start));
+            if (token.empty())
+                return false;
+            tokens.push_back(token);
+        }
+        if (end == std::string_view::npos)
+            break;
+        start = end;
+    }
+
+    if (tokens.size() < 2 || tokens.size() > 5)
+        return false;
+
+    std::size_t titleCaseCount = 0;
+    for (const std::string& token : tokens) {
+        if (isTitleCaseToken(token)) {
+            ++titleCaseCount;
+            continue;
+        }
+        const std::string lowered = lower(token);
+        if (lowered != "of" && lowered != "the" && lowered != "and" && lowered != "for")
+            return false;
+    }
+    return titleCaseCount >= 2;
+}
+
 char toLower(char c)
 {
     return (c >= 'A' && c <= 'Z') ? static_cast<char>(c - 'A' + 'a') : c;
@@ -389,16 +449,21 @@ Selection classifySelection(
     const std::unordered_set<std::string>& knownLemmas,
     std::size_t minFreqRank)
 {
-    // A candidate is the whole test: the word channel has something to send exactly when one
-    // came back, and that is what decides the channel. Phase 2's entity check belongs here,
-    // ahead of this line, so that it too is decided once and before any button is pressed.
+    // Entity recognition runs before the word fallback. It is intentionally narrow so a single
+    // capitalized token remains a word or sentence instead of being promoted by typography alone.
     Selection selection;
     selection.candidates = filterWords(text, knownLemmas, minFreqRank);
-    selection.kind = selection.candidates.empty() ? SelectionKind::Sentence : SelectionKind::Word;
+    if (isEntitySelection(text)) {
+        selection.kind = SelectionKind::Entity;
+        selection.candidates.clear();
+    } else {
+        selection.kind = selection.candidates.empty() ? SelectionKind::Sentence : SelectionKind::Word;
+    }
 
     LENS_TRACE("classifySelection: {} char(s) -> {}",
                text.size(),
-               selection.kind == SelectionKind::Word ? "word" : "sentence");
+               selection.kind == SelectionKind::Word ? "word" : selection.kind == SelectionKind::Entity ? "entity"
+                                                                                                        : "sentence");
     return selection;
 }
 

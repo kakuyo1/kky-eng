@@ -7,7 +7,7 @@
 
 #include <variant>
 
-#include "llm_client.h"   // Config / WordExplanation
+#include "llm_client.h"   // Config / Explanation
 #include "llm_protocol.h" // Channel
 
 /**
@@ -43,13 +43,18 @@ QString maskSensitive(const QString& text);
  *
  * @param config          Supplies the model name.
  * @param channel         Which protocol to speak.
- * @param words           Payload to explain; each entry is masked before it is embedded.
+ * @param inputs          Payload to explain; each entry is masked before it is embedded.
  * @param explanationLang "en" or "zh"; picks the closing line of the system prompt.
  *                        An unknown value falls back to "en" and logs a warning.
+ * @param preset          Prompt preset, such as sentence's "translate" or "explain".
  * @return A compact JSON body, ready to POST.
  * @throws std::logic_error If that channel's protocol has not been loaded.
  */
-QByteArray buildRequestBody(const Config& config, Channel channel, const QStringList& words, const QString& explanationLang);
+QByteArray buildRequestBody(const Config& config,
+                            Channel channel,
+                            const QStringList& inputs,
+                            const QString& explanationLang,
+                            const QString& preset = QStringLiteral("default"));
 
 /**
  * @brief Validate a response that arrives from the network and must not be trusted.
@@ -66,14 +71,14 @@ QByteArray buildRequestBody(const Config& config, Channel channel, const QString
  *
  * @param channel       Which protocol was spoken; selects the response schema.
  * @param responseBody  Raw HTTP response body.
- * @param expectedWords The payload the request asked for, in request order.
+ * @param expectedInputs The payload the request asked for, in request order.
  * @return The explanations in request order on success, or a reader-facing message
  *         (never containing the API key, and marked for translation).
  * @throws std::logic_error If that channel's protocol has not been loaded.
  */
-std::variant<QVector<WordExplanation>, QString> parseExplanations(Channel channel,
-                                                                  const QByteArray& responseBody,
-                                                                  const QStringList& expectedWords);
+std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
+                                                              const QByteArray& responseBody,
+                                                              const QStringList& expectedInputs);
 
 /**
  * @brief Read the token counts out of a response envelope.

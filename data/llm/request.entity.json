@@ -1,0 +1,17 @@
+{
+  "presets": {
+    "default": {
+      "systemPrompt": {
+        "template": "Explain the named entity in the input. Use its most common referent and keep the explanation concise. Do not invent context that was not supplied. Reply with valid JSON in exactly this shape:\n{\"results\":[{\"title\":\"...\",\"en\":\"...\",\"zh\":\"...\"}]}\nEcho the entity exactly as written, with nothing added and nothing dropped.\n{outputLanguage}",
+        "outputLanguage": {
+          "en": "Make the English explanation the main one.",
+          "zh": "Make the Chinese explanation the main one."
+        }
+      }
+    }
+  },
+  "responseFormat": { "type": "json_object" },
+  "thinking": { "type": "disabled" },
+  "maxTokens": 4096,
+  "stream": false
+}

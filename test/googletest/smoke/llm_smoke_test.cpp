@@ -40,7 +40,7 @@ namespace {
 using lens::llm::Config;
 using lens::llm::LlmClient;
 using lens::llm::Usage;
-using lens::llm::WordExplanation;
+using lens::llm::Explanation;
 
 /// How long to wait for the model before calling it a timeout.
 constexpr int kTimeoutMs = 60'000;
@@ -103,10 +103,10 @@ TEST(LlmSmoke, OneWordRoundTrip)
     LlmClient client(*config);
 
     QEventLoop loop;
-    std::optional<QVector<WordExplanation>> results;
+    std::optional<QVector<Explanation>> results;
     QString failure;
 
-    QObject::connect(&client, &LlmClient::batchFinished, [&](const QVector<WordExplanation>& explained, Usage usage) {
+    QObject::connect(&client, &LlmClient::batchFinished, [&](const QVector<Explanation>& explained, Usage usage) {
         results = explained;
         std::cout << "usage: " << usage.promptTokens << " prompt / " << usage.completionTokens
                   << " completion token(s)\n";
@@ -126,11 +126,11 @@ TEST(LlmSmoke, OneWordRoundTrip)
 
     ASSERT_EQ(results->size(), 1);
     const auto& explanation = results->front();
-    std::cout << "word: " << explanation.word.toStdString() << "\nipa:  "
+    std::cout << "word: " << explanation.title.toStdString() << "\nipa:  "
               << explanation.ipa.toStdString() << "\nen:   "
               << explanation.en.toStdString() << "\nzh:   " << explanation.zh.toStdString() << "\n";
 
-    EXPECT_EQ(explanation.word, word);
+    EXPECT_EQ(explanation.title, word);
     EXPECT_FALSE(explanation.ipa.isEmpty());
     EXPECT_FALSE(explanation.en.isEmpty());
     EXPECT_FALSE(explanation.zh.isEmpty());

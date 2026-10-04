@@ -134,7 +134,7 @@ AppController::AppController(core::KnownStore& store, llm::LlmClient& llm, Mouse
     connect(&hook_, &MouseSelectionHook::selectionReleased, this, &AppController::onSelectionReleased);
     connect(&hook_, &MouseSelectionHook::pointerPressed, this, &AppController::pointerPressed);
 
-    connect(&llm_, &llm::LlmClient::batchFinished, this, [this](const QVector<llm::WordExplanation>& results, llm::Usage usage) {
+    connect(&llm_, &llm::LlmClient::batchFinished, this, [this](const QVector<llm::Explanation>& results, llm::Usage usage) {
         busyLabel_.clear();
         emit busyChanged();
 
@@ -146,10 +146,17 @@ AppController::AppController(core::KnownStore& store, llm::LlmClient& llm, Mouse
             return;
         }
 
-        const llm::WordExplanation& first = results.front();
-        store_.cachePut(first.word.toStdString(), {first.ipa.toStdString(), first.en.toStdString(), first.zh.toStdString()});
+        const llm::Explanation& first = results.front();
+        const bool isWord = pending_.kind == QLatin1String("word");
+        if (isWord)
+            store_.cachePut(first.title.toStdString(), {first.ipa.toStdString(), first.en.toStdString(), first.zh.toStdString()});
         store_.save();
-        showBubble(first.word, first.ipa, first.en, first.zh, pending_.anchor);
+        showBubble(first.title,
+                   pending_.kind,
+                   isWord ? first.ipa : QString(),
+                   first.en,
+                   first.zh,
+                   pending_.anchor);
         emit statsChanged();
     });
 
@@ -224,14 +231,15 @@ void AppController::beginSelection(QPoint anchor)
     // explain are two ways into the same decision (UI.md section 4.9).
     const core::Selection selection = core::classifySelection(text.toStdString(), store_.known(), minFreqRank());
 
-    pending_ = Pending{anchor, text, QString(), QString(), QString()};
+    pending_ = Pending{anchor, text, QString(), QString(), QString(), QStringLiteral("default")};
     switch (selection.kind) {
+        case core::SelectionKind::Entity:
+            pending_.kind = QStringLiteral("entity");
+            LENS_INFO("selection of {} character(s): entity channel", text.size());
+            break;
         case core::SelectionKind::Sentence:
-            // Nothing worth explaining, but the bar still comes up: copying the selection is
-            // still something the reader asked for. There is no channel behind a sentence yet,
-            // so the other two items have nothing to send -- which explain() says out loud.
             pending_.kind = QStringLiteral("sentence");
-            LENS_INFO("selection of {} character(s): no candidate, offering copy only", text.size());
+            LENS_INFO("selection of {} character(s): sentence channel", text.size());
             break;
         case core::SelectionKind::Word: {
             // The bar carries one word, and it is the first candidate still new to the reader:
@@ -287,38 +295,37 @@ void AppController::runSelectionAction(QString action, QString text)
         return;
     }
 
-    // Both items take the same route on purpose: which channel a request uses was decided
-    // when the selection was analysed, so picking one over the other cannot change the
-    // answer (UI.md 4.9).
+    // Both items take the same route on purpose. The selection kind was decided before the bar
+    // appeared; only the sentence channel uses the action to choose a prompt preset.
+    if (pending_.kind == QLatin1String("sentence"))
+        pending_.preset = action;
     explain(pending_);
 }
 
 void AppController::explain(const Pending& pending)
 {
-    if (pending.kind != QLatin1String("word")) {
-        // Returning in silence made the bar look broken: it hides itself on the tap, so a
-        // sentence selection answered the press with nothing happening at all, and the two
-        // items read as dead while only copy worked. A notice says so, and by the same rules
-        // a failed request follows -- no verdict, because nothing was explained.
-        LENS_INFO("no channel for a '{}' selection; nothing was sent", pending.kind.toStdString());
-        showNotice(noticeTitle(pending), tr("No word to explain in this selection"), kNoticeInfo);
-        return;
+    if (pending.kind == QLatin1String("word")) {
+        if (const auto cached = store_.cacheGet(pending.lemma.toStdString())) {
+            LENS_INFO("cache hit for '{}'; nothing was sent", pending.lemma.toStdString());
+            stats_.recordPop(pending.lemma.toStdString(), nowMinute().toStdString());
+            store_.save();
+            showBubble(pending.lemma,
+                       pending.kind,
+                       QString::fromStdString(cached->ipa),
+                       QString::fromStdString(cached->en),
+                       QString::fromStdString(cached->zh),
+                       pending.anchor);
+            emit statsChanged();
+            return;
+        }
     }
 
-    if (const auto cached = store_.cacheGet(pending.lemma.toStdString())) {
-        LENS_INFO("cache hit for '{}'; nothing was sent", pending.lemma.toStdString());
-        stats_.recordPop(pending.lemma.toStdString(), nowMinute().toStdString());
-        store_.save();
-        showBubble(pending.lemma,
-                   QString::fromStdString(cached->ipa),
-                   QString::fromStdString(cached->en),
-                   QString::fromStdString(cached->zh),
-                   pending.anchor);
-        emit statsChanged();
-        return;
-    }
-
-    requestExplanations({pending.lemma});
+    const llm::Channel channel = pending.kind == QLatin1String("entity")     ? llm::Channel::Entity
+                                 : pending.kind == QLatin1String("sentence") ? llm::Channel::Sentence
+                                                                             : llm::Channel::Word;
+    llm_.setChannel(channel);
+    llm_.setPreset(pending.preset);
+    requestExplanations({pending.kind == QLatin1String("word") ? pending.lemma : pending.text});
 }
 
 void AppController::requestExplanations(const QStringList& words)
@@ -327,13 +334,19 @@ void AppController::requestExplanations(const QStringList& words)
     // once more in the request builder (PHASE1.md section 6).
     busyLabel_ = tr("Explaining…");
     emit busyChanged();
-    stats_.recordPop(pending_.lemma.toStdString(), nowMinute().toStdString());
+    if (pending_.kind == QLatin1String("word"))
+        stats_.recordPop(pending_.lemma.toStdString(), nowMinute().toStdString());
     store_.save();
     emit statsChanged();
     llm_.explainWords(words);
 }
 
-void AppController::showBubble(const QString& word, const QString& ipa, const QString& en, const QString& zh, const QPoint& anchor)
+void AppController::showBubble(const QString& title,
+                               const QString& type,
+                               const QString& ipa,
+                               const QString& en,
+                               const QString& zh,
+                               const QPoint& anchor)
 {
     // Only the language the reader asked for goes to the surface: UI.md section 4.3's two
     // lines made "explanation language" look like it did nothing, because both were always
@@ -341,21 +354,24 @@ void AppController::showBubble(const QString& word, const QString& ipa, const QS
     // bubble rather than on the one already up. The pronunciation is not a definition, so it
     // goes out whichever language is chosen.
     const bool wantsChinese = store_.explanationLang() == "zh";
-    // The mark is read here rather than carried in from the selection: a word selected by hand
-    // can be one the reader marked known long ago, and the chip says so from the start rather
-    // than only after the next verdict. A notice has no status at all, which is what keeps
-    // its title -- the selection's text, not a lemma -- out of the feedback buttons.
-    bubble_ = QVariantMap{{"word", word},
-                          {"ipa", ipa},
-                          {"en", wantsChinese ? QString() : en},
-                          {"zh", wantsChinese ? zh : QString()},
-                          {"status", store_.isKnown(word.toStdString()) ? QStringLiteral("known") : QStringLiteral("new")},
-                          {"x", anchor.x()},
-                          {"y", anchor.y()}};
+    QVariantMap payload{{"title", title},
+                        {"type", type},
+                        {"en", wantsChinese ? QString() : en},
+                        {"zh", wantsChinese ? zh : QString()},
+                        {"x", anchor.x()},
+                        {"y", anchor.y()}};
+    if (type == QLatin1String("word")) {
+        // The mark is read here rather than carried in from the selection: a word selected by
+        // hand can be one the reader marked known long ago, and the chip says so from the start
+        // rather than only after the next verdict.
+        payload.insert(QStringLiteral("ipa"), ipa);
+        payload.insert(QStringLiteral("status"), store_.isKnown(title.toStdString()) ? QStringLiteral("known") : QStringLiteral("new"));
+    }
+    bubble_ = payload;
     // An explanation answers whatever the last notice was about, so the two never sit side by
     // side saying different things.
     clearNotice();
-    LENS_INFO("bubble up for '{}'", word.toStdString());
+    LENS_INFO("bubble up for '{}' on '{}' channel", title.toStdString(), type.toStdString());
     emit bubbleChanged();
 }
 
@@ -396,12 +412,17 @@ void AppController::clearBubble()
 void AppController::mark(QString lemma, bool learned)
 {
     const std::string key = lemma.toStdString();
+    if (!bubble_.isEmpty() && bubble_.value("type").toString() != QLatin1String("word") &&
+        bubble_.value("title").toString() == lemma) {
+        LENS_WARN("ignored a verdict for a non-word bubble title");
+        return;
+    }
     store_.mark(key, learned);
     stats_.recordVerdict(key, nowMinute().toStdString(), learned ? "known" : "new");
     store_.save(); // one write: the mark and the verdict live in the same document
 
     LENS_INFO("'{}' marked as {}", key, learned ? "known" : "a new word");
-    if (bubble_.value("word").toString() == lemma)
+    if (bubble_.value("title").toString() == lemma)
         bubble_["status"] = learned ? QStringLiteral("known") : QStringLiteral("new");
     emit bubbleChanged();
     emit statsChanged();
