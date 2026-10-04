@@ -1,12 +1,17 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Dialogs
 import QtQuick.Window
 
 /**
  * Every word the bubble has shown (UI.md section 4.7), newest first, with a filter across the
  * top. The controller hands over finished strings: the relative time labels depend on the
  * current date, which is not something a view should be working out.
+ *
+ * It is also where a word is settled: each row carries the bubble's own two verdict pills, so a
+ * word the reader did not mark while the bubble was up (or the countdown took away) can be
+ * marked here instead.
  */
 Window {
     id: words
@@ -23,6 +28,11 @@ Window {
 
     /// 0 = all, 1 = known, 2 = new.
     property int filter: 0
+
+    /// The filter above, spelled the way exportWords() and saveWords() take it. The list and
+    /// an export are the same rows seen twice, so an export follows whatever is on screen.
+    readonly property var scopes: ["all", "known", "new"]
+    readonly property string scope: scopes[filter]
 
     /// The reader asked for the panel this one was opened from.
     signal backRequested()
@@ -114,15 +124,53 @@ Window {
                 }
             }
 
-            Text {
-                topPadding: 3
-                // The list's own count, not the all-time tally the statistics panel shows:
-                // the rows below are deduplicated, so a word explained twice counts once here
-                // and twice there. A number that disagrees with the list under it reads as a
-                // bug, whichever of the two meanings it was meant to carry.
-                text: qsTr("%1 words").arg(Controller.words.length)
-                color: Tokens.faint
-                font.pixelSize: 12
+            // The list's own line: how many words, and the way out to a file. The export sits
+            // here rather than in the title row's icon pair because it acts on the list -- and
+            // on the filter below it -- while those two glyphs are about the window.
+            Item {
+                width: parent.width
+                height: exportPill.height
+
+                Text {
+                    id: count
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    // The list's own count, not the all-time tally the statistics panel shows:
+                    // the rows below are deduplicated, so a word explained twice counts once here
+                    // and twice there. A number that disagrees with the list under it reads as a
+                    // bug, whichever of the two meanings it was meant to carry.
+                    text: qsTr("%1 words").arg(Controller.words.length)
+                    color: Tokens.faint
+                    font.pixelSize: 12
+                }
+
+                Rectangle {
+                    id: exportPill
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: exportLabel.width + 18
+                    height: 20
+                    radius: Tokens.radiusPill
+                    color: Tokens.panel2
+                    border.width: 1
+                    border.color: Tokens.line
+                    scale: exportTap.pressed ? 0.97 : 1.0
+
+                    Text {
+                        id: exportLabel
+                        anchors.centerIn: parent
+                        text: qsTr("Export")
+                        color: Tokens.muted
+                        font.pixelSize: 11
+                        font.weight: Font.Bold
+                    }
+
+                    HoverHandler { cursorShape: Qt.PointingHandCursor }
+                    TapHandler {
+                        id: exportTap
+                        onTapped: saver.open()
+                    }
+                }
             }
 
             Item { width: 1; height: 12 }
@@ -166,54 +214,126 @@ Window {
 
                         Text {
                             anchors.left: parent.left
+                            // The word takes what the right-hand side leaves, so a long one
+                            // elides rather than pushing the verdict pills off the card.
+                            anchors.right: side.left
+                            anchors.rightMargin: 9
                             anchors.verticalCenter: parent.verticalCenter
-                            width: parent.width - 130
                             text: entry.modelData.word
                             color: Tokens.text
                             font.pixelSize: 13
                             elide: Text.ElideRight
                         }
 
-                        MixedText {
-                            anchors.right: tag.left
-                            anchors.rightMargin: 9
-                            anchors.verticalCenter: parent.verticalCenter
-                            value: entry.modelData.when
-                            color: Tokens.faint
-                            pixelSize: 11
-                        }
-
-                        Rectangle {
-                            id: tag
-                            visible: entry.modelData.status !== ""
+                        Row {
+                            id: side
                             anchors.right: parent.right
                             anchors.verticalCenter: parent.verticalCenter
-                            width: tagLabel.width + 16
-                            height: 17
-                            radius: Tokens.radiusPill
-                            color: Tokens.panel2
-                            Text {
-                                id: tagLabel
-                                anchors.centerIn: parent
-                                text: entry.modelData.status
-                                color: Tokens.muted
-                                font.pixelSize: 11
-                                // The same pill the bubble shows over the same verdict, so
-                                // it carries the same weight UI.md 3.2 gives a tag.
-                                font.weight: Font.Bold
+                            spacing: 8
+
+                            // When the word was last shown, and how many times it has been.
+                            // Both are the same faint metadata, so they sit in one cluster
+                            // rather than as two more columns.
+                            Row {
+                                id: meta
+                                anchors.verticalCenter: parent.verticalCenter
+                                spacing: 6
+
+                                MixedText {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    value: entry.modelData.when
+                                    color: Tokens.faint
+                                    pixelSize: 11
+                                }
+
+                                MixedText {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    // The history is what the count is read from, and it is
+                                    // capped, so this is a floor once a word outlives it
+                                    // (PHASE1.md section 4.2).
+                                    value: qsTr("%1×").arg(entry.modelData.pops)
+                                    color: Tokens.faint
+                                    pixelSize: 11
+                                }
+                            }
+
+                            // The bubble's two verdict pills, in the same two shapes, with
+                            // this word's verdict filled instead of both being actions. A word
+                            // that was never marked leaves both plain, which is what it is.
+                            Row {
+                                anchors.verticalCenter: parent.verticalCenter
+                                spacing: 6
+
+                                Rectangle {
+                                    id: knownPill
+                                    readonly property bool current: entry.modelData.verdict === "known"
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: knownLabel.width + 13
+                                    height: 20
+                                    radius: Tokens.radiusPill
+                                    color: current ? Tokens.ink : Tokens.panel2
+                                    border.width: 1
+                                    border.color: current ? Tokens.ink : Tokens.line
+                                    scale: knownTap.pressed ? 0.97 : 1.0
+
+                                    Text {
+                                        id: knownLabel
+                                        anchors.centerIn: parent
+                                        text: qsTr("Known")
+                                        color: knownPill.current ? Tokens.on : Tokens.muted
+                                        font.pixelSize: 11
+                                        font.weight: Font.Bold
+                                    }
+
+                                    HoverHandler { cursorShape: Qt.PointingHandCursor }
+                                    TapHandler {
+                                        id: knownTap
+                                        onTapped: Controller.mark(entry.modelData.word, true)
+                                    }
+                                }
+
+                                Rectangle {
+                                    id: newPill
+                                    readonly property bool current: entry.modelData.verdict === "new"
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: newLabel.width + 13
+                                    height: 20
+                                    radius: Tokens.radiusPill
+                                    color: current ? Tokens.ink : Tokens.panel2
+                                    border.width: 1
+                                    border.color: current ? Tokens.ink : Tokens.line
+                                    scale: newTap.pressed ? 0.97 : 1.0
+
+                                    Text {
+                                        id: newLabel
+                                        anchors.centerIn: parent
+                                        text: qsTr("New")
+                                        color: newPill.current ? Tokens.on : Tokens.muted
+                                        font.pixelSize: 11
+                                        font.weight: Font.Bold
+                                    }
+
+                                    HoverHandler { cursorShape: Qt.PointingHandCursor }
+                                    TapHandler {
+                                        id: newTap
+                                        onTapped: Controller.mark(entry.modelData.word, false)
+                                    }
+                                }
                             }
                         }
                     }
                 }
 
                 // The six-pixel scrollbar UI.md 4.7 asks for, drawn rather than imported so
-                // the module needs no widget styling of its own.
+                // the module needs no widget styling of its own. It sits in the card's right
+                // padding, clear of the rows: a bar against the list's edge draws its rounded
+                // end over the verdict pill on every row it passes.
                 Rectangle {
                     visible: list.contentHeight > list.height
                     width: 6
                     radius: 3
                     color: Tokens.line
-                    x: parent.width - 6
+                    x: parent.width + 6
                     height: Math.max(24, list.height * list.height / list.contentHeight)
                     y: list.contentHeight > list.height
                        ? list.contentY / (list.contentHeight - list.height) * (list.height - height)
@@ -221,5 +341,22 @@ Window {
                 }
             }
         }
+    }
+
+    // Declared in this file rather than in Main.qml: the file holds the words list, so the
+    // surface that shows the list is the one that chooses the destination. QtQuick.Dialogs can
+    // name a file but cannot write one -- that half is Controller.saveWords(), which takes this
+    // dialog's answer. A write that fails is logged there; this surface has nothing to report it
+    // on yet.
+    FileDialog {
+        id: saver
+        title: qsTr("Export words")
+        fileMode: FileDialog.SaveFile
+        defaultSuffix: "txt"
+        nameFilters: [qsTr("Text files (*.txt)"), qsTr("All files (*)")]
+        // The scope is in the name because the scope is what the export is: the reader who
+        // exports twice from two filters gets two files rather than one overwriting the other.
+        currentFile: "words-" + words.scope + ".txt"
+        onAccepted: Controller.saveWords(saver.selectedFile, words.scope)
     }
 }

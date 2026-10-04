@@ -14,6 +14,7 @@
 #include <QHash>
 #include <QJSEngine>
 #include <QQmlEngine>
+#include <QSaveFile>
 #include <QSet>
 
 #include <algorithm>
@@ -619,6 +620,43 @@ QString AppController::exportWords(QString scope)
     else
         LENS_INFO("words export for '{}': {} character(s) ready", scope.toStdString(), text.size());
     return text;
+}
+
+bool AppController::saveWords(QUrl path, QString scope)
+{
+    // The scope is checked before the file is opened, not by the empty string exportWords()
+    // returns for one: an unknown scope would otherwise leave an empty file where the reader
+    // asked for words.
+    if (scope != QLatin1String("all") && scope != QLatin1String("known") && scope != QLatin1String("new")) {
+        LENS_WARN("words export asked for an unknown scope '{}'; nothing was written", scope.toStdString());
+        return false;
+    }
+
+    const QString local = path.toLocalFile();
+    if (local.isEmpty()) {
+        LENS_WARN("words export was given '{}', which names no local file", path.toString().toStdString());
+        return false;
+    }
+
+    const QString text = exportWords(scope);
+    QSaveFile file(local);
+    if (!file.open(QIODevice::WriteOnly)) {
+        LENS_WARN("words export could not open '{}' for writing", local.toStdString());
+        return false;
+    }
+    // Not QIODevice::Text: that flag rewrites the line endings to the platform's, and the
+    // export's shape is LF wherever it is written.
+    file.write(text.toUtf8());
+    if (!file.commit()) {
+        LENS_WARN("words export failed to write '{}'", local.toStdString());
+        return false;
+    }
+
+    LENS_INFO("words export for '{}': {} character(s) written to '{}'",
+              scope.toStdString(),
+              text.size(),
+              local.toStdString());
+    return true;
 }
 
 QVariantMap AppController::cost() const

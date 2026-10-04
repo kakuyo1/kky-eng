@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QPoint>
 #include <QString>
+#include <QUrl>
 #include <QVariantList>
 #include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
@@ -156,13 +157,29 @@ public:
      * @brief The words list as plain text, one lemma per line, for the reader to save.
      *
      * The rows are words()'s, and the scopes are the words popup's own filter. Nothing is
-     * picked or written here: the surface takes the path from a file dialog and writes what
-     * this returns, which is what keeps the text itself assertable without Qt.
+     * picked or written here, which is what keeps the text itself assertable without Qt, and
+     * saveWords() is what puts it on disk.
      *
      * @param scope "all", "known", or "new"; anything else is logged and exports nothing.
      * @return The text, or empty when no row matches the scope.
      */
     Q_INVOKABLE QString exportWords(QString scope);
+
+    /**
+     * @brief Write the words list to @p path, as exportWords() would return it.
+     *
+     * The write is here rather than in QML because QML has no way to write a file: its file
+     * dialog only names one. @p path is that dialog's answer, so the reader chooses both the
+     * destination and, by the popup's filter, the rows.
+     *
+     * @param path  The file to write, as the dialog reports it.
+     * @param scope "all", "known", or "new", as exportWords() takes it.
+     * @return True when the file was written; false, logged, when the scope is unknown, the URL
+     *         names no local file, or the write failed.
+     * @note Line endings are LF: the export's shape is one lemma per line (PHASE1.md section
+     *       4.4), not the platform's idea of a line break.
+     */
+    Q_INVOKABLE bool saveWords(QUrl path, QString scope);
 
     /// @return The cost popup's figures. Amounts are computed from the current price list and
     ///         the token counts are the stored ones (PRODUCT.md "存储形状").
