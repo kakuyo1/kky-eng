@@ -5,13 +5,13 @@
     <name>Bubble</name>
     <message>
         <location filename="../src/app/qml/Bubble.qml" line="276"/>
-        <location filename="../src/app/qml/Bubble.qml" line="380"/>
+        <location filename="../src/app/qml/Bubble.qml" line="400"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
         <location filename="../src/app/qml/Bubble.qml" line="276"/>
-        <location filename="../src/app/qml/Bubble.qml" line="401"/>
+        <location filename="../src/app/qml/Bubble.qml" line="427"/>
         <source>New</source>
         <translation>New</translation>
     </message>
@@ -21,7 +21,7 @@
         <translation>Sentence</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="420"/>
+        <location filename="../src/app/qml/Bubble.qml" line="446"/>
         <source>Disappears in %1s</source>
         <translation>Disappears in %1s</translation>
     </message>
@@ -281,44 +281,44 @@
         <translation>%1 words</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="162"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="168"/>
         <source>Export</source>
         <translation>Export</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="180"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="186"/>
         <source>All</source>
         <translation>All</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="180"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="282"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="186"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="321"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="180"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="310"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="186"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="355"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="254"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="287"/>
         <source>%1×</source>
         <translation>%1×</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="353"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="398"/>
         <source>Export words</source>
         <translation>Export words</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="356"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="401"/>
         <source>Text files (*.txt)</source>
         <translation>Text files (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="356"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="401"/>
         <source>All files (*)</source>
         <translation>All files (*)</translation>
     </message>
@@ -346,37 +346,37 @@
         <translation>Study-abroad exams</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="310"/>
+        <location filename="../src/app/app_controller.cpp" line="328"/>
         <source>Explaining…</source>
         <translation>Explaining…</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="606"/>
+        <location filename="../src/app/app_controller.cpp" line="624"/>
         <source>Today %1</source>
         <translation>Today %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="608"/>
+        <location filename="../src/app/app_controller.cpp" line="626"/>
         <source>Yesterday %1</source>
         <translation>Yesterday %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="615"/>
+        <location filename="../src/app/app_controller.cpp" line="633"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="617"/>
+        <location filename="../src/app/app_controller.cpp" line="635"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="760"/>
+        <location filename="../src/app/app_controller.cpp" line="778"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="760"/>
+        <location filename="../src/app/app_controller.cpp" line="778"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>
@@ -392,62 +392,63 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="100"/>
+        <location filename="../src/llm/llm_pure.cpp" line="124"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>The model answered with something that is not a JSON object.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="106"/>
+        <location filename="../src/llm/llm_pure.cpp" line="130"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>The model&apos;s answer carries no choices.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="114"/>
+        <location filename="../src/llm/llm_pure.cpp" line="138"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>The model stopped before finishing (reason: %1).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="118"/>
+        <location filename="../src/llm/llm_pure.cpp" line="142"/>
         <source>absent</source>
         <translation>absent</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="124"/>
+        <location filename="../src/llm/llm_pure.cpp" line="148"/>
         <source>The model&apos;s answer is not valid JSON.</source>
         <translation>The model&apos;s answer is not valid JSON.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="129"/>
+        <location filename="../src/llm/llm_pure.cpp" line="153"/>
         <source>The model&apos;s answer has no results array.</source>
         <translation>The model&apos;s answer has no results array.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="139"/>
+        <location filename="../src/llm/llm_pure.cpp" line="164"/>
         <source>One of the results entries is not an object.</source>
         <translation>One of the results entries is not an object.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="145"/>
+        <location filename="../src/llm/llm_pure.cpp" line="170"/>
         <source>A results entry is missing the field &quot;%1&quot;.</source>
         <translation>A results entry is missing the field &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="158"/>
+        <location filename="../src/llm/llm_pure.cpp" line="183"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>A results entry has an empty field (title=%1).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="163"/>
+        <location filename="../src/llm/llm_pure.cpp" line="232"/>
         <source>The model echoed the same title twice: %1.</source>
         <translation>The model echoed the same title twice: %1.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="170"/>
+        <location filename="../src/llm/llm_pure.cpp" line="214"/>
+        <location filename="../src/llm/llm_pure.cpp" line="239"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>The model echoed %1 result(s) for the %2 that were asked for.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="182"/>
+        <location filename="../src/llm/llm_pure.cpp" line="250"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>The model never echoed &quot;%1&quot;.</translation>
     </message>

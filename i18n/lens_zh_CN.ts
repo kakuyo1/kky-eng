@@ -5,13 +5,13 @@
     <name>Bubble</name>
     <message>
         <location filename="../src/app/qml/Bubble.qml" line="276"/>
-        <location filename="../src/app/qml/Bubble.qml" line="380"/>
+        <location filename="../src/app/qml/Bubble.qml" line="400"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
         <location filename="../src/app/qml/Bubble.qml" line="276"/>
-        <location filename="../src/app/qml/Bubble.qml" line="401"/>
+        <location filename="../src/app/qml/Bubble.qml" line="427"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
@@ -21,7 +21,7 @@
         <translation>句子</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="420"/>
+        <location filename="../src/app/qml/Bubble.qml" line="446"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒后自动消失</translation>
     </message>
@@ -281,44 +281,44 @@
         <translation>共 %1 词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="162"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="168"/>
         <source>Export</source>
         <translation>导出</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="180"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="186"/>
         <source>All</source>
         <translation>全部</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="180"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="282"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="186"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="321"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="180"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="310"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="186"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="355"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="254"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="287"/>
         <source>%1×</source>
         <translation>%1×</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="353"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="398"/>
         <source>Export words</source>
         <translation>导出词汇</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="356"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="401"/>
         <source>Text files (*.txt)</source>
         <translation>文本文件 (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="356"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="401"/>
         <source>All files (*)</source>
         <translation>所有文件 (*)</translation>
     </message>
@@ -346,37 +346,37 @@
         <translation>出国考试</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="310"/>
+        <location filename="../src/app/app_controller.cpp" line="328"/>
         <source>Explaining…</source>
         <translation>正在解释…</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="606"/>
+        <location filename="../src/app/app_controller.cpp" line="624"/>
         <source>Today %1</source>
         <translation>今天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="608"/>
+        <location filename="../src/app/app_controller.cpp" line="626"/>
         <source>Yesterday %1</source>
         <translation>昨天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="615"/>
+        <location filename="../src/app/app_controller.cpp" line="633"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="617"/>
+        <location filename="../src/app/app_controller.cpp" line="635"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="760"/>
+        <location filename="../src/app/app_controller.cpp" line="778"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="760"/>
+        <location filename="../src/app/app_controller.cpp" line="778"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>
@@ -392,62 +392,63 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="100"/>
+        <location filename="../src/llm/llm_pure.cpp" line="124"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>模型返回的内容不是一个 JSON 对象。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="106"/>
+        <location filename="../src/llm/llm_pure.cpp" line="130"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>模型返回的内容里没有 choices。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="114"/>
+        <location filename="../src/llm/llm_pure.cpp" line="138"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>模型未正常结束（原因：%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="118"/>
+        <location filename="../src/llm/llm_pure.cpp" line="142"/>
         <source>absent</source>
         <translation>缺失</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="124"/>
+        <location filename="../src/llm/llm_pure.cpp" line="148"/>
         <source>The model&apos;s answer is not valid JSON.</source>
         <translation>模型返回的内容不是合法 JSON。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="129"/>
+        <location filename="../src/llm/llm_pure.cpp" line="153"/>
         <source>The model&apos;s answer has no results array.</source>
         <translation>模型返回的内容里没有 results 数组。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="139"/>
+        <location filename="../src/llm/llm_pure.cpp" line="164"/>
         <source>One of the results entries is not an object.</source>
         <translation>results 里有一项不是对象。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="145"/>
+        <location filename="../src/llm/llm_pure.cpp" line="170"/>
         <source>A results entry is missing the field &quot;%1&quot;.</source>
         <translation>results 里有一项缺少字段 “%1”。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="158"/>
+        <location filename="../src/llm/llm_pure.cpp" line="183"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>results 里有一项字段为空（title=%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="163"/>
+        <location filename="../src/llm/llm_pure.cpp" line="232"/>
         <source>The model echoed the same title twice: %1.</source>
         <translation>模型重复回显了同一个标题：%1。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="170"/>
+        <location filename="../src/llm/llm_pure.cpp" line="214"/>
+        <location filename="../src/llm/llm_pure.cpp" line="239"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>请求了 %2 项，模型回显了 %1 项。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="182"/>
+        <location filename="../src/llm/llm_pure.cpp" line="250"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>模型没有回显 “%1”。</translation>
     </message>
