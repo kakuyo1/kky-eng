@@ -2,6 +2,12 @@
 
 本目录按用途分组存放各次采样的指标报告。文件名带采样日期，是那一天的快照，不随源码漂移而改。
 
+## compile-performance
+
+| 文件 | 回答的问题 |
+| --- | --- |
+| [`full-build-baseline-2026-10-04.md`](compile-performance/full-build-baseline-2026-10-04.md) | 全量编译的时间花在哪，预编译头与并行度各值多少 |
+
 ## code-quality
 
 | 文件 | 回答的问题 |

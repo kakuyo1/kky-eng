@@ -102,3 +102,18 @@ endif()
 
 # Self-check target: links lens_core + lens_llm, built on the host only, never shipped.
 add_subdirectory(test)
+
+# Precompiled headers, applied here so the whole decision is one list rather than a line in every
+# CMakeLists. A target only earns one by having enough translation units to pay for its own copy
+# of the header -- the QML ahead-of-time files give lens_app 25 of them, and what it is worth is in
+# cmake/lens_pch.h. lens_core and lens_gtest_perf link no Qt and cannot take it. The Quick-level
+# half is a second file because it does not resolve for a Core-only target.
+foreach(LENS_PCH_TARGET lens_app lens_llm lens
+    lens_gtest_unit lens_gtest_smoke lens_gtest_integration
+    lens_qtest_components lens_qtest_surfaces)
+  target_precompile_headers(${LENS_PCH_TARGET} PRIVATE "${CMAKE_SOURCE_DIR}/cmake/lens_pch.h")
+endforeach()
+foreach(LENS_PCH_TARGET lens_app lens
+    lens_gtest_integration lens_qtest_components lens_qtest_surfaces)
+  target_precompile_headers(${LENS_PCH_TARGET} PRIVATE "${CMAKE_SOURCE_DIR}/cmake/lens_pch_quick.h")
+endforeach()

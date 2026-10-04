@@ -47,6 +47,21 @@ target_path() {
     esac
 }
 
+# Three of the suites carry EXCLUDE_FROM_ALL, so a tree built the ordinary way has no executable
+# for two of the names above. Drop a target that is not there: letting it through fails inside
+# OpenCppCoverage on a missing file, and the merge below then names a .cov that was never written.
+kept=""
+for name in "$@"; do
+    if [ -f "$BUILD/$(target_path "$name")" ]; then
+        kept="$kept $name"
+    else
+        echo "coverage: $name is not built, skipping; scripts/build.bat --target $name builds it" >&2
+    fi
+done
+# shellcheck disable=SC2086 # one name per word; the leading space is what makes this split
+set -- $kept
+[ "$#" -gt 0 ] || { echo "coverage: none of the named targets is built" >&2; exit 1; }
+
 # The development machine has Qt's bin off PATH; a CI runner has it on. Only the first needs
 # the prefix, and prefixing a directory that does not exist would shadow nothing but is noise.
 if [ -d /b/qtt/6.9.0/msvc2022_64/bin ]; then

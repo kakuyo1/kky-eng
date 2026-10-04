@@ -15,6 +15,19 @@
       }
     },
     {
+      "name": "ninja-qt6-release",
+      "displayName": "Ninja + Qt 6.9 (MSVC), optimised",
+      "description": "A second tree for running the application at real speed, leaving build-ninja to the Debug assertions and the TRACE log. RelWithDebInfo and not Release because MSVC's Release flags carry no /Zi: without a PDB the crash stacks and scripts/coverage.sh have nothing to read. Driven by scripts/build-release.bat.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-ninja-release",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "$env{QT_ROOT}",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "DEV_SEND_CONFIRM": "ON",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
       "name": "ninja-qt6-perf",
       "displayName": "Ninja + Qt 6.9 (MSVC), profiling",
       "description": "RelWithDebInfo with LENS_ENABLE_PROFILE=ON, in a tree of its own: profile numbers want optimisation, and the dev presets are Debug. See TEST.md.",
@@ -45,9 +58,16 @@
     {
       "name": "ninja-qt6",
       "configurePreset": "ninja-qt6",
-      "jobs": 4
+      "description": "No jobs key: Ninja then uses every core plus two. Pinning 4 left twelve of sixteen idle, and a full build took half again as long as it does now."
     },
-    { "name": "ninja-qt6-perf", "configurePreset": "ninja-qt6-perf", "jobs": 4 },
+    {
+      "name": "ninja-qt6-release",
+      "configurePreset": "ninja-qt6-release"
+    },
+    {
+      "name": "ninja-qt6-perf",
+      "configurePreset": "ninja-qt6-perf"
+    },
     { "name": "vs-qt6", "configurePreset": "vs-qt6" }
   ]
 }

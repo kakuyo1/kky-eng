@@ -18,7 +18,11 @@
 # The components: no C++ singleton is touched at creation, so this one runs headless with
 # nothing on PATH but Qt's own DLLs. QT_QPA_PLATFORM=offscreen is the whole headless story;
 # see TEST.md section 2 for the command.
-add_executable(lens_qtest_components
+# Like the gtest targets, these are out of the default build: `all` is the application alone, and
+# a suite is built by naming it (`scripts/build.bat --target lens_qtest_components`). They change
+# only when the QML or the two C++ types the surfaces talk to change, and building them every time
+# src/ is touched is work nobody asked for. CI names both.
+add_executable(lens_qtest_components EXCLUDE_FROM_ALL
   main.cpp
   setup.cpp
   setup.h
@@ -36,7 +40,7 @@ target_compile_definitions(lens_qtest_components PRIVATE
 # first binding they evaluate. setup.cpp builds both the way main() does -- see its file header
 # for the two steps it deliberately skips -- and feeds them a checked-in fixture rather than
 # the developer's settings.local.json.
-add_executable(lens_qtest_surfaces
+add_executable(lens_qtest_surfaces EXCLUDE_FROM_ALL
   main.cpp
   setup.cpp
   setup.h

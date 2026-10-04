@@ -18,6 +18,7 @@ lens/
 ├── .claude           # project settings: the Qt skill family enabled (settings.json)
 ├── .clang-format     # code format spec
 ├── .githooks         # pre-commit: typography budget, clang-format, PROBE, QML, absolute paths
+├── cmake             # headers only: the precompiled ones CMakeLists.txt applies
 ├── config            # paths.json — the machine paths; README.md owns the rule and its exemptions
 ├── data              # wordlist + llm/ (wire protocol as data)
 ├── docs              # QML.md (how QML works here) + adr/ (major trade-offs)
@@ -37,9 +38,21 @@ lens/
 Toolchain (verified): cmake 4.0.1 · Ninja 1.12.1 · MSVC 19.44
 
 ```
-./scripts/build.bat                      # configure once, then incremental
-./scripts/build.bat --target lens_gtest_unit
+./scripts/build.bat                      # configure once, then incremental, into build-ninja
+./scripts/build.bat --target lens_gtest_unit     # a test target, when you want one
+./scripts/build-release.bat              # the same, into build-ninja-release (RelWithDebInfo)
 ```
+
+The default build is the application alone. Every test target carries `EXCLUDE_FROM_ALL` in `test/`,
+so `all` does not pay for suites that change far less often than `src/` does, and each one is built
+by naming it. CI names its own list, the four it runs plus `lens_gtest_perf`, so that gate is
+unaffected. `TEST.md` section 2 says when each suite is worth running.
+
+`build-ninja` stays Debug, which is where the assertions, the TRACE log and the PDB
+`scripts/coverage.sh` reads come from. `build-ninja-release` is the tree to run the application
+from, and it exists as a second tree rather than a build-type switch because switching rewrites
+every compile flag and rebuilds the lot. Both are driven by the same wrapper; the two environment
+variables `scripts/build-release.bat` sets are the whole difference.
 
 The Qt prefix lives in `config/paths.json`, which `build.bat` exports as `QT_ROOT` before it drives
 the presets. `config/README.md` owns the rule: machine paths come from that file, project paths stay

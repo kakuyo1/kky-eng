@@ -11,6 +11,14 @@ REM        scripts\build.bat --target lens_gtest_unit
 setlocal
 cd /d "%~dp0.."
 
+REM Which tree to drive. The defaults are the development one; scripts\build-release.bat sets both
+REM to the optimised tree, which is what those variables exist for. A preset decides its own
+REM binaryDir, so LENS_BUILD_DIR only has to agree with it for the configure guard below.
+set "PRESET=ninja-qt6"
+set "BUILDDIR=build-ninja"
+if defined LENS_BUILD_PRESET set "PRESET=%LENS_BUILD_PRESET%"
+if defined LENS_BUILD_DIR set "BUILDDIR=%LENS_BUILD_DIR%"
+
 REM The Qt prefix comes from config/paths.json, through the same reader the PowerShell scripts use.
 REM CMakePresets.json can only read the environment -- a preset cannot open the file -- so it takes
 REM QT_ROOT and this exports it. config/README.md owns the rule, docs/adr/0006 the reasoning.
@@ -49,7 +57,7 @@ del "%VSDIRFILE%" >nul 2>&1
 
 if not defined VSDIR (
   echo [build] Visual Studio not found. Install the C++ workload, or call
-  echo [build] cmake --preset ninja-qt6 from a VS developer command prompt instead.
+  echo [build] cmake --preset %PRESET% from a VS developer command prompt instead.
   exit /b 1
 )
 
@@ -59,12 +67,20 @@ if errorlevel 1 (
   exit /b 1
 )
 
-if not exist "build-ninja\build.ninja" (
-  cmake --preset ninja-qt6
+REM Timing, for the number at the end. An empty marker file rather than %TIME%: cmd formats that
+REM one for the current locale, and parsing it back is a check that breaks on another machine.
+REM The file's last-write time is the start, and PowerShell reads it back once -- the same
+REM temp-file pattern the two lookups above use. Started here and not at the top of the file so
+REM the number is the configure, the build and the lint, not the environment hunt before them.
+set "T0FILE=%TEMP%\lens_build_start.txt"
+type nul > "%T0FILE%"
+
+if not exist "%BUILDDIR%\build.ninja" (
+  cmake --preset %PRESET%
   if errorlevel 1 exit /b 1
 )
 
-cmake --build --preset ninja-qt6 %*
+cmake --build --preset %PRESET% %*
 if errorlevel 1 exit /b 1
 
 REM The QML lint needs the response file CMake writes when it configures the tree, and that tree
@@ -77,3 +93,9 @@ if errorlevel 1 (
 ) else (
   sh scripts/qml-lint.sh
 )
+
+REM The tree is named in the line because two of them exist and a stale number is worse than
+REM none: build-ninja is Debug, build-ninja-release is RelWithDebInfo, and they differ in what
+REM a full build costs.
+powershell -NoProfile -Command "Write-Host ('[build] ' + '%BUILDDIR%' + ' finished in ' + [math]::Round(((Get-Date) - (Get-Item '%T0FILE%').LastWriteTime).TotalSeconds, 1) + ' s')"
+del "%T0FILE%" >nul 2>&1
