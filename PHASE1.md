@@ -40,7 +40,7 @@ UI 上占位项：控件存在但 `enabled: false`——文案转 `faint`、开�
   → DeepSeek（一次批量 HTTP，严格 JSON）
   → 响应按 schema 校验（word 另做逐词回显核对；entity / sentence 的 title 由 App 盖上）（第三方不可信）
    → Word：缓存写 → 浮层弹词 → 用户 [已会]/[新词] → KnownStore 回写
-   → Entity / Sentence：浮层弹标题与释义，不显示 IPA / verdict，不写入单词缓存与词汇统计
+   → Entity：浮层弹名字 + 百科式释义；Sentence：浮层弹「句子」标签 + 译文 / 讲解（不画原句）。两者都不显示 IPA / verdict，不写入单词缓存与词汇统计
 ```
 
 单次选区按形状分流：整个选区是单个字母 token 时，在静态词表里走 word（查一个词），不在词表里走 entity（命名实体，百科式说明）；多 token 走实体 / 句子，整段翻译或解释。5 秒自动消失；鼠标悬浮时计时挂起、永不消失，移出后重新计时。悬停只对单词解释展开 [已会] / [新词] 按钮——规格见 `UI.md`。（多词错峰属多气泡场景，当前单气泡不涉及。）动作条三项一律可用：句子的翻译 / 解释分别选择对应预设（随解释语言改变语义，见 §5），实体的两个按钮共用同一预设，复制始终本地结束。
@@ -76,7 +76,8 @@ std::vector<Candidate> filterWords(
     const std::unordered_set<std::string>& knownLemmas,  // 命中即标 Known
     std::size_t minFreqRank);   // 档位 → 词表词频阈值（词书数据未就绪时的近似，见 TODO.md）；命中即标 Mastered
 
-// 选区是什么，决定它走哪条通道。实体判定只接受完整的多 token 名称短语（Title Case 或全大写缩写）。
+// 选区是什么，决定它走哪条通道。实体判定：完整的多 token 名称短语（Title Case 或全大写缩写），
+// 或不在词表里的单个字母 token。
 enum class SelectionKind {
     Word,      // 整个选区是单个 letters-only token 且在词表：查词通道
     Entity,    // 名称短语，或不在词表的单个字母 token：entity 通道
@@ -154,7 +155,7 @@ public:
 
 - `setLevel` 越界抛 `std::out_of_range`；`load` 见越界值回落默认档。
 - 档位序号到词频阈值（`filterWords` 的 `minFreqRank`）的映射尚未落地，属 AppController 切片，配合 `TODO.md` 词书数据一起做。
-- **一条缓存必须带音标**（2026-10-04 加 `ipa`）：气泡从缓存出，而音标是气泡的一格，缺了它那颗气泡就少一行。所以 `load` 丢掉没有 `ipa` 的记录（旧文档里的老记录），下一次查同一个词就是未命中，重新问模型并写回完整的一条——未命中就是迁移，没有单独的迁移代码。
+- **缓存条目必须带 `ipa` 字段，但可为空**（2026-10-04 加 `ipa`，同日改为可选）：音标是 word 气泡的一格，但缩写 / 标识符没有音标，故字段可在而值为空。`load` 丢掉的是**没有 `ipa` 键**的更早记录（旧文档里的老记录），下一次查同一个词就是未命中，重新问模型并写回完整的一条——未命中就是迁移，没有单独的迁移代码。
 
 ```cpp
 namespace lens::core {
@@ -287,10 +288,10 @@ signals:
 
 落地注记（2026-10-04，接缝先行）：
 
-- **通知是它自己的一张卡片，不是气泡的一格**：请求失败与选区抓取失败原先都往气泡里塞一段文字，
-  气泡因此兼任错误播报。现在两者都走 `notice`——`{title, body, kind}`（`src/app/notice.h`），不带 status
-  chip，因为什么都没被解释；气泡重新只装解释。`kind` 有 `info` 与 `error` 两个值，当前生产路径（网络、密钥、
-  schema、剪贴板拒绝、终端排除与抓取失败）都走 `error`；无可用通道在三通道落地后已不存在，`info` 暂无路径。
+- **通知是它自己的一张卡片，不是气泡的一格**：请求失败原先往气泡里塞一段文字，气泡因此兼任错误播报。
+  现在请求失败走 `notice`——`{title, body, kind}`（`src/app/notice.h`），不带 status chip，因为什么都没被
+  解释；气泡重新只装解释。`kind` 有 `info` 与 `error` 两个值，当前生产路径（网络、密钥、schema 三类请求
+  失败）都走 `error`；无可用通道在三通道落地后已不存在，选区抓取失败改为静默丢弃（见下条），`info` 暂无路径。
   渲染方式留给表面。清空时机：弹出新解释时、`dismissNotice()` 时、以及被下一条通知替换时。通知**不带锚点**
   ——它不属于某一次选区，落点由表面自己定。解释的 `dismissBubble()` 只清解释，避免旧窗口的关闭回调清掉当前通知。
 - **剪贴板被别的进程抢走时不再写回**：抓取期间剪贴板若被改写（剪贴板管理器、或读者自己复制了别的），
@@ -317,21 +318,21 @@ signals:
 - **单词行带音标**：单词响应 schema、`Explanation`（§4.3）、气泡载荷与缓存（`WordCache`，§4.2）都加了
   `ipa`，原先 “阶段一不放音标位” 那条随之作废。四处的顺序一致（`word` / `ipa` / `en` / `zh`），气泡的
   `bubble` 映射里 `ipa` 排在 `title` 之后、两种释义之前；它不是释义，所以不随 “解释语言” 切换而清空——
-  命不命中缓存都拿得到。存储形状的这一处改动记在 `PRODUCT.md`“存储形状”，缺音标的旧缓存按未命中处理。
+  命不命中缓存都拿得到。存储形状的这一处改动记在 `PRODUCT.md`“存储形状”，缺 `ipa` 键的旧缓存按未命中处理。
 
 落地注记（2026-10-03）：
 
 - **接口形状**：`bubble` 与 `settings` 都是 `QVariantMap`，不是 QObject 模型——表面数量个位数、字段都是标量，为每个表面写一个 `QAbstractItemModel` 是给 QML 添一层没人问的间接。`modeLabel` 一个属性喂托盘菜单首行与 tooltip 两处（`UI.md` §4.2 / §4.5），分两处拼字符串必然漂移。`cost` 的五个数在 C++ 算：本月 / 今天 / 昨天 / 本周 / 日均的日期运算用 `QDate`，core 侧只存 token 与按日计数（§4.2）。
 - **5 秒计时归 QML**：自动消失与悬停挂起是视图行为（`UI.md` §4.3），计时的持有者在 QML；`bubbleHoverChanged` 只让 C++ 知道状态，不参与计时。否则计时器要跨进程边界地和悬停事件对齐。
 - **类型判定从 `beginSelection` 里提出来**：判定原本是行内一句 `candidates.empty()`，现收到 `core::classifySelection`（§4.1），出参是 `SelectionKind` 加候选。实体、单词、句子的路由在同一处决定，按钮不参与判定；`lens_gtest_unit` 可直接覆盖这条无 Qt 规则。`beginSelection` 按 `switch (kind)` 取值而非再看一次 `empty()`——枚举穷尽时编译器会在加通道那一刻报错。
-- **三通道的气泡边界**：word 解释保留 `ipa`、单词缓存、已会 / 新词 verdict 与词汇统计；entity / sentence 只显示 `title` 与解释，不显示 IPA / verdict，也不写入单词缓存与弹词历史。实体气泡**不带类型标签**（命名实体不是学习词条，没有 known / new），句子气泡带 “句子” 描边标签。实体的两个动作共用 `default` 预设，句子的 `translate` / `explain` 分别选择同名预设。（三通道落地后每条选区都有通道，气泡不再兼职播报失败；抓取失败走 `notice`，见上一条。）
+- **三通道的气泡边界**：word 解释保留 `ipa`、单词缓存、已会 / 新词 verdict 与词汇统计；entity / sentence 不显示 IPA / verdict，也不写入单词缓存与弹词历史。实体气泡画名字 + 百科式释义、**不带类型标签**（命名实体不是学习词条，没有 known / new）；句子气泡只画 “句子” 描边标签 + 译文 / 讲解，**不画原句**（长句会溢出卡片）。实体的两个动作共用 `default` 预设，句子的 `translate` / `explain` 分别选择同名预设。（三通道落地后每条选区都有通道，气泡不再兼职播报失败；请求失败走 `notice`、抓取失败静默丢弃，见上一条。）
 
 落地注记（2026-10-02）：
 
 - **触发是选区完成，不是剪贴板变化**：Windows 没有 API 能直接读到别的应用里被选中的文字，所以入口定为低层鼠标钩子（`WH_MOUSE_LL`）：`LBUTTONUP` 且按下期间确实拖动过（双击选词、三击选段同理）即算选区完成，回调 `onSelectionReleased(anchor)`，锚点就是松手坐标，不必再拿 `QCursor::pos()` 近似。取文靠 `SendInput` 向当前前台应用注入 Ctrl+C 再读剪贴板——覆盖最广的一条路，凡能复制的应用都通（含 PDF 阅读器）。
 - **两个必须处理的副作用**：一是剪贴板被顶掉——注入前存、读完还原，其间用户恰好复制的东西会被吞（`ponytail:` 竞争窗口，真被投诉再上 UIA TextPattern 绕开剪贴板取文；2026-10-04 起，窗口内被别的进程写入的剪贴板会被认出来，快照不再写回，见上面那条注记）；二是注入的 Ctrl+C 在终端里就是 SIGINT——按前台进程名排除终端类（Windows Terminal / conhost / PowerShell），与 `PRODUCT.md` 的扫描白名单同源。
 - **注入前必须确认前台不是自己**：靠 `WindowDoesNotAcceptFocus`——动作条与气泡都不夺焦点，点它们不会污染下一次注入的目标。**钩子也必须认自己的窗口**：按下落在本进程的窗口上时，这次按下既不是选区手势，也不算双击的第一击（`WindowFromPoint` + `GetWindowThreadProcessId` 比对 PID），否则在面板上拖动会被当成拖选、松开时注入 Ctrl+C 把背后应用里的选中内容弹出来。代价写在函数注释里：透明的阴影边距也算自己的窗口，贴着面板 26 px 内起手的真选区会被放掉。
-- **动作条介入数据流**：`onSelectionReleased` 不再直接通向气泡，中间隔着选区动作条。回传的 `action` 取 `translate` / `explain` / `copy`，前两者行为相同（通道由类型定，见 `UI.md` §4.10），故 `action` 只用来区分 “本地复制” 与 “发 LLM 请求” 两条路。类型判定在动作**之前**发生，结果放进 `selectionBarRequested` 的 `kind`，QML 不参与判定。
+- **动作条介入数据流**：`onSelectionReleased` 不再直接通向气泡，中间隔着选区动作条。回传的 `action` 取 `translate` / `explain` / `copy`：`copy` 本地结束；word / entity 的 `translate` 与 `explain` 行为相同（通道由类型定），只有 sentence 用 `action` 选 `translate` / `explain` 两个预设（2026-10-04 更新）。类型判定在动作**之前**发生，结果放进 `selectionBarRequested` 的 `kind`，QML 不参与判定。
 - **捕获组件是两个文件**：`mouse_selection_hook.{h,cpp}`（低层钩子与手势规则）与 `selection_text_grabber.{h,cpp}`（注入 Ctrl+C、剪贴板存还原）。终端排除与前台自查都落在取文那一步——危险发生在注入处，那也才是查得到前台进程的地方；`selectionReleased` 只带 `QPoint`，不带进程名。两条纯谓词 `isSelectionGesture` / `isExcludedProcess` 收普通参数，可离线断言。
 - **锚点从钩子到表面要先换算**：钩子拿到的坐标是物理像素，而 QML 窗口落在设备无关像素上，两者差一个 `devicePixelRatio`（本机 125% 实测：物理 x=275 的松手位置，窗口坐标是 220）；按 1:1 直接用，动作条会偏出选区四分之一屏。换算必须在交出之前做完，`Main.qml` 的 `toDip()` 是唯一换算点；它自己的实现坑（`QVariantMap` 属性赋回自己无效，得造新对象）见 `docs/QML.md` §4。
 
@@ -483,6 +484,6 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 
 ### 切片四：阶段二通道（V3 已完成，OCR 仍占位）
 
-- **V3 范围**：选区实体与句子解释。实体使用一个 `default` 预设，句子使用 `translate` / `explain` 两个预设；两类响应均为 `en` / `zh` 两字段（2026-10-04 起不回显 `title`，由 App 盖上），不进入单词缓存与 verdict。实体分类只接受至少两个相邻的名称 token（Title Case 或全大写缩写），单个 token 不升级为实体。
+- **V3 范围**：选区实体与句子解释。实体使用一个 `default` 预设，句子使用 `translate` / `explain` 两个预设；两类响应均为 `en` / `zh` 两字段（2026-10-04 起不回显 `title`，由 App 盖上），不进入单词缓存与 verdict。实体分类接受：不在词表的单个 letters-only token（`QML` / `Kubernetes`），或至少两个相邻的名称 token（Title Case 或全大写缩写）的短语。
 - **剩余范围**：OCR 取词（扫描 / 悬停 / 截图）、误弹反馈入口、每日预算上限仍是占位项，设置中不可触发。
 - **交付**：`data/llm/` 的三通道请求与 schema、`llm_protocol` 的 preset loader、`LlmClient` 的 channel / preset 路由、`FilterCore` 的实体分支、`AppController` 的三通道动作路由与独立 QML 通道测试。

@@ -170,7 +170,7 @@ V3 后的实际输出为 `corpus: 1004 entries, 0 mismatched`，独立脚本输�
 需求侧观察：`QML API` 这类全大写缩写短语被判成 `Sentence`；要求它作为实体，且实体气泡不带 known / new。
 定夺：实体判定的「名称 token」由只认 Title Case 扩为 **Title Case 或全大写缩写**（2–5 token，至少两个名称
 token，其余只能是 `of` / `the` / `and` / `for`），`QML API` / `the QML API` 成实体，`QML API server`
-（含小写实词）仍为句子；单个 token（`QML`）仍走 word。实体气泡**去掉类型标签**：word 保留 known / new
+（含小写实词）仍为句子；单个 token（`QML`）当时仍走 word（§12 改为不在词表即 entity）。实体气泡**去掉类型标签**：word 保留 known / new
 判定胶囊、sentence 保留「句子」描边标签、entity 什么都不标。实体本就不写单词缓存 / 弹词历史，此点 V3 已成立。
 
 语料新增 3 条：`QML API`（Entity）、`the QML API`（Entity）、`QML API server`（Sentence）。
