@@ -79,11 +79,12 @@ set_source_files_properties(qml/components/Tokens.qml PROPERTIES QT_QML_SINGLETO
 # including the dedicated profiler tree.
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Lens")
 
-# Two groups, split by what the file is rather than by where it is used. The nine windows are
+# Three groups, split by what the file is rather than by where it is used. The nine windows are
 # the surfaces themselves -- one per thing the reader sees -- and they sit at the root so that
-# Main stays loadFromModule("Lens", "Main"). Everything else is a component a surface is built
-# out of, and lives in qml/components/. Both are the same QML module, so neither group names the
-# other in an import: Qt gives every file in the module an implicit import of its own types.
+# Main stays loadFromModule("Lens", "Main"). Everything a surface is built out of lives in
+# qml/components/, and the two theme value tables sit in qml/theme/, where nothing reads them by
+# name: Tokens forwards the active one. All three are the same QML module, so no group names
+# another in an import: Qt gives every file in the module an implicit import of its own types.
 # The module hangs off lens_app and not off the executable because of where the two types the
 # surfaces talk to are declared. qt_add_qml_module registers the C++ types of the target it is
 # called on and only that target's; a class living in a linked static library stays invisible to
@@ -108,6 +109,8 @@ qt_add_qml_module(lens_app
     qml/CostPopup.qml
     qml/SendConfirm.qml
     qml/components/Tokens.qml
+    qml/theme/Light.qml
+    qml/theme/Dark.qml
     qml/components/Icon.qml
     qml/components/ShadowCard.qml
     qml/components/Segment.qml

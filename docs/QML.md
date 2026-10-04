@@ -6,17 +6,23 @@
 
 ## 1 模块与目录
 
-`src/app/qml/` 根下是九个 `Window`（表面），`src/app/qml/components/` 下是九个可复用件
-（`Icon` / `ShadowCard` / `Tokens` / `Segment` / `StatRow` / `MenuRow` / `DropdownField` /
-`Switch` / `SwitchRow`）。两组同属一个 QML 模块（`qt_add_qml_module` 的 `QML_FILES` 里写子目录路径
+`src/app/qml/` 根下是九个 `Window`（表面），`src/app/qml/components/` 下是十个可复用件
+（`Icon` / `ShadowCard` / `Tokens` / `MixedText` / `Segment` / `StatRow` / `MenuRow` /
+`DropdownField` / `Switch` / `SwitchRow`），`src/app/qml/theme/` 下是两个主题各一份色值表
+（`Light` / `Dark`）。三组同属一个 QML 模块（`qt_add_qml_module` 的 `QML_FILES` 里写子目录路径
 即可），Qt 给模块内每个文件隐式导入本模块的类型，**跨目录照样按类型名解析，谁也不需要写 import**。
+
+主题表既不是表面也不是组件：`Tokens` 把 `Light` / `Dark` 两份都建出来，按 `dark` 取一份，逐令牌转发
+到同名属性上——表面读的还是 `Tokens.<token>`，换主题仍是一次赋值。色值因此只写进 `theme/`，加第三个
+主题是那里多一个文件、`Tokens` 多一臂；为什么不放在 `Tokens` 里见 `docs/adr/0007`。
 
 判据取 “是不是窗口” 而非 “被几处用到”：`Switch` / `MenuRow` / `DropdownField` 今天各只被一处使用，
 它们仍是组件，而按使用次数切会把同类东西拆到两边。九个搬走的文件里没有一处 `qsTr`（文案一律由表面
 传入），所以两份 `.ts` 一行未动。
 
-`qt_add_qml_module` 在 `src/app/CMakeLists.txt`，新增 QML 文件要同时改 `QML_FILES` 与
-`set_source_files_properties`；`Tokens` 是单例，那一行必须先于 `qt_add_qml_module`。
+`qt_add_qml_module` 在 `src/app/CMakeLists.txt`：新增 QML 文件改 `QML_FILES` 即可，单例另需
+`set_source_files_properties`（本仓库只有 `Tokens` 一个，那一行必须先于 `qt_add_qml_module`，它在那儿
+决定要不要往模块的 qmldir 里写单例条目）。`theme/` 的两个文件就是这样加进来的，其余不必动。
 
 ## 2 窗口
 
