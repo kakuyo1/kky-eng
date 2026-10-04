@@ -287,10 +287,14 @@ Window {
                 // keep the slack at the end -- measured, a 30 px word and its pronunciation 36 px
                 // apart in a 238 px row -- and a gap that wide reads as two unrelated things.
                 // The prototype's 7 px is what the pair is set with.
+                // A sentence bubble draws no title: the selected sentence is usually long and
+                // overflows the card, and the reader still has it highlighted on screen. Word and
+                // entity titles are short and stay.
                 Item {
                     id: wordRow
+                    visible: bubble.type !== "sentence"
                     width: parent.width
-                    height: wordText.implicitHeight
+                    height: bubble.type === "sentence" ? 0 : wordText.implicitHeight
 
                     Text {
                         id: wordText

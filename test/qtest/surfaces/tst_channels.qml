@@ -63,7 +63,7 @@ Item {
             compare(Util.textWith(Util.textsUnder(bubble), ["Sentence"]), null);
         }
 
-        function test_sentenceBubbleUsesTheSelectedSentenceAsTitle() {
+        function test_sentenceBubbleDrawsNoTitleButKeepsTheSentence() {
             const bubble = createTemporaryObject(bubbleComponent, root);
             verify(bubble);
             bubble.show({
@@ -79,6 +79,10 @@ Item {
             compare(bubble.ipa, "");
             compare(bubble.status, "");
             verify(Util.textWith(Util.textsUnder(bubble), ["Sentence"]));
+            // The sentence is carried but not drawn: a long selection would overflow the card.
+            const title = Util.textWith(Util.textsUnder(bubble), ["The quiet room felt different."]);
+            verify(title);
+            verify(!title.visible);
         }
     }
 }
