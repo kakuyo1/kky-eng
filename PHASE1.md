@@ -255,6 +255,7 @@ public:
     Q_INVOKABLE void dismissBubble();                    // 关掉当前那一张（解释或通知）
 
     Q_INVOKABLE QString exportWords(QString scope);      // "all" / "known" / "new"，纯文本一行一个词根；不选路径也不写文件
+    Q_INVOKABLE bool saveWords(QUrl path, QString scope); // 把上一行那份文本写进 path（对话框选的文件），LF 结尾
 
     Q_PROPERTY(QVariantMap bubble READ bubble NOTIFY bubbleChanged)      // 当前解释，空 map = 无气泡
     Q_PROPERTY(QVariantMap notice READ notice NOTIFY noticeChanged)      // {title, body, kind}，空 map = 无通知
@@ -294,7 +295,8 @@ signals:
 - **开机自启**：`settings()` 多一个 `autostart`，写入 HKCU 的 Run 项（`src/app/autostart.{h,cpp}`）。键名与
   命令行由纯函数拼装，可离线断言；真正的注册表写入是机器状态，属人工用例。
 - **词汇可导出**：`exportWords(scope)` 返回纯文本（一行一个词根，与 `data/wordlist.txt` 同形），不选路径、
-  不写文件——路径由表面从文件对话框取。三个 scope 就是词汇弹窗的三个筛选，行集与 `words()` 一致。词汇弹窗
+  不写文件；`saveWords(path, scope)` 才落盘，因为 QML 的文件对话框只能选文件、写不了。三个 scope 就是词汇弹窗
+  的三个筛选，行集与 `words()` 一致。词汇弹窗
   的行多带一个 `pops`（该词被弹过几次），由历史在展示时数出，存储形状不动；历史留 2000 条（§4.2），
   次数随之封顶。
 - **单词行带音标**：响应 schema、`WordExplanation`（§4.3）、气泡载荷与缓存（`WordCache`，§4.2）都加了

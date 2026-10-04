@@ -117,5 +117,63 @@ Item {
             const fresh = Controller.words.filter(function (e) { return e.verdict === "new"; }).map(function (e) { return e.word; });
             compare(wordsShown(popup).sort(), fresh.slice().sort(), "the New filter is not showing just the new words");
         }
+
+        /// @return The row drawing @p word, or null when no row shows it.
+        function rowFor(popup, word) {
+            const text = Util.textWith(Util.textsUnder(popup), [word]);
+            return text ? text.parent : null;
+        }
+
+        /// @return The pill @p row draws its @p label in.
+        function pillFor(row, label) {
+            const labels = Util.findAll(row, function (o) { return o.text === label; });
+            compare(labels.length, 1, "a row should draw exactly one " + label + " pill");
+            return labels[0].parent;
+        }
+
+        /// Marking from the list is what settles a word the reader never marked while the
+        /// bubble was up. The row reports it by filling the pill of the verdict it now holds,
+        /// so the case watches the fill rather than the controller behind it.
+        function test_tappingAVerdictMarksTheWordAndTheRowFollows() {
+            const popup = make(wordsComponent);
+            popup.visible = true;
+
+            const unmarked = Controller.words.filter(function (e) { return e.verdict === ""; });
+            verify(unmarked.length > 0, "the fixture needs a word that was never marked");
+            const word = unmarked[0].word;
+
+            const row = rowFor(popup, word);
+            verify(row, "the row for " + word + " is not on screen");
+            verify(!Qt.colorEqual(pillFor(row, "Known").color, Tokens.ink),
+                   "an unmarked word should not already show a filled Known pill");
+
+            const known = pillFor(row, "Known");
+            mouseClick(known, known.width / 2, known.height / 2);
+
+            tryVerify(function () {
+                const follow = rowFor(popup, word);
+                return follow !== null && Qt.colorEqual(pillFor(follow, "Known").color, Tokens.ink);
+            }, 1000, "the Known pill did not fill after the tap");
+
+            const marked = Controller.words.filter(function (e) { return e.word === word; })[0];
+            compare(marked.verdict, "known", "the tap did not reach the controller");
+        }
+
+        /// The export's text half is the controller's, and lens_gtest_unit pins its shape. What
+        /// is left for this case is the seam the file dialog hands its answer to: the scope the
+        /// row filter maps to, and that an unknown one is refused rather than written.
+        function test_theExportFollowsTheFilterAndRefusesAnyOtherScope() {
+            const popup = make(wordsComponent);
+
+            compare(popup.scope, "all", "the panel opens on the whole list");
+            popup.filter = 1;
+            compare(popup.scope, "known");
+            popup.filter = 2;
+            compare(popup.scope, "new");
+
+            // A path under a directory that does not exist, so a write could not land even if
+            // the scope check let it through.
+            compare(Controller.saveWords("file:///no-such-directory/words.txt", "everything"), false);
+        }
     }
 }
