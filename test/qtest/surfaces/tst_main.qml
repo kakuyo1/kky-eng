@@ -127,5 +127,82 @@ Item {
             compare(settings.visible, true);
             compare(stats.visible, false, "the statistics panel stayed up behind the settings panel");
         }
+
+        /// The menu and the two panels the statistics panel drills into all go through the same
+        /// hide-then-place pair, so each one has to take the others down as well.
+        function test_theMenuAndTheDrillDownPanelsAlsoClearEachOther() {
+            const main = make();
+            const stats = panel(main, "StatsPopup");
+            const cost = panel(main, "CostPopup");
+            const words = panel(main, "WordsPopup");
+            const menu = panel(main, "TrayMenu");
+
+            main.showStats();
+
+            main.showCost();
+            compare(cost.visible, true, "showCost() did not put the cost panel up");
+            compare(stats.visible, false);
+
+            main.showWords();
+            compare(words.visible, true, "showWords() did not put the words panel up");
+            compare(cost.visible, false);
+
+            main.showTrayMenu();
+            compare(menu.visible, true, "showTrayMenu() did not put the menu up");
+            compare(words.visible, false);
+            compare(menu.contentActive, true, "the menu's rows are built only once it is opened");
+            compare(menu.listVisible, false, "the language list should start folded");
+        }
+
+        /// The two arrows in the statistics panel's own corner, and the back arrows they lead to:
+        /// each is a panel replacing one of the others, which no photograph can check.
+        function test_theDrillDownArrowsAndTheirBackArrows() {
+            const main = make();
+            const stats = panel(main, "StatsPopup");
+            const cost = panel(main, "CostPopup");
+            const words = panel(main, "WordsPopup");
+
+            main.showStats();
+            stats.costRequested();
+            compare(cost.visible, true, "the cost arrow did not open the cost panel");
+
+            cost.backRequested();
+            compare(stats.visible, true, "the cost panel's back arrow did not return to statistics");
+
+            main.showStats();
+            stats.wordsRequested();
+            compare(words.visible, true, "the words arrow did not open the words panel");
+
+            words.backRequested();
+            compare(stats.visible, true, "the words panel's back arrow did not return to statistics");
+        }
+
+        /// The tray menu's two entries are the same pair driven from the menu instead: the menu
+        /// only asks, and this file decides where the panel goes.
+        function test_theTrayMenuEntriesOpenThePanelsTheyName() {
+            const main = make();
+            const stats = panel(main, "StatsPopup");
+            const settings = panel(main, "SettingsPopup");
+            const menu = panel(main, "TrayMenu");
+
+            main.showTrayMenu();
+            menu.statsRequested();
+            compare(stats.visible, true, "the Statistics entry did not open the panel");
+
+            main.showTrayMenu();
+            menu.settingsRequested();
+            compare(settings.visible, true, "the Settings entry did not open the panel");
+            compare(stats.visible, false);
+        }
+
+        /// The tray icon's own gesture, which is the only way the menu opens in the product.
+        function test_theTrayIconGestureOpensTheMenu() {
+            const main = make();
+            const menu = panel(main, "TrayMenu");
+
+            Tray.menuRequested();
+
+            compare(menu.visible, true, "the tray icon's gesture did not open the menu");
+        }
     }
 }

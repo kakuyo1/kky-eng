@@ -46,6 +46,30 @@ Item {
             return Util.textWith(Util.textsUnder(menu), [Controller.modeLabel, qsTr("Selection capture is off")]);
         }
 
+        /// @return The menu's rows, in declaration order.
+        function rowsOf(menu) {
+            return Util.findAll(menu, function (o) {
+                return o.toString().indexOf("MenuRow_QMLTYPE") === 0;
+            });
+        }
+
+        /// @return The row carrying @p label.
+        ///
+        /// By label rather than by position: the language list unfolding or a row being added
+        /// would silently move a case onto the wrong row.
+        function rowWith(menu, label) {
+            const rows = rowsOf(menu).filter(function (r) { return r.label === label; });
+            verify(rows.length === 1, "expected exactly one " + label + " row, found " + rows.length);
+            return rows[0];
+        }
+
+        /// @return The two option rows of the unfolded language list.
+        function languageOptions(menu) {
+            return Util.findAll(menu, function (o) {
+                return o.modelData !== undefined && o.modelData.code !== undefined;
+            });
+        }
+
         function test_rowsAreCreatedOnFirstOpen() {
             const menu = createTemporaryObject(menuComponent, root);
             verify(menu);
@@ -113,6 +137,81 @@ Item {
 
             tryVerify(function () { return loader.item.opacity === 1; },
                       1000, "the unfolded language list never finished appearing");
+        }
+
+        /// The two panels the menu opens. The menu asks for one rather than calling into
+        /// Main.qml, so the request is what a case can catch, and the signal has to carry.
+        function test_pickingTheStatisticsRowAsksForThePanelAndClosesTheMenu() {
+            const menu = make();
+            let asked = 0;
+            menu.statsRequested.connect(function () { asked += 1; });
+
+            const row = rowWith(menu, qsTr("Statistics"));
+            mouseClick(row, row.width / 2, row.height / 2);
+
+            compare(asked, 1, "the Statistics row did not ask for the panel");
+            tryCompare(menu, "visible", false, 1000, "the menu stayed up after a row was picked");
+        }
+
+        function test_pickingTheSettingsRowAsksForThePanelAndClosesTheMenu() {
+            const menu = make();
+            let asked = 0;
+            menu.settingsRequested.connect(function () { asked += 1; });
+
+            const row = rowWith(menu, qsTr("Settings"));
+            mouseClick(row, row.width / 2, row.height / 2);
+
+            compare(asked, 1, "the Settings row did not ask for the panel");
+            tryCompare(menu, "visible", false, 1000, "the menu stayed up after a row was picked");
+        }
+
+        /// The language list is the menu's own control, not a signal out to Main: picking a
+        /// language has to reach the controller and come back through the settings document.
+        function test_pickingALanguageFromTheUnfoldedListSwitchesIt() {
+            const menu = make();
+            menu.listVisible = true;
+            tryCompare(menu, "listVisible", true);
+
+            const options = languageOptions(menu);
+            compare(options.length, 2, "the language list should offer two languages");
+            const chinese = options.filter(function (o) { return o.modelData.code === "zh"; })[0];
+            verify(chinese, "the language list has no Chinese option");
+
+            mouseClick(chinese, chinese.width / 2, chinese.height / 2);
+
+            compare(menu.language, "zh", "the pick did not reach the controller");
+            compare(menu.languageName, "中文");
+            tryCompare(menu, "visible", false, 1000, "the menu stayed up after a language was picked");
+
+            restore();
+        }
+
+        /// The list unfolds when the pointer reaches its row and folds again a moment after it
+        /// leaves -- the delay is what lets the pointer cross the gap between the two cards.
+        function test_hoveringTheLanguageRowUnfoldsTheListAndLeavingFoldsItAgain() {
+            const menu = make();
+            const row = rowWith(menu, qsTr("Language"));
+            compare(menu.listVisible, false);
+
+            mouseMove(row, row.width / 2, row.height / 2);
+            tryCompare(menu, "listVisible", true, 1000, "hovering the Language row did not unfold the list");
+
+            // Somewhere in the menu that is not the Language row.
+            const elsewhere = rowWith(menu, qsTr("Statistics"));
+            mouseMove(elsewhere, elsewhere.width / 2, elsewhere.height / 2);
+            tryCompare(menu, "listVisible", false, 1000, "the list stayed unfolded after the pointer left");
+        }
+
+        /// Quit is the one row whose handler leaves the menu: it asks the application to stop,
+        /// and in this runner there is no application loop listening, so what the case can check
+        /// is that the tap reaches the row without taking the run down with it.
+        function test_theQuitRowCarriesTheDangerStyling() {
+            const menu = make();
+            const row = rowWith(menu, qsTr("Quit"));
+            compare(row.danger, true, "Quit should be the one row drawn in the danger colour");
+
+            mouseClick(row, row.width / 2, row.height / 2);
+            compare(menu.capturing, false, "the run is still alive after tapping Quit");
         }
 
         /// The language list unfolds to the left of the row it belongs to, so the menu's
