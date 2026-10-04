@@ -5,9 +5,9 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 ## Critical Rules
 
 - No commits unless explicitly requested, no AI attribution in commits or PRs.
-- UI work must comply with `UI.md` and `DESIGN.md`; implementation contract in `PHASE1.md`.
+- UI work must comply with `UI.md` and `PRODUCT.md`; implementation contract in `PHASE1.md`.
 - Designing or auditing a UI surface starts by loading the `taste-skill` skill; a surface that has been rendered is checked with `visual-qa`.
-- Keep `CONTEXT.md`, `DESIGN.md`, `UI.md`, and `PHASE1.md` in sync on any design change; record major trade-offs in `docs/adr/`.
+- Keep `GLOSSARY.md`, `PRODUCT.md`, `UI.md`, and `PHASE1.md` in sync on any design change; record major trade-offs in `docs/adr/`.
 - Default to Chinese in replies.
 - API key lives only in gitignored `settings.local.json` — never commit it, never log it, never echo it in errors.
 
@@ -108,12 +108,12 @@ QML is the exception. `scripts/qml-lint.sh`, called by the hook and by CI, owns 
 
 ## Reference Documents
 
-- `CONTEXT.md`: glossary
-- `DESIGN.md`: design decisions
+- `GLOSSARY.md`: glossary
+- `PRODUCT.md`: design decisions
 - `UI.md`: UI spec
 - `PHASE1.md`: phase 1 implementation contract (scope, module interfaces, prompt/schema)
 - `TEST.md`: framework, targets, corpus, profiling, run records
-- `LLM.md`: wire format, request body, response envelope, validation rules, error codes
+- `API.md`: wire format, request body, response envelope, validation rules, error codes
 - `CODING_STANDARDS.md`: the judgement calls a review can make (C++ and QML)
 - `docs/QML.md`: QML facts, module layout, surfaces vs components, shadows, positioning, threading, fonts
 - `docs/adr/`: major trade-offs, one numbered file each; `README.md` has the numbering and template

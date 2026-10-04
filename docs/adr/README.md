@@ -1,6 +1,6 @@
 # ADR
 
-重大取舍记在这里。`AGENTS.md` / `DESIGN.md` / `TODO.md` 三处指过来的是本目录。
+重大取舍记在这里。`AGENTS.md` / `PRODUCT.md` / `TODO.md` 三处指过来的是本目录。
 
 **编号**：四位序号 + 短横线标题，`NNNN-短横线标题.md`（如 `0001-mouse-hook-own-thread.md`）。
 新增时取目录里已有最大号加一，不复用、不重排。

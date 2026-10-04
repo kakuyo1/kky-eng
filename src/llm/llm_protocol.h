@@ -18,7 +18,7 @@
  * shared. Editing a prompt or adding a response field is a data edit, not a rebuild.
  *
  * The response schema is the single source of truth for the required field list, so the
- * validation cannot drift away from what LLM.md documents.
+ * validation cannot drift away from what API.md documents.
  *
  * @note Only the word channel is specified today; the entity and sentence channels are
  *       phase-2 placeholders (PHASE1.md section 2). Adding one means dropping

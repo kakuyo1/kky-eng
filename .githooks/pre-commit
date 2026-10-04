@@ -42,12 +42,12 @@ cd "$(git rev-parse --show-toplevel)" || exit 0
 
 # Per-doc error budgets. Ratchet: lower on cleanup, never raise to pass.
 BASELINES='AGENTS.md 19
+API.md 0
 CLAUDE.md 0
 CODING_STANDARDS.md 0
-CONTEXT.md 0
-DESIGN.md 11
-LLM.md 0
+GLOSSARY.md 0
 PHASE1.md 0
+PRODUCT.md 11
 TEST.md 0
 TODO.md 12
 UI.md 27

@@ -1,12 +1,12 @@
 # 阶段一实现规格（Phase 1：单词解释）
 
-> 设计总览见 `DESIGN.md`，术语见 `CONTEXT.md`，UI 规格见 `UI.md`。本文件是阶段一的实施契约：接口先行，UI 完整，未实现功能占位不可触发。
+> 设计总览见 `PRODUCT.md`，术语见 `GLOSSARY.md`，UI 规格见 `UI.md`。本文件是阶段一的实施契约：接口先行，UI 完整，未实现功能占位不可触发。
 
 ## 1 范围与状态
 
 - **目标**：单词解释通道端到端可用（不含 OCR），UI 各表面完整，未实现功能一律占位、不可触发。
 - **取词**：选区（低层鼠标钩子监听拖选松手，注入 Ctrl+C 取剪贴板，真可用）+ `lens_gtest_unit` 自检。扫描、截图、悬停依赖 OCR，本阶段全部占位。
-- **LLM**：真模型直连（DeepSeek，OpenAI 兼容，BYOK）。替代 DESIGN 原 “假 LLM 先跑通” 原型路径，取舍记录见 `DESIGN.md`。
+- **LLM**：真模型直连（DeepSeek，OpenAI 兼容，BYOK）。替代 PRODUCT 原 “假 LLM 先跑通” 原型路径，取舍记录见 `PRODUCT.md`。
 - **状态**：切片一（离线内核）、切片二（LLM 客户端）与切片三（AppController + QML 表面）均已落地。`lens_core`（FilterCore / KnownStore / StatsStore）、`lens_llm`（LlmClient + 纯函数内核 + 价目）、`src/app`（捕获组件 + AppController + 托盘 + QML 七个表面）齐备，可执行目标 `lens` 已能起来。`lens_gtest_unit` 29 例全绿，见第 9 节；冒烟走 `lens_gtest_smoke`，需人手动执行。工具链已确认：Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`，preset `ninja-qt6`（首选）；`data/wordlist.txt` 88,918 行。切片四（阶段二通道）未开始。
 
 ## 2 非目标（本阶段占位）
@@ -17,7 +17,7 @@
 | 悬停取词 / 实体通道        | OCR + 词框           | 设置面板不暴露开关；不产生实体气泡                   |
 | 截图                       | OCR                  | 设置「OCR」开关禁用                                  |
 | 句子通道                   | 选区语义             | 不产生句子气泡；动作条上的翻译 / 解释会以浮层说明无可用通道 |
-| 误弹反馈入口               | 反馈闭环             | 浮层不提供该入口（设计见`CONTEXT.md`「误弹反馈」） |
+| 误弹反馈入口               | 反馈闭环             | 浮层不提供该入口（设计见`GLOSSARY.md`「误弹反馈」） |
 | 每日预算上限               | 计费统计             | 预算耗尽托盘态不触发                                 |
 | 扫描冷却 / 内容指纹        | 快照管道             | 选区文本只按「文本不同」防重                         |
 
@@ -118,7 +118,7 @@ public:
     bool isKnown(const std::string& lemma) const;
     void mark(const std::string& lemma, bool learned);     // 已会 / 新词
     const std::unordered_set<std::string>& known() const;  // 喂 FilterCore::filterWords
-    int level() const;  void setLevel(int);                // 0..7，取值见 CONTEXT.md「档位」
+    int level() const;  void setLevel(int);                // 0..7，取值见 GLOSSARY.md「档位」
     std::string explanationLang() const;  void setExplanationLang(std::string);  // "en"/"zh"
     std::optional<WordCache> cacheGet(const std::string& lemma) const;
     void cachePut(const std::string& lemma, WordCache);
@@ -132,7 +132,7 @@ public:
 
 单 JSON 文档，加载一次、变更即存。known-set 与缓存均小，暂不上 SQLite（`ponytail:` 到量再迁）。文件同时承载 LLM API 配置（密钥），归属隐私边界（见第 6 节）。
 
-存储形状、写入规则与隐私边界（共用文档、只覆写自己的键）见 `DESIGN.md`“存储形状”。这里只留接口本身的约定：
+存储形状、写入规则与隐私边界（共用文档、只覆写自己的键）见 `PRODUCT.md`“存储形状”。这里只留接口本身的约定：
 
 - `setLevel` 越界抛 `std::out_of_range`；`load` 见越界值回落默认档。
 - 档位序号到词频阈值（`filterWords` 的 `minFreqRank`）的映射尚未落地，属 AppController 切片，配合 `TODO.md` 词书数据一起做。
@@ -173,7 +173,7 @@ public:
 
 统计三个弹窗（统计 / 词汇 / 花费）的数据层就是上表，此前没有归属，切片三补上（2026-10-03）。它与
 `KnownStore` 共用 settings.local.json 的规则、`history` 的上限、token 与金额的分工，见
-`DESIGN.md`“存储形状”。
+`PRODUCT.md`“存储形状”。
 
 ### 4.3 LlmClient（QObject，异步）
 
@@ -209,7 +209,7 @@ public slots:
 
 落地注记（2026-10-02，DeepSeek 官方文档核验）：端点与 `baseUrl`、模型名与停服旧名、必关思考
 （`thinking: disabled`）与 `temperature` / `top_p` 的取值、`max_tokens`、`finish_reason` 必查、错误码归类、
-usage 的容错、价目与展示币种——全部见 `LLM.md`（开头、§2、§5、§6 各占一段）。
+usage 的容错、价目与展示币种——全部见 `API.md`（开头、§2、§5、§6 各占一段）。
 
 ### 4.4 AppController（QML 后端）
 
@@ -274,7 +274,7 @@ signals:
 落地注记（2026-10-02）：
 
 - **触发是选区完成，不是剪贴板变化**：Windows 没有 API 能直接读到别的应用里被选中的文字，所以入口定为低层鼠标钩子（`WH_MOUSE_LL`）：`LBUTTONUP` 且按下期间确实拖动过（双击选词、三击选段同理）即算选区完成，回调 `onSelectionReleased(anchor)`，锚点就是松手坐标，不必再拿 `QCursor::pos()` 近似。取文靠 `SendInput` 向当前前台应用注入 Ctrl+C 再读剪贴板——覆盖最广的一条路，凡能复制的应用都通（含 PDF 阅读器）。
-- **两个必须处理的副作用**：一是剪贴板被顶掉——注入前存、读完还原，其间用户恰好复制的东西会被吞（`ponytail:` 竞争窗口，真被投诉再上 UIA TextPattern 绕开剪贴板取文）；二是注入的 Ctrl+C 在终端里就是 SIGINT——按前台进程名排除终端类（Windows Terminal / conhost / PowerShell），与 `DESIGN.md` 的扫描白名单同源。
+- **两个必须处理的副作用**：一是剪贴板被顶掉——注入前存、读完还原，其间用户恰好复制的东西会被吞（`ponytail:` 竞争窗口，真被投诉再上 UIA TextPattern 绕开剪贴板取文）；二是注入的 Ctrl+C 在终端里就是 SIGINT——按前台进程名排除终端类（Windows Terminal / conhost / PowerShell），与 `PRODUCT.md` 的扫描白名单同源。
 - **注入前必须确认前台不是自己**：靠 `WindowDoesNotAcceptFocus`——动作条与气泡都不夺焦点，点它们不会污染下一次注入的目标。**钩子也必须认自己的窗口**：按下落在本进程的窗口上时，这次按下既不是选区手势，也不算双击的第一击（`WindowFromPoint` + `GetWindowThreadProcessId` 比对 PID），否则在面板上拖动会被当成拖选、松开时注入 Ctrl+C 把背后应用里的选中内容弹出来。代价写在函数注释里：透明的阴影边距也算自己的窗口，贴着面板 26 px 内起手的真选区会被放掉。
 - **动作条介入数据流**：`onSelectionReleased` 不再直接通向气泡，中间隔着选区动作条。回传的 `action` 取 `translate` / `explain` / `copy`，前两者行为相同（通道由类型定，见 `UI.md` §4.9），故 `action` 只用来区分 “本地复制” 与 “发 LLM 请求” 两条路。类型判定在动作**之前**发生，结果放进 `selectionBarRequested` 的 `kind`，QML 不参与判定。
 - **捕获组件是两个文件**：`mouse_selection_hook.{h,cpp}`（低层钩子与手势规则）与 `selection_text_grabber.{h,cpp}`（注入 Ctrl+C、剪贴板存还原）。终端排除与前台自查都落在取文那一步——危险发生在注入处，那也才是查得到前台进程的地方；`selectionReleased` 只带 `QPoint`，不带进程名。两条纯谓词 `isSelectionGesture` / `isExcludedProcess` 收普通参数，可离线断言。
@@ -288,7 +288,7 @@ QML 表面：设置浮层、选区动作条、解释气泡、统计弹窗及其�
 
 测试代码与样例集是单独的可执行目标，只在本机构建，**不进发布包**：它是 `lens_core`（无 Qt）→ `lens_llm` → `lens_app` 这条链之外的旁支，`lens_gtest_unit` / `lens_gtest_smoke` 链接 `lens_core` + `lens_llm`，`lens_gtest_perf` 只链接 `lens_core`（保持无 Qt），`lens_gtest_integration` 链接 `lens_app` + `lens_core`。
 
-契约要点只有一条：**样例集 `test/eval_corpus.json` 是 FilterCore 的行为规格**——改行为先改样例集（`CONTEXT.md`“自检样例集”），测试红了再动 `src/`。离线那一支零网络、零密钥，**可进 CI**。
+契约要点只有一条：**样例集 `test/eval_corpus.json` 是 FilterCore 的行为规格**——改行为先改样例集（`GLOSSARY.md`“自检样例集”），测试红了再动 `src/`。离线那一支零网络、零密钥，**可进 CI**。
 
 框架、目录、三个目标、样例集字段表与运行方式见 `TEST.md`。
 
@@ -304,19 +304,19 @@ QML 表面：设置浮层、选区动作条、解释气泡、统计弹窗及其�
 
 ## 5 LLM Prompt 与 JSON Schema
 
-线上格式的完整说明（请求体、响应体、校验规则、错误码）见 **`LLM.md`**；这里只记契约要点。
+线上格式的完整说明（请求体、响应体、校验规则、错误码）见 **`API.md`**；这里只记契约要点。
 
 目标模型：DeepSeek（OpenAI 兼容）。**提示词与 schema 都是数据，不是代码**——单词通道的一份在 `data/llm/request.word.json` 与 `data/llm/response.word.schema.json`，改提示词或加字段是改数据，不用重编译。
 
 落地注记（2026-10-02，与切片四一起定）：按通道拆分文件、系统提示词用英文且只切末句、响应 schema 是校验
-的唯一真源、`llm_protocol` 加载失败一律抛而不回落默认值——见 `LLM.md`。实体与句子通道的提示词与响应字段名
+的唯一真源、`llm_protocol` 加载失败一律抛而不回落默认值——见 `API.md`。实体与句子通道的提示词与响应字段名
 尚未定义，属阶段二（§2）。
 
 ## 6 隐私与密钥边界
 
 - API key **仅存本地** `settings.local.json`（gitignored），不提交、不入日志、不写入本会话记忆。输入经设置浮层（掩码显示）或配置文件。
 - 发送最小化：单词通道只发单词本身，脱敏兜底；绝不发送整屏或快照全文。
-- **档位与界面语言不进请求**：档位只影响本地词表与 known-set 预置（见 `CONTEXT.md` 档位条目）。2026-10-02 的系统提示词曾写进 “CET-4 level or above”，属违规，已删；提示词只说取最常见义项，判断全在本地。
+- **档位与界面语言不进请求**：档位只影响本地词表与 known-set 预置（见 `GLOSSARY.md` 档位条目）。2026-10-02 的系统提示词曾写进 “CET-4 level or above”，属违规，已删；提示词只说取最常见义项，判断全在本地。
 - DEV_SEND_CONFIRM 编译开关：开发期任何发往大模型的请求先弹窗展示内容并征得同意；正式发布整段移除。
 - 注意：本次会话中曾粘贴真实 key（已进对话记录），建议开发完成后轮换。
 
@@ -329,7 +329,7 @@ lens/
 ├── .clang-format
 ├── settings.local.json       # 本地密钥与设置，gitignored
 ├── scripts/build.bat         # 进 VS 环境后驱动 ninja（首配一次，之后纯增量）
-├── LLM.md                    # LLM 线上格式说明（请求 / 响应 / 校验 / 错误码）
+├── API.md                    # LLM 线上格式说明（请求 / 响应 / 校验 / 错误码）
 ├── TEST.md                   # 测试：框架 / 目标 / 样例集 / profiling / 记录
 ├── data/wordlist.txt         # 静态词表（top-100k，词频序，第 8 节）
 ├── data/irregulars.tsv       # 不规则屈折表（WordNet 异常表生成，见 §4.1）
@@ -363,7 +363,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 | Qt 6 + CMake 工具链 | **已完成**：Qt 6.9.0 MSVC2022_64 @ `B:/qtt/6.9.0/msvc2022_64`，preset `ninja-qt6`（首选）/ `vs-qt6`（备选）                                                                                                                                               |
 | 静态词表            | **已完成**：`data/wordlist.txt` 已落盘                                                                                                                                                                                                                        |
 | 密钥注入            | **已完成**：`settings.local.json` 已在仓库根且已 gitignore                                                                                                                                                                                                    |
-| DeepSeek API 核验   | **已完成**（2026-10-02）：模型名 `deepseek-flash` / `deepseek-v4-pro`；`response_format: {"type":"json_object"}` 支持，且要求 prompt 含 `json` 字样与格式示例；OpenAI 格式端点为 `{baseUrl}/chat/completions`。结论与落地细节见 `LLM.md` §6。 |
+| DeepSeek API 核验   | **已完成**（2026-10-02）：模型名 `deepseek-flash` / `deepseek-v4-pro`；`response_format: {"type":"json_object"}` 支持，且要求 prompt 含 `json` 字样与格式示例；OpenAI 格式端点为 `{baseUrl}/chat/completions`。结论与落地细节见 `API.md` §6。 |
 
 预检四项已全部完成，可以动工。核验渠道说明：本机未装 `uv` / `mcp` 包、也没有 `CONTEXT7_API_KEY`，`context7` 不可用；改直接抓 DeepSeek 官方文档（`api-docs.deepseek.com`，国内直连可达，且是更权威的一手来源）。
 
@@ -401,7 +401,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 
 ### 工程基建（已完成，不占切片号）
 
-这一段不在原计划里，是几次按需请求累积出来的，单独记一笔以免来历不明：spdlog 与 `LENS_*` 日志宏（Qt 消息并入同一 logger）、Ninja 构建与 `scripts/build.bat`、全项目英文 Doxygen 注释、i18n 骨架（`i18n/*.ts`，英文为源语言）、LLM 线上协议数据化（`data/llm/` + `LLM.md`）、不规则屈折表数据化（`data/irregulars.tsv`）。
+这一段不在原计划里，是几次按需请求累积出来的，单独记一笔以免来历不明：spdlog 与 `LENS_*` 日志宏（Qt 消息并入同一 logger）、Ninja 构建与 `scripts/build.bat`、全项目英文 Doxygen 注释、i18n 骨架（`i18n/*.ts`，英文为源语言）、LLM 线上协议数据化（`data/llm/` + `API.md`）、不规则屈折表数据化（`data/irregulars.tsv`）。
 
 第二次追加（2026-10-02，同样不占切片号）：GoogleTest 进 `third_party` 并退役手写自检（§4.5）、`src/core/profile.{h,cpp}` 与 `LENS_ENABLE_PROFILE` 选项（§4.6）。两件都是基建，没有可独立验收的用户交付物，故按上一段的先例记在这里，不另起切片号。
 

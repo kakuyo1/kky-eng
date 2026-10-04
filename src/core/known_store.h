@@ -56,7 +56,7 @@ public:
     /// @return The known set to hand to FilterCore::filterWords, derived from the marks.
     const std::unordered_set<std::string>& known() const;
 
-    /// @return Difficulty level, 0..7. The order is defined in CONTEXT.md and UI.md 4.4.
+    /// @return Difficulty level, 0..7. The order is defined in GLOSSARY.md and UI.md 4.4.
     int level() const;
     /// @throws std::out_of_range If the level is outside 0..7.
     void setLevel(int);

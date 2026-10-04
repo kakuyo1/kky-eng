@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Lens word explanation response",
-  "description": "The object the model is asked to return inside choices[0].message.content. Validation reads this file for the required field list, so the code and LLM.md cannot drift apart.",
+  "description": "The object the model is asked to return inside choices[0].message.content. Validation reads this file for the required field list, so the code and API.md cannot drift apart.",
   "type": "object",
   "required": ["results"],
   "properties": {

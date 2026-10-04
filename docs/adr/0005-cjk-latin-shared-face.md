@@ -21,5 +21,5 @@
     `QFontDatabase::addApplicationFont` 显式载入 Segoe、雅黑、Cascadia、Noto 字体文件并设成应用字体，用例用
     `TestCase.grabImage` 把真实 QML 渲染进 PNG 再比对 run 字体，全程不显示窗口、不碰鼠标。字体的准确性由
     `notoFamily` 是否解析成功来保证，而不是由 `font.family` 声明来推断。
-  - 规范同步：`UI.md` 与 `DESIGN.md` 的字体条目、`docs/QML.md` 的字体注记都改为优先 Noto Sans SC，混排值由
+  - 规范同步：`UI.md` 与 `PRODUCT.md` 的字体条目、`docs/QML.md` 的字体注记都改为优先 Noto Sans SC，混排值由
     `MixedText` 拆 run。

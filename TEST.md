@@ -2,7 +2,7 @@
 
 > 本文是测试的唯一出处：框架、目录、目标、运行方式、样例集格式、profiling、覆盖率与记录约定。
 > `AGENTS.md` 的 Test 与 Profiling 两节只留指针；`PHASE1.md` §4.5 与 §4.6 只留契约要点。
-> 设计总览见 `DESIGN.md`，模块接口见 `PHASE1.md`。
+> 设计总览见 `PRODUCT.md`，模块接口见 `PHASE1.md`。
 
 ## 1 框架与目录
 
