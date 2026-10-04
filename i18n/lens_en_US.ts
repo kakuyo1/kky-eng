@@ -4,19 +4,29 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="271"/>
-        <location filename="../src/app/qml/Bubble.qml" line="375"/>
+        <location filename="../src/app/qml/Bubble.qml" line="275"/>
+        <location filename="../src/app/qml/Bubble.qml" line="379"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="271"/>
-        <location filename="../src/app/qml/Bubble.qml" line="396"/>
+        <location filename="../src/app/qml/Bubble.qml" line="275"/>
+        <location filename="../src/app/qml/Bubble.qml" line="400"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="415"/>
+        <location filename="../src/app/qml/Bubble.qml" line="275"/>
+        <source>Entity</source>
+        <translation>Entity</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/Bubble.qml" line="275"/>
+        <source>Sentence</source>
+        <translation>Sentence</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/Bubble.qml" line="419"/>
         <source>Disappears in %1s</source>
         <translation>Disappears in %1s</translation>
     </message>
@@ -64,17 +74,17 @@
 <context>
     <name>SelectionBar</name>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="133"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="135"/>
         <source>Translate</source>
         <translation>Translate</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="134"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="136"/>
         <source>Explain</source>
         <translation>Explain</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="135"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="137"/>
         <source>Copy text</source>
         <translation>Copy text</translation>
     </message>
@@ -82,112 +92,112 @@
 <context>
     <name>SettingsPopup</name>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="74"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="75"/>
         <source>Settings</source>
         <translation>Settings</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="94"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="95"/>
         <source>Vocabulary level</source>
         <translation>Vocabulary level</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="111"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="112"/>
         <source>Explanation language</source>
         <translation>Explanation language</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="118"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="119"/>
         <source>English</source>
         <translation>English</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="118"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="119"/>
         <source>中文</source>
         <translation>中文</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="128"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="129"/>
         <source>Theme</source>
         <translation>Theme</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="135"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="136"/>
         <source>Light</source>
         <translation>Light</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="135"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="136"/>
         <source>Dark</source>
         <translation>Dark</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="145"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="146"/>
         <source>API KEY</source>
         <translation>API KEY</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="279"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="283"/>
         <source>Startup</source>
         <translation>Startup</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="303"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="291"/>
         <source>Launch at sign-in</source>
         <translation>Launch at sign-in</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="315"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="301"/>
         <source>Clipboard</source>
         <translation>Clipboard</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="322"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="308"/>
         <source>Raise to top</source>
         <translation>Raise to top</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="322"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="308"/>
         <source>Give up silently</source>
         <translation>Give up silently</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="366"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="352"/>
         <source>Defaults</source>
         <translation>Defaults</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="188"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="192"/>
         <source>Capture</source>
         <translation>Capture</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="210"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="214"/>
         <source>Selection</source>
         <translation>Selection</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="216"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="220"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="222"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="226"/>
         <source>Auto scan</source>
         <translation>Auto scan</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="234"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="238"/>
         <source>Global hotkey</source>
         <translation>Global hotkey</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="251"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="255"/>
         <source>Toggle auto scan</source>
         <translation>Toggle auto scan</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="341"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="327"/>
         <source>Save</source>
         <translation>Save</translation>
     </message>
@@ -341,42 +351,67 @@
         <translation>Study-abroad exams</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="278"/>
-        <source>No word to explain in this selection</source>
-        <translation>No word to explain in this selection</translation>
+        <location filename="../src/app/app_controller.cpp" line="108"/>
+        <source>Lens cannot read a selection from its own surface.</source>
+        <translation>Lens cannot read a selection from its own surface.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="302"/>
+        <location filename="../src/app/app_controller.cpp" line="111"/>
+        <source>Selection capture is unavailable in terminal applications.</source>
+        <translation>Selection capture is unavailable in terminal applications.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="114"/>
+        <source>The clipboard is busy, so the selection was not read.</source>
+        <translation>The clipboard is busy, so the selection was not read.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="117"/>
+        <source>The selection could not be copied from the foreground application.</source>
+        <translation>The selection could not be copied from the foreground application.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="120"/>
+        <source>The selected content did not contain readable text.</source>
+        <translation>The selected content did not contain readable text.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="213"/>
+        <source>Selection unavailable</source>
+        <translation>Selection unavailable</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="335"/>
         <source>Explaining…</source>
         <translation>Explaining…</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="579"/>
+        <location filename="../src/app/app_controller.cpp" line="631"/>
         <source>Today %1</source>
         <translation>Today %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="581"/>
+        <location filename="../src/app/app_controller.cpp" line="633"/>
         <source>Yesterday %1</source>
         <translation>Yesterday %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="588"/>
+        <location filename="../src/app/app_controller.cpp" line="640"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="590"/>
+        <location filename="../src/app/app_controller.cpp" line="642"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="733"/>
+        <location filename="../src/app/app_controller.cpp" line="785"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="733"/>
+        <location filename="../src/app/app_controller.cpp" line="785"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>
@@ -392,62 +427,62 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="96"/>
+        <location filename="../src/llm/llm_pure.cpp" line="100"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>The model answered with something that is not a JSON object.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="102"/>
+        <location filename="../src/llm/llm_pure.cpp" line="106"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>The model&apos;s answer carries no choices.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="110"/>
+        <location filename="../src/llm/llm_pure.cpp" line="114"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>The model stopped before finishing (reason: %1).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="114"/>
+        <location filename="../src/llm/llm_pure.cpp" line="118"/>
         <source>absent</source>
         <translation>absent</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="120"/>
+        <location filename="../src/llm/llm_pure.cpp" line="124"/>
         <source>The model&apos;s answer is not valid JSON.</source>
         <translation>The model&apos;s answer is not valid JSON.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="125"/>
+        <location filename="../src/llm/llm_pure.cpp" line="129"/>
         <source>The model&apos;s answer has no results array.</source>
         <translation>The model&apos;s answer has no results array.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="134"/>
+        <location filename="../src/llm/llm_pure.cpp" line="139"/>
         <source>One of the results entries is not an object.</source>
         <translation>One of the results entries is not an object.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="140"/>
+        <location filename="../src/llm/llm_pure.cpp" line="145"/>
         <source>A results entry is missing the field &quot;%1&quot;.</source>
         <translation>A results entry is missing the field &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="151"/>
-        <source>A results entry has an empty field (word=%1).</source>
-        <translation>A results entry has an empty field (word=%1).</translation>
-    </message>
-    <message>
-        <location filename="../src/llm/llm_pure.cpp" line="156"/>
-        <source>The model echoed the same word twice: %1.</source>
-        <translation>The model echoed the same word twice: %1.</translation>
+        <location filename="../src/llm/llm_pure.cpp" line="158"/>
+        <source>A results entry has an empty field (title=%1).</source>
+        <translation>A results entry has an empty field (title=%1).</translation>
     </message>
     <message>
         <location filename="../src/llm/llm_pure.cpp" line="163"/>
-        <source>The model echoed %1 word(s) for the %2 that were asked for.</source>
-        <translation>The model echoed %1 word(s) for the %2 that were asked for.</translation>
+        <source>The model echoed the same title twice: %1.</source>
+        <translation>The model echoed the same title twice: %1.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="175"/>
+        <location filename="../src/llm/llm_pure.cpp" line="170"/>
+        <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
+        <translation>The model echoed %1 result(s) for the %2 that were asked for.</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_pure.cpp" line="182"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>The model never echoed &quot;%1&quot;.</translation>
     </message>
@@ -495,12 +530,17 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="76"/>
+        <location filename="../src/llm/llm_client.cpp" line="82"/>
         <source>There is nothing to look up.</source>
         <translation>There is nothing to look up.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="106"/>
+        <location filename="../src/llm/llm_client.cpp" line="90"/>
+        <source>The API key is missing.</source>
+        <translation>The API key is missing.</translation>
+    </message>
+    <message>
+        <location filename="../src/llm/llm_client.cpp" line="118"/>
         <source>The request could not reach the service: %1</source>
         <translation>The request could not reach the service: %1</translation>
     </message>
