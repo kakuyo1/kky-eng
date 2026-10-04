@@ -57,42 +57,19 @@
 <context>
     <name>SelectionBar</name>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="131"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="133"/>
         <source>Translate</source>
         <translation>翻译</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="132"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="134"/>
         <source>Explain</source>
         <translation>解释</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SelectionBar.qml" line="133"/>
+        <location filename="../src/app/qml/SelectionBar.qml" line="135"/>
         <source>Copy text</source>
         <translation>复制文本</translation>
-    </message>
-</context>
-<context>
-    <name>SendConfirm</name>
-    <message>
-        <location filename="../src/app/qml/SendConfirm.qml" line="48"/>
-        <source>Send to the model?</source>
-        <translation>发送给大模型？</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/SendConfirm.qml" line="67"/>
-        <source>Development build: every request is shown before it is sent.</source>
-        <translation>开发版：每次请求发出前都会先展示。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/SendConfirm.qml" line="88"/>
-        <source>Send</source>
-        <translation>发送</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/SendConfirm.qml" line="112"/>
-        <source>Cancel</source>
-        <translation>取消</translation>
     </message>
 </context>
 <context>
@@ -224,32 +201,32 @@
 <context>
     <name>TrayMenu</name>
     <message>
-        <location filename="../src/app/qml/TrayMenu.qml" line="43"/>
+        <location filename="../src/app/qml/TrayMenu.qml" line="56"/>
         <source>words</source>
         <translation>词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/TrayMenu.qml" line="108"/>
+        <location filename="../src/app/qml/TrayMenu.qml" line="125"/>
         <source>Selection capture is off</source>
         <translation>选区取词已关闭</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/TrayMenu.qml" line="121"/>
+        <location filename="../src/app/qml/TrayMenu.qml" line="138"/>
         <source>Statistics</source>
         <translation>今日统计</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/TrayMenu.qml" line="133"/>
+        <location filename="../src/app/qml/TrayMenu.qml" line="149"/>
         <source>Language</source>
         <translation>语言</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/TrayMenu.qml" line="151"/>
+        <location filename="../src/app/qml/TrayMenu.qml" line="167"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/TrayMenu.qml" line="169"/>
+        <location filename="../src/app/qml/TrayMenu.qml" line="185"/>
         <source>Quit</source>
         <translation>退出</translation>
     </message>
@@ -257,27 +234,27 @@
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="49"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="51"/>
         <source>Words</source>
         <translation>词汇</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="121"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="123"/>
         <source>%1 words</source>
         <translation>共 %1 词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="130"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="132"/>
         <source>All</source>
         <translation>全部</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="130"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="132"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="130"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="132"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
@@ -285,63 +262,67 @@
 <context>
     <name>lens::app::AppController</name>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="66"/>
-        <location filename="../src/app/app_controller.cpp" line="67"/>
+        <location filename="../src/app/app_controller.cpp" line="71"/>
+        <location filename="../src/app/app_controller.cpp" line="72"/>
         <source>CEFR</source>
         <translation>CEFR</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="68"/>
-        <location filename="../src/app/app_controller.cpp" line="69"/>
-        <location filename="../src/app/app_controller.cpp" line="70"/>
-        <location filename="../src/app/app_controller.cpp" line="71"/>
+        <location filename="../src/app/app_controller.cpp" line="73"/>
+        <location filename="../src/app/app_controller.cpp" line="74"/>
+        <location filename="../src/app/app_controller.cpp" line="75"/>
+        <location filename="../src/app/app_controller.cpp" line="76"/>
         <source>National exams</source>
         <translation>国内考试</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="72"/>
-        <location filename="../src/app/app_controller.cpp" line="73"/>
+        <location filename="../src/app/app_controller.cpp" line="77"/>
+        <location filename="../src/app/app_controller.cpp" line="78"/>
         <source>Study-abroad exams</source>
         <translation>出国考试</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="232"/>
+        <location filename="../src/app/app_controller.cpp" line="260"/>
         <source>No word to explain in this selection</source>
         <translation>这段选择里没有可解释的单词</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="255"/>
-        <location filename="../src/app/app_controller.cpp" line="271"/>
+        <location filename="../src/app/app_controller.cpp" line="280"/>
         <source>Explaining…</source>
         <translation>正在解释…</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="487"/>
+        <location filename="../src/app/app_controller.cpp" line="335"/>
+        <source>Another program changed the clipboard while the selection was being read.</source>
+        <translation>读取选区时，另一个程序改动了剪贴板。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="556"/>
         <source>Today %1</source>
         <translation>今天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="489"/>
+        <location filename="../src/app/app_controller.cpp" line="558"/>
         <source>Yesterday %1</source>
         <translation>昨天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="496"/>
+        <location filename="../src/app/app_controller.cpp" line="565"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="498"/>
+        <location filename="../src/app/app_controller.cpp" line="567"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="558"/>
+        <location filename="../src/app/app_controller.cpp" line="673"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="558"/>
+        <location filename="../src/app/app_controller.cpp" line="673"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>
@@ -349,7 +330,7 @@
 <context>
     <name>lens::app::Tray</name>
     <message>
-        <location filename="../src/app/tray.cpp" line="120"/>
+        <location filename="../src/app/tray.cpp" line="140"/>
         <source>Today %1 words</source>
         <translation>今日 %1 词</translation>
     </message>

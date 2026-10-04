@@ -379,13 +379,31 @@ std::variant<QString, GrabStatus> SelectionTextGrabber::grab()
     }
 
     const bool landed = waitForClipboardChange(sequenceBefore);
+    // The sequence number the landed copy left behind, which the check below compares against.
+    const DWORD sequenceOfCopy = GetClipboardSequenceNumber();
 
     // Read before restoring: the restore empties the clipboard and fills it again.
     const std::optional<QString> copied = landed ? readClipboardText() : std::nullopt;
-    if (!snapshot.restore())
+
+    // Another process can write the clipboard in between -- a clipboard manager looking at
+    // what just changed, or the reader copying something themselves. Putting the snapshot back
+    // over that would destroy what is there now, so it is left alone and the caller is told.
+    // The reader's own clipboard is already lost either way by this point.
+    //
+    // ponytail: this sees a replacement from the copy landing up to just before the restore.
+    // A second writer inside the wait, before the read, is indistinguishable from our own copy
+    // by sequence number alone; telling them apart needs the clipboard owner, which no case
+    // here has yet required.
+    const bool replaced = landed && GetClipboardSequenceNumber() != sequenceOfCopy;
+    if (replaced) {
+        LENS_WARN("SelectionTextGrabber::grab: the clipboard was written again while the selection was being read; leaving it as it is now");
+    } else if (!snapshot.restore()) {
         LENS_WARN("SelectionTextGrabber::grab: the reader's clipboard could not be put back in full");
+    }
     grabbing_ = false;
 
+    if (replaced)
+        return GrabStatus::ClipboardReplaced;
     if (!landed) {
         LENS_TRACE("SelectionTextGrabber::grab: the clipboard did not change within {} ms", kGrabDeadlineMs);
         return GrabStatus::CopyTimedOut;

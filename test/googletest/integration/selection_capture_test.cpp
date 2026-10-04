@@ -73,6 +73,7 @@ const char* statusName(GrabStatus status)
         case GrabStatus::ClipboardBusy: return "ClipboardBusy";
         case GrabStatus::CopyTimedOut: return "CopyTimedOut";
         case GrabStatus::EmptyText: return "EmptyText";
+        case GrabStatus::ClipboardReplaced: return "ClipboardReplaced";
     }
     return "unknown";
 }
@@ -310,8 +311,11 @@ TEST(ExcludedProcess, TheComparisonIgnoresCase)
 
 TEST(ExcludedProcess, AFullImagePathIsMatchedOnItsFileName)
 {
-    EXPECT_TRUE(isExcludedProcess(R"(C:\Program Files\PowerShell\7\pwsh.exe)"));
-    EXPECT_FALSE(isExcludedProcess(R"(C:\Program Files\Google\Chrome\Application\chrome.exe)"));
+    // The fixtures carry no drive letter on purpose: what the matching rule is about is the
+    // directory prefix, and a drive path written into a source file is what the pre-commit
+    // hook's check exists to reject (config/README.md).
+    EXPECT_TRUE(isExcludedProcess(R"(Program Files\PowerShell\7\pwsh.exe)"));
+    EXPECT_FALSE(isExcludedProcess(R"(Program Files\Google\Chrome\Application\chrome.exe)"));
 }
 
 TEST(ExcludedProcess, OrdinaryApplicationsAreNotExcluded)

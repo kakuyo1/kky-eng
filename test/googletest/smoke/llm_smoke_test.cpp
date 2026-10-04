@@ -6,6 +6,10 @@
  * settings.local.json has no credentials, and a human reads the fields it prints. The word
  * comes from LENS_SMOKE_WORD, defaulting to "ubiquitous".
  *
+ * It also counts the paid round trips this process makes and skips once the count reaches the
+ * cap, so a binary left to run on habit stops spending on its own. The cap is
+ * LENS_SMOKE_MAX_CALLS, defaulting to 3.
+ *
  * The key is read into memory and never printed, logged, or echoed in a failure.
  */
 
@@ -41,6 +45,22 @@ using lens::llm::WordExplanation;
 /// How long to wait for the model before calling it a timeout.
 constexpr int kTimeoutMs = 60'000;
 
+/// How many paid round trips one process run makes before it starts skipping.
+constexpr int kDefaultCallCap = 3;
+
+/// @brief The paid round trips this process has already made. A run-scoped count, not a
+///        per-case one: the money is spent per process, which is what the cap is about.
+int callsMade = 0;
+
+/// @return The cap for this run: LENS_SMOKE_MAX_CALLS when it holds a positive number,
+///         kDefaultCallCap otherwise.
+int callCap()
+{
+    bool ok = false;
+    const int asked = qEnvironmentVariableIntValue("LENS_SMOKE_MAX_CALLS", &ok);
+    return ok && asked > 0 ? asked : kDefaultCallCap;
+}
+
 std::optional<Config> readConfigFrom(const std::filesystem::path& path)
 {
     std::ifstream in(path);
@@ -67,6 +87,13 @@ TEST(LlmSmoke, OneWordRoundTrip)
     if (!config)
         GTEST_SKIP() << "settings.local.json has no URL / MODEL / API-KEY: the smoke test "
                         "needs a key and spends money, so it is skipped rather than failed";
+
+    // Past the cap the case stops rather than fails: the request would be a real one, and a
+    // red suite here would read as a broken link instead of a spent budget.
+    if (callsMade >= callCap())
+        GTEST_SKIP() << "this run has already made " << callsMade << " real model call(s), its cap is "
+                     << callCap() << " (LENS_SMOKE_MAX_CALLS); raise it to make more";
+    ++callsMade;
 
     const QString word = qEnvironmentVariable("LENS_SMOKE_WORD", QStringLiteral("ubiquitous"));
     std::cout << "smoke: '" << word.toStdString() << "' via " << config->model.toStdString()
@@ -99,10 +126,12 @@ TEST(LlmSmoke, OneWordRoundTrip)
 
     ASSERT_EQ(results->size(), 1);
     const auto& explanation = results->front();
-    std::cout << "word: " << explanation.word.toStdString() << "\nen:   "
+    std::cout << "word: " << explanation.word.toStdString() << "\nipa:  "
+              << explanation.ipa.toStdString() << "\nen:   "
               << explanation.en.toStdString() << "\nzh:   " << explanation.zh.toStdString() << "\n";
 
     EXPECT_EQ(explanation.word, word);
+    EXPECT_FALSE(explanation.ipa.isEmpty());
     EXPECT_FALSE(explanation.en.isEmpty());
     EXPECT_FALSE(explanation.zh.isEmpty());
 }

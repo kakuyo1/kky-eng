@@ -27,16 +27,20 @@ namespace lens::app {
 
 /// @brief Why one grab attempt ended the way it did.
 enum class GrabStatus : std::uint8_t {
-    Captured = 0,     ///< The text came back.
-    ForegroundIsSelf, ///< The foreground window belongs to this process; injecting would
-                      ///< target our own surfaces, so nothing was sent.
-    ProcessExcluded,  ///< The foreground process is one where Ctrl+C means "interrupt".
-    ClipboardBusy,    ///< The clipboard could not be taken; without a snapshot to restore,
-                      ///< clobbering it is not allowed. Also returned on re-entry.
-    CopyTimedOut,     ///< Nothing came back: there was no window to copy from, the clipboard
-                      ///< did not change before the deadline, the application ignored the
-                      ///< synthetic input, or an elevated window dropped it (UIPI).
-    EmptyText,        ///< The clipboard changed but carried no text.
+    Captured = 0,      ///< The text came back.
+    ForegroundIsSelf,  ///< The foreground window belongs to this process; injecting would
+                       ///< target our own surfaces, so nothing was sent.
+    ProcessExcluded,   ///< The foreground process is one where Ctrl+C means "interrupt".
+    ClipboardBusy,     ///< The clipboard could not be taken; without a snapshot to restore,
+                       ///< clobbering it is not allowed. Also returned on re-entry.
+    CopyTimedOut,      ///< Nothing came back: there was no window to copy from, the clipboard
+                       ///< did not change before the deadline, the application ignored the
+                       ///< synthetic input, or an elevated window dropped it (UIPI).
+    EmptyText,         ///< The clipboard changed but carried no text.
+    ClipboardReplaced, ///< Another process wrote the clipboard while the selection was being
+                       ///< read. What was read cannot be trusted to be the selection, and the
+                       ///< snapshot was left in place rather than put back over the newer
+                       ///< content; the caller decides whether the reader hears about it.
 };
 
 /**

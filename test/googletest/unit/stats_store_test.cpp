@@ -1,7 +1,8 @@
 /**
  * @file stats_store_test.cpp
  * @brief StatsStore, offline: the history and the daily tallies behind the statistics
- *        surfaces, and the one thing that makes it work -- sharing KnownStore's document.
+ *        surfaces, the words export rendered from that history, and the one thing that makes
+ *        the store work -- sharing KnownStore's document.
  *
  * The interesting failure is not arithmetic, it is ownership: two objects writing the same
  * file. The reload case here is what would catch it.
@@ -10,6 +11,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
@@ -20,9 +22,11 @@
 namespace {
 
 using lens::core::DailyUsage;
+using lens::core::ExportScope;
 using lens::core::HistoryEntry;
 using lens::core::KnownStore;
 using lens::core::StatsStore;
+using lens::core::exportLemmas;
 
 /// @brief A StatsStore bound to a fresh temp file, deleted either way.
 struct StatsStoreTest : ::testing::Test {
@@ -171,6 +175,51 @@ TEST_F(StatsStoreTest, DropsTheOldestEntriesPastTheCap)
     ASSERT_EQ(after.size(), StatsStore::kMaxHistory);
     EXPECT_EQ(after.front().lemma, "newest");
     EXPECT_NE(after.back().lemma, "w0") << "the oldest entry fell off the end";
+}
+
+/// The export is a pure rendering of the history, so these cases build the history directly
+/// rather than through the store: what is being pinned is the text's shape.
+TEST(WordExport, AllScopeIsEveryLemmaOnceNewestFirst)
+{
+    const std::vector<HistoryEntry> history{
+        {"second", "2026-10-03 09:02", ""},
+        {"first", "2026-10-03 09:01", "known"},
+        {"second", "2026-10-03 09:00", "new"}, // a repeat is one line, the same dedup the list does
+    };
+
+    // One lemma per line, newest first, ending with a newline -- the shape data/wordlist.txt
+    // has, which is what the reader's importer will be reading.
+    EXPECT_EQ(exportLemmas(history, ExportScope::All), "second\nfirst\n");
+}
+
+TEST(WordExport, KnownAndNewFollowTheNewestEntrysVerdict)
+{
+    const std::vector<HistoryEntry> history{
+        {"second", "2026-10-03 09:02", ""},
+        {"first", "2026-10-03 09:01", "known"},
+        {"second", "2026-10-03 09:00", "known"},
+        {"third", "2026-10-02 20:00", "new"},
+    };
+
+    // The newest entry is the one that counts, so 'second' -- marked known, then popped again
+    // and left unmarked -- is in neither scope, exactly as the words list shows it.
+    EXPECT_EQ(exportLemmas(history, ExportScope::Known), "first\n");
+    EXPECT_EQ(exportLemmas(history, ExportScope::New), "third\n");
+}
+
+TEST(WordExport, NothingMatchingIsAnEmptyString)
+{
+    const std::vector<HistoryEntry> history{{"first", "2026-10-03 09:01", "known"}};
+    EXPECT_TRUE(exportLemmas(history, ExportScope::New).empty());
+    EXPECT_TRUE(exportLemmas({}, ExportScope::All).empty());
+}
+
+TEST(WordExport, ALemmaIsWrittenThroughAsItIs)
+{
+    // The lemmas come out of the wordlist, but nothing here may reshape them: one stray
+    // conversion and the reader's file carries a different word. Non-ASCII is where that shows.
+    const std::vector<HistoryEntry> history{{"naïve", "2026-10-03 09:01", ""}, {"café", "2026-10-03 09:00", ""}};
+    EXPECT_EQ(exportLemmas(history, ExportScope::All), "naïve\ncafé\n");
 }
 
 TEST_F(StatsStoreTest, IgnoresMalformedEntriesInTheDocument)

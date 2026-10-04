@@ -261,10 +261,6 @@ Window {
         onBackRequested: root.showStats()
     }
 
-    SendConfirm {
-        id: sendConfirm
-    }
-
     TrayMenu {
         id: trayMenu
         // The menu asks; the placement is here, because here is where every surface's
@@ -289,10 +285,6 @@ Window {
 
         function onPointerPressed(at) {
             root.dismissOutside(root.toDip(at));
-        }
-
-        function onConfirmSendRequest(words) {
-            sendConfirm.ask(words);
         }
     }
 

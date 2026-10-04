@@ -1,6 +1,6 @@
 {
   "systemPrompt": {
-    "template": "Explain each word in the input list. Give its most common sense only.\nReply with valid JSON in exactly this shape:\n{\"results\":[{\"word\":\"...\",\"en\":\"...\",\"zh\":\"...\"}]}\nEcho every word exactly as written, with nothing added and nothing dropped.\n{outputLanguage}",
+    "template": "Explain each word in the input list. Give its most common sense only, and its IPA pronunciation in slashes.\nReply with valid JSON in exactly this shape:\n{\"results\":[{\"word\":\"...\",\"ipa\":\"...\",\"en\":\"...\",\"zh\":\"...\"}]}\nEcho every word exactly as written, with nothing added and nothing dropped.\n{outputLanguage}",
     "outputLanguage": {
       "en": "Make the English definition the main one.",
       "zh": "Make the Chinese definition the main one."

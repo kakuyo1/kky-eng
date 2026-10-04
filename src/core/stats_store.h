@@ -2,6 +2,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include <cstdint>
 #include <map>
 #include <string>
 #include <vector>
@@ -38,6 +39,26 @@ struct DailyUsage {
     long long promptTokens = 0;
     long long completionTokens = 0;
 };
+
+/// @brief Which rows a words export covers.
+/// @note The three values are the words popup's own filter (UI.md section 4.7), so what a
+///       reader exports is what they were looking at.
+enum class ExportScope : std::uint8_t { All,
+                                        Known,
+                                        New };
+
+/**
+ * @brief Render the history as the words export: plain text, one lemma per line.
+ *
+ * The rows are the words popup's: each lemma once, its newest entry deciding both the order
+ * and whether it counts as known or new. Nothing here picks a file or writes one, which is
+ * what keeps the text itself assertable without Qt.
+ *
+ * @param history The history, newest first.
+ * @param scope   Every lemma, or only those the newest entry marks known / new.
+ * @return The lemmas joined by '\n', ending with one; empty when no row matches @p scope.
+ */
+std::string exportLemmas(const std::vector<HistoryEntry>& history, ExportScope scope);
 
 /**
  * @brief The history and daily tallies behind the statistics surfaces.

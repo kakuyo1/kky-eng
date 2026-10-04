@@ -11,6 +11,7 @@
 #include <QDate>
 #include <QDateTime>
 #include <QGuiApplication>
+#include <QHash>
 #include <QJSEngine>
 #include <QQmlEngine>
 #include <QSet>
@@ -21,9 +22,11 @@
 #include <variant>
 #include <vector>
 
+#include "autostart.h"
 #include "core/filter_core.h"
 #include "core/log.h"
 #include "mouse_selection_hook.h"
+#include "notice.h"
 
 namespace lens::app {
 namespace {
@@ -127,10 +130,9 @@ AppController::AppController(core::KnownStore& store, llm::LlmClient& llm, Mouse
     connect(&llm_, &llm::LlmClient::failed, this, [this](const QString& message) {
         busyLabel_.clear();
         emit busyChanged();
-        // No error surface is specified for phase 1, and a request that fails silently reads
-        // as a broken app. The bubble carries the reason, with no status chip: it is not an
-        // explanation, and nothing here pretends otherwise.
-        showNotice(message, pending_);
+        // A request that fails silently reads as a broken app, so the reason goes up as a
+        // notice -- a surface of its own, carrying no verdict, because nothing was explained.
+        showNotice(noticeTitle(pending_), message, kNoticeError);
     });
 
     llm_.setExplanationLang(QString::fromStdString(store_.explanationLang()));
@@ -172,6 +174,13 @@ void AppController::beginSelection(QPoint anchor)
 {
     const auto grabbed = grabber_->grab();
     if (const auto* status = std::get_if<GrabStatus>(&grabbed)) {
+        if (*status == GrabStatus::ClipboardReplaced) {
+            // The one status with a setting behind it: the reader's own copy is what the
+            // clipboard holds now, so whether they hear about the abandoned pop is theirs to
+            // choose (clipboardPolicy).
+            clipboardReplaced();
+            return;
+        }
         // Expected outcomes, not faults: a release inside our own surface, a terminal, or a
         // drag over something that does not copy. The grabber has already logged the reason.
         LENS_DEBUG("selection at ({}, {}) produced no text (status {})", anchor.x(), anchor.y(), static_cast<int>(*status));
@@ -245,11 +254,10 @@ void AppController::explain(const Pending& pending)
     if (pending.kind != QLatin1String("word")) {
         // Returning in silence made the bar look broken: it hides itself on the tap, so a
         // sentence selection answered the press with nothing happening at all, and the two
-        // items read as dead while only copy worked. The bubble already carries a request
-        // that failed; it carries this too, and by the same rules -- no status chip, because
-        // nothing was explained.
+        // items read as dead while only copy worked. A notice says so, and by the same rules
+        // a failed request follows -- no verdict, because nothing was explained.
         LENS_INFO("no channel for a '{}' selection; nothing was sent", pending.kind.toStdString());
-        showNotice(tr("No word to explain in this selection"), pending);
+        showNotice(noticeTitle(pending), tr("No word to explain in this selection"), kNoticeInfo);
         return;
     }
 
@@ -267,39 +275,14 @@ void AppController::explain(const Pending& pending)
 
 void AppController::requestExplanations(const QStringList& words)
 {
-#ifdef DEV_SEND_CONFIRM
-    LENS_INFO("holding {} word(s) for the dev send confirmation", words.size());
-    pendingSend_ = words;
-    emit confirmSendRequest(words);
-#else
+    // Only the terms themselves leave the machine: hard-filtered by FilterCore, and masked
+    // once more in the request builder (PHASE1.md section 6).
     busyLabel_ = tr("Explaining…");
     emit busyChanged();
     stats_.recordPop(pending_.lemma.toStdString(), nowMinute().toStdString());
     store_.save();
     emit statsChanged();
     llm_.explainWords(words);
-#endif
-}
-
-void AppController::confirmSend()
-{
-    if (pendingSend_.isEmpty())
-        return;
-    const QStringList words = pendingSend_;
-    pendingSend_.clear();
-
-    busyLabel_ = tr("Explaining…");
-    emit busyChanged();
-    stats_.recordPop(pending_.lemma.toStdString(), nowMinute().toStdString());
-    store_.save();
-    emit statsChanged();
-    llm_.explainWords(words);
-}
-
-void AppController::cancelSend()
-{
-    LENS_INFO("the dev send confirmation was declined; nothing left the machine");
-    pendingSend_.clear();
 }
 
 void AppController::showBubble(const QString& word, const QString& en, const QString& zh, const QPoint& anchor)
@@ -317,21 +300,57 @@ void AppController::showBubble(const QString& word, const QString& en, const QSt
                           {"status", store_.isKnown(word.toStdString()) ? QStringLiteral("known") : QStringLiteral("new")},
                           {"x", anchor.x()},
                           {"y", anchor.y()}};
+    // An explanation answers whatever the last notice was about, so the two never sit side by
+    // side saying different things.
+    clearNotice();
     LENS_INFO("bubble up for '{}'", word.toStdString());
     emit bubbleChanged();
 }
 
-void AppController::showNotice(const QString& message, const Pending& pending)
+void AppController::showNotice(const QString& title, const QString& body, const QString& kind)
 {
-    // The title line carries what the reader selected. A word selection names its word; a
-    // sentence has no single word to name, and an empty title would leave the card a float of
-    // text with nothing tying it back to the selection it is about.
-    bubble_ = QVariantMap{{"word", pending.surface.isEmpty() ? pending.text : pending.surface},
-                          {"en", QString()},
-                          {"zh", message},
-                          {"status", QString()},
-                          {"x", pending.anchor.x()},
-                          {"y", pending.anchor.y()}};
+    // One pop at a time, the way an explanation also takes the place of a notice: the two
+    // answer different gestures, and a stale card beside a fresh one reads as a stuck surface.
+    clearBubble();
+    notice_ = noticePayload(title, body, kind);
+    LENS_INFO("notice ({}): '{}'", kind.toStdString(), title.toStdString());
+    emit noticeChanged();
+}
+
+QString AppController::noticeTitle(const Pending& pending)
+{
+    // The word when the selection had one, the selection itself otherwise. A sentence has no
+    // single word to name, and an untitled card floats with nothing tying it to what it is
+    // about.
+    return pending.surface.isEmpty() ? pending.text : pending.surface;
+}
+
+void AppController::clipboardReplaced()
+{
+    if (documentString("clipboardPolicy", QStringLiteral("topmost")) == QLatin1String("silent")) {
+        LENS_INFO("the clipboard was written during the grab; the policy is silent, so nothing is shown");
+        return;
+    }
+
+    // topmost, and the default for anything else: say it. The reader's clipboard is theirs to
+    // put back by hand, and a gesture answered with no surface at all reads as broken. No
+    // title: there is no selection this belongs to -- the grab is what did not finish.
+    showNotice(QString(), tr("Another program changed the clipboard while the selection was being read."), kNoticeError);
+}
+
+void AppController::clearNotice()
+{
+    if (notice_.isEmpty())
+        return;
+    notice_.clear();
+    emit noticeChanged();
+}
+
+void AppController::clearBubble()
+{
+    if (bubble_.isEmpty())
+        return;
+    bubble_.clear();
     emit bubbleChanged();
 }
 
@@ -407,6 +426,27 @@ void AppController::setApiKey(QString key)
     LENS_INFO("API key {}", key.isEmpty() ? "cleared" : "updated");
 }
 
+void AppController::setClipboardPolicy(QString policy)
+{
+    // Only the two values mean anything. Anything else would sit in the document behaving as
+    // topmost -- a setting that silently does not exist -- so it is refused here.
+    if (policy != QLatin1String("topmost") && policy != QLatin1String("silent")) {
+        LENS_WARN("unknown clipboard policy '{}'; leaving the setting alone", policy.toStdString());
+        return;
+    }
+    writeDocument("clipboardPolicy", policy);
+    LENS_INFO("clipboard policy set to '{}'", policy.toStdString());
+    emit settingsChanged();
+}
+
+void AppController::setAutostart(bool on)
+{
+    // The registry is the state, so the surface is told to read it back rather than promised
+    // the change landed: a policy that forbids the Run key leaves the switch off.
+    writeAutostart(on);
+    emit settingsChanged();
+}
+
 void AppController::bubbleHoverChanged(bool hovering)
 {
     // The countdown and its pause are the bubble's own business; this exists so the
@@ -417,16 +457,23 @@ void AppController::bubbleHoverChanged(bool hovering)
 
 void AppController::dismissBubble()
 {
-    if (bubble_.isEmpty())
+    // Both kinds of pop take the one dismissal: to the reader, the close button and the
+    // bubble's countdown are the same gesture.
+    if (bubble_.isEmpty() && notice_.isEmpty())
         return;
-    bubble_.clear();
-    LENS_DEBUG("bubble dismissed");
-    emit bubbleChanged();
+    clearBubble();
+    clearNotice();
+    LENS_DEBUG("the current pop was dismissed");
 }
 
 QVariantMap AppController::bubble() const
 {
     return bubble_;
+}
+
+QVariantMap AppController::notice() const
+{
+    return notice_;
 }
 
 QVariantMap AppController::settings() const
@@ -439,6 +486,8 @@ QVariantMap AppController::settings() const
         {"uiLanguage", documentString("uiLanguage", QStringLiteral("zh"))},
         {"hasApiKey", !documentString("API-KEY", QString()).isEmpty()},
         {"selectionCapture", documentString("selectionCapture", QStringLiteral("true")) == QLatin1String("true")},
+        {"clipboardPolicy", documentString("clipboardPolicy", QStringLiteral("topmost"))},
+        {"autostart", autostartEnabled()},
         {"autoScan", autoScan_},
     };
 }
@@ -490,6 +539,16 @@ QVariantList AppController::words() const
     // dropped is the display of a repeat, not the pop: todayPops still counts both.
     QSet<QString> seen;
 
+    // How many times each lemma was popped, which the row carries beside it. Counted out of
+    // the history rather than stored: the stored shape is a locked decision (PRODUCT.md
+    // "存储形状"), and the per-day tally is the only count it keeps. It needs its own pass --
+    // a row is written at its lemma's newest entry, before the older ones have been seen.
+    // ponytail: the history holds the newest 2000 entries (PHASE1.md section 4.2), so these
+    // counts saturate at whatever the window still holds once it starts truncating.
+    QHash<QString, int> pops;
+    for (const core::HistoryEntry& entry : stats_.history())
+        ++pops[QString::fromStdString(entry.lemma)];
+
     QVariantList out;
     out.reserve(static_cast<qsizetype>(stats_.history().size()));
     for (const core::HistoryEntry& entry : stats_.history()) {
@@ -520,9 +579,34 @@ QVariantList AppController::words() const
         out.append(QVariantMap{{"word", shown},
                                {"when", when},
                                {"verdict", QString::fromStdString(entry.verdict)},
-                               {"status", status}});
+                               {"status", status},
+                               {"pops", pops.value(shown)}});
     }
     return out;
+}
+
+QString AppController::exportWords(QString scope)
+{
+    core::ExportScope which;
+    if (scope == QLatin1String("all"))
+        which = core::ExportScope::All;
+    else if (scope == QLatin1String("known"))
+        which = core::ExportScope::Known;
+    else if (scope == QLatin1String("new"))
+        which = core::ExportScope::New;
+    else {
+        LENS_WARN("export asked for an unknown scope '{}'; nothing was written", scope.toStdString());
+        return QString();
+    }
+
+    const QString text = QString::fromStdString(core::exportLemmas(stats_.history(), which));
+    if (text.isEmpty())
+        // Not a fault: a scope can match no row, and "nothing to export" is the right answer
+        // to report either way.
+        LENS_INFO("words export for '{}': no row matches", scope.toStdString());
+    else
+        LENS_INFO("words export for '{}': {} character(s) ready", scope.toStdString(), text.size());
+    return text;
 }
 
 QVariantMap AppController::cost() const
@@ -535,22 +619,39 @@ QVariantMap AppController::cost() const
     double yesterday = 0.0;
     double week = 0.0;
 
+    // The tokens the amounts were priced from, per bucket, so a surface can show what was
+    // bought as well as what it cost. Tokens are what is stored and the amounts are what the
+    // current price list makes of them (PRODUCT.md "存储形状"), so the two travel together.
+    long long monthTokens = 0;
+    long long todayTokens = 0;
+    long long yesterdayTokens = 0;
+    long long weekTokens = 0;
+
     for (const auto& [date, usage] : daily) {
         const QDate when = QDate::fromString(QString::fromStdString(date), Qt::ISODate);
         if (!when.isValid())
             continue;
 
         const double amount = amountOf(usage);
-        if (when.year() == today.year() && when.month() == today.month())
+        const long long tokens = usage.promptTokens + usage.completionTokens;
+        if (when.year() == today.year() && when.month() == today.month()) {
             month += amount;
-        if (when == today)
+            monthTokens += tokens;
+        }
+        if (when == today) {
             todayAmount = amount;
-        if (when.daysTo(today) == 1)
+            todayTokens = tokens;
+        }
+        if (when.daysTo(today) == 1) {
             yesterday = amount;
+            yesterdayTokens = tokens;
+        }
         // ISO weeks start on Monday, which is what "this week" means on the calendar the
         // reader is looking at.
-        if (when.year() == today.year() && when.weekNumber() == today.weekNumber())
+        if (when.year() == today.year() && when.weekNumber() == today.weekNumber()) {
             week += amount;
+            weekTokens += tokens;
+        }
     }
 
     // Averaged over the days of the month that have happened, not over the days that happen
@@ -562,6 +663,10 @@ QVariantMap AppController::cost() const
                        {"yesterday", yesterday},
                        {"week", week},
                        {"dailyAverage", dailyAverage},
+                       {"monthTokens", monthTokens},
+                       {"todayTokens", todayTokens},
+                       {"yesterdayTokens", yesterdayTokens},
+                       {"weekTokens", weekTokens},
                        {"currency", currencySymbol(pricing_.currency())}};
 }
 

@@ -28,8 +28,10 @@ struct Config {
 };
 
 /// @brief One explained word as returned by the model.
+/// @note `ipa` is the pronunciation in slashes, and the schema requires it on the same terms
+///       as the other three; see `data/llm/response.word.schema.json`.
 struct WordExplanation {
-    QString word, en, zh;
+    QString word, ipa, en, zh;
 };
 
 /// @brief Token counts the service reports for one call, for the cost surfaces.
