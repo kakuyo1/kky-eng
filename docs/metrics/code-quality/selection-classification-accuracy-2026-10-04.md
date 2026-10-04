@@ -142,7 +142,8 @@ V3 后的实际输出为 `corpus: 1004 entries, 0 mismatched`，独立脚本输�
 需求侧观察：选中一句英文，动作条出现但点 翻译 / 解释 只解释了其中一个词，整句翻译 / 解释没有发生。根因：
 `classifySelection` 原以 “有候选 = Word” 分流，任何含词表词的英文句子都进 word 通道，只剩 “一个词表词都
 没有” 的选区走 sentence。定夺：**通道由选区形状定**——整个选区是单个 letters-only token（≥2 字母、
-不分大小写）→ Word；多 token → Sentence；多 token Title Case 短语 → Entity。`filterWords` 对多 token
+不分大小写）→ Word；多 token 名称短语（Title Case 或全大写缩写）→ Entity；其余多 token → Sentence。
+`filterWords` 对多 token
 文本仍照常产出候选（语料里的 `expect` 列表保留，改由它在测试里断言），`check-eval-corpus.py` 的
 `expectKind` 与 `expect` 解耦。
 
@@ -163,3 +164,25 @@ V3 后的实际输出为 `corpus: 1004 entries, 0 mismatched`，独立脚本输�
 改后实际输出：`corpus: 1004 entries, 0 mismatched`；`python scripts/check-eval-corpus.py` 输出
 `corpus: 1004 entries, 0 problem(s)`；`lens_gtest_unit` 45 绿、`lens_qtest_surfaces` 52 绿。真实模型
 往返（句子翻译 / 解释）属人工 / 付费验收，未跑。
+
+## 10 实体放宽与实体气泡（2026-10-04）
+
+需求侧观察：`QML API` 这类全大写缩写短语被判成 `Sentence`；要求它作为实体，且实体气泡不带 known / new。
+定夺：实体判定的「名称 token」由只认 Title Case 扩为 **Title Case 或全大写缩写**（2–5 token，至少两个名称
+token，其余只能是 `of` / `the` / `and` / `for`），`QML API` / `the QML API` 成实体，`QML API server`
+（含小写实词）仍为句子；单个 token（`QML`）仍走 word。实体气泡**去掉类型标签**：word 保留 known / new
+判定胶囊、sentence 保留「句子」描边标签、entity 什么都不标。实体本就不写单词缓存 / 弹词历史，此点 V3 已成立。
+
+语料新增 3 条：`QML API`（Entity）、`the QML API`（Entity）、`QML API server`（Sentence）。
+`check-eval-corpus.py` 的 `is_entity_selection` 同步。移除 `Bubble.qml` 的 `qsTr("Entity")` 后，
+`lupdate -no-obsolete` 删掉该串。
+
+| 指标 | 改前 | 改后 |
+| --- | ---: | ---: |
+| 语料段数 | 1004 | 1007 |
+| Entity 段数 | 2 | 4 |
+| corpus mismatched | 0 | 0 |
+| 独立检查脚本问题数 | 0 | 0 |
+
+改后实际输出：`corpus: 1007 entries, 0 mismatched`；`python scripts/check-eval-corpus.py` 输出
+`corpus: 1007 entries, 0 problem(s)`；`lens_gtest_unit` 45 绿。

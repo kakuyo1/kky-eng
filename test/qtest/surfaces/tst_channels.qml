@@ -56,7 +56,11 @@ Item {
             compare(bubble.type, "entity");
             compare(bubble.ipa, "");
             compare(bubble.status, "");
-            verify(Util.textWith(Util.textsUnder(bubble), ["Entity"]));
+            // A named thing is not a learning item: no type badge, unlike the word bubble
+            // (Known / New) and the sentence bubble (Sentence). The empty status keeps the
+            // verdict row from ever showing on an entity.
+            verify(!Util.textWith(Util.textsUnder(bubble), ["Entity"]));
+            compare(Util.textWith(Util.textsUnder(bubble), ["Sentence"]), null);
         }
 
         function test_sentenceBubbleUsesTheSelectedSentenceAsTitle() {

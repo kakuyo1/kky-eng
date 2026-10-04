@@ -27,7 +27,7 @@ UI 上占位项：控件存在但 `enabled: false`——文案转 `faint`、开�
 ```
 拖选松手（低层鼠标钩子 WH_MOUSE_LL：LBUTTONUP 且按下期间确实拖动过，双击 / 三击选词选段同理）
   → AppController.onSelectionReleased(anchor)：注入 Ctrl+C → 读剪贴板（存还原）→ 选区类型判定
-      （判定的唯一入口是 FilterCore.classifySelection：多 token Title Case 短语 = Entity；
+      （判定的唯一入口是 FilterCore.classifySelection：多 token 名称短语（Title Case 或全大写缩写）= Entity；
         整个选区是单个字母 token = Word；其余（多 token）= Sentence。
         候选带 New / Known / Mastered 状态，后两者只标注不删，见 §4.1）
   → 选区动作条弹出（翻译 / 解释 / 复制文本。前两项是同一决策的两个入口，见 `UI.md` §4.10）
@@ -76,10 +76,10 @@ std::vector<Candidate> filterWords(
     const std::unordered_set<std::string>& knownLemmas,  // 命中即标 Known
     std::size_t minFreqRank);   // 档位 → 词表词频阈值（词书数据未就绪时的近似，见 TODO.md）；命中即标 Mastered
 
-// 选区是什么，决定它走哪条通道。实体判定只接受完整的多 token Title Case 短语。
+// 选区是什么，决定它走哪条通道。实体判定只接受完整的多 token 名称短语（Title Case 或全大写缩写）。
 enum class SelectionKind {
     Word,      // 整个选区是单个 letters-only token：查词通道
-    Entity,    // 至少两个相邻的 Title Case token：entity 通道
+    Entity,    // 至少两个相邻的名称 token（Title Case 或全大写缩写）：entity 通道
     Sentence,  // 多 token 且非实体短语：整段翻译 / 解释
 };
 
@@ -98,9 +98,9 @@ Selection classifySelection(
 }
 ```
 
-判定次序：先识别完整的多 token Title Case 实体短语（至少两个 token，单个首字母大写词不算），再按**选区形状**定通道——整个选区是单个 letters-only token（≥2 字母、不分大小写，如 `QML` / `qml` / `am`）为 `Word`，多 token 为 `Sentence`。`Word` 的候选由 `filterWords` 产出：分词硬过滤（含元音、长度 ≥3、无数字、去 URL / 邮箱 / 粘连串）→ 全大写跳过 → 词根还原 → 静态词表白名单（不在表即丢）→ 按 lemma 去重 → 标状态（New / Known / Mastered）；单个 letters-only token 不走这三道门，见下条。
+判定次序：先识别完整的多 token 名称短语（Title Case 或全大写缩写，至少两个 name-like token，单个 token 不算），再按**选区形状**定通道——整个选区是单个 letters-only token（≥2 字母、不分大小写，如 `QML` / `qml` / `am`）为 `Word`，多 token 为 `Sentence`。`Word` 的候选由 `filterWords` 产出：分词硬过滤（含元音、长度 ≥3、无数字、去 URL / 邮箱 / 粘连串）→ 全大写跳过 → 词根还原 → 静态词表白名单（不在表即丢）→ 按 lemma 去重 → 标状态（New / Known / Mastered）；单个 letters-only token 不走这三道门，见下条。
 
-**通道由选区形状定，不由是否含词表词定**（2026-10-04）：原先 “有候选 = Word” 会把任何含词表词的英文句子送进 word 通道，动作条只解释其中一个词，句子的翻译 / 解释形同虚设。现改为：整个选区是一个字母 token → `Word`（查一个词）；多 token → `Sentence`（整段翻译 / 解释）；多 token Title Case 短语 → `Entity`。语料里 500 条多 token 条目由 `Word` 改为 `Sentence`（`expect` 候选列表保留，仍由 `filterWords` 断言），`check-eval-corpus.py` 的 `expectKind` 与 `expect` 解耦。取舍见 `docs/metrics/code-quality/selection-classification-accuracy-2026-10-04.md` §9。
+**通道由选区形状定，不由是否含词表词定**（2026-10-04）：原先 “有候选 = Word” 会把任何含词表词的英文句子送进 word 通道，动作条只解释其中一个词，句子的翻译 / 解释形同虚设。现改为：整个选区是一个字母 token → `Word`（查一个词）；多 token 名称短语（Title Case 或全大写缩写）→ `Entity`；其余多 token → `Sentence`（整段翻译 / 解释）。语料里 500 条多 token 条目由 `Word` 改为 `Sentence`（`expect` 候选列表保留，仍由 `filterWords` 断言），`check-eval-corpus.py` 的 `expectKind` 与 `expect` 解耦。取舍见 `docs/metrics/code-quality/selection-classification-accuracy-2026-10-04.md` §9。
 
 **known-set 与档位阈值只标注，不删候选**（2026-10-04）：它们是候选的状态，不是候选的删除条件——读者手选一个词就是在要求解释它，而他可能早忘了自己标过的词。`SelectionKind::Word` 是**选区的形状**（单个字母 token），与 “这段里有没有词表词” 无关；候选只在这条形状下产出并带 New / Known / Mastered 状态，调用方按状态挑词。
 
@@ -320,7 +320,7 @@ signals:
 - **接口形状**：`bubble` 与 `settings` 都是 `QVariantMap`，不是 QObject 模型——表面数量个位数、字段都是标量，为每个表面写一个 `QAbstractItemModel` 是给 QML 添一层没人问的间接。`modeLabel` 一个属性喂托盘菜单首行与 tooltip 两处（`UI.md` §4.2 / §4.5），分两处拼字符串必然漂移。`cost` 的五个数在 C++ 算：本月 / 今天 / 昨天 / 本周 / 日均的日期运算用 `QDate`，core 侧只存 token 与按日计数（§4.2）。
 - **5 秒计时归 QML**：自动消失与悬停挂起是视图行为（`UI.md` §4.3），计时的持有者在 QML；`bubbleHoverChanged` 只让 C++ 知道状态，不参与计时。否则计时器要跨进程边界地和悬停事件对齐。
 - **类型判定从 `beginSelection` 里提出来**：判定原本是行内一句 `candidates.empty()`，现收到 `core::classifySelection`（§4.1），出参是 `SelectionKind` 加候选。实体、单词、句子的路由在同一处决定，按钮不参与判定；`lens_gtest_unit` 可直接覆盖这条无 Qt 规则。`beginSelection` 按 `switch (kind)` 取值而非再看一次 `empty()`——枚举穷尽时编译器会在加通道那一刻报错。
-- **三通道的气泡边界**：word 解释保留 `ipa`、单词缓存、已会 / 新词 verdict 与词汇统计；entity / sentence 只显示 `title` 与解释，不显示 IPA / verdict，也不写入单词缓存与弹词历史。实体的两个动作共用 `default` 预设，句子的 `translate` / `explain` 分别选择同名预设。（三通道落地后每条选区都有通道，气泡不再兼职播报失败；抓取失败走 `notice`，见上一条。）
+- **三通道的气泡边界**：word 解释保留 `ipa`、单词缓存、已会 / 新词 verdict 与词汇统计；entity / sentence 只显示 `title` 与解释，不显示 IPA / verdict，也不写入单词缓存与弹词历史。实体气泡**不带类型标签**（命名实体不是学习词条，没有 known / new），句子气泡带 “句子” 描边标签。实体的两个动作共用 `default` 预设，句子的 `translate` / `explain` 分别选择同名预设。（三通道落地后每条选区都有通道，气泡不再兼职播报失败；抓取失败走 `notice`，见上一条。）
 
 落地注记（2026-10-02）：
 
@@ -478,6 +478,6 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 
 ### 切片四：阶段二通道（V3 已完成，OCR 仍占位）
 
-- **V3 范围**：选区实体与句子解释。实体使用一个 `default` 预设，句子使用 `translate` / `explain` 两个预设；两类响应均为 `title / en / zh` 三字段，不进入单词缓存与 verdict。实体分类只接受至少两个相邻的 Title Case token，单个首字母大写 token 不升级为实体。
+- **V3 范围**：选区实体与句子解释。实体使用一个 `default` 预设，句子使用 `translate` / `explain` 两个预设；两类响应均为 `title / en / zh` 三字段，不进入单词缓存与 verdict。实体分类只接受至少两个相邻的名称 token（Title Case 或全大写缩写），单个 token 不升级为实体。
 - **剩余范围**：OCR 取词（扫描 / 悬停 / 截图）、误弹反馈入口、每日预算上限仍是占位项，设置中不可触发。
 - **交付**：`data/llm/` 的三通道请求与 schema、`llm_protocol` 的 preset loader、`LlmClient` 的 channel / preset 路由、`FilterCore` 的实体分支、`AppController` 的三通道动作路由与独立 QML 通道测试。

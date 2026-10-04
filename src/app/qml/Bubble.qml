@@ -258,22 +258,23 @@ Window {
                 width: parent.width - 32
                 spacing: 0
 
-                // Word bubbles show the learning verdict; entity and sentence bubbles show only
-                // their channel label and never invent a word verdict.
+                // A word bubble carries the learning verdict; a sentence bubble carries its type
+                // label. An entity bubble carries neither: a named thing is not a learning item,
+                // so it is drawn as title plus encyclopaedic definition with no badge.
                 Rectangle {
-                    visible: bubble.type !== ""
+                    visible: bubble.type === "word" || bubble.type === "sentence"
                     width: tag.width + 16
                     height: 17
                     radius: Tokens.radiusPill
-                    color: bubble.type !== "word" ? "transparent" : bubble.status === "known" ? Tokens.panel2 : Tokens.okBg
-                    border.width: bubble.type !== "word" ? 1 : 0
+                    color: bubble.type === "word" ? (bubble.status === "known" ? Tokens.panel2 : Tokens.okBg) : "transparent"
+                    border.width: bubble.type === "word" ? 0 : 1
                     border.color: Tokens.line
 
                     Text {
                         id: tag
                         anchors.centerIn: parent
-                        text: bubble.type === "entity" ? qsTr("Entity") : bubble.type === "sentence" ? qsTr("Sentence") : bubble.status === "known" ? qsTr("Known") : qsTr("New")
-                        color: bubble.type !== "word" ? Tokens.muted : bubble.status === "known" ? Tokens.muted : Tokens.okText
+                        text: bubble.type === "sentence" ? qsTr("Sentence") : bubble.type === "word" ? (bubble.status === "known" ? qsTr("Known") : qsTr("New")) : ""
+                        color: bubble.type === "sentence" ? Tokens.muted : bubble.status === "known" ? Tokens.muted : Tokens.okText
                         font.pixelSize: 11
                         font.weight: Font.Bold
                     }

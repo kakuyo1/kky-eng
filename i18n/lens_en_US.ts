@@ -4,29 +4,24 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="275"/>
-        <location filename="../src/app/qml/Bubble.qml" line="379"/>
+        <location filename="../src/app/qml/Bubble.qml" line="276"/>
+        <location filename="../src/app/qml/Bubble.qml" line="380"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="275"/>
-        <location filename="../src/app/qml/Bubble.qml" line="400"/>
+        <location filename="../src/app/qml/Bubble.qml" line="276"/>
+        <location filename="../src/app/qml/Bubble.qml" line="401"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="275"/>
-        <source>Entity</source>
-        <translation>Entity</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/Bubble.qml" line="275"/>
+        <location filename="../src/app/qml/Bubble.qml" line="276"/>
         <source>Sentence</source>
         <translation>Sentence</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="419"/>
+        <location filename="../src/app/qml/Bubble.qml" line="420"/>
         <source>Disappears in %1s</source>
         <translation>Disappears in %1s</translation>
     </message>

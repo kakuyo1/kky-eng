@@ -236,7 +236,7 @@ TEST_F(CoreTest, ClassifiesJunkAsASentence)
     EXPECT_EQ(mastered.candidates.front().state, lens::core::CandidateState::Mastered);
 }
 
-TEST_F(CoreTest, ClassifiesOnlyMultiTokenTitleCasePhrasesAsEntities)
+TEST_F(CoreTest, ClassifiesTitleCaseAndAcronymPhrasesAsEntities)
 {
     const auto entity = lens::core::classifySelection("New York", {}, 0);
     EXPECT_EQ(entity.kind, lens::core::SelectionKind::Entity);
@@ -244,6 +244,15 @@ TEST_F(CoreTest, ClassifiesOnlyMultiTokenTitleCasePhrasesAsEntities)
 
     const auto anotherEntity = lens::core::classifySelection("United States", {}, 0);
     EXPECT_EQ(anotherEntity.kind, lens::core::SelectionKind::Entity);
+
+    // An all-caps acronym phrase is a name too: QML API is an entity, not a two-word sentence.
+    const auto acronym = lens::core::classifySelection("QML API", {}, 0);
+    EXPECT_EQ(acronym.kind, lens::core::SelectionKind::Entity);
+    EXPECT_TRUE(acronym.candidates.empty());
+    EXPECT_EQ(lens::core::classifySelection("the QML API", {}, 0).kind, lens::core::SelectionKind::Entity);
+
+    // A lowercase word that is not a connector keeps it a sentence.
+    EXPECT_EQ(lens::core::classifySelection("QML API server", {}, 0).kind, lens::core::SelectionKind::Sentence);
 
     const auto singleToken = lens::core::classifySelection("London", {}, 0);
     EXPECT_NE(singleToken.kind, lens::core::SelectionKind::Entity);

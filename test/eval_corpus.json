@@ -6531,6 +6531,24 @@
     "expectKind": "Entity"
   },
   {
+    "note": "entity: an all-caps acronym phrase names a thing",
+    "text": "QML API",
+    "expect": [],
+    "expectKind": "Entity"
+  },
+  {
+    "note": "entity: a connector plus two acronyms",
+    "text": "the QML API",
+    "expect": [],
+    "expectKind": "Entity"
+  },
+  {
+    "note": "not an entity: a lowercase verb follows the acronyms",
+    "text": "QML API server",
+    "expect": ["server"],
+    "expectKind": "Sentence"
+  },
+  {
     "note": "entity: a single capitalized token is not promoted",
     "text": "London",
     "expect": ["london"],

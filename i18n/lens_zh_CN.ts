@@ -4,29 +4,24 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="275"/>
-        <location filename="../src/app/qml/Bubble.qml" line="379"/>
+        <location filename="../src/app/qml/Bubble.qml" line="276"/>
+        <location filename="../src/app/qml/Bubble.qml" line="380"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="275"/>
-        <location filename="../src/app/qml/Bubble.qml" line="400"/>
+        <location filename="../src/app/qml/Bubble.qml" line="276"/>
+        <location filename="../src/app/qml/Bubble.qml" line="401"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="275"/>
-        <source>Entity</source>
-        <translation>实体</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/Bubble.qml" line="275"/>
+        <location filename="../src/app/qml/Bubble.qml" line="276"/>
         <source>Sentence</source>
         <translation>句子</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="419"/>
+        <location filename="../src/app/qml/Bubble.qml" line="420"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒后自动消失</translation>
     </message>

@@ -110,7 +110,7 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_QPA_PLATFORM=offscreen QT_FORCE_STDER
 
 `scripts/check-eval-corpus.py` 按 `PHASE1.md` §4.1 的规则独立校验样例集（不走实现）：普通 Word / Sentence
 段落中每个 token 要么进 `expect`，要么有一条具名规则把它排除；Entity 段落必须满足至少两个相邻
-Title Case token 的保守短语规则。改完样例集跑一次，它是期望值之外的那道独立核对。
+名称 token（Title Case 或全大写缩写）的保守短语规则。改完样例集跑一次，它是期望值之外的那道独立核对。
 
 ## 4 Profiling 与覆盖率
 

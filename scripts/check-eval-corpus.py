@@ -169,18 +169,24 @@ def is_title_case_token(token: str) -> bool:
     return len(token) >= 2 and token[0].isupper() and token[1:].islower() and token.isalpha()
 
 
+def is_acronym_token(token: str) -> bool:
+    return len(token) >= 2 and token.isascii() and token.isalpha() and token.isupper()
+
+
 def is_entity_selection(text: str) -> bool:
     tokens = [token.strip(".,!?;:()[]{}\"'") for token in text.split()]
     if not 2 <= len(tokens) <= 5 or any(not token for token in tokens):
         return False
 
-    title_case = 0
+    # A name is a Title Case word or an all-caps acronym; the rest may only be a connector. With
+    # no acronym this is exactly the old Title Case rule.
+    name_like = 0
     for token in tokens:
-        if is_title_case_token(token):
-            title_case += 1
+        if is_title_case_token(token) or is_acronym_token(token):
+            name_like += 1
         elif token.lower() not in {"of", "the", "and", "for"}:
             return False
-    return title_case >= 2
+    return name_like >= 2
 
 
 def check_entry(index: int, entry: dict, ranks: dict[str, int]) -> list[str]:

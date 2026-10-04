@@ -57,6 +57,18 @@ bool isTitleCaseToken(const std::string& token)
     return true;
 }
 
+/// A whole token in capitals ("QML", "API"): an acronym, which names things the same way a
+/// Title Case word does.
+bool isAcronymToken(const std::string& token)
+{
+    if (token.size() < 2)
+        return false;
+    for (char c : token)
+        if (c < 'A' || c > 'Z')
+            return false;
+    return true;
+}
+
 bool isEntitySelection(std::string_view text)
 {
     std::vector<std::string> tokens;
@@ -80,17 +92,20 @@ bool isEntitySelection(std::string_view text)
     if (tokens.size() < 2 || tokens.size() > 5)
         return false;
 
-    std::size_t titleCaseCount = 0;
+    // A name is a Title Case word or an all-caps acronym; the rest may only be a short
+    // connector. With no acronym this is exactly the old Title Case rule; the acronym is what
+    // lets a term like "QML API" be a name instead of a two-word sentence.
+    std::size_t nameLikeCount = 0;
     for (const std::string& token : tokens) {
-        if (isTitleCaseToken(token)) {
-            ++titleCaseCount;
+        if (isTitleCaseToken(token) || isAcronymToken(token)) {
+            ++nameLikeCount;
             continue;
         }
         const std::string lowered = lower(token);
         if (lowered != "of" && lowered != "the" && lowered != "and" && lowered != "for")
             return false;
     }
-    return titleCaseCount >= 2;
+    return nameLikeCount >= 2;
 }
 
 /// @return The token when the whole (trimmed) selection is one letters-only token of at least
