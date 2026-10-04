@@ -14,6 +14,7 @@
 add_library(lens_app STATIC
   mouse_selection_hook.cpp
   selection_text_grabber.cpp
+  system_motion.cpp
   app_controller.cpp
   autostart.cpp
   tray.cpp
@@ -93,8 +94,8 @@ set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Lens")
 # Three groups, split by what the file is rather than by where it is used. The ten windows are
 # the surfaces themselves -- one per thing the reader sees -- and they sit at the root so that
 # Main stays loadFromModule("Lens", "Main"). Everything a surface is built out of lives in
-# qml/components/, and the two theme value tables sit in qml/theme/, where nothing reads them by
-# name: Tokens forwards the active one. All three are the same QML module, so no group names
+# qml/components/, and the two theme value tables plus the motion table sit in qml/theme/, where
+# nothing reads them by name: Tokens forwards the active one. All three are the same QML module, so no group names
 # another in an import: Qt gives every file in the module an implicit import of its own types.
 # The module hangs off lens_app and not off the executable because of where the two types the
 # surfaces talk to are declared. qt_add_qml_module registers the C++ types of the target it is
@@ -109,6 +110,7 @@ qt_add_qml_module(lens_app
   SOURCES
     app_controller.h
     tray.h
+    system_motion.h
   QML_FILES
     qml/Main.qml
     qml/TrayMenu.qml
@@ -122,6 +124,7 @@ qt_add_qml_module(lens_app
     qml/components/Tokens.qml
     qml/theme/Light.qml
     qml/theme/Dark.qml
+    qml/theme/Motion.qml
     qml/components/Icon.qml
     qml/components/ShadowCard.qml
     qml/components/Segment.qml
