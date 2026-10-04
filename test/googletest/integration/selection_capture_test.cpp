@@ -63,12 +63,19 @@ constexpr int kSlop = 4;
 /// How long the human gets to make a selection once the hook is listening.
 constexpr int kHookWaitMs = 20'000;
 
+/// How long the synthesised drag gets to arrive before the case gives up on it.
+constexpr int kDragWaitMs = 2'000;
+
 /// How far the synthesised drag travels. Well past any plausible SM_CXDRAG, so the gesture
 /// rule cannot reject it for the wrong reason.
 constexpr int kDragPx = 40;
 
 /// The switch that turns this executable into the probe-window child instead of a test run.
 constexpr const char* kProbeWindowArg = "--lens-probe-window";
+
+/// How long to wait for the probe child to put its window up, and how often to look.
+constexpr int kProbeWindowWaitMs = 2000;
+constexpr int kProbePollIntervalMs = 20;
 
 /// @return A name for the status, so a failure message says something a reader can act on
 ///         instead of a number.
@@ -279,54 +286,110 @@ void sendDrag(POINT start, int dx)
 ///        child's pid so the two halves can find each other without a pipe.
 constexpr wchar_t kProbeTitlePrefix[] = L"Lens probe ";
 
-/// @brief Start this executable in probe mode: a child that owns the landing window.
-///
-/// The landing window has to belong to *another process*. The hook ignores any press over a
-/// window of its own process — that is the rule that keeps a drag on one of the app's own
-/// surfaces from being read as a selection — so a probe owned by the test would be dropped for
-/// the right reason and the case could only ever go red. A child of the test is the smallest
-/// owner that is not the test.
-///
-/// @return The child's process id, or 0 when it could not be started.
-DWORD spawnProbeWindowProcess()
-{
-    wchar_t executable[MAX_PATH] = {};
-    if (GetModuleFileNameW(nullptr, executable, MAX_PATH) == 0) return 0;
-
-    const std::wstring argument(kProbeWindowArg, kProbeWindowArg + std::strlen(kProbeWindowArg));
-    std::wstring command = L"\"" + std::wstring(executable) + L"\" " + argument;
-    STARTUPINFOW startup{};
-    startup.cb = sizeof(startup);
-    PROCESS_INFORMATION child{};
-    if (CreateProcessW(nullptr, command.data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &startup, &child) == 0)
-        return 0;
-
-    CloseHandle(child.hThread);
-    CloseHandle(child.hProcess); // the id is all this side needs; the child is killed below
-    return child.dwProcessId;
-}
-
 /// @brief Wait for the probe child to put its window up.
 /// @return The window, or nullptr when the child never made one.
 HWND waitForProbeWindow(DWORD pid)
 {
     const std::wstring title = kProbeTitlePrefix + std::to_wstring(pid);
-    for (int attempt = 0; attempt < 100; ++attempt) {
+    for (int waited = 0; waited < kProbeWindowWaitMs; waited += kProbePollIntervalMs) {
         if (HWND found = FindWindowW(nullptr, title.c_str())) return found;
-        Sleep(20);
+        Sleep(kProbePollIntervalMs);
     }
     return nullptr;
 }
 
-/// @brief Move the pointer back and stop the probe child.
-void dismissProbe(DWORD probePid, POINT original)
-{
-    SetCursorPos(original.x, original.y);
-    if (HANDLE child = OpenProcess(PROCESS_TERMINATE, FALSE, probePid)) {
-        TerminateProcess(child, 0);
-        CloseHandle(child);
+/**
+ * @brief The probe-window child, owned through a job object.
+ *
+ * The landing window has to belong to *another process*. The hook ignores any press over a window
+ * of its own process — that is the rule that keeps a drag on one of the app's own surfaces from
+ * being read as a selection — so a probe owned by the test would be dropped for the right reason
+ * and the case could only ever go red. A child of this executable, re-run in probe mode, is the
+ * smallest owner that is not the test.
+ *
+ * The child blocks in its own message loop and has no way out of its own, so the parent has to
+ * take it down. A job object with KILL_ON_JOB_CLOSE is what makes that unconditional: closing the
+ * handle when the case ends kills the child, and so does this process dying for any reason — a
+ * failed assertion, an exception, or a crash — which an explicit TerminateProcess on the way out
+ * could not cover.
+ */
+class ProbeChild {
+public:
+    ProbeChild() = default;
+    ~ProbeChild()
+    {
+        close();
     }
-}
+
+    ProbeChild(const ProbeChild&) = delete;
+    ProbeChild& operator=(const ProbeChild&) = delete;
+
+    /// @brief Start this executable in probe mode and put it in a kill-on-close job.
+    /// @return True when it started; pid() then names it.
+    bool start()
+    {
+        wchar_t executable[MAX_PATH] = {};
+        if (GetModuleFileNameW(nullptr, executable, MAX_PATH) == 0) return false;
+
+        job_ = CreateJobObjectW(nullptr, nullptr);
+        if (job_ == nullptr) return false;
+
+        JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits{};
+        limits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+        if (SetInformationJobObject(job_, JobObjectExtendedLimitInformation, &limits, sizeof(limits)) == 0) {
+            close();
+            return false;
+        }
+
+        const std::wstring argument(kProbeWindowArg, kProbeWindowArg + std::strlen(kProbeWindowArg));
+        std::wstring command = L"\"" + std::wstring(executable) + L"\" " + argument;
+        STARTUPINFOW startup{};
+        startup.cb = sizeof(startup);
+        PROCESS_INFORMATION child{};
+        if (CreateProcessW(nullptr, command.data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &startup, &child) == 0) {
+            close();
+            return false;
+        }
+        CloseHandle(child.hThread);
+
+        // A child that did not make it into the job is one the job cannot reap, so it is stopped
+        // here rather than left to run.
+        if (AssignProcessToJobObject(job_, child.hProcess) == 0) {
+            TerminateProcess(child.hProcess, 0);
+            CloseHandle(child.hProcess);
+            close();
+            return false;
+        }
+        CloseHandle(child.hProcess);
+
+        pid_ = child.dwProcessId;
+        return true;
+    }
+
+    /// @brief Stop the child now rather than when the case ends.
+    void stop()
+    {
+        close();
+    }
+
+    DWORD pid() const
+    {
+        return pid_;
+    }
+
+private:
+    void close()
+    {
+        if (job_ != nullptr) {
+            CloseHandle(job_); // the kill-on-close limit takes the child down with the handle
+            job_ = nullptr;
+        }
+        pid_ = 0;
+    }
+
+    HANDLE job_ = nullptr;
+    DWORD pid_ = 0;
+};
 
 /**
  * @brief A window of ours that is allowed to take the foreground.
@@ -516,13 +579,13 @@ TEST(ClipboardSnapshot, ARestoreWithoutATakeLeavesTheClipboardAlone)
 /// reason and the case could only ever report "the hook reported nothing".
 TEST(SelectionHook, ReportsASynthesisedDragAtItsReleasePoint)
 {
-    const DWORD probePid = spawnProbeWindowProcess();
-    ASSERT_NE(probePid, 0u) << "could not start the probe window child, error " << GetLastError();
-    const HWND probe = waitForProbeWindow(probePid);
-    ASSERT_TRUE(probe != nullptr) << "the probe window child never put its window up";
+    ProbeChild probe;
+    ASSERT_TRUE(probe.start()) << "could not start the probe window child, error " << GetLastError();
+    const HWND window = waitForProbeWindow(probe.pid());
+    ASSERT_TRUE(window != nullptr) << "the probe window child never put its window up";
 
     RECT bounds{};
-    const bool measured = GetWindowRect(probe, &bounds) != 0;
+    const bool measured = GetWindowRect(window, &bounds) != 0;
 
     POINT original{};
     GetCursorPos(&original);
@@ -537,7 +600,7 @@ TEST(SelectionHook, ReportsASynthesisedDragAtItsReleasePoint)
             anchor = point;
             loop.quit();
         });
-        QTimer::singleShot(2'000, &loop, &QEventLoop::quit);
+        QTimer::singleShot(kDragWaitMs, &loop, &QEventLoop::quit);
 
         // Sent before the loop runs: the callbacks land when the thread next pumps, which is
         // what loop.exec() does.
@@ -547,7 +610,8 @@ TEST(SelectionHook, ReportsASynthesisedDragAtItsReleasePoint)
 
     POINT landed{};
     GetCursorPos(&landed);
-    dismissProbe(probePid, original);
+    SetCursorPos(original.x, original.y);
+    probe.stop();
 
     ASSERT_TRUE(measured) << "could not measure the probe window";
     ASSERT_TRUE(installed) << "the low-level mouse hook could not be installed";
@@ -656,7 +720,10 @@ int runProbeWindowHost()
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
     const std::wstring title = kProbeTitlePrefix + std::to_wstring(GetCurrentProcessId());
-    CreateWindowExW(WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, L"STATIC", title.c_str(), WS_POPUP | WS_VISIBLE, 80, 80, 220, 48, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+    const HWND window = CreateWindowExW(WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, L"STATIC", title.c_str(), WS_POPUP | WS_VISIBLE, 80, 80, 220, 48, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+    // Nothing to find and no way to be told to quit: exit rather than block forever, so a broken
+    // child does not outlive the parent that is waiting on its window.
+    if (window == nullptr) return 1;
 
     MSG message;
     while (GetMessageW(&message, nullptr, 0, 0) > 0) {

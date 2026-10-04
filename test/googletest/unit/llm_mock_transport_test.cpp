@@ -114,9 +114,8 @@ TEST_F(LlmTest, CompletesEntityAgainstAnOfflineHttpServer)
 
 namespace {
 
-using lens::llm::Channel;
-using lens::llm::Config;
-using lens::llm::LlmClient;
+/// How long a stub case waits for the client to report back before it gives up.
+constexpr int kStubTimeoutMs = 2000;
 
 /// @brief The event-loop plumbing a stub case needs: one QCoreApplication for the test's
 ///        duration, because Qt allows one at a time and the reply fires from a timer.
@@ -209,7 +208,7 @@ QString runToFailure(LlmClient& client, const QStringList& words)
         failure = std::move(message);
         loop.quit();
     });
-    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+    QTimer::singleShot(kStubTimeoutMs, &loop, &QEventLoop::quit);
     client.explainWords(words);
     loop.exec();
     return failure;

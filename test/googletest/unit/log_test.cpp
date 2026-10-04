@@ -63,6 +63,20 @@ std::size_t sinkCount()
     return spdlog::default_logger()->sinks().size();
 }
 
+/// @brief Drop the file sink again when the case ends.
+///
+/// init() installs a process-wide logger and nothing takes it down, so the sink it built keeps
+/// lens.log open past the test -- and on Windows an open file cannot be deleted, which would
+/// leave every ScratchDir behind. Re-initing with no directory releases it, and declaring this
+/// after the ScratchDir runs it first, while the directory is still there to remove.
+class StderrOnlyLogger {
+public:
+    ~StderrOnlyLogger()
+    {
+        lens::log::init(lens::log::kDefaultLevel, {});
+    }
+};
+
 } // namespace
 
 /// The level name is the one thing a reader can retune from outside, so a typo in it must not
@@ -70,6 +84,7 @@ std::size_t sinkCount()
 TEST(LogInit, AnUnknownLevelNameFallsBackToThePassedLevel)
 {
     ScratchDir scratch("level");
+    [[maybe_unused]] StderrOnlyLogger release; // the last init() leaves a file sink open over the scratch dir
 
     // No override at all: the caller's level stands.
     _putenv_s("LENS_LOG_LEVEL", "");
@@ -94,6 +109,7 @@ TEST(LogInit, AnUnknownLevelNameFallsBackToThePassedLevel)
 TEST(LogInit, AUsableDirectoryAddsTheFileSink)
 {
     ScratchDir scratch("good");
+    StderrOnlyLogger release;
     lens::log::init(spdlog::level::info, scratch.path());
 
     EXPECT_EQ(sinkCount(), 2u) << "the rotating file sink was not added for a writable directory";
