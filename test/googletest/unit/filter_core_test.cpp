@@ -181,16 +181,14 @@ TEST_F(CoreTest, RoutesASentenceToTheSentenceChannelButStillFiltersItsWords)
     EXPECT_EQ(fresh->surface, "ubiquitous");
 }
 
-TEST_F(CoreTest, ClassifiesALoneLettersTokenAsTheWordChannel)
+TEST_F(CoreTest, RoutesALoneTokenByItsPresenceInTheWordList)
 {
-    // The reader selected exactly one token, so it is a word even though the static list does
-    // not hold it and it has no vowel (qml / QML), and regardless of case. The gates are for
-    // fragments of prose, not for an explicit one-token selection.
+    // A lone token the dictionary knows is a word to look up, whatever its case.
     const struct {
         const char* text;
         const char* surface;
-    } cases[] = {{"QML", "qml"}, {"qml", "qml"}, {"am", "am"}, {"NASA", "nasa"}, {"kubernetes", "kubernetes"}};
-    for (const auto& item : cases) {
+    } words[] = {{"am", "am"}, {"NASA", "nasa"}, {"the", "the"}, {"resilience", "resilience"}};
+    for (const auto& item : words) {
         SCOPED_TRACE(item.text);
         const auto selection = lens::core::classifySelection(item.text, {}, 3000);
         EXPECT_EQ(selection.kind, lens::core::SelectionKind::Word);
@@ -198,8 +196,17 @@ TEST_F(CoreTest, ClassifiesALoneLettersTokenAsTheWordChannel)
         EXPECT_EQ(selection.candidates.front().surface, item.surface);
     }
 
-    // A lone all-caps real word still reduces to its lemma.
+    // A lone token the dictionary does not know is a name, not a word: QML, Kubernetes.
+    for (const char* text : {"QML", "qml", "kubernetes"}) {
+        SCOPED_TRACE(text);
+        const auto selection = lens::core::classifySelection(text, {}, 3000);
+        EXPECT_EQ(selection.kind, lens::core::SelectionKind::Entity);
+        EXPECT_TRUE(selection.candidates.empty());
+    }
+
+    // A lone dictionary word still reduces to its lemma.
     const auto reduced = lens::core::classifySelection("RUNNING", {}, 0);
+    EXPECT_EQ(reduced.kind, lens::core::SelectionKind::Word);
     ASSERT_EQ(reduced.candidates.size(), 1u);
     EXPECT_EQ(reduced.candidates.front().lemma, "run");
 
@@ -207,8 +214,8 @@ TEST_F(CoreTest, ClassifiesALoneLettersTokenAsTheWordChannel)
     EXPECT_EQ(lens::core::classifySelection("a", {}, 3000).kind, lens::core::SelectionKind::Sentence);
     EXPECT_EQ(lens::core::classifySelection("MP3", {}, 3000).kind, lens::core::SelectionKind::Sentence);
 
-    // The same term inside continuous prose makes the selection a sentence, and the all-caps /
-    // no-vowel gates still keep it out of the candidate list.
+    // The same term inside continuous prose makes the selection a sentence, and the gates still
+    // keep it out of the candidate list.
     EXPECT_EQ(lens::core::classifySelection("the qml source", {}, 3000).kind, lens::core::SelectionKind::Sentence);
     for (const auto& candidate : lens::core::filterWords("the qml source", {}, 3000))
         EXPECT_NE(candidate.surface, "qml") << "a lone-selection token inside prose must stay skipped";

@@ -519,11 +519,19 @@ Selection classifySelection(
     if (isEntitySelection(text)) {
         selection.kind = SelectionKind::Entity;
         selection.candidates.clear();
-    } else if (!loneToken(text).empty()) {
-        // One word is a lookup; a phrase or sentence is a translation. The channel follows the
-        // shape of the selection, not whether the excerpt happens to hold word-list words -- a
-        // sentence is full of them, and routing it to the word channel would only explain one.
-        selection.kind = SelectionKind::Word;
+    } else if (const std::string_view token = loneToken(text); !token.empty()) {
+        // A lone token the dictionary knows is a word to look up; one it does not know is a name
+        // (QML, Kubernetes), which belongs to the entity channel and gets an encyclopaedic
+        // explanation instead of a dictionary entry with a verdict. A phrase or sentence is a
+        // translation: the channel follows the shape, not whether the excerpt holds word-list
+        // words -- a sentence is full of them, and explaining only one would be wrong.
+        const std::string surface = lower(token);
+        if (inTable(surface) || inTable(lemmatize(surface))) {
+            selection.kind = SelectionKind::Word;
+        } else {
+            selection.kind = SelectionKind::Entity;
+            selection.candidates.clear();
+        }
     } else {
         selection.kind = SelectionKind::Sentence;
         selection.candidates.clear();

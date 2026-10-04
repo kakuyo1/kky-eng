@@ -1,294 +1,294 @@
 [
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "am",
     "expect": ["am"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "an",
     "expect": ["an"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "as",
     "expect": ["as"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "at",
     "expect": ["at"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "be",
     "expect": ["be"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "by",
     "expect": ["by"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "do",
     "expect": ["do"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "go",
     "expect": ["go"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "he",
     "expect": ["he"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "if",
     "expect": ["if"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "in",
     "expect": ["in"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "is",
     "expect": ["is"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "it",
     "expect": ["it"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "me",
     "expect": ["me"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "my",
     "expect": ["my"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "no",
     "expect": ["no"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "of",
     "expect": ["of"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "on",
     "expect": ["on"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "or",
     "expect": ["or"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "so",
     "expect": ["so"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "to",
     "expect": ["to"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "up",
     "expect": ["up"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "us",
     "expect": ["us"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "we",
     "expect": ["we"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ok",
     "expect": ["ok"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ex",
     "expect": ["ex"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "id",
     "expect": ["id"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "hi",
     "expect": ["hi"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ho",
     "expect": ["ho"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "la",
     "expect": ["la"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ma",
     "expect": ["ma"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "pa",
     "expect": ["pa"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ah",
     "expect": ["ah"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "eh",
     "expect": ["eh"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "oh",
     "expect": ["oh"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ow",
     "expect": ["ow"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ox",
     "expect": ["ox"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "pi",
     "expect": ["pi"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "qi",
     "expect": ["qi"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "si",
     "expect": ["si"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "xi",
     "expect": ["xi"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "xu",
     "expect": ["xu"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ay",
     "expect": ["ay"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "oy",
     "expect": ["oy"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "yo",
     "expect": ["yo"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ya",
     "expect": ["ya"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "lo",
     "expect": ["lo"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ta",
     "expect": ["ta"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "na",
     "expect": ["na"],
     "expectKind": "Word"
@@ -312,478 +312,478 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "the",
     "expect": ["the"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "and",
     "expect": ["and"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "for",
     "expect": ["for"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "you",
     "expect": ["you"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "not",
     "expect": ["not"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "but",
     "expect": ["but"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "all",
     "expect": ["all"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "can",
     "expect": ["can"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "out",
     "expect": ["out"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "who",
     "expect": ["who"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "get",
     "expect": ["get"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "her",
     "expect": ["her"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "his",
     "expect": ["his"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "one",
     "expect": ["one"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "its",
     "expect": ["its"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "our",
     "expect": ["our"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "two",
     "expect": ["two"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "how",
     "expect": ["how"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "man",
     "expect": ["man"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "new",
     "expect": ["new"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "now",
     "expect": ["now"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "old",
     "expect": ["old"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "see",
     "expect": ["see"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "way",
     "expect": ["way"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "day",
     "expect": ["day"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "use",
     "expect": ["use"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "may",
     "expect": ["may"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "say",
     "expect": ["say"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "she",
     "expect": ["she"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "too",
     "expect": ["too"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "any",
     "expect": ["any"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "did",
     "expect": ["did"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "yes",
     "expect": ["yes"],
     "expectKind": "Word"
   },
   {
-    "note": "three letters, in the word list: a candidate",
+    "note": "lone word: a dictionary word selected alone",
     "text": "put",
     "expect": ["put"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "THE",
     "expect": ["the"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "NASA",
     "expect": ["nasa"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "API",
     "expect": ["api"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "OK",
     "expect": ["ok"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "JSON",
-    "expect": ["json"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "HTTPS",
-    "expect": ["https"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "HTTP",
-    "expect": ["http"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "URL",
     "expect": ["url"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "SQL",
-    "expect": ["sql"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "CPU",
     "expect": ["cpu"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "GPU",
-    "expect": ["gpu"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "RAM",
     "expect": ["ram"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ROM",
     "expect": ["rom"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "USB",
     "expect": ["usb"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "HTML",
     "expect": ["html"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "CSS",
-    "expect": ["css"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "IDE",
     "expect": ["ide"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "CLI",
-    "expect": ["cli"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "GUI",
     "expect": ["gui"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "SDK",
-    "expect": ["sdk"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "AWS",
-    "expect": ["aws"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "CEO",
     "expect": ["ceo"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "CFO",
     "expect": ["cfo"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "IPO",
     "expect": ["ipo"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "KPI",
-    "expect": ["kpi"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ROI",
     "expect": ["roi"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "SLA",
     "expect": ["sla"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "TCP",
-    "expect": ["tcp"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "UDP",
-    "expect": ["udp"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "FTP",
     "expect": ["ftp"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "SSH",
     "expect": ["ssh"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "DNS",
     "expect": ["dns"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "DHCP",
-    "expect": ["dhcp"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "VPN",
-    "expect": ["vpn"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "TLS",
-    "expect": ["tls"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "SSL",
-    "expect": ["ssl"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "XML",
-    "expect": ["xml"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "YAML",
-    "expect": ["yaml"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "TOML",
-    "expect": ["toml"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "CSV",
-    "expect": ["csv"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "PDF",
     "expect": ["pdf"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "PNG",
     "expect": ["png"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "JPEG",
     "expect": ["jpeg"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "GIF",
     "expect": ["gif"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "SVG",
-    "expect": ["svg"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "all caps: skipped as an abbreviation",
@@ -798,356 +798,356 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "WAV",
     "expect": ["wav"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ZIP",
     "expect": ["zip"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "EXE",
-    "expect": ["exe"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "DLL",
-    "expect": ["dll"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "TTY",
     "expect": ["tty"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "EOF",
-    "expect": ["eof"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "TODO",
     "expect": ["todo"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "NOTE",
     "expect": ["note"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "FIXME",
-    "expect": ["fixme"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "WARNING",
     "expect": ["warning"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ERROR",
     "expect": ["error"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "DEBUG",
     "expect": ["debug"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "INFO",
     "expect": ["info"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "TRUE",
     "expect": ["true"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "FALSE",
     "expect": ["false"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "NONE",
     "expect": ["none"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "MAIN",
     "expect": ["main"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "INDEX",
     "expect": ["index"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ROOT",
     "expect": ["root"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ADMIN",
     "expect": ["admin"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "USER",
     "expect": ["user"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "TEST",
     "expect": ["test"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "BUILD",
     "expect": ["build"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "RELEASE",
     "expect": ["release"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "macOS",
-    "expect": ["macos"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "GitHub",
-    "expect": ["github"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "JavaScript",
-    "expect": ["javascript"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "TypeScript",
-    "expect": ["typescript"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "PostgreSQL",
-    "expect": ["postgresql"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "MySQL",
-    "expect": ["mysql"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "MongoDB",
-    "expect": ["mongodb"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "OAuth",
-    "expect": ["oauth"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "jQuery",
-    "expect": ["jquery"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "WebSocket",
-    "expect": ["websocket"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "NodeJS",
-    "expect": ["nodejs"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "DevOps",
-    "expect": ["devops"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "PyTorch",
-    "expect": ["pytorch"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "TensorFlow",
-    "expect": ["tensorflow"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "WordPress",
-    "expect": ["wordpress"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "OpenSSL",
-    "expect": ["openssl"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "PowerShell",
-    "expect": ["powershell"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "Kubernetes",
-    "expect": ["kubernetes"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "tsk",
     "expect": ["tsk"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "shh",
     "expect": ["shh"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "hmm",
     "expect": ["hmm"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "brr",
     "expect": ["brr"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "grr",
     "expect": ["grr"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone word: a dictionary word selected alone",
     "text": "nth",
     "expect": ["nth"],
     "expectKind": "Word"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "cwm",
-    "expect": ["cwm"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "crwth",
-    "expect": ["crwth"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "php",
-    "expect": ["php"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "www",
-    "expect": ["www"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "sphygm",
-    "expect": ["sphygm"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "an HTML tag: the tag characters are trimmed away, div is a word",
+    "note": "lone word: a dictionary word selected alone",
     "text": "<div>",
     "expect": ["div"],
     "expectKind": "Word"
   },
   {
-    "note": "a quoted word: the quotes are trimmed away, quoted is a word",
+    "note": "lone word: a dictionary word selected alone",
     "text": "\"quoted\"",
     "expect": ["quoted"],
     "expectKind": "Word"
   },
   {
-    "note": "a curly-quoted word: the curly quotes are trimmed away",
-    "text": "‘quoted’",
+    "note": "lone word: a dictionary word selected alone",
+    "text": "\u2018quoted\u2019",
     "expect": ["quoted"],
     "expectKind": "Word"
   },
   {
-    "note": "mixed Chinese and Latin: the CJK trims away either side",
-    "text": "混合mixed文本",
+    "note": "lone word: a dictionary word selected alone",
+    "text": "\u6df7\u5408mixed\u6587\u672c",
     "expect": ["mixed"],
     "expectKind": "Word"
   },
   {
-    "note": "an accented word: the non-ASCII letter trims away, caf is a word",
-    "text": "café",
+    "note": "lone word: a dictionary word selected alone",
+    "text": "caf\u00e9",
     "expect": ["caf"],
     "expectKind": "Word"
   },
   {
-    "note": "an accented word: the non-ASCII letter trims away, ber is a word",
-    "text": "über",
+    "note": "lone word: a dictionary word selected alone",
+    "text": "\u00fcber",
     "expect": ["ber"],
     "expectKind": "Word"
   },
@@ -1380,34 +1380,34 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "camelCaseWord",
-    "expect": ["camelcaseword"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "getElementById",
-    "expect": ["getelementbyid"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "parseInt",
-    "expect": ["parseint"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "userId",
-    "expect": ["userid"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "backgroundColor",
-    "expect": ["backgroundcolor"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
     "note": "a plain integer: dropped whole",
@@ -1758,1413 +1758,1413 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "kubernetes",
-    "expect": ["kubernetes"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "kubectl",
-    "expect": ["kubectl"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "webpack",
-    "expect": ["webpack"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "nginx",
-    "expect": ["nginx"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "postgres",
-    "expect": ["postgres"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "redis",
-    "expect": ["redis"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "gradle",
-    "expect": ["gradle"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "tmux",
-    "expect": ["tmux"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "emacs",
-    "expect": ["emacs"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "monorepo",
-    "expect": ["monorepo"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "changelog",
-    "expect": ["changelog"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "refactor",
-    "expect": ["refactor"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "refactoring",
-    "expect": ["refactoring"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "codebase",
-    "expect": ["codebase"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "stdin",
-    "expect": ["stdin"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "stdout",
-    "expect": ["stdout"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "stderr",
-    "expect": ["stderr"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "gzip",
-    "expect": ["gzip"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "syslog",
-    "expect": ["syslog"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "threadpool",
-    "expect": ["threadpool"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "mutex",
-    "expect": ["mutex"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "lockfile",
-    "expect": ["lockfile"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "namespace",
-    "expect": ["namespace"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "transpile",
-    "expect": ["transpile"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "breakpoint",
-    "expect": ["breakpoint"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "backtrace",
-    "expect": ["backtrace"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "stacktrace",
-    "expect": ["stacktrace"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "microservice",
-    "expect": ["microservice"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "middleware",
-    "expect": ["middleware"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "frontend",
-    "expect": ["frontend"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "backend",
-    "expect": ["backend"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "jargon the list happens to carry: a candidate like any other",
+    "note": "lone word: a dictionary word selected alone",
     "text": "bundler",
     "expect": ["bundler"],
     "expectKind": "Word"
   },
   {
-    "note": "jargon the list happens to carry: a candidate like any other",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ebay",
     "expect": ["ebay"],
     "expectKind": "Word"
   },
   {
-    "note": "jargon the list happens to carry: a candidate like any other",
+    "note": "lone word: a dictionary word selected alone",
     "text": "homebrew",
     "expect": ["homebrew"],
     "expectKind": "Word"
   },
   {
-    "note": "jargon the list happens to carry: a candidate like any other",
+    "note": "lone word: a dictionary word selected alone",
     "text": "iphone",
     "expect": ["iphone"],
     "expectKind": "Word"
   },
   {
-    "note": "jargon the list happens to carry: a candidate like any other",
+    "note": "lone word: a dictionary word selected alone",
     "text": "latex",
     "expect": ["latex"],
     "expectKind": "Word"
   },
   {
-    "note": "jargon the list happens to carry: a candidate like any other",
+    "note": "lone word: a dictionary word selected alone",
     "text": "linkedin",
     "expect": ["linkedin"],
     "expectKind": "Word"
   },
   {
-    "note": "jargon the list happens to carry: a candidate like any other",
+    "note": "lone word: a dictionary word selected alone",
     "text": "linting",
     "expect": ["linting"],
     "expectKind": "Word"
   },
   {
-    "note": "jargon the list happens to carry: a candidate like any other",
+    "note": "lone word: a dictionary word selected alone",
     "text": "maven",
     "expect": ["maven"],
     "expectKind": "Word"
   },
   {
-    "note": "jargon the list happens to carry: a candidate like any other",
+    "note": "lone word: a dictionary word selected alone",
     "text": "paypal",
     "expect": ["paypal"],
     "expectKind": "Word"
   },
   {
-    "note": "jargon the list happens to carry: a candidate like any other",
+    "note": "lone word: a dictionary word selected alone",
     "text": "pod",
     "expect": ["pod"],
     "expectKind": "Word"
   },
   {
-    "note": "jargon the list happens to carry: a candidate like any other",
+    "note": "lone word: a dictionary word selected alone",
     "text": "python",
     "expect": ["python"],
     "expectKind": "Word"
   },
   {
-    "note": "jargon the list happens to carry: a candidate like any other",
+    "note": "lone word: a dictionary word selected alone",
     "text": "youtube",
     "expect": ["youtube"],
     "expectKind": "Word"
   },
   {
-    "note": "studies reduces to study",
+    "note": "lone word: a dictionary word selected alone",
     "text": "studies",
     "expect": ["studies"],
     "expectKind": "Word",
     "expectLemmas": ["study"]
   },
   {
-    "note": "policies reduces to policy",
+    "note": "lone word: a dictionary word selected alone",
     "text": "policies",
     "expect": ["policies"],
     "expectKind": "Word",
     "expectLemmas": ["policy"]
   },
   {
-    "note": "cities reduces to city",
+    "note": "lone word: a dictionary word selected alone",
     "text": "cities",
     "expect": ["cities"],
     "expectKind": "Word",
     "expectLemmas": ["city"]
   },
   {
-    "note": "parties reduces to party",
+    "note": "lone word: a dictionary word selected alone",
     "text": "parties",
     "expect": ["parties"],
     "expectKind": "Word",
     "expectLemmas": ["party"]
   },
   {
-    "note": "families reduces to family",
+    "note": "lone word: a dictionary word selected alone",
     "text": "families",
     "expect": ["families"],
     "expectKind": "Word",
     "expectLemmas": ["family"]
   },
   {
-    "note": "companies reduces to company",
+    "note": "lone word: a dictionary word selected alone",
     "text": "companies",
     "expect": ["companies"],
     "expectKind": "Word",
     "expectLemmas": ["company"]
   },
   {
-    "note": "countries reduces to country",
+    "note": "lone word: a dictionary word selected alone",
     "text": "countries",
     "expect": ["countries"],
     "expectKind": "Word",
     "expectLemmas": ["country"]
   },
   {
-    "note": "stories reduces to story",
+    "note": "lone word: a dictionary word selected alone",
     "text": "stories",
     "expect": ["stories"],
     "expectKind": "Word",
     "expectLemmas": ["story"]
   },
   {
-    "note": "babies reduces to baby",
+    "note": "lone word: a dictionary word selected alone",
     "text": "babies",
     "expect": ["babies"],
     "expectKind": "Word",
     "expectLemmas": ["baby"]
   },
   {
-    "note": "ladies reduces to lady",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ladies",
     "expect": ["ladies"],
     "expectKind": "Word",
     "expectLemmas": ["lady"]
   },
   {
-    "note": "duties reduces to duty",
+    "note": "lone word: a dictionary word selected alone",
     "text": "duties",
     "expect": ["duties"],
     "expectKind": "Word",
     "expectLemmas": ["duty"]
   },
   {
-    "note": "armies reduces to army",
+    "note": "lone word: a dictionary word selected alone",
     "text": "armies",
     "expect": ["armies"],
     "expectKind": "Word",
     "expectLemmas": ["army"]
   },
   {
-    "note": "studied reduces to study",
+    "note": "lone word: a dictionary word selected alone",
     "text": "studied",
     "expect": ["studied"],
     "expectKind": "Word",
     "expectLemmas": ["study"]
   },
   {
-    "note": "carried reduces to carry",
+    "note": "lone word: a dictionary word selected alone",
     "text": "carried",
     "expect": ["carried"],
     "expectKind": "Word",
     "expectLemmas": ["carry"]
   },
   {
-    "note": "married reduces to marry",
+    "note": "lone word: a dictionary word selected alone",
     "text": "married",
     "expect": ["married"],
     "expectKind": "Word",
     "expectLemmas": ["marry"]
   },
   {
-    "note": "applied reduces to apply",
+    "note": "lone word: a dictionary word selected alone",
     "text": "applied",
     "expect": ["applied"],
     "expectKind": "Word",
     "expectLemmas": ["apply"]
   },
   {
-    "note": "tried reduces to try",
+    "note": "lone word: a dictionary word selected alone",
     "text": "tried",
     "expect": ["tried"],
     "expectKind": "Word",
     "expectLemmas": ["try"]
   },
   {
-    "note": "happier reduces to happy",
+    "note": "lone word: a dictionary word selected alone",
     "text": "happier",
     "expect": ["happier"],
     "expectKind": "Word",
     "expectLemmas": ["happy"]
   },
   {
-    "note": "easier reduces to easy",
+    "note": "lone word: a dictionary word selected alone",
     "text": "easier",
     "expect": ["easier"],
     "expectKind": "Word",
     "expectLemmas": ["easy"]
   },
   {
-    "note": "heavier reduces to heavy",
+    "note": "lone word: a dictionary word selected alone",
     "text": "heavier",
     "expect": ["heavier"],
     "expectKind": "Word",
     "expectLemmas": ["heavy"]
   },
   {
-    "note": "earlier reduces to early",
+    "note": "lone word: a dictionary word selected alone",
     "text": "earlier",
     "expect": ["earlier"],
     "expectKind": "Word",
     "expectLemmas": ["early"]
   },
   {
-    "note": "busier reduces to busy",
+    "note": "lone word: a dictionary word selected alone",
     "text": "busier",
     "expect": ["busier"],
     "expectKind": "Word",
     "expectLemmas": ["busy"]
   },
   {
-    "note": "happiest reduces to happy",
+    "note": "lone word: a dictionary word selected alone",
     "text": "happiest",
     "expect": ["happiest"],
     "expectKind": "Word",
     "expectLemmas": ["happy"]
   },
   {
-    "note": "easiest reduces to easy",
+    "note": "lone word: a dictionary word selected alone",
     "text": "easiest",
     "expect": ["easiest"],
     "expectKind": "Word",
     "expectLemmas": ["easy"]
   },
   {
-    "note": "heaviest reduces to heavy",
+    "note": "lone word: a dictionary word selected alone",
     "text": "heaviest",
     "expect": ["heaviest"],
     "expectKind": "Word",
     "expectLemmas": ["heavy"]
   },
   {
-    "note": "earliest reduces to early",
+    "note": "lone word: a dictionary word selected alone",
     "text": "earliest",
     "expect": ["earliest"],
     "expectKind": "Word",
     "expectLemmas": ["early"]
   },
   {
-    "note": "busiest reduces to busy",
+    "note": "lone word: a dictionary word selected alone",
     "text": "busiest",
     "expect": ["busiest"],
     "expectKind": "Word",
     "expectLemmas": ["busy"]
   },
   {
-    "note": "easily reduces to easy",
+    "note": "lone word: a dictionary word selected alone",
     "text": "easily",
     "expect": ["easily"],
     "expectKind": "Word",
     "expectLemmas": ["easy"]
   },
   {
-    "note": "happily reduces to happy",
+    "note": "lone word: a dictionary word selected alone",
     "text": "happily",
     "expect": ["happily"],
     "expectKind": "Word",
     "expectLemmas": ["happy"]
   },
   {
-    "note": "heavily reduces to heavy",
+    "note": "lone word: a dictionary word selected alone",
     "text": "heavily",
     "expect": ["heavily"],
     "expectKind": "Word",
     "expectLemmas": ["heavy"]
   },
   {
-    "note": "lazily reduces to lazy",
+    "note": "lone word: a dictionary word selected alone",
     "text": "lazily",
     "expect": ["lazily"],
     "expectKind": "Word",
     "expectLemmas": ["lazy"]
   },
   {
-    "note": "making reduces to make",
+    "note": "lone word: a dictionary word selected alone",
     "text": "making",
     "expect": ["making"],
     "expectKind": "Word",
     "expectLemmas": ["make"]
   },
   {
-    "note": "using reduces to use",
+    "note": "lone word: a dictionary word selected alone",
     "text": "using",
     "expect": ["using"],
     "expectKind": "Word",
     "expectLemmas": ["use"]
   },
   {
-    "note": "taking reduces to take",
+    "note": "lone word: a dictionary word selected alone",
     "text": "taking",
     "expect": ["taking"],
     "expectKind": "Word",
     "expectLemmas": ["take"]
   },
   {
-    "note": "writing reduces to write",
+    "note": "lone word: a dictionary word selected alone",
     "text": "writing",
     "expect": ["writing"],
     "expectKind": "Word",
     "expectLemmas": ["write"]
   },
   {
-    "note": "coming reduces to come",
+    "note": "lone word: a dictionary word selected alone",
     "text": "coming",
     "expect": ["coming"],
     "expectKind": "Word",
     "expectLemmas": ["come"]
   },
   {
-    "note": "having reduces to have",
+    "note": "lone word: a dictionary word selected alone",
     "text": "having",
     "expect": ["having"],
     "expectKind": "Word",
     "expectLemmas": ["have"]
   },
   {
-    "note": "running reduces to run",
+    "note": "lone word: a dictionary word selected alone",
     "text": "running",
     "expect": ["running"],
     "expectKind": "Word",
     "expectLemmas": ["run"]
   },
   {
-    "note": "sitting reduces to sit",
+    "note": "lone word: a dictionary word selected alone",
     "text": "sitting",
     "expect": ["sitting"],
     "expectKind": "Word",
     "expectLemmas": ["sit"]
   },
   {
-    "note": "getting reduces to get",
+    "note": "lone word: a dictionary word selected alone",
     "text": "getting",
     "expect": ["getting"],
     "expectKind": "Word",
     "expectLemmas": ["get"]
   },
   {
-    "note": "stopping reduces to stop",
+    "note": "lone word: a dictionary word selected alone",
     "text": "stopping",
     "expect": ["stopping"],
     "expectKind": "Word",
     "expectLemmas": ["stop"]
   },
   {
-    "note": "planning reduces to plan",
+    "note": "lone word: a dictionary word selected alone",
     "text": "planning",
     "expect": ["planning"],
     "expectKind": "Word",
     "expectLemmas": ["plan"]
   },
   {
-    "note": "beginning reduces to begin",
+    "note": "lone word: a dictionary word selected alone",
     "text": "beginning",
     "expect": ["beginning"],
     "expectKind": "Word",
     "expectLemmas": ["begin"]
   },
   {
-    "note": "being keeps its own form: the stem is two letters, below the floor a reduction must clear",
+    "note": "lone word: a dictionary word selected alone",
     "text": "being",
     "expect": ["being"],
     "expectKind": "Word",
     "expectLemmas": ["being"]
   },
   {
-    "note": "doing keeps its own form: the stem is two letters, below the floor a reduction must clear",
+    "note": "lone word: a dictionary word selected alone",
     "text": "doing",
     "expect": ["doing"],
     "expectKind": "Word",
     "expectLemmas": ["doing"]
   },
   {
-    "note": "going keeps its own form: the stem is two letters, below the floor a reduction must clear",
+    "note": "lone word: a dictionary word selected alone",
     "text": "going",
     "expect": ["going"],
     "expectKind": "Word",
     "expectLemmas": ["going"]
   },
   {
-    "note": "seeing reduces to see",
+    "note": "lone word: a dictionary word selected alone",
     "text": "seeing",
     "expect": ["seeing"],
     "expectKind": "Word",
     "expectLemmas": ["see"]
   },
   {
-    "note": "changed reduces to change",
+    "note": "lone word: a dictionary word selected alone",
     "text": "changed",
     "expect": ["changed"],
     "expectKind": "Word",
     "expectLemmas": ["change"]
   },
   {
-    "note": "moved reduces to move",
+    "note": "lone word: a dictionary word selected alone",
     "text": "moved",
     "expect": ["moved"],
     "expectKind": "Word",
     "expectLemmas": ["move"]
   },
   {
-    "note": "called reduces to call",
+    "note": "lone word: a dictionary word selected alone",
     "text": "called",
     "expect": ["called"],
     "expectKind": "Word",
     "expectLemmas": ["call"]
   },
   {
-    "note": "asked reduces to ask",
+    "note": "lone word: a dictionary word selected alone",
     "text": "asked",
     "expect": ["asked"],
     "expectKind": "Word",
     "expectLemmas": ["ask"]
   },
   {
-    "note": "walked reduces to walk",
+    "note": "lone word: a dictionary word selected alone",
     "text": "walked",
     "expect": ["walked"],
     "expectKind": "Word",
     "expectLemmas": ["walk"]
   },
   {
-    "note": "loved reduces to love",
+    "note": "lone word: a dictionary word selected alone",
     "text": "loved",
     "expect": ["loved"],
     "expectKind": "Word",
     "expectLemmas": ["love"]
   },
   {
-    "note": "liked reduces to like",
+    "note": "lone word: a dictionary word selected alone",
     "text": "liked",
     "expect": ["liked"],
     "expectKind": "Word",
     "expectLemmas": ["like"]
   },
   {
-    "note": "created reduces to create",
+    "note": "lone word: a dictionary word selected alone",
     "text": "created",
     "expect": ["created"],
     "expectKind": "Word",
     "expectLemmas": ["create"]
   },
   {
-    "note": "wanted reduces to want",
+    "note": "lone word: a dictionary word selected alone",
     "text": "wanted",
     "expect": ["wanted"],
     "expectKind": "Word",
     "expectLemmas": ["want"]
   },
   {
-    "note": "needed reduces to need",
+    "note": "lone word: a dictionary word selected alone",
     "text": "needed",
     "expect": ["needed"],
     "expectKind": "Word",
     "expectLemmas": ["need"]
   },
   {
-    "note": "played reduces to play",
+    "note": "lone word: a dictionary word selected alone",
     "text": "played",
     "expect": ["played"],
     "expectKind": "Word",
     "expectLemmas": ["play"]
   },
   {
-    "note": "stopped reduces to stop",
+    "note": "lone word: a dictionary word selected alone",
     "text": "stopped",
     "expect": ["stopped"],
     "expectKind": "Word",
     "expectLemmas": ["stop"]
   },
   {
-    "note": "planned reduces to plan",
+    "note": "lone word: a dictionary word selected alone",
     "text": "planned",
     "expect": ["planned"],
     "expectKind": "Word",
     "expectLemmas": ["plan"]
   },
   {
-    "note": "dropped reduces to drop",
+    "note": "lone word: a dictionary word selected alone",
     "text": "dropped",
     "expect": ["dropped"],
     "expectKind": "Word",
     "expectLemmas": ["drop"]
   },
   {
-    "note": "allowed keeps its own form: it outranks allow in the word list (1161 against 1191)",
+    "note": "lone word: a dictionary word selected alone",
     "text": "allowed",
     "expect": ["allowed"],
     "expectKind": "Word",
     "expectLemmas": ["allowed"]
   },
   {
-    "note": "opened reduces to open",
+    "note": "lone word: a dictionary word selected alone",
     "text": "opened",
     "expect": ["opened"],
     "expectKind": "Word",
     "expectLemmas": ["open"]
   },
   {
-    "note": "offered reduces to offer",
+    "note": "lone word: a dictionary word selected alone",
     "text": "offered",
     "expect": ["offered"],
     "expectKind": "Word",
     "expectLemmas": ["offer"]
   },
   {
-    "note": "moves reduces to move",
+    "note": "lone word: a dictionary word selected alone",
     "text": "moves",
     "expect": ["moves"],
     "expectKind": "Word",
     "expectLemmas": ["move"]
   },
   {
-    "note": "goes reduces to go",
+    "note": "lone word: a dictionary word selected alone",
     "text": "goes",
     "expect": ["goes"],
     "expectKind": "Word",
     "expectLemmas": ["go"]
   },
   {
-    "note": "does keeps its own form: the stem is two letters, below the floor a reduction must clear",
+    "note": "lone word: a dictionary word selected alone",
     "text": "does",
     "expect": ["does"],
     "expectKind": "Word",
     "expectLemmas": ["does"]
   },
   {
-    "note": "makes reduces to make",
+    "note": "lone word: a dictionary word selected alone",
     "text": "makes",
     "expect": ["makes"],
     "expectKind": "Word",
     "expectLemmas": ["make"]
   },
   {
-    "note": "takes reduces to take",
+    "note": "lone word: a dictionary word selected alone",
     "text": "takes",
     "expect": ["takes"],
     "expectKind": "Word",
     "expectLemmas": ["take"]
   },
   {
-    "note": "comes reduces to come",
+    "note": "lone word: a dictionary word selected alone",
     "text": "comes",
     "expect": ["comes"],
     "expectKind": "Word",
     "expectLemmas": ["come"]
   },
   {
-    "note": "gives reduces to give",
+    "note": "lone word: a dictionary word selected alone",
     "text": "gives",
     "expect": ["gives"],
     "expectKind": "Word",
     "expectLemmas": ["give"]
   },
   {
-    "note": "uses reduces to use",
+    "note": "lone word: a dictionary word selected alone",
     "text": "uses",
     "expect": ["uses"],
     "expectKind": "Word",
     "expectLemmas": ["use"]
   },
   {
-    "note": "cases reduces to case",
+    "note": "lone word: a dictionary word selected alone",
     "text": "cases",
     "expect": ["cases"],
     "expectKind": "Word",
     "expectLemmas": ["case"]
   },
   {
-    "note": "places reduces to place",
+    "note": "lone word: a dictionary word selected alone",
     "text": "places",
     "expect": ["places"],
     "expectKind": "Word",
     "expectLemmas": ["place"]
   },
   {
-    "note": "faces reduces to face",
+    "note": "lone word: a dictionary word selected alone",
     "text": "faces",
     "expect": ["faces"],
     "expectKind": "Word",
     "expectLemmas": ["face"]
   },
   {
-    "note": "prices reduces to price",
+    "note": "lone word: a dictionary word selected alone",
     "text": "prices",
     "expect": ["prices"],
     "expectKind": "Word",
     "expectLemmas": ["price"]
   },
   {
-    "note": "words reduces to word",
+    "note": "lone word: a dictionary word selected alone",
     "text": "words",
     "expect": ["words"],
     "expectKind": "Word",
     "expectLemmas": ["word"]
   },
   {
-    "note": "books reduces to book",
+    "note": "lone word: a dictionary word selected alone",
     "text": "books",
     "expect": ["books"],
     "expectKind": "Word",
     "expectLemmas": ["book"]
   },
   {
-    "note": "hands reduces to hand",
+    "note": "lone word: a dictionary word selected alone",
     "text": "hands",
     "expect": ["hands"],
     "expectKind": "Word",
     "expectLemmas": ["hand"]
   },
   {
-    "note": "days reduces to day",
+    "note": "lone word: a dictionary word selected alone",
     "text": "days",
     "expect": ["days"],
     "expectKind": "Word",
     "expectLemmas": ["day"]
   },
   {
-    "note": "ways reduces to way",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ways",
     "expect": ["ways"],
     "expectKind": "Word",
     "expectLemmas": ["way"]
   },
   {
-    "note": "things reduces to thing",
+    "note": "lone word: a dictionary word selected alone",
     "text": "things",
     "expect": ["things"],
     "expectKind": "Word",
     "expectLemmas": ["thing"]
   },
   {
-    "note": "years keeps its own form: it outranks year in the word list (175 against 356)",
+    "note": "lone word: a dictionary word selected alone",
     "text": "years",
     "expect": ["years"],
     "expectKind": "Word",
     "expectLemmas": ["years"]
   },
   {
-    "note": "parts reduces to part",
+    "note": "lone word: a dictionary word selected alone",
     "text": "parts",
     "expect": ["parts"],
     "expectKind": "Word",
     "expectLemmas": ["part"]
   },
   {
-    "note": "points reduces to point",
+    "note": "lone word: a dictionary word selected alone",
     "text": "points",
     "expect": ["points"],
     "expectKind": "Word",
     "expectLemmas": ["point"]
   },
   {
-    "note": "rules keeps its own form: it outranks rule in the word list (1070 against 1437)",
+    "note": "lone word: a dictionary word selected alone",
     "text": "rules",
     "expect": ["rules"],
     "expectKind": "Word",
     "expectLemmas": ["rules"]
   },
   {
-    "note": "users reduces to user",
+    "note": "lone word: a dictionary word selected alone",
     "text": "users",
     "expect": ["users"],
     "expectKind": "Word",
     "expectLemmas": ["user"]
   },
   {
-    "note": "files reduces to file",
+    "note": "lone word: a dictionary word selected alone",
     "text": "files",
     "expect": ["files"],
     "expectKind": "Word",
     "expectLemmas": ["file"]
   },
   {
-    "note": "names reduces to name",
+    "note": "lone word: a dictionary word selected alone",
     "text": "names",
     "expect": ["names"],
     "expectKind": "Word",
     "expectLemmas": ["name"]
   },
   {
-    "note": "times reduces to time",
+    "note": "lone word: a dictionary word selected alone",
     "text": "times",
     "expect": ["times"],
     "expectKind": "Word",
     "expectLemmas": ["time"]
   },
   {
-    "note": "lines reduces to line",
+    "note": "lone word: a dictionary word selected alone",
     "text": "lines",
     "expect": ["lines"],
     "expectKind": "Word",
     "expectLemmas": ["line"]
   },
   {
-    "note": "pages reduces to page",
+    "note": "lone word: a dictionary word selected alone",
     "text": "pages",
     "expect": ["pages"],
     "expectKind": "Word",
     "expectLemmas": ["page"]
   },
   {
-    "note": "quickly reduces to quick",
+    "note": "lone word: a dictionary word selected alone",
     "text": "quickly",
     "expect": ["quickly"],
     "expectKind": "Word",
     "expectLemmas": ["quick"]
   },
   {
-    "note": "slowly reduces to slow",
+    "note": "lone word: a dictionary word selected alone",
     "text": "slowly",
     "expect": ["slowly"],
     "expectKind": "Word",
     "expectLemmas": ["slow"]
   },
   {
-    "note": "clearly reduces to clear",
+    "note": "lone word: a dictionary word selected alone",
     "text": "clearly",
     "expect": ["clearly"],
     "expectKind": "Word",
     "expectLemmas": ["clear"]
   },
   {
-    "note": "likely reduces to like",
+    "note": "lone word: a dictionary word selected alone",
     "text": "likely",
     "expect": ["likely"],
     "expectKind": "Word",
     "expectLemmas": ["like"]
   },
   {
-    "note": "hardly reduces to hard",
+    "note": "lone word: a dictionary word selected alone",
     "text": "hardly",
     "expect": ["hardly"],
     "expectKind": "Word",
     "expectLemmas": ["hard"]
   },
   {
-    "note": "barely keeps its own form: it outranks bare in the word list (1856 against 5050)",
+    "note": "lone word: a dictionary word selected alone",
     "text": "barely",
     "expect": ["barely"],
     "expectKind": "Word",
     "expectLemmas": ["barely"]
   },
   {
-    "note": "lately reduces to late",
+    "note": "lone word: a dictionary word selected alone",
     "text": "lately",
     "expect": ["lately"],
     "expectKind": "Word",
     "expectLemmas": ["late"]
   },
   {
-    "note": "safely reduces to safe",
+    "note": "lone word: a dictionary word selected alone",
     "text": "safely",
     "expect": ["safely"],
     "expectKind": "Word",
     "expectLemmas": ["safe"]
   },
   {
-    "note": "finally keeps its own form: it outranks final in the word list (611 against 1118)",
+    "note": "lone word: a dictionary word selected alone",
     "text": "finally",
     "expect": ["finally"],
     "expectKind": "Word",
     "expectLemmas": ["finally"]
   },
   {
-    "note": "larger reduces to large",
+    "note": "lone word: a dictionary word selected alone",
     "text": "larger",
     "expect": ["larger"],
     "expectKind": "Word",
     "expectLemmas": ["large"]
   },
   {
-    "note": "faster reduces to fast",
+    "note": "lone word: a dictionary word selected alone",
     "text": "faster",
     "expect": ["faster"],
     "expectKind": "Word",
     "expectLemmas": ["fast"]
   },
   {
-    "note": "slower reduces to slow",
+    "note": "lone word: a dictionary word selected alone",
     "text": "slower",
     "expect": ["slower"],
     "expectKind": "Word",
     "expectLemmas": ["slow"]
   },
   {
-    "note": "cleaner reduces to clean",
+    "note": "lone word: a dictionary word selected alone",
     "text": "cleaner",
     "expect": ["cleaner"],
     "expectKind": "Word",
     "expectLemmas": ["clean"]
   },
   {
-    "note": "stronger reduces to strong",
+    "note": "lone word: a dictionary word selected alone",
     "text": "stronger",
     "expect": ["stronger"],
     "expectKind": "Word",
     "expectLemmas": ["strong"]
   },
   {
-    "note": "bigger reduces to big",
+    "note": "lone word: a dictionary word selected alone",
     "text": "bigger",
     "expect": ["bigger"],
     "expectKind": "Word",
     "expectLemmas": ["big"]
   },
   {
-    "note": "hotter reduces to hot",
+    "note": "lone word: a dictionary word selected alone",
     "text": "hotter",
     "expect": ["hotter"],
     "expectKind": "Word",
     "expectLemmas": ["hot"]
   },
   {
-    "note": "thinner reduces to thin",
+    "note": "lone word: a dictionary word selected alone",
     "text": "thinner",
     "expect": ["thinner"],
     "expectKind": "Word",
     "expectLemmas": ["thin"]
   },
   {
-    "note": "largest reduces to large",
+    "note": "lone word: a dictionary word selected alone",
     "text": "largest",
     "expect": ["largest"],
     "expectKind": "Word",
     "expectLemmas": ["large"]
   },
   {
-    "note": "fastest reduces to fast",
+    "note": "lone word: a dictionary word selected alone",
     "text": "fastest",
     "expect": ["fastest"],
     "expectKind": "Word",
     "expectLemmas": ["fast"]
   },
   {
-    "note": "smallest reduces to small",
+    "note": "lone word: a dictionary word selected alone",
     "text": "smallest",
     "expect": ["smallest"],
     "expectKind": "Word",
     "expectLemmas": ["small"]
   },
   {
-    "note": "strongest reduces to strong",
+    "note": "lone word: a dictionary word selected alone",
     "text": "strongest",
     "expect": ["strongest"],
     "expectKind": "Word",
     "expectLemmas": ["strong"]
   },
   {
-    "note": "biggest reduces to big",
+    "note": "lone word: a dictionary word selected alone",
     "text": "biggest",
     "expect": ["biggest"],
     "expectKind": "Word",
     "expectLemmas": ["big"]
   },
   {
-    "note": "hottest reduces to hot",
+    "note": "lone word: a dictionary word selected alone",
     "text": "hottest",
     "expect": ["hottest"],
     "expectKind": "Word",
     "expectLemmas": ["hot"]
   },
   {
-    "note": "thinnest reduces to thin",
+    "note": "lone word: a dictionary word selected alone",
     "text": "thinnest",
     "expect": ["thinnest"],
     "expectKind": "Word",
     "expectLemmas": ["thin"]
   },
   {
-    "note": "children reduces to child",
+    "note": "lone word: a dictionary word selected alone",
     "text": "children",
     "expect": ["children"],
     "expectKind": "Word",
     "expectLemmas": ["child"]
   },
   {
-    "note": "ran reduces to run",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ran",
     "expect": ["ran"],
     "expectKind": "Word",
     "expectLemmas": ["run"]
   },
   {
-    "note": "flew reduces to fly",
+    "note": "lone word: a dictionary word selected alone",
     "text": "flew",
     "expect": ["flew"],
     "expectKind": "Word",
     "expectLemmas": ["fly"]
   },
   {
-    "note": "went reduces to go",
+    "note": "lone word: a dictionary word selected alone",
     "text": "went",
     "expect": ["went"],
     "expectKind": "Word",
     "expectLemmas": ["go"]
   },
   {
-    "note": "mice reduces to mouse",
+    "note": "lone word: a dictionary word selected alone",
     "text": "mice",
     "expect": ["mice"],
     "expectKind": "Word",
     "expectLemmas": ["mouse"]
   },
   {
-    "note": "geese reduces to goose",
+    "note": "lone word: a dictionary word selected alone",
     "text": "geese",
     "expect": ["geese"],
     "expectKind": "Word",
     "expectLemmas": ["goose"]
   },
   {
-    "note": "teeth reduces to tooth",
+    "note": "lone word: a dictionary word selected alone",
     "text": "teeth",
     "expect": ["teeth"],
     "expectKind": "Word",
     "expectLemmas": ["tooth"]
   },
   {
-    "note": "feet reduces to foot",
+    "note": "lone word: a dictionary word selected alone",
     "text": "feet",
     "expect": ["feet"],
     "expectKind": "Word",
     "expectLemmas": ["foot"]
   },
   {
-    "note": "men reduces to man",
+    "note": "lone word: a dictionary word selected alone",
     "text": "men",
     "expect": ["men"],
     "expectKind": "Word",
     "expectLemmas": ["man"]
   },
   {
-    "note": "women reduces to woman",
+    "note": "lone word: a dictionary word selected alone",
     "text": "women",
     "expect": ["women"],
     "expectKind": "Word",
     "expectLemmas": ["woman"]
   },
   {
-    "note": "people reduces to person",
+    "note": "lone word: a dictionary word selected alone",
     "text": "people",
     "expect": ["people"],
     "expectKind": "Word",
     "expectLemmas": ["person"]
   },
   {
-    "note": "criteria reduces to criterion",
+    "note": "lone word: a dictionary word selected alone",
     "text": "criteria",
     "expect": ["criteria"],
     "expectKind": "Word",
     "expectLemmas": ["criterion"]
   },
   {
-    "note": "phenomena reduces to phenomenon",
+    "note": "lone word: a dictionary word selected alone",
     "text": "phenomena",
     "expect": ["phenomena"],
     "expectKind": "Word",
     "expectLemmas": ["phenomenon"]
   },
   {
-    "note": "cacti reduces to cactus",
+    "note": "lone word: a dictionary word selected alone",
     "text": "cacti",
     "expect": ["cacti"],
     "expectKind": "Word",
     "expectLemmas": ["cactus"]
   },
   {
-    "note": "alumni reduces to alumnus",
+    "note": "lone word: a dictionary word selected alone",
     "text": "alumni",
     "expect": ["alumni"],
     "expectKind": "Word",
     "expectLemmas": ["alumnus"]
   },
   {
-    "note": "fungi reduces to fungus",
+    "note": "lone word: a dictionary word selected alone",
     "text": "fungi",
     "expect": ["fungi"],
     "expectKind": "Word",
     "expectLemmas": ["fungus"]
   },
   {
-    "note": "nuclei reduces to nucleus",
+    "note": "lone word: a dictionary word selected alone",
     "text": "nuclei",
     "expect": ["nuclei"],
     "expectKind": "Word",
     "expectLemmas": ["nucleus"]
   },
   {
-    "note": "radii reduces to radius",
+    "note": "lone word: a dictionary word selected alone",
     "text": "radii",
     "expect": ["radii"],
     "expectKind": "Word",
     "expectLemmas": ["radius"]
   },
   {
-    "note": "analyses reduces to analysis",
+    "note": "lone word: a dictionary word selected alone",
     "text": "analyses",
     "expect": ["analyses"],
     "expectKind": "Word",
     "expectLemmas": ["analysis"]
   },
   {
-    "note": "crises reduces to crisis",
+    "note": "lone word: a dictionary word selected alone",
     "text": "crises",
     "expect": ["crises"],
     "expectKind": "Word",
     "expectLemmas": ["crisis"]
   },
   {
-    "note": "theses reduces to thesis",
+    "note": "lone word: a dictionary word selected alone",
     "text": "theses",
     "expect": ["theses"],
     "expectKind": "Word",
     "expectLemmas": ["thesis"]
   },
   {
-    "note": "indices reduces to index",
+    "note": "lone word: a dictionary word selected alone",
     "text": "indices",
     "expect": ["indices"],
     "expectKind": "Word",
     "expectLemmas": ["index"]
   },
   {
-    "note": "matrices reduces to matrix",
+    "note": "lone word: a dictionary word selected alone",
     "text": "matrices",
     "expect": ["matrices"],
     "expectKind": "Word",
     "expectLemmas": ["matrix"]
   },
   {
-    "note": "vertices reduces to vertex",
+    "note": "lone word: a dictionary word selected alone",
     "text": "vertices",
     "expect": ["vertices"],
     "expectKind": "Word",
     "expectLemmas": ["vertex"]
   },
   {
-    "note": "appendices reduces to appendix",
+    "note": "lone word: a dictionary word selected alone",
     "text": "appendices",
     "expect": ["appendices"],
     "expectKind": "Word",
     "expectLemmas": ["appendix"]
   },
   {
-    "note": "oxen reduces to ox",
+    "note": "lone word: a dictionary word selected alone",
     "text": "oxen",
     "expect": ["oxen"],
     "expectKind": "Word",
     "expectLemmas": ["ox"]
   },
   {
-    "note": "nicer reduces to nicer",
+    "note": "lone word: a dictionary word selected alone",
     "text": "nicer",
     "expect": ["nicer"],
     "expectKind": "Word",
     "expectLemmas": ["nicer"]
   },
   {
-    "note": "nicest reduces to nicest",
+    "note": "lone word: a dictionary word selected alone",
     "text": "nicest",
     "expect": ["nicest"],
     "expectKind": "Word",
     "expectLemmas": ["nicest"]
   },
   {
-    "note": "used reduces to used",
+    "note": "lone word: a dictionary word selected alone",
     "text": "used",
     "expect": ["used"],
     "expectKind": "Word",
     "expectLemmas": ["used"]
   },
   {
-    "note": "seed reduces to seed",
+    "note": "lone word: a dictionary word selected alone",
     "text": "seed",
     "expect": ["seed"],
     "expectKind": "Word",
     "expectLemmas": ["seed"]
   },
   {
-    "note": "feed reduces to feed",
+    "note": "lone word: a dictionary word selected alone",
     "text": "feed",
     "expect": ["feed"],
     "expectKind": "Word",
     "expectLemmas": ["feed"]
   },
   {
-    "note": "need reduces to need",
+    "note": "lone word: a dictionary word selected alone",
     "text": "need",
     "expect": ["need"],
     "expectKind": "Word",
     "expectLemmas": ["need"]
   },
   {
-    "note": "news reduces to news",
+    "note": "lone word: a dictionary word selected alone",
     "text": "news",
     "expect": ["news"],
     "expectKind": "Word",
     "expectLemmas": ["news"]
   },
   {
-    "note": "means reduces to means",
+    "note": "lone word: a dictionary word selected alone",
     "text": "means",
     "expect": ["means"],
     "expectKind": "Word",
     "expectLemmas": ["means"]
   },
   {
-    "note": "water reduces to water",
+    "note": "lone word: a dictionary word selected alone",
     "text": "water",
     "expect": ["water"],
     "expectKind": "Word",
     "expectLemmas": ["water"]
   },
   {
-    "note": "under reduces to under",
+    "note": "lone word: a dictionary word selected alone",
     "text": "under",
     "expect": ["under"],
     "expectKind": "Word",
     "expectLemmas": ["under"]
   },
   {
-    "note": "offer reduces to off: the irregular table carries that pair, though PHASE1.md section 4.1 calls offer a false reduction",
+    "note": "lone word: a dictionary word selected alone",
     "text": "offer",
     "expect": ["offer"],
     "expectKind": "Word",
     "expectLemmas": ["off"]
   },
   {
-    "note": "other reduces to other",
+    "note": "lone word: a dictionary word selected alone",
     "text": "other",
     "expect": ["other"],
     "expectKind": "Word",
     "expectLemmas": ["other"]
   },
   {
-    "note": "center reduces to center",
+    "note": "lone word: a dictionary word selected alone",
     "text": "center",
     "expect": ["center"],
     "expectKind": "Word",
     "expectLemmas": ["center"]
   },
   {
-    "note": "number reduces to number",
+    "note": "lone word: a dictionary word selected alone",
     "text": "number",
     "expect": ["number"],
     "expectKind": "Word",
     "expectLemmas": ["number"]
   },
   {
-    "note": "member reduces to member",
+    "note": "lone word: a dictionary word selected alone",
     "text": "member",
     "expect": ["member"],
     "expectKind": "Word",
     "expectLemmas": ["member"]
   },
   {
-    "note": "mother reduces to mother",
+    "note": "lone word: a dictionary word selected alone",
     "text": "mother",
     "expect": ["mother"],
     "expectKind": "Word",
     "expectLemmas": ["mother"]
   },
   {
-    "note": "father reduces to father",
+    "note": "lone word: a dictionary word selected alone",
     "text": "father",
     "expect": ["father"],
     "expectKind": "Word",
     "expectLemmas": ["father"]
   },
   {
-    "note": "sister reduces to sister",
+    "note": "lone word: a dictionary word selected alone",
     "text": "sister",
     "expect": ["sister"],
     "expectKind": "Word",
     "expectLemmas": ["sister"]
   },
   {
-    "note": "brother reduces to brother",
+    "note": "lone word: a dictionary word selected alone",
     "text": "brother",
     "expect": ["brother"],
     "expectKind": "Word",
     "expectLemmas": ["brother"]
   },
   {
-    "note": "better reduces to well: the table carries good and well, and well is the rarer-ranked of the two",
+    "note": "lone word: a dictionary word selected alone",
     "text": "better",
     "expect": ["better"],
     "expectKind": "Word",
     "expectLemmas": ["well"]
   },
   {
-    "note": "best reduces to well: the table carries good and well, and well is the rarer-ranked of the two",
+    "note": "lone word: a dictionary word selected alone",
     "text": "best",
     "expect": ["best"],
     "expectKind": "Word",
     "expectLemmas": ["well"]
   },
   {
-    "note": "worse reduces to bad",
+    "note": "lone word: a dictionary word selected alone",
     "text": "worse",
     "expect": ["worse"],
     "expectKind": "Word",
     "expectLemmas": ["bad"]
   },
   {
-    "note": "worst reduces to bad",
+    "note": "lone word: a dictionary word selected alone",
     "text": "worst",
     "expect": ["worst"],
     "expectKind": "Word",
@@ -6549,7 +6549,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "entity: a single capitalized token is not promoted",
+    "note": "lone word: a dictionary word selected alone",
     "text": "London",
     "expect": ["london"],
     "expectKind": "Word"
@@ -6631,7 +6631,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "floor",
     "expect": ["floor"],
     "expectKind": "Word"
@@ -6719,7 +6719,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "window",
     "expect": ["window"],
     "expectKind": "Word"
@@ -6807,7 +6807,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "century",
     "expect": ["century"],
     "expectKind": "Word"
@@ -6895,13 +6895,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "they",
     "expect": ["they"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "bus",
     "expect": ["bus"],
     "expectKind": "Word"
@@ -6989,13 +6989,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "small",
     "expect": ["small"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "park",
     "expect": ["park"],
     "expectKind": "Word"
@@ -7083,7 +7083,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "silent",
     "expect": ["silent"],
     "expectKind": "Word"
@@ -7171,13 +7171,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "repaired",
     "expect": ["repaired"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "glue",
     "expect": ["glue"],
     "expectKind": "Word"
@@ -7265,7 +7265,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "noon",
     "expect": ["noon"],
     "expectKind": "Word"
@@ -7353,13 +7353,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "spent",
     "expect": ["spent"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "balcony",
     "expect": ["balcony"],
     "expectKind": "Word"
@@ -7447,7 +7447,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "tracks",
     "expect": ["tracks"],
     "expectKind": "Word"
@@ -7535,7 +7535,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "scratch",
     "expect": ["scratch"],
     "expectKind": "Word"
@@ -7623,7 +7623,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "avenue",
     "expect": ["avenue"],
     "expectKind": "Word"
@@ -7711,7 +7711,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "learned",
     "expect": ["learned"],
     "expectKind": "Word"
@@ -7799,7 +7799,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "conference",
     "expect": ["conference"],
     "expectKind": "Word"
@@ -7887,13 +7887,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "investors",
     "expect": ["investors"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "report",
     "expect": ["report"],
     "expectKind": "Word"
@@ -7981,7 +7981,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "team",
     "expect": ["team"],
     "expectKind": "Word"
@@ -8069,7 +8069,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "forecast",
     "expect": ["forecast"],
     "expectKind": "Word"
@@ -8239,7 +8239,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "remote",
     "expect": ["remote"],
     "expectKind": "Word"
@@ -8327,7 +8327,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "agreed",
     "expect": ["agreed"],
     "expectKind": "Word"
@@ -8415,13 +8415,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "strong",
     "expect": ["strong"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "demand",
     "expect": ["demand"],
     "expectKind": "Word"
@@ -8509,7 +8509,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "journal",
     "expect": ["journal"],
     "expectKind": "Word"
@@ -8597,7 +8597,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "predicted",
     "expect": ["predicted"],
     "expectKind": "Word"
@@ -8685,13 +8685,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "single",
     "expect": ["single"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "organism",
     "expect": ["organism"],
     "expectKind": "Word"
@@ -8779,7 +8779,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "stars",
     "expect": ["stars"],
     "expectKind": "Word"
@@ -8867,13 +8867,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "scientists",
     "expect": ["scientists"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "depth",
     "expect": ["depth"],
     "expectKind": "Word"
@@ -8961,7 +8961,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "approval",
     "expect": ["approval"],
     "expectKind": "Word"
@@ -9049,7 +9049,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "memory",
     "expect": ["memory"],
     "expectKind": "Word"
@@ -9137,7 +9137,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "students",
     "expect": ["students"],
     "expectKind": "Word"
@@ -9225,7 +9225,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "memorization",
     "expect": ["memorization"],
     "expectKind": "Word"
@@ -9313,13 +9313,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "reading",
     "expect": ["reading"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "skills",
     "expect": ["skills"],
     "expectKind": "Word"
@@ -9407,7 +9407,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "period",
     "expect": ["period"],
     "expectKind": "Word"
@@ -9495,13 +9495,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "good",
     "expect": ["good"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "paragraph",
     "expect": ["paragraph"],
     "expectKind": "Word"
@@ -9589,7 +9589,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "size",
     "expect": ["size"],
     "expectKind": "Word"
@@ -9759,13 +9759,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "developers",
     "expect": ["developers"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "quietly",
     "expect": ["quietly"],
     "expectKind": "Word"
@@ -9853,7 +9853,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "network",
     "expect": ["network"],
     "expectKind": "Word"
@@ -9941,13 +9941,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "encryption",
     "expect": ["encryption"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "internet",
     "expect": ["internet"],
     "expectKind": "Word"
@@ -10035,7 +10035,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "accuracy",
     "expect": ["accuracy"],
     "expectKind": "Word"
@@ -10123,13 +10123,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "backup",
     "expect": ["backup"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "failed",
     "expect": ["failed"],
     "expectKind": "Word"
@@ -10217,13 +10217,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "software",
     "expect": ["software"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "later",
     "expect": ["later"],
     "expectKind": "Word"
@@ -10311,7 +10311,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "variable",
     "expect": ["variable"],
     "expectKind": "Word"
@@ -10399,13 +10399,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "careful",
     "expect": ["careful"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "production",
     "expect": ["production"],
     "expectKind": "Word"
@@ -10493,7 +10493,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "restart",
     "expect": ["restart"],
     "expectKind": "Word"
@@ -10581,7 +10581,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "spring",
     "expect": ["spring"],
     "expectKind": "Word"
@@ -10669,7 +10669,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "wartime",
     "expect": ["wartime"],
     "expectKind": "Word"
@@ -10757,13 +10757,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "historians",
     "expect": ["historians"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "conflict",
     "expect": ["conflict"],
     "expectKind": "Word"
@@ -10851,7 +10851,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "stone",
     "expect": ["stone"],
     "expectKind": "Word"
@@ -10939,13 +10939,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "trade",
     "expect": ["trade"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "travel",
     "expect": ["travel"],
     "expectKind": "Word"
@@ -11033,7 +11033,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "europe",
     "expect": ["europe"],
     "expectKind": "Word"
@@ -11121,7 +11121,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "quiet",
     "expect": ["quiet"],
     "expectKind": "Word"
@@ -11209,7 +11209,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "assembly",
     "expect": ["assembly"],
     "expectKind": "Word"
@@ -11297,13 +11297,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "citizens",
     "expect": ["citizens"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "law",
     "expect": ["law"],
     "expectKind": "Word"
@@ -11391,7 +11391,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "winter",
     "expect": ["winter"],
     "expectKind": "Word"
@@ -11479,13 +11479,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "voting",
     "expect": ["voting"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "run",
     "expect": ["run"],
     "expectKind": "Word"
@@ -11573,13 +11573,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "fair",
     "expect": ["fair"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "judge",
     "expect": ["judge"],
     "expectKind": "Word"
@@ -11667,7 +11667,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "salt",
     "expect": ["salt"],
     "expectKind": "Word"
@@ -11755,13 +11755,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "regular",
     "expect": ["regular"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "health",
     "expect": ["health"],
     "expectKind": "Word"
@@ -11849,7 +11849,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "procedure",
     "expect": ["procedure"],
     "expectKind": "Word"
@@ -11937,13 +11937,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "washing",
     "expect": ["washing"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "infections",
     "expect": ["infections"],
     "expectKind": "Word"
@@ -12031,7 +12031,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "balanced",
     "expect": ["balanced"],
     "expectKind": "Word"
@@ -12119,7 +12119,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "hours",
     "expect": ["hours"],
     "expectKind": "Word"
@@ -12207,13 +12207,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "stress",
     "expect": ["stress"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "time",
     "expect": ["time"],
     "expectKind": "Word"
@@ -12301,7 +12301,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "valley",
     "expect": ["valley"],
     "expectKind": "Word"
@@ -12389,13 +12389,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "packed",
     "expect": ["packed"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "journey",
     "expect": ["journey"],
     "expectKind": "Word"
@@ -12483,7 +12483,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "sunset",
     "expect": ["sunset"],
     "expectKind": "Word"
@@ -12571,13 +12571,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "narrow",
     "expect": ["narrow"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "forest",
     "expect": ["forest"],
     "expectKind": "Word"
@@ -12665,7 +12665,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "lighthouse",
     "expect": ["lighthouse"],
     "expectKind": "Word"
@@ -12753,13 +12753,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "travelers",
     "expect": ["travelers"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "square",
     "expect": ["square"],
     "expectKind": "Word"
@@ -12847,7 +12847,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "coast",
     "expect": ["coast"],
     "expectKind": "Word"
@@ -12935,7 +12935,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "fire",
     "expect": ["fire"],
     "expectKind": "Word"
@@ -13023,7 +13023,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "oil",
     "expect": ["oil"],
     "expectKind": "Word"
@@ -13111,7 +13111,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "flavor",
     "expect": ["flavor"],
     "expectKind": "Word"
@@ -13199,13 +13199,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "pinch",
     "expect": ["pinch"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "dish",
     "expect": ["dish"],
     "expectKind": "Word"
@@ -13293,7 +13293,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "seven",
     "expect": ["seven"],
     "expectKind": "Word"
@@ -13381,13 +13381,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "grilled",
     "expect": ["grilled"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "rice",
     "expect": ["rice"],
     "expectKind": "Word"
@@ -13475,7 +13475,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "fresh",
     "expect": ["fresh"],
     "expectKind": "Word"
@@ -13563,7 +13563,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "acidity",
     "expect": ["acidity"],
     "expectKind": "Word"
@@ -13651,7 +13651,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "match",
     "expect": ["match"],
     "expectKind": "Word"
@@ -13739,7 +13739,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "race",
     "expect": ["race"],
     "expectKind": "Word"
@@ -13827,7 +13827,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "discipline",
     "expect": ["discipline"],
     "expectKind": "Word"
@@ -13915,13 +13915,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "long",
     "expect": ["long"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "mind",
     "expect": ["mind"],
     "expectKind": "Word"
@@ -14009,7 +14009,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "scored",
     "expect": ["scored"],
     "expectKind": "Word"
@@ -14097,13 +14097,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "practice",
     "expect": ["practice"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "confidence",
     "expect": ["confidence"],
     "expectKind": "Word"
@@ -14191,13 +14191,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "trained",
     "expect": ["trained"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "marathon",
     "expect": ["marathon"],
     "expectKind": "Word"
@@ -14285,7 +14285,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "loyalty",
     "expect": ["loyalty"],
     "expectKind": "Word"
@@ -14373,7 +14373,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "emotion",
     "expect": ["emotion"],
     "expectKind": "Word"
@@ -14461,7 +14461,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "twist",
     "expect": ["twist"],
     "expectKind": "Word"
@@ -14549,7 +14549,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "book",
     "expect": ["book"],
     "expectKind": "Word"
@@ -14637,7 +14637,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "original",
     "expect": ["original"],
     "expectKind": "Word"
@@ -14725,7 +14725,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "houses",
     "expect": ["houses"],
     "expectKind": "Word"
@@ -14813,13 +14813,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "readers",
     "expect": ["readers"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "adventure",
     "expect": ["adventure"],
     "expectKind": "Word"
@@ -14907,7 +14907,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "festival",
     "expect": ["festival"],
     "expectKind": "Word"
@@ -14995,13 +14995,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "music",
     "expect": ["music"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "enough",
     "expect": ["enough"],
     "expectKind": "Word"
@@ -15089,7 +15089,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "palette",
     "expect": ["palette"],
     "expectKind": "Word"
@@ -15177,13 +15177,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "photography",
     "expect": ["photography"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "vanish",
     "expect": ["vanish"],
     "expectKind": "Word"
@@ -15271,7 +15271,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "light",
     "expect": ["light"],
     "expectKind": "Word"
@@ -15359,7 +15359,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "dance",
     "expect": ["dance"],
     "expectKind": "Word"
@@ -15447,7 +15447,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "kingdom",
     "expect": ["kingdom"],
     "expectKind": "Word"
@@ -15535,7 +15535,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "them",
     "expect": ["them"],
     "expectKind": "Word"
@@ -15623,13 +15623,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "curiosity",
     "expect": ["curiosity"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "pressure",
     "expect": ["pressure"],
     "expectKind": "Word"
@@ -15717,13 +15717,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "failure",
     "expect": ["failure"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "success",
     "expect": ["success"],
     "expectKind": "Word"
@@ -15811,13 +15811,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "patience",
     "expect": ["patience"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "talent",
     "expect": ["talent"],
     "expectKind": "Word"
@@ -15905,7 +15905,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "results",
     "expect": ["results"],
     "expectKind": "Word"
@@ -15993,13 +15993,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "clear",
     "expect": ["clear"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "thinking",
     "expect": ["thinking"],
     "expectKind": "Word"
@@ -16087,13 +16087,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "trust",
     "expect": ["trust"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "instant",
     "expect": ["instant"],
     "expectKind": "Word"
@@ -16181,13 +16181,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "thoughtful",
     "expect": ["thoughtful"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "answer",
     "expect": ["answer"],
     "expectKind": "Word"
@@ -16275,7 +16275,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "information",
     "expect": ["information"],
     "expectKind": "Word"
@@ -16363,13 +16363,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "experience",
     "expect": ["experience"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "supply",
     "expect": ["supply"],
     "expectKind": "Word"
@@ -16457,13 +16457,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "kindness",
     "expect": ["kindness"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "deal",
     "expect": ["deal"],
     "expectKind": "Word"
@@ -16551,7 +16551,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "record",
     "expect": ["record"],
     "expectKind": "Word"
@@ -16639,13 +16639,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "birds",
     "expect": ["birds"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "arrived",
     "expect": ["arrived"],
     "expectKind": "Word"
@@ -16733,7 +16733,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "field",
     "expect": ["field"],
     "expectKind": "Word"
@@ -16821,13 +16821,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "autumn",
     "expect": ["autumn"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "playground",
     "expect": ["playground"],
     "expectKind": "Word"
@@ -16915,7 +16915,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "rain",
     "expect": ["rain"],
     "expectKind": "Word"
@@ -17003,13 +17003,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "wolves",
     "expect": ["wolves"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "catch",
     "expect": ["catch"],
     "expectKind": "Word"
@@ -17097,7 +17097,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "life",
     "expect": ["life"],
     "expectKind": "Word"
@@ -17185,13 +17185,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "glaciers",
     "expect": ["glaciers"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "expected",
     "expect": ["expected"],
     "expectKind": "Word"
@@ -17279,13 +17279,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "recycling",
     "expect": ["recycling"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "landfills",
     "expect": ["landfills"],
     "expectKind": "Word"
@@ -17373,13 +17373,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "solar",
     "expect": ["solar"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "electricity",
     "expect": ["electricity"],
     "expectKind": "Word"
@@ -17467,13 +17467,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "wind",
     "expect": ["wind"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "fuel",
     "expect": ["fuel"],
     "expectKind": "Word"
@@ -17561,13 +17561,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "clean",
     "expect": ["clean"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "lack",
     "expect": ["lack"],
     "expectKind": "Word"
@@ -17655,7 +17655,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "equipment",
     "expect": ["equipment"],
     "expectKind": "Word"
@@ -17743,7 +17743,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "public",
     "expect": ["public"],
     "expectKind": "Word"
@@ -17831,13 +17831,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "planting",
     "expect": ["planting"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "carbon",
     "expect": ["carbon"],
     "expectKind": "Word"
@@ -17925,13 +17925,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "healthy",
     "expect": ["healthy"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "erosion",
     "expect": ["erosion"],
     "expectKind": "Word"
@@ -18019,13 +18019,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "farmers",
     "expect": ["farmers"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "productive",
     "expect": ["productive"],
     "expectKind": "Word"
@@ -18113,7 +18113,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "sigh",
     "expect": ["sigh"],
     "expectKind": "Word"
@@ -18201,7 +18201,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "shore",
     "expect": ["shore"],
     "expectKind": "Word"
@@ -18289,7 +18289,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "food",
     "expect": ["food"],
     "expectKind": "Word"
@@ -18377,7 +18377,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "neighbors",
     "expect": ["neighbors"],
     "expectKind": "Word"
@@ -18465,7 +18465,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "sent",
     "expect": ["sent"],
     "expectKind": "Word"
@@ -18553,13 +18553,13 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "forgotten",
     "expect": ["forgotten"],
     "expectKind": "Word"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "secret",
     "expect": ["secret"],
     "expectKind": "Word"
@@ -18647,7 +18647,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "midnight",
     "expect": ["midnight"],
     "expectKind": "Word"
@@ -18735,7 +18735,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "year",
     "expect": ["year"],
     "expectKind": "Word"
@@ -18823,7 +18823,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "disappeared",
     "expect": ["disappeared"],
     "expectKind": "Word"
@@ -18911,7 +18911,7 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "the last candidate word alone",
+    "note": "lone word: a dictionary word selected alone",
     "text": "hills",
     "expect": ["hills"],
     "expectKind": "Word"
@@ -19019,73 +19019,73 @@
     "expectKind": "Entity"
   },
   {
-    "note": "a lone letters-only token",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "qml",
-    "expect": ["qml"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "a lone letters-only token",
+    "note": "lone name: a word-list-missing token selected alone",
     "text": "QML",
-    "expect": ["qml"],
-    "expectKind": "Word"
+    "expect": [],
+    "expectKind": "Entity"
   },
   {
-    "note": "a lone letters-only token",
+    "note": "lone word: a dictionary word selected alone",
     "text": "resilience",
     "expect": ["resilience"],
     "expectKind": "Word"
   },
   {
-    "note": "a lone letters-only token",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ubiquitous",
     "expect": ["ubiquitous"],
     "expectKind": "Word"
   },
   {
-    "note": "a lone letters-only token",
+    "note": "lone word: a dictionary word selected alone",
     "text": "groovy",
     "expect": ["groovy"],
     "expectKind": "Word"
   },
   {
-    "note": "a lone letters-only token",
+    "note": "lone word: a dictionary word selected alone",
     "text": "wistful",
     "expect": ["wistful"],
     "expectKind": "Word"
   },
   {
-    "note": "a lone letters-only token",
+    "note": "lone word: a dictionary word selected alone",
     "text": "serendipity",
     "expect": ["serendipity"],
     "expectKind": "Word"
   },
   {
-    "note": "a lone letters-only token",
+    "note": "lone word: a dictionary word selected alone",
     "text": "ephemeral",
     "expect": ["ephemeral"],
     "expectKind": "Word"
   },
   {
-    "note": "a lone letters-only token",
+    "note": "lone word: a dictionary word selected alone",
     "text": "quixotic",
     "expect": ["quixotic"],
     "expectKind": "Word"
   },
   {
-    "note": "a lone letters-only token",
+    "note": "lone word: a dictionary word selected alone",
     "text": "zealous",
     "expect": ["zealous"],
     "expectKind": "Word"
   },
   {
-    "note": "a lone letters-only token",
+    "note": "lone word: a dictionary word selected alone",
     "text": "nimbus",
     "expect": ["nimbus"],
     "expectKind": "Word"
   },
   {
-    "note": "a lone letters-only token",
+    "note": "lone word: a dictionary word selected alone",
     "text": "kafkaesque",
     "expect": ["kafkaesque"],
     "expectKind": "Word"

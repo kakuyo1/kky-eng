@@ -209,18 +209,24 @@ def check_entry(index: int, entry: dict, ranks: dict[str, int]) -> list[str]:
 
     if kind not in ("Word", "Entity", "Sentence"):
         problems.append(f"{where}: expectKind '{kind}' is neither Word, Entity, nor Sentence")
+
+    # The entity channel owns a name phrase and a lone token the word list does not know; a lone
+    # token it does know is a word; everything else is a sentence.
+    lone = is_lone_token(text)
+    if is_entity_selection(text):
+        wanted = "Entity"
+    elif lone:
+        surface = tokens(text)[0].lower()
+        in_list = surface in ranks or any(stem in ranks for stem in reductions(surface))
+        wanted = "Word" if in_list else "Entity"
+    else:
+        wanted = "Sentence"
+    if kind != wanted:
+        problems.append(f"{where}: expectKind is '{kind}' but the selection shape wants '{wanted}'")
     if kind == "Entity":
         if expect:
             problems.append(f"{where}: Entity entries must leave expect empty")
-        if not is_entity_selection(text):
-            problems.append(f"{where}: Entity text does not meet the conservative phrase rule")
         return problems
-    # The channel is the shape of the selection, not whether it holds candidates: a single
-    # token with a candidate is a Word, and every multi-token selection (or a lone token with
-    # no candidate) is a Sentence. `expect` still describes filterWords output independently.
-    wanted = "Word" if (len(tokens(text)) == 1 and expect) else "Sentence"
-    if kind != wanted:
-        problems.append(f"{where}: expectKind is '{kind}' but the selection shape wants '{wanted}'")
 
     for word in expect:
         if word != word.lower():
@@ -231,7 +237,6 @@ def check_entry(index: int, entry: dict, ranks: dict[str, int]) -> list[str]:
 
     # A token that the rules skip contributes nothing, even when its lower-cased form happens
     # to match a candidate that some other token in the excerpt carries.
-    lone = is_lone_token(text)
     surviving = {token.lower() for token in tokens(text) if lone or reject_reason(token, ranks) is None}
 
     # Order: by first appearance among the tokens that survive the rules.

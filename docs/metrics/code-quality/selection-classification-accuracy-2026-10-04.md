@@ -200,3 +200,25 @@ token）。`check-eval-corpus.py` 报 0 问题；`lens_gtest_unit` 语料回放 
 0 mismatched`。为容纳真实正文，`check-eval-corpus.py` 修正三处与实现不符的建模：被跳过的全大写 token 不再
 误连到别处同名候选；去重按 lemma 集合比较；不规则形只认词干（`data → datum` 找不到即丢弃）。旧编号与旧
 数字不改。
+
+## 12 孤立 token 按词表分流为 word / entity（2026-10-04）
+
+需求侧观察：`QML` 这类单个 token 被识别为 word，但它没有 known / new 的概念、也拿不到有意义的音标，读起来
+别扭。定夺：单个 letters-only token 按静态词表分流——在词表内（`resilience` / `the` / `RUNNING`）→ word
+（查词）；不在词表（`QML` / `qml` / `Kubernetes`）→ entity（命名实体，百科式说明，无 known / new）。
+数字 / 标点 / 单字母仍为 sentence。`filterWords` 的孤立 token 例外照旧产出候选供 word 用；`classifySelection`
+再按 `inTable(surface) || inTable(lemmatize(surface))` 定通道，未命中即清空候选转 entity。
+
+语料：单 token 条目按此重分——516 个 word（词表内）与 86 个 entity（词表外），多 token entity 20 个未动。
+`check-eval-corpus.py` 的 kind 规则改为「名称短语或不在词表的孤立 tokens = entity」。
+
+| 指标 | 改前 | 改后 |
+| --- | ---: | ---: |
+| Entity 段数 | 20 | 106 |
+| 单 token Entity | 0 | 86 |
+| 单 token Word | 602 | 516 |
+| corpus mismatched | 0 | 0 |
+| 独立检查脚本问题数 | 0 | 0 |
+
+改后实际输出：`corpus: 3005 entries, 0 mismatched`；`check-eval-corpus.py` 0 问题；`lens_gtest_unit` 45 绿、
+`lens_qtest_surfaces` 52 绿、`lens_qtest_components` 44 绿。
