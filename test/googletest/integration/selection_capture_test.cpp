@@ -194,6 +194,48 @@ unsigned putClipboardTextAndFormat(const QString& text, const char* name, const 
     return format;
 }
 
+/// @brief Put text and a palette on the clipboard, in one session.
+///
+/// A palette's handle is a GDI object rather than a block of memory, so it is the format the
+/// snapshot is built to leave behind. A bitmap would do the same, but Windows also puts its
+/// memory siblings (CF_DIB, CF_DIBV5) on the clipboard, and the snapshot copies those; a palette
+/// has no such sibling, so its absence after a restore really does mean the skip happened.
+///
+/// Text rides along so the snapshot still has something it can copy, which is what separates "the
+/// handle format was skipped" from "the snapshot copied nothing".
+/// @return True when both formats went on.
+bool putClipboardTextAndPalette(const QString& text)
+{
+    const HDC screen = GetDC(nullptr);
+    if (screen == nullptr) return false;
+    const HPALETTE palette = CreateHalftonePalette(screen);
+    ReleaseDC(nullptr, screen);
+    if (palette == nullptr) return false;
+
+    if (!openClipboardRetrying()) {
+        DeleteObject(palette);
+        return false;
+    }
+
+    EmptyClipboard();
+
+    const std::wstring wide = text.toStdWString();
+    HGLOBAL memory = GlobalAlloc(GMEM_MOVEABLE, (wide.size() + 1) * sizeof(wchar_t));
+    if (memory != nullptr) {
+        if (void* target = GlobalLock(memory)) {
+            std::memcpy(target, wide.c_str(), (wide.size() + 1) * sizeof(wchar_t));
+            GlobalUnlock(memory);
+        }
+        if (SetClipboardData(CF_UNICODETEXT, memory) == nullptr) GlobalFree(memory);
+    }
+
+    // Ownership of the palette passes to the clipboard on success and stays here on failure.
+    if (SetClipboardData(CF_PALETTE, palette) == nullptr) DeleteObject(palette);
+
+    CloseClipboard();
+    return true;
+}
+
 /// @return The bytes of a private registered format, or nothing when it is not there.
 std::optional<std::string> readClipboardPrivateFormat(unsigned format)
 {
@@ -414,6 +456,41 @@ TEST(ClipboardSnapshot, PutsBackEveryFormatRatherThanJustTheText)
     EXPECT_EQ(readClipboardTextNow().value_or(QString()), QStringLiteral("lens-keep-me"));
     EXPECT_EQ(readClipboardPrivateFormat(marker).value_or(std::string()), "second-format")
         << "a format other than the text was dropped, which is what a text-only save would do";
+}
+
+/// A format whose handle is a GDI object is skipped on purpose: copying its bytes and writing
+/// them back would put a broken bitmap on the clipboard. The text beside it still comes back,
+/// which is how the skip and the copy are told apart.
+TEST(ClipboardSnapshot, LeavesAHandleFormatBehindRatherThanCopyingItsBytes)
+{
+    ASSERT_TRUE(putClipboardTextAndPalette(QStringLiteral("lens-keep-me")));
+    ASSERT_TRUE(IsClipboardFormatAvailable(CF_PALETTE)) << "setup: the palette is not on the clipboard";
+
+    const lens::app::ClipboardSnapshot snapshot = lens::app::ClipboardSnapshot::take();
+    ASSERT_TRUE(snapshot.taken());
+
+    ASSERT_TRUE(putClipboardText(QStringLiteral("lens-intruder")));
+    EXPECT_TRUE(snapshot.restore());
+
+    EXPECT_EQ(readClipboardTextNow().value_or(QString()), QStringLiteral("lens-keep-me"))
+        << "the text was dropped along with the format that cannot be copied";
+    EXPECT_FALSE(IsClipboardFormatAvailable(CF_PALETTE))
+        << "a GDI handle was copied and written back as a byte blob";
+}
+
+/// A clipboard with nothing on it is still read successfully, and restoring that empty snapshot
+/// must not empty the clipboard it came from. This is the entries-empty branch, which the
+/// never-taken case above does not reach.
+TEST(ClipboardSnapshot, AnEmptyClipboardIsTakenAndRestoredAsNothing)
+{
+    ASSERT_TRUE(openClipboardRetrying());
+    EmptyClipboard();
+    CloseClipboard();
+
+    const lens::app::ClipboardSnapshot snapshot = lens::app::ClipboardSnapshot::take();
+    ASSERT_TRUE(snapshot.taken());
+    EXPECT_TRUE(snapshot.restore());
+    EXPECT_FALSE(IsClipboardFormatAvailable(CF_UNICODETEXT));
 }
 
 /// Restoring a snapshot that was never taken must do nothing: it has no entries to fill an
