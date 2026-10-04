@@ -8,11 +8,11 @@ import QtQuick
  * and never for a colour. A third theme is one more file here and one more arm in Tokens.
  */
 QtObject {
-    readonly property color bg: "#f6f6f8"
+    readonly property color bg: "#e9ebef"
     readonly property color panel: "#ffffff"
-    readonly property color panel2: "#fafafb"
-    readonly property color line: "#e9e9ee"
-    readonly property color line2: "#f2f2f5"
+    readonly property color panel2: "#f1f3f7"
+    readonly property color line: "#d6dae1"
+    readonly property color line2: "#e6e9ee"
     readonly property color text: "#1a1a1f"
     readonly property color muted: "#66666f"
     readonly property color faint: "#9d9da8"
