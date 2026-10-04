@@ -7,6 +7,9 @@ import QtQuick.Effects
  * The window around this has to be `shadowMargin` larger on every side than the card: the
  * blur needs room to fall off, and a frameless window gets no shadow from the system. Callers
  * place their content with `anchors.fill: parent` plus the same margin.
+ *
+ * It also owns the appearance: the panels, the tray menu and the notice are all one of these,
+ * so the fade and the lift UI.md's motion table asks of them are written once, here.
  */
 Item {
     id: root
@@ -20,6 +23,34 @@ Item {
 
     /// Whether the reader may drag the card to move the window it is in.
     property bool movable: false
+
+    /**
+     * Whether the card is on screen.
+     *
+     * It follows the window the card is drawn in, because that is what a surface's appearance
+     * is: the window becomes visible and the card fades and lifts into place. The appearance
+     * lives here rather than once per surface -- a surface that forgets it is a surface that
+     * does not move.
+     *
+     * A card built *after* its window is already up has no such flip to follow, which is the
+     * tray menu's language list: its loader only runs once the list is meant to be out. Its
+     * owner binds this to whatever stands for "the list is out" instead.
+     */
+    property bool shown: root.Window.window ? root.Window.window.visible : true
+
+    opacity: shown ? 1 : 0
+    Behavior on opacity {
+        NumberAnimation {
+            duration: Tokens.motion.pop
+            easing.type: Tokens.motion.easing
+        }
+    }
+
+    /// The lift that goes with the fade: the card starts a few pixels below where it lands and
+    /// the fade carries it up. Derived from the opacity rather than tracked beside it, so one
+    /// value drives both and reduced motion takes the movement away with the fade -- at zero
+    /// duration the opacity is 1 in the first frame, and the offset is zero with it.
+    transform: Translate { y: (1 - root.opacity) * 8 }
 
     /// True while a drag is moving the window. Surfaces that time out watch it: a card being
     /// held is not on its way out.

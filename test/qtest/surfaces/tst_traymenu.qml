@@ -95,6 +95,26 @@ Item {
                     "the figures row does not start with the day's pop count");
         }
 
+        /// The list is the one card whose appearance does not follow its window: the menu is
+        /// already up by the time this loader builds it, so the card follows the loader's own
+        /// status instead. A card left at zero opacity is invisible while every geometric
+        /// assertion beside this one still passes.
+        function test_theUnfoldedListEndsUpDrawn() {
+            const menu = make();
+            compare(menu.listVisible, false);
+
+            // The list's loader, told from the body's by what it holds: the body's item is a
+            // Column, the list's is the card, and only the card answers to `shown`.
+            menu.listVisible = true;
+            const loader = Util.findAll(menu, function (o) {
+                return o.item !== undefined && o.item !== null && o.item.shown !== undefined;
+            })[0];
+            verify(loader, "the language list is not a loader holding a card");
+
+            tryVerify(function () { return loader.item.opacity === 1; },
+                      1000, "the unfolded language list never finished appearing");
+        }
+
         /// The language list unfolds to the left of the row it belongs to, so the menu's
         /// window is wider than its card and what counts as a press on it is neither.
         ///

@@ -82,14 +82,20 @@ Item {
             if (!lensQaSnapshotDir)
                 skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qml-snapshot.ps1) to save the snapshot");
 
+            // Every surface is a card that fades and lifts into place (ShadowCard.qml), so a
+            // grab taken before that has finished photographs a half-transparent card. Waiting
+            // out the token is what makes the still show what the reader ends up looking at.
+            const settled = Tokens.motion.pop + 80;
+
             Tokens.theme = "light";
             const notice = opened("API key", "The API key is missing.", "error");
+            wait(settled);
             verify(Util.saveSnapshot(testCase, notice.contentItem, lensQaSnapshotDir, "notice-light"));
             notice.visible = false;
 
             Tokens.theme = "dark";
             notice.show({title: "Network", body: "The request could not reach the service.", kind: "error"});
-            wait(50);
+            wait(settled);
             verify(Util.saveSnapshot(testCase, notice.contentItem, lensQaSnapshotDir, "notice-dark"));
             notice.visible = false;
         }

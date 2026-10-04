@@ -199,6 +199,11 @@ Window {
             width: menu.listWidth + 2 * menu.shadowMargin
             height: listColumn.implicitHeight + 10 + 2 * menu.shadowMargin
             radius: Tokens.radiusGroup
+            // The list is built by this loader only once it is meant to be out, so the window
+            // it sits in is already visible and ShadowCard's own rule has nothing to animate.
+            // The loader's own status is the flip instead: Loading while the card is being
+            // built, Ready once it is done.
+            shown: languageList.status === Loader.Ready
 
             Column {
                 id: listColumn
@@ -218,6 +223,12 @@ Window {
                         radius: 8
                         color: modelData.code === menu.language ? Tokens.ink
                                                                 : (rowHover.hovered ? Tokens.panel2 : "transparent")
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: Tokens.motion.press
+                                easing.type: Tokens.motion.easing
+                            }
+                        }
 
                         Text {
                             anchors.left: parent.left

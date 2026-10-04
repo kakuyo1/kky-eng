@@ -94,12 +94,16 @@ Item {
             main.showSettings();
             const panel = settingsPanel(main);
 
+            // The panel is a card that fades and lifts into place (ShadowCard.qml), so a grab
+            // taken before that has finished photographs a half-transparent card.
+            const settled = Tokens.motion.pop + 80;
+
             Controller.setTheme("light");
-            wait(100);
+            wait(settled);
             verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-light"));
 
             Controller.setTheme("dark");
-            wait(100);
+            wait(settled);
             verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-dark"));
         }
     }
