@@ -89,12 +89,13 @@ struct Candidate {
  * removes a word is the hard filter, and that is the whole test for whether it is a word at
  * all: length, case, a vowel, glued punctuation, and membership of the static word list.
  *
- * One explicit exception: when the whole selection is a single all-caps letters-only token
- * ("QML", "NASA"), it is an acronym the reader picked by hand, so it becomes a candidate -- the
- * lower-cased token itself -- whatever those gates say. The static list holds few acronyms and
- * QML has no vowel, so without this a selected acronym would fall through to the sentence
- * channel. Inside continuous prose the all-caps run is still skipped; only a selection that is
- * exactly this one token qualifies.
+ * One explicit exception: when the whole selection is a single letters-only token of two or
+ * more letters, in any case ("QML", "qml", "NASA", "ok", "am"), it is a word the reader picked
+ * by hand, so it becomes a candidate -- the lower-cased token itself -- whatever those gates
+ * say. The static list holds few acronyms and identifiers, and qml has no vowel, so without
+ * this a selected term would fall through to the sentence channel. A digit or interior
+ * punctuation disqualifies it (MP3, contractions stay out), and in continuous prose the gates
+ * still apply: only a selection that is exactly this one token qualifies.
  *
  * @param text         Raw excerpt, typically pasted from the clipboard.
  * @param knownLemmas  Lemmas the reader has already marked as known; a hit is recorded as

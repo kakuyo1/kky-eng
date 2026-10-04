@@ -98,11 +98,11 @@ Selection classifySelection(
 }
 ```
 
-判定次序：先识别完整的多 token Title Case 实体短语（至少两个 token，单个首字母大写词不算），再进行单词分词硬过滤（含元音、长度 ≥3、无数字、去 URL / 邮箱 / 粘连串）→ 全大写跳过 → 词根还原 → 静态词表白名单（不在表即丢）→ 按 lemma 去重 → 给每个幸存候选标状态（New / Known / Mastered）。实体规则刻意保守，无法满足时回到 Word 或 Sentence。**例外**：整个选区就是单个全大写字母 token 时（`QML` / `NASA`），按读者手选的缩写处理，见下条。
+判定次序：先识别完整的多 token Title Case 实体短语（至少两个 token，单个首字母大写词不算），再进行单词分词硬过滤（含元音、长度 ≥3、无数字、去 URL / 邮箱 / 粘连串）→ 全大写跳过 → 词根还原 → 静态词表白名单（不在表即丢）→ 按 lemma 去重 → 给每个幸存候选标状态（New / Known / Mastered）。实体规则刻意保守，无法满足时回到 Word 或 Sentence。**例外**：整个选区是单个 letters-only token（≥2 字母、不分大小写，如 `QML` / `qml` / `am`）时，按读者手选的词处理，见下条。
 
 **known-set 与档位阈值只标注，不删候选**（2026-10-04）：它们是候选的状态，不是候选的删除条件——读者手选一段文字就是在要求解释它，而他可能早忘了自己标过的词。于是 `SelectionKind::Word` 的含义变成 “这段里有词表词”，而不是 “这段里有值得弹的词”；实体短语先于该规则判定，剩余文本没有词表词才落 `Sentence`。取舍与实测见 `docs/metrics/code-quality/selection-classification-accuracy-2026-10-04.md`。
 
-**孤立全大写 token 是缩写，走单词通道**（2026-10-04）：读者把整个选区选成一个全大写 token，就是明确地在问这个缩写，而不是在正文里误选了一个喊叫的词。故 `filterWords` 在分词前先看这一条：整个选区经去空白与首尾标点后是 ≥2 字母、全大写、纯字母的 token 时，直接产出一个候选——`surface` / `lemma` 取小写，经 `lemmatize` 后 `RUNNING` 仍还原为 `run`，缩写按自身定形（`QML` → `qml`）——不再经全大写、含元音与静态词表白名单三道硬过滤。连续正文里的全大写 run 照旧跳过：`The API returns …` 里 `API` 不是候选。响应侧随之放宽：word schema 的 `ipa` 由必填改为可选（缩写没有音标），`llm_pure` 不再因空 `ipa` 整批失败，缓存只把缺 `ipa` 键的旧条目当过期丢弃（空 `ipa` 是合法条目）。语料里 69 条单 token 全大写出 `Sentence` 改为 `Word`（`MP3` / `MP4` 含数字属粘连串，仍为 `Sentence`），`check-eval-corpus.py` 增加同名规则。
+**孤立字母 token 走单词通道**（2026-10-04）：读者把整个选区选成一个 letters-only token，就是明确地在问这个词，而不是在正文里误选了一个片段。故 `filterWords` 在分词前先看这一条：整个选区经去空白与首尾标点后是 ≥2 字母、纯 ASCII 字母的 token 时（不分大小写），直接产出一个候选——`surface` / `lemma` 取小写，经 `lemmatize` 后 `RUNNING` 仍还原为 `run`，缩写 / 标识符按自身定形（`QML` / `qml` → `qml`）——不再经长度下限、含元音与静态词表白名单三道硬过滤。含数字或内部标点的 token 仍被排除（`MP3`、缩写号、两词）；连续正文里的同类 run 仍由常规过滤处理：`The API returns …` 里 `API` 不是候选。响应侧随之放宽：word schema 的 `ipa` 由必填改为可选（缩写 / 标识符没有音标），`llm_pure` 不再因空 `ipa` 整批失败，缓存只把缺 `ipa` 键的旧条目当过期丢弃（空 `ipa` 是合法条目）。语料分两轮共 183 条单 token 由 `Sentence` 改为 `Word`，`check-eval-corpus.py` 的 `is_lone_token` 规则同步。
 
 落地注记（2026-10-02，与测试样例集一并定）：
 

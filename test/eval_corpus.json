@@ -1,297 +1,297 @@
 [
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "am",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["am"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "an",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["an"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "as",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["as"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "at",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["at"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "be",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["be"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "by",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["by"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "do",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["do"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "go",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["go"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "he",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["he"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "if",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["if"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "in",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["in"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "is",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["is"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "it",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["it"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "me",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["me"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "my",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["my"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "no",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["no"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "of",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["of"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "on",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["on"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "or",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["or"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "so",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["so"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "to",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["to"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "up",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["up"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "us",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["us"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "we",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["we"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "ok",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ok"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "ex",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ex"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "id",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["id"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "hi",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["hi"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "ho",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ho"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "la",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["la"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "ma",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ma"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "pa",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["pa"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "ah",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ah"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "eh",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["eh"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "oh",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["oh"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "ow",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ow"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "ox",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ox"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "pi",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["pi"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "qi",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["qi"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "si",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["si"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "xi",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["xi"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "xu",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["xu"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "ay",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ay"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "oy",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["oy"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "yo",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["yo"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "ya",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ya"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "lo",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["lo"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "ta",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["ta"],
+    "expectKind": "Word"
   },
   {
-    "note": "two letters: under the length floor",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "na",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["na"],
+    "expectKind": "Word"
   },
   {
     "note": "one letter: under the length floor",
@@ -516,271 +516,271 @@
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "THE",
     "expect": ["the"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "NASA",
     "expect": ["nasa"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "API",
     "expect": ["api"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "OK",
     "expect": ["ok"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "JSON",
     "expect": ["json"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "HTTPS",
     "expect": ["https"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "HTTP",
     "expect": ["http"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "URL",
     "expect": ["url"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "SQL",
     "expect": ["sql"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "CPU",
     "expect": ["cpu"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "GPU",
     "expect": ["gpu"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "RAM",
     "expect": ["ram"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "ROM",
     "expect": ["rom"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "USB",
     "expect": ["usb"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "HTML",
     "expect": ["html"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "CSS",
     "expect": ["css"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "IDE",
     "expect": ["ide"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "CLI",
     "expect": ["cli"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "GUI",
     "expect": ["gui"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "SDK",
     "expect": ["sdk"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "AWS",
     "expect": ["aws"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "CEO",
     "expect": ["ceo"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "CFO",
     "expect": ["cfo"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "IPO",
     "expect": ["ipo"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "KPI",
     "expect": ["kpi"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "ROI",
     "expect": ["roi"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "SLA",
     "expect": ["sla"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "TCP",
     "expect": ["tcp"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "UDP",
     "expect": ["udp"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "FTP",
     "expect": ["ftp"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "SSH",
     "expect": ["ssh"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "DNS",
     "expect": ["dns"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "DHCP",
     "expect": ["dhcp"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "VPN",
     "expect": ["vpn"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "TLS",
     "expect": ["tls"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "SSL",
     "expect": ["ssl"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "XML",
     "expect": ["xml"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "YAML",
     "expect": ["yaml"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "TOML",
     "expect": ["toml"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "CSV",
     "expect": ["csv"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "PDF",
     "expect": ["pdf"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "PNG",
     "expect": ["png"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "JPEG",
     "expect": ["jpeg"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "GIF",
     "expect": ["gif"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "SVG",
     "expect": ["svg"],
     "expectKind": "Word"
@@ -798,322 +798,322 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "WAV",
     "expect": ["wav"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "ZIP",
     "expect": ["zip"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "EXE",
     "expect": ["exe"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "DLL",
     "expect": ["dll"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "TTY",
     "expect": ["tty"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "EOF",
     "expect": ["eof"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "TODO",
     "expect": ["todo"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "NOTE",
     "expect": ["note"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "FIXME",
     "expect": ["fixme"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "WARNING",
     "expect": ["warning"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "ERROR",
     "expect": ["error"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "DEBUG",
     "expect": ["debug"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "INFO",
     "expect": ["info"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "TRUE",
     "expect": ["true"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "FALSE",
     "expect": ["false"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "NONE",
     "expect": ["none"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "MAIN",
     "expect": ["main"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "INDEX",
     "expect": ["index"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "ROOT",
     "expect": ["root"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "ADMIN",
     "expect": ["admin"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "USER",
     "expect": ["user"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "TEST",
     "expect": ["test"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "BUILD",
     "expect": ["build"],
     "expectKind": "Word"
   },
   {
-    "note": "lone all-caps: the whole selection is one acronym, so it becomes a word candidate",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "RELEASE",
     "expect": ["release"],
     "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "macOS",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["macos"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "GitHub",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["github"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "JavaScript",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["javascript"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "TypeScript",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["typescript"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "PostgreSQL",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["postgresql"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "MySQL",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["mysql"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "MongoDB",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["mongodb"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "OAuth",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["oauth"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "jQuery",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["jquery"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "WebSocket",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["websocket"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "NodeJS",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["nodejs"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "DevOps",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["devops"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "PyTorch",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["pytorch"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "TensorFlow",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["tensorflow"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "WordPress",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["wordpress"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "OpenSSL",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["openssl"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "PowerShell",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["powershell"],
+    "expectKind": "Word"
   },
   {
-    "note": "mixed case: not a word-list entry once lower-cased",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "Kubernetes",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["kubernetes"],
+    "expectKind": "Word"
   },
   {
-    "note": "no vowel: nothing to pronounce as a word",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "tsk",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["tsk"],
+    "expectKind": "Word"
   },
   {
-    "note": "no vowel: nothing to pronounce as a word",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "shh",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["shh"],
+    "expectKind": "Word"
   },
   {
-    "note": "no vowel: nothing to pronounce as a word",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "hmm",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["hmm"],
+    "expectKind": "Word"
   },
   {
-    "note": "no vowel: nothing to pronounce as a word",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "brr",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["brr"],
+    "expectKind": "Word"
   },
   {
-    "note": "no vowel: nothing to pronounce as a word",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "grr",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["grr"],
+    "expectKind": "Word"
   },
   {
-    "note": "no vowel: nothing to pronounce as a word",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "nth",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["nth"],
+    "expectKind": "Word"
   },
   {
-    "note": "no vowel: nothing to pronounce as a word",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "cwm",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["cwm"],
+    "expectKind": "Word"
   },
   {
-    "note": "no vowel: nothing to pronounce as a word",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "crwth",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["crwth"],
+    "expectKind": "Word"
   },
   {
-    "note": "no vowel: nothing to pronounce as a word",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "php",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["php"],
+    "expectKind": "Word"
   },
   {
-    "note": "no vowel: nothing to pronounce as a word",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "www",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["www"],
+    "expectKind": "Word"
   },
   {
-    "note": "no vowel: nothing to pronounce as a word",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "sphygm",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["sphygm"],
+    "expectKind": "Word"
   },
   {
     "note": "an HTML tag: the tag characters are trimmed away, div is a word",
@@ -1380,34 +1380,34 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "a camelCase identifier: dropped whole",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "camelCaseWord",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["camelcaseword"],
+    "expectKind": "Word"
   },
   {
-    "note": "a DOM call: dropped whole",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "getElementById",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["getelementbyid"],
+    "expectKind": "Word"
   },
   {
-    "note": "a library call: dropped whole",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "parseInt",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["parseint"],
+    "expectKind": "Word"
   },
   {
-    "note": "a camelCase field: dropped whole",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "userId",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["userid"],
+    "expectKind": "Word"
   },
   {
-    "note": "a camelCase property: dropped whole",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "backgroundColor",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["backgroundcolor"],
+    "expectKind": "Word"
   },
   {
     "note": "a plain integer: dropped whole",
@@ -1758,190 +1758,190 @@
     "expectKind": "Sentence"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "kubernetes",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["kubernetes"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "kubectl",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["kubectl"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "webpack",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["webpack"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "nginx",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["nginx"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "postgres",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["postgres"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "redis",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["redis"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "gradle",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["gradle"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "tmux",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["tmux"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "emacs",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["emacs"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "monorepo",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["monorepo"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "changelog",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["changelog"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "refactor",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["refactor"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "refactoring",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["refactoring"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "codebase",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["codebase"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "stdin",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["stdin"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "stdout",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["stdout"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "stderr",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["stderr"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "gzip",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["gzip"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "syslog",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["syslog"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "threadpool",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["threadpool"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "mutex",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["mutex"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "lockfile",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["lockfile"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "namespace",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["namespace"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "transpile",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["transpile"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "breakpoint",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["breakpoint"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "backtrace",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["backtrace"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "stacktrace",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["stacktrace"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "microservice",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["microservice"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "middleware",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["middleware"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "frontend",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["frontend"],
+    "expectKind": "Word"
   },
   {
-    "note": "not in the static word list: dropped whatever the cut-off",
+    "note": "lone token: a single letters-only selection becomes a word candidate, whatever its case, vowel, or place in the static list",
     "text": "backend",
-    "expect": [],
-    "expectKind": "Sentence"
+    "expect": ["backend"],
+    "expectKind": "Word"
   },
   {
     "note": "jargon the list happens to carry: a candidate like any other",

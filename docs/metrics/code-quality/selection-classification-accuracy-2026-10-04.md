@@ -111,25 +111,28 @@ V3 后的实际输出为 `corpus: 1004 entries, 0 mismatched`，独立脚本输�
 这三轮只说明新增三段后当前实现的测量口径；与第 2 节 T2 的七轮区间不能当作严格性能回归，
 因为语料量与运行轮次不同。
 
-## 8 孤立全大写缩写改走单词通道（2026-10-04）
+## 8 孤立字母 token 走单词通道（2026-10-04）
 
-需求侧观察：在 VS Code 里选中 `QML`（3 个全大写字母）被判成 `Sentence`。查证后，`Sentence` 是 T2 语料
-的刻意设计（95 条全大写字样注释 “all caps: skipped as an abbreviation”），且 `QML` 同时踩到无元音与
-不在静态词表两道过滤。定夺：**整个选区就是单个全大写字母 token 时改走单词通道**，连续正文里的全大写仍
-跳过。规则与响应侧放宽（word schema 的 `ipa` 由必填改可选）见 `PHASE1.md` §4.1 落地注记。
+需求侧观察：先后在 VS Code 里选中 `QML` 与 `qml`，都被判成 `Sentence`。查证后，`Sentence` 是 T2 语料的
+刻意设计（全大写与无元音都属硬过滤，`qml` 又不在静态词表）。定夺：**整个选区是单个 letters-only token
+（≥2 字母、不分大小写）时改走单词通道**——读者手选一个 token 就是明确在问它；连续正文里的同类 run 仍由
+常规过滤处理。响应侧随之放宽：word schema 的 `ipa` 由必填改可选（缩写 / 标识符没有音标），`llm_pure`
+不再因空 `ipa` 整批失败，缓存只把缺 `ipa` 键的旧条目当过期丢弃。规则见 `PHASE1.md` §4.1 落地注记。
 
-语料变更：69 条单 token 全大写条目由 `Sentence` 改为 `Word`（`expect` 取小写 token），`MP3` / `MP4`
-因含数字属粘连串仍为 `Sentence`。`check-eval-corpus.py` 增加 `is_lone_acronym` 规则。
+语料变更：分两轮共 183 条单 token 条目由 `Sentence` 改为 `Word`（`expect` 取小写 token）——第一轮按
+“全大写”放开 69 条，第二轮去掉大小写条件再放开 114 条。仍为 `Sentence` 的 99 条单 token 是长度 <2
+（`a`）、含数字 / 标点（`MP3`、URL、路径、缩写号）、非 ASCII（重音词、中日韩文）或缺字符的那几类。
+`check-eval-corpus.py` 的 `is_lone_token` 规则与实现同步。
 
 | 指标 | 改前 | 改后 |
 | --- | ---: | ---: |
 | 语料段数 | 1004 | 1004 |
-| 单 token 全大写 → Word | 0 | 69 |
-| 单 token 全大写 → Sentence | 71 | 2（`MP3` / `MP4`） |
+| 单 token 字母（≥2）→ Word | 212 | 395 |
+| 单 token Sentence | 213 | 99 |
 | corpus mismatched | 0 | 0 |
 | 独立检查脚本问题数 | 0 | 0 |
 
 改后实际输出：`corpus: 1004 entries, 0 mismatched`；`python scripts/check-eval-corpus.py` 输出
-`corpus: 1004 entries, 0 problem(s)`；`lens_gtest_unit` 45 绿（新增
-`ClassifiesALoneAllCapsTokenAsTheWordChannel` 与 `AcceptsAWordResponseWithoutIPAForAnAcronym` 两例）。
-本节的改前数字取自上表第 1 行的 T2 基线；旧编号与旧数字不改。
+`corpus: 1004 entries, 0 problem(s)`；`lens_gtest_unit` 45 绿（覆盖
+`ClassifiesALoneLettersTokenAsTheWordChannel` 与 `AcceptsAWordResponseWithoutIPAForAnAcronym`）。
+旧编号与旧数字不改。

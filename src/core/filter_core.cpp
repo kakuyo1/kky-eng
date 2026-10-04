@@ -93,10 +93,11 @@ bool isEntitySelection(std::string_view text)
     return titleCaseCount >= 2;
 }
 
-/// @return The token when the whole (trimmed) selection is one all-caps letters-only token of
-/// at least two letters, else an empty view. The reader picked exactly this, so it is an acronym
-/// they asked about -- the all-caps, vowel, and static-list gates do not apply to it.
-std::string_view loneAcronymToken(std::string_view text)
+/// @return The token when the whole (trimmed) selection is one letters-only token of at least
+/// two letters, else an empty view. The reader picked exactly this, so it is a word they asked
+/// about whatever its case, vowel, or place in the static list; a digit or interior punctuation
+/// disqualifies it (MP3, R2D2, and two words all stay out).
+std::string_view loneToken(std::string_view text)
 {
     std::size_t head = 0;
     std::size_t tail = text.size();
@@ -114,12 +115,9 @@ std::string_view loneAcronymToken(std::string_view text)
     const std::string_view token = body.substr(first, last - first);
     if (token.size() < 2)
         return {};
-    for (char c : token) {
-        if (c >= 'a' && c <= 'z')
-            return {}; // mixed case: normal prose, not a lone acronym
+    for (char c : token)
         if (!isLetter(c))
-            return {}; // a digit or interior punctuation (MP3, R2D2, two words) disqualified it
-    }
+            return {}; // a digit or interior punctuation disqualified it
     return token;
 }
 
@@ -403,19 +401,19 @@ std::vector<Candidate> filterWords(
     std::vector<Candidate> out;
     std::unordered_set<std::string> seen; // de-duplication keyed by lemma
 
-    // A selection that is one all-caps token is an acronym the reader picked by hand, so it is a
-    // word candidate whatever the gates say -- the static list does not hold most acronyms, and
-    // QML has no vowel either. In continuous prose the all-caps run stays skipped; only a
-    // selection that is exactly this token qualifies (see check-eval-corpus.py's lone-acronym
-    // rule and test/eval_corpus.json).
-    if (const std::string_view acronym = loneAcronymToken(text); !acronym.empty()) {
-        const std::string surface = lower(acronym);
+    // A selection that is one letters-only token is a word the reader picked by hand, so it is a
+    // candidate whatever the gates say -- the static list does not hold most acronyms or
+    // identifiers, and qml has no vowel either. In continuous prose those runs are still handled
+    // by the ordinary gates; only a selection that is exactly this token qualifies (see
+    // check-eval-corpus.py's lone-token rule and test/eval_corpus.json).
+    if (const std::string_view token = loneToken(text); !token.empty()) {
+        const std::string surface = lower(token);
         const std::string lemma = lemmatize(surface); // RUNNING -> run; an acronym stands as-is
         const CandidateState state = knownLemmas.count(lemma) != 0                    ? CandidateState::Known
                                      : inTable(lemma) && rankOf(lemma) <= minFreqRank ? CandidateState::Mastered
                                                                                       : CandidateState::New;
-        LENS_TRACE("filterWords: lone acronym '{}' -> surface='{}' lemma='{}' state={}",
-                   acronym,
+        LENS_TRACE("filterWords: lone token '{}' -> surface='{}' lemma='{}' state={}",
+                   token,
                    surface,
                    lemma,
                    static_cast<int>(state));

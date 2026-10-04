@@ -172,29 +172,38 @@ TEST_F(CoreTest, ClassifiesAWordSelectionAsTheWordChannel)
     EXPECT_EQ(fresh->surface, "ubiquitous");
 }
 
-TEST_F(CoreTest, ClassifiesALoneAllCapsTokenAsTheWordChannel)
+TEST_F(CoreTest, ClassifiesALoneLettersTokenAsTheWordChannel)
 {
-    // The reader selected exactly one acronym, so it is a word even though the static list does
-    // not hold it and it has no vowel (QML). The all-caps gate is for a shouted word inside
-    // prose, not for an explicit one-token selection.
-    const auto selection = lens::core::classifySelection("QML", {}, 3000);
-    EXPECT_EQ(selection.kind, lens::core::SelectionKind::Word);
-    ASSERT_EQ(selection.candidates.size(), 1u);
-    EXPECT_EQ(selection.candidates.front().surface, "qml");
-    EXPECT_EQ(selection.candidates.front().lemma, "qml");
-    EXPECT_EQ(selection.candidates.front().state, lens::core::CandidateState::New);
+    // The reader selected exactly one token, so it is a word even though the static list does
+    // not hold it and it has no vowel (qml / QML), and regardless of case. The gates are for
+    // fragments of prose, not for an explicit one-token selection.
+    const struct {
+        const char* text;
+        const char* surface;
+    } cases[] = {{"QML", "qml"}, {"qml", "qml"}, {"am", "am"}, {"NASA", "nasa"}, {"kubernetes", "kubernetes"}};
+    for (const auto& item : cases) {
+        SCOPED_TRACE(item.text);
+        const auto selection = lens::core::classifySelection(item.text, {}, 3000);
+        EXPECT_EQ(selection.kind, lens::core::SelectionKind::Word);
+        ASSERT_EQ(selection.candidates.size(), 1u);
+        EXPECT_EQ(selection.candidates.front().surface, item.surface);
+    }
 
     // A lone all-caps real word still reduces to its lemma.
     const auto reduced = lens::core::classifySelection("RUNNING", {}, 0);
     ASSERT_EQ(reduced.candidates.size(), 1u);
     EXPECT_EQ(reduced.candidates.front().lemma, "run");
 
-    // The same acronym inside continuous prose is still skipped: only a selection that is exactly
+    // One letter is under the floor, and a digit inside disqualifies (MP3).
+    EXPECT_EQ(lens::core::classifySelection("a", {}, 3000).kind, lens::core::SelectionKind::Sentence);
+    EXPECT_EQ(lens::core::classifySelection("MP3", {}, 3000).kind, lens::core::SelectionKind::Sentence);
+
+    // The same term inside continuous prose is still skipped: only a selection that is exactly
     // this token qualifies.
-    const auto prose = lens::core::classifySelection("the QML source", {}, 3000);
+    const auto prose = lens::core::classifySelection("the qml source", {}, 3000);
     EXPECT_EQ(prose.kind, lens::core::SelectionKind::Word);
     for (const auto& candidate : prose.candidates)
-        EXPECT_NE(candidate.surface, "qml") << "an all-caps token inside prose must stay skipped";
+        EXPECT_NE(candidate.surface, "qml") << "a lone-selection token inside prose must stay skipped";
 }
 
 TEST_F(CoreTest, ClassifiesJunkAsASentence)
