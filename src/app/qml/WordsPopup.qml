@@ -155,6 +155,12 @@ Window {
                     border.width: 1
                     border.color: Tokens.line
                     scale: exportTap.pressed ? 0.97 : 1.0
+                    Behavior on scale {
+                        NumberAnimation {
+                            duration: Tokens.motion.press
+                            easing.type: Tokens.motion.easing
+                        }
+                    }
 
                     Text {
                         id: exportLabel
@@ -205,12 +211,39 @@ Window {
                         required property var modelData
 
                         width: words.cardWidth - 40
-                        height: visible ? 31 : 0
-                        // The verdict is compared by key, not by the translated label: the
-                        // two would drift apart the moment a translation changed.
-                        visible: words.filter === 0
-                                 || (words.filter === 1 && modelData.verdict === "known")
-                                 || (words.filter === 2 && modelData.verdict === "new")
+
+                        /// Whether the filter above shows this word. It is the row's presence
+                        /// rather than a switch, which is what the height below animates.
+                        ///
+                        /// The verdict is compared by key, not by the translated label: the
+                        /// two would drift apart the moment a translation changed.
+                        readonly property bool inScope: words.filter === 0
+                                                        || (words.filter === 1 && modelData.verdict === "known")
+                                                        || (words.filter === 2 && modelData.verdict === "new")
+
+                        // A row arrives and leaves by its height, because that is what the
+                        // list's layout reads: a model change rebuilds every delegate, so the
+                        // ListView's own add/remove transitions never run here, and the movement
+                        // the reader actually sees is a filtered row folding shut. `visible`
+                        // follows the animation rather than the filter, so a row on its way out
+                        // is still drawn while it collapses; `clip` is what keeps its contents
+                        // from spilling over the rows it is collapsing between.
+                        height: inScope ? 31 : 0
+                        visible: inScope || height > 0
+                        opacity: inScope ? 1 : 0
+                        clip: true
+                        Behavior on height {
+                            NumberAnimation {
+                                duration: Tokens.motion.pop
+                                easing.type: Tokens.motion.easing
+                            }
+                        }
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: Tokens.motion.pop
+                                easing.type: Tokens.motion.easing
+                            }
+                        }
 
                         Text {
                             anchors.left: parent.left
@@ -275,6 +308,12 @@ Window {
                                     border.width: 1
                                     border.color: current ? Tokens.ink : Tokens.line
                                     scale: knownTap.pressed ? 0.97 : 1.0
+                                    Behavior on scale {
+                                        NumberAnimation {
+                                            duration: Tokens.motion.press
+                                            easing.type: Tokens.motion.easing
+                                        }
+                                    }
 
                                     Text {
                                         id: knownLabel
@@ -303,6 +342,12 @@ Window {
                                     border.width: 1
                                     border.color: current ? Tokens.ink : Tokens.line
                                     scale: newTap.pressed ? 0.97 : 1.0
+                                    Behavior on scale {
+                                        NumberAnimation {
+                                            duration: Tokens.motion.press
+                                            easing.type: Tokens.motion.easing
+                                        }
+                                    }
 
                                     Text {
                                         id: newLabel

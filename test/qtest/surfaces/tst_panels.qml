@@ -125,20 +125,30 @@ Item {
             compare(wordsShown(popup).sort(), words.slice().sort());
         }
 
+        /// @return Whether the list is showing exactly @p expected, once it has settled.
+        ///
+        /// A filter change is a row folding shut over a motion token rather than a switch, so
+        /// a row on its way out is still drawn for the length of the animation. Polling gives
+        /// the fold the time it takes and no more; a fixed wait would have to be as long as
+        /// the slowest token and would still be a guess.
+        function settleOn(popup, expected) {
+            const wanted = expected.slice().sort().join();
+            return tryVerify(function () { return wordsShown(popup).sort().join() === wanted; },
+                             1000, "the list is not showing " + wanted);
+        }
+
         /// A delegate nested inside a Repeater inside a ListView, read through the model's own
         /// verdict rather than through the translated label the row draws.
         function test_theVerdictFilterNarrowsTheList() {
             const popup = make(wordsComponent);
 
             popup.filter = 1;
-            wait(50);
             const known = Controller.words.filter(function (e) { return e.verdict === "known"; }).map(function (e) { return e.word; });
-            compare(wordsShown(popup).sort(), known.slice().sort(), "the Known filter is not showing just the known words");
+            settleOn(popup, known);
 
             popup.filter = 2;
-            wait(50);
             const fresh = Controller.words.filter(function (e) { return e.verdict === "new"; }).map(function (e) { return e.word; });
-            compare(wordsShown(popup).sort(), fresh.slice().sort(), "the New filter is not showing just the new words");
+            settleOn(popup, fresh);
         }
 
         /// @return The row drawing @p word, or null when no row shows it.
