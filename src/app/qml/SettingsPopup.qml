@@ -154,6 +154,8 @@ Window {
                     border.width: 1
                     border.color: Tokens.line
 
+                    HoverHandler { cursorShape: Qt.PointingHandCursor }
+
                     TextInput {
                         id: apiField
                         anchors.fill: parent
@@ -267,6 +269,59 @@ Window {
                             font.pixelSize: 11
                         }
                     }
+                }
+            }
+
+            Column {
+                width: parent.width
+                spacing: 7
+                Text {
+                    text: qsTr("Startup")
+                    color: Tokens.muted
+                    font.pixelSize: 12
+                }
+                Rectangle {
+                    width: parent.width
+                    implicitHeight: startup.implicitHeight + 8
+                    radius: Tokens.radiusGroup
+                    color: Tokens.panel2
+                    border.width: 1
+                    border.color: Tokens.line
+
+                    Column {
+                        id: startup
+                        x: 12
+                        y: 4
+                        width: parent.width - 24
+                        spacing: 0
+
+                        // The registry is the state, so the switch shows what the controller
+                        // read back rather than what was asked for: a policy that forbids the
+                        // Run key leaves it off.
+                        SwitchRow {
+                            width: parent.width
+                            label: qsTr("Launch at sign-in")
+                            checked: Controller.settings.autostart
+                            onToggled: (on) => Controller.setAutostart(on)
+                        }
+                    }
+                }
+            }
+
+            Column {
+                width: parent.width
+                spacing: 7
+                Text {
+                    text: qsTr("Clipboard")
+                    color: Tokens.muted
+                    font.pixelSize: 12
+                }
+                Segment {
+                    width: parent.width
+                    height: 31
+                    labels: [qsTr("Raise to top"), qsTr("Give up silently")]
+                    currentIndex: Controller.settings.clipboardPolicy === "silent" ? 1 : 0
+                    onPicked: (index) => Controller.setClipboardPolicy(index === 1 ? "silent" : "topmost")
                 }
             }
 
