@@ -1,0 +1,35 @@
+# The three steps every job in ci.yml needs before it can do anything of its own: Qt, the MSVC
+# environment, and a configured tree. The checkout stays in the workflow, because a local action
+# is read out of the workspace and there is no workspace until it has been checked out.
+#
+# One place and not five, for the reason config/paths.json exists: a Qt version and a preset name
+# written five times is four copies that drift. ilammy/msvc-dev-cmd and jurplel/install-qt-action
+# both publish what they find through GITHUB_ENV, so what they set reaches the calling job's later
+# steps -- which is why a step each in here is enough and nothing has to be passed back.
+name: Configure a build tree
+description: Install Qt 6.9.0, enter the MSVC environment, and configure build-ninja against the ninja-qt6 preset.
+
+runs:
+  using: composite
+  steps:
+    # The base install carries every component the configure step asks for: qtbase (Core, Gui,
+    # Widgets, Network, and Test, which is where Qt6Test comes from), qtdeclarative (Quick, and
+    # QuickTest, which is built out of its src/qmltest), qtsvg, qttools (LinguistTools). It also
+    # puts Qt's bin on PATH, which is what the test executables need for the Qt DLLs.
+    - uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.9.0'
+        arch: win64_msvc2022_64
+        cache: true
+
+    # Ninja cannot find MSVC by itself -- the same reason scripts/build.bat enters the Visual
+    # Studio environment before driving CMake. The runner has VS 2022, so nothing installs.
+    - uses: ilammy/msvc-dev-cmd@v1
+
+    # The preset bakes in this machine's Qt prefix, which is where config/paths.json keeps it for
+    # everything else. Override it here with wherever the action put Qt; the rest of the preset is
+    # meant to be used as written. `shell` is not optional in a composite action, and pwsh is what
+    # the $env: syntax needs.
+    - name: Configure
+      shell: pwsh
+      run: cmake --preset ninja-qt6 -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"

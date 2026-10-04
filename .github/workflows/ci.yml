@@ -1,18 +1,32 @@
-# The gate that was missing. lens_gtest_unit has been offline, key-free and CI-ready since it
-# was written (PHASE1.md section 4.5), but nothing ever ran it -- it held only as long as
-# someone remembered to run it by hand. This is deliberately the smallest pipeline that closes
-# that gap.
+# The gate that was missing. lens_gtest_unit has been offline, key-free and CI-ready since it was
+# written (PHASE1.md section 4.5), but nothing ever ran it -- it held only as long as someone
+# remembered to run it by hand.
 #
-# The two QTest targets belong here for the same reason, and needed nothing new to get in: they
-# want a QGuiApplication and a Qt Quick scene, not a screen, so QT_QPA_PLATFORM=offscreen puts
-# the whole QML side -- components and surfaces -- inside a key-free job. What each of them
-# covers, and the several ways a QTest harness goes quiet rather than red, are TEST.md section 2.
+# Five jobs, one concern each, so a red run says what broke instead of naming the one job that
+# held everything:
+#
+#   unit          the offline gtest suite. The cheapest job in the file: it is the only suite
+#                 whose build does not pull in the QML module, and the one that runs on every
+#                 change (TEST.md section 2).
+#   app           the executable compiles and links. main.cpp, the translations and the icon
+#                 resources are compiled by no other target, so a break in any of them has no
+#                 other job to fail in.
+#   qml           the QML module: build it, lint it, then run the component and surface suites
+#                 offscreen.
+#   coverage-cpp  the C++ line scan, report only.
+#   coverage-qml  the QML execution scan, report only.
+#
+# Every job installs Qt and configures its own tree -- about 45 s of the fixed cost, paid five
+# times. That is the price of not shipping a build tree between jobs: a Debug tree with the PDBs
+# the coverage tools read is hundreds of megabytes, which costs more to upload and download than
+# the rebuild does. .github/actions/configure holds the four steps that would otherwise be five
+# copies of the Qt version.
 #
 # Not here on purpose: lens_gtest_integration needs a real mouse and the real clipboard, and
 # lens_gtest_smoke needs a real model and an API key. Both stay human-run; see TEST.md section 2.
-# The coverage steps below inherit that split and run four of the targets, not five.
+# The C++ coverage step inherits that split and runs four of the targets, not five.
 #
-# The coverage steps report and do not gate. The numbers move on their own between runs of an
+# The coverage jobs report and do not gate. The numbers move on their own between runs of an
 # unchanged tree -- one known-red case in lens_gtest_integration leaves lines covered or not
 # depending on how the timing falls, which is worth about a percentage point on the total -- so
 # a threshold would fail on the weather. TEST.md section 4 carries the scope of both scans.
@@ -32,54 +46,63 @@ jobs:
     steps:
       # v5 is the release whose whole content is "run under node 24", which is what the
       # deprecation notice asks for. v6 and v7 exist but change things this job does not use --
-      # where the checkout keeps git credentials, and which refs a pull_request_target may
-      # check out -- so this is as far as it needs to go; v5 wants runner 2.327.1, which the
-      # hosted images are.
+      # where the checkout keeps git credentials, and which refs a pull_request_target may check
+      # out -- so this is as far as it needs to go; v5 wants runner 2.327.1, which the hosted
+      # images are.
       - uses: actions/checkout@v5
 
-      # The base install carries every component the configure step asks for: qtbase (Core,
-      # Gui, Widgets, Network, and Test, which is where Qt6Test comes from), qtdeclarative
-      # (Quick, and QuickTest, which is built out of its src/qmltest), qtsvg, qttools
-      # (LinguistTools). It also puts Qt's bin on PATH, which is what the test executables need
-      # for the Qt DLLs.
-      - uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.9.0'
-          arch: win64_msvc2022_64
-          cache: true
+      - uses: ./.github/actions/configure
 
-      # Ninja cannot find MSVC by itself -- the same reason scripts/build.bat enters the Visual
-      # Studio environment before driving CMake. The runner has VS 2022, so nothing installs.
-      - uses: ilammy/msvc-dev-cmd@v1
-
-      # The preset bakes in this machine's Qt (B:/qtt/6.9.0/msvc2022_64). Override it with
-      # wherever the action put Qt; the rest of the preset is meant to be used as written.
-      - name: Configure
-        run: cmake --preset ninja-qt6 -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
-
-      # lens is built alongside the tests so a compile error in src/app fails the gate too --
-      # lens_gtest_unit links only lens_core and lens_llm, and would not notice. The QTest
-      # targets are named for the same reason: qmllint reads the module's QML, not the C++ the
-      # surfaces are driven by, and neither step would touch a new .cpp on its own.
+      # Only lens_core and lens_llm, so no QML module and no QML ahead-of-time compilation
+      # figures in this job at all.
       - name: Build
-        run: cmake --build --preset ninja-qt6 --target lens lens_gtest_unit lens_gtest_perf lens_qtest_components lens_qtest_surfaces
-
-      # Rides on the tree the configure step just wrote: scripts/qml-lint.sh reads the qmllint
-      # response file CMake leaves there and takes qmllint from the Qt that file names.
-      - name: QML lint
-        run: bash scripts/qml-lint.sh
-        shell: bash
+        run: cmake --build --preset ninja-qt6 --target lens_gtest_unit
 
       - name: Unit tests
         run: ./build-ninja/test/googletest/lens_gtest_unit.exe
         env:
           QT_FORCE_STDERR_LOGGING: 1
 
+  app:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/configure
+
+      # The shipped executable and nothing else. It links lens_app, so this is also where the QML
+      # module and src/app's own sources are compiled; the suites below each build what they need
+      # and would not notice a break outside their own link line.
+      - name: Build
+        run: cmake --build --preset ninja-qt6 --target lens
+
+  qml:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/configure
+
+      # The two QTest targets are the whole QML side, and they need the module the lint below
+      # reads through.
+      - name: Build
+        run: cmake --build --preset ninja-qt6 --target lens_qtest_components lens_qtest_surfaces
+
+      # After the build, never before it: qmllint resolves the module's own types through the
+      # build tree's copies of the .qml files, so a tree that has not been built is judged from
+      # files that are not there. scripts/qml-lint.sh owns the reasoning and the ratchet, and
+      # expects a configured tree -- which the configure action has just made.
+      - name: QML lint
+        run: bash scripts/qml-lint.sh
+        shell: bash
+
       # QT_QPA_PLATFORM=offscreen is what makes these two headless -- they build real windows,
-      # and offscreen is the platform that gives them one without a screen. On a runner there
-      # is a console, so QT_FORCE_STDERR_LOGGING is belt and braces here rather than the
-      # necessity it is on the development machine; it is set so a failure reads the same in
-      # both places, which is the command TEST.md section 2 documents.
+      # and offscreen is the platform that gives them one without a screen. On a runner there is
+      # a console, so QT_FORCE_STDERR_LOGGING is belt and braces here rather than the necessity
+      # it is on the development machine; it is set so a failure reads the same in both places,
+      # which is the command TEST.md section 2 documents.
       - name: Component tests
         run: ./build-ninja/test/qtest/lens_qtest_components.exe
         env:
@@ -92,9 +115,22 @@ jobs:
           QT_QPA_PLATFORM: offscreen
           QT_FORCE_STDERR_LOGGING: 1
 
+  coverage-cpp:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/configure
+
+      # The four targets a runner can run, which is what the scan below is handed. lens is not
+      # among them: it is covered by nothing and would only be built for its own PDB.
+      - name: Build
+        run: cmake --build --preset ninja-qt6 --target lens_gtest_unit lens_gtest_perf lens_qtest_components lens_qtest_surfaces
+
       # The image carries neither of the two coverage tools. OpenCppCoverage ships as one
-      # executable that reads a binary's PDB, so installing it is the whole setup; the version
-      # is pinned the way Qt's is, and TEST.md section 4 has the same line for a dev machine.
+      # executable that reads a binary's PDB, so installing it is the whole setup; the version is
+      # pinned the way Qt's is, and TEST.md section 4 has the same line for a dev machine.
       - name: Install OpenCppCoverage
         run: |
           $url = "https://github.com/OpenCppCoverage/OpenCppCoverage/releases/download/release-0.9.9.0/OpenCppCoverageSetup-x64-0.9.9.0.exe"
@@ -102,43 +138,62 @@ jobs:
           Start-Process -FilePath "$env:TEMP\OpenCppCoverageSetup.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait
         shell: pwsh
 
-      # The four targets a runner can run. lens_gtest_integration is left out here even though
-      # the script's default includes it: it drives the real mouse and clipboard.
+      # lens_gtest_integration is left out even though the script's default includes it: it
+      # drives the real mouse and the real clipboard.
       - name: Coverage (C++)
         run: bash scripts/coverage.sh test/records/coverage lens_gtest_unit lens_gtest_perf lens_qtest_components lens_qtest_surfaces
         shell: bash
 
-      # tree-sitter, for the parse tree the QML scan counts its denominator from. It is the
-      # same dependency the AST metrics use, so this is the one install both share.
+      # always(), because a red case is exactly when the report is worth reading. The file is the
+      # raw data behind the report under docs/metrics/.
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-cpp
+          path: test/records/coverage/coverage.xml
+
+  coverage-qml:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ./.github/actions/configure
+
+      # qmlprofiler launches the two QTest binaries itself, so this is the same pair of suites
+      # the qml job runs -- measured instead of just checked.
+      - name: Build
+        run: cmake --build --preset ninja-qt6 --target lens_qtest_components lens_qtest_surfaces
+
+      # tree-sitter, for the parse tree the QML scan counts its denominator from. It is the same
+      # dependency the AST metrics use, so this is the one install both share.
       #
       # The grammar has no prebuilt binary for this platform, so npm builds it with node-gyp
-      # instead of downloading one -- and the runner's default Visual Studio is now 2026,
-      # which installs as 18.x. node-gyp could not read an 18.x version string until 12.1.0:
-      # before that it reports "unknown version undefined", then "could not find any Visual
-      # Studio installation to use", and stops, which reads like a missing install and is not
-      # one. npm 11.6.3 is the first that bundles node-gyp 12.1, and the runner is on npm 10,
-      # so moving npm is what fixes it. Pinning the job to windows-2022 would also work and
-      # was the wrong direction: it buys a compiler the image is retiring rather than a tool
-      # that can read the one it ships.
+      # instead of downloading one -- and the runner's default Visual Studio is now 2026, which
+      # installs as 18.x. node-gyp could not read an 18.x version string until 12.1.0: before
+      # that it reports "unknown version undefined", then "could not find any Visual Studio
+      # installation to use", and stops, which reads like a missing install and is not one.
+      # npm 11.6.3 is the first that bundles node-gyp 12.1, and the runner is on npm 10, so
+      # moving npm is what fixes it. Pinning the job to windows-2022 would also work and was the
+      # wrong direction: it buys a compiler the image is retiring rather than a tool that can
+      # read the one it ships.
+      #
+      # It is also the longest step in the file, which is why it is in this job and not in the
+      # one above: the two scans share no tool, and running them in parallel keeps the 80 s of
+      # node-gyp off the C++ numbers' critical path.
       - name: Install QML metric dependencies
         run: |
           npm install -g "npm@^11.6.3"
           npm ci
 
-      # qmlprofiler comes from the Qt the action installed, already on PATH. It launches the
-      # two QTest binaries itself, so this is the same pair of suites the steps above ran,
-      # measured instead of just checked.
       - name: Coverage (QML)
         run: bash scripts/qml-coverage.sh
         shell: bash
 
-      # always(), because a red case is exactly when the report is worth reading. The two files
-      # are the raw data behind the report under docs/metrics/.
       - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage
-          path: |
-            test/records/coverage/coverage.xml
-            test/records/qmlcov/qml-coverage.json
+          name: coverage-qml
+          path: test/records/qmlcov/qml-coverage.json
