@@ -69,7 +69,7 @@ TEST_F(LlmTest, CompletesEntityAgainstAnOfflineHttpServer)
     });
 
     LlmClient client(Config{QUrl(QStringLiteral("http://127.0.0.1:%1").arg(server.serverPort())),
-                            QString(),
+                            QStringLiteral("test-key"),
                             QStringLiteral("deepseek-flash")});
     client.setChannel(Channel::Entity);
     client.setPreset(QStringLiteral("default"));
