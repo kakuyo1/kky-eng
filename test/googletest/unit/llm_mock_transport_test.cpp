@@ -48,14 +48,24 @@ QByteArray entityResponse()
         .toJson(QJsonDocument::Compact);
 }
 
+/// @brief The event-loop plumbing every client case needs: one QCoreApplication for the test's
+///        duration, because Qt allows one at a time and the stub reply fires from a timer.
+struct QtApplication {
+    QtApplication()
+        : application(argc, argv)
+    {}
+
+    int argc = 1;
+    char name[20] = "lens_gtest_unit";
+    char* argv[2] = {name, nullptr};
+    QCoreApplication application;
+};
+
 } // namespace
 
 TEST_F(LlmTest, CompletesEntityAgainstAnOfflineHttpServer)
 {
-    int argc = 1;
-    char executable[] = "lens_gtest_unit";
-    char* argv[] = {executable, nullptr};
-    QCoreApplication application(argc, argv);
+    QtApplication qt;
 
     QTcpServer server;
     ASSERT_TRUE(server.listen(QHostAddress::LocalHost, 0));
@@ -116,19 +126,6 @@ namespace {
 
 /// How long a stub case waits for the client to report back before it gives up.
 constexpr int kStubTimeoutMs = 2000;
-
-/// @brief The event-loop plumbing a stub case needs: one QCoreApplication for the test's
-///        duration, because Qt allows one at a time and the reply fires from a timer.
-struct QtApplication {
-    QtApplication()
-        : application(argc, argv)
-    {}
-
-    int argc = 1;
-    char name[20] = "lens_gtest_unit";
-    char* argv[2] = {name, nullptr};
-    QCoreApplication application;
-};
 
 /// @brief A reply that answers from memory, so the client's status, empty-body and
 ///        transport-failure branches are reachable without a socket.

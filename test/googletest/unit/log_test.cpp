@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <string>
 #include <system_error>
 
 #include <gtest/gtest.h>
@@ -63,18 +64,28 @@ std::size_t sinkCount()
     return spdlog::default_logger()->sinks().size();
 }
 
-/// @brief Drop the file sink again when the case ends.
+/// @brief Put the process-wide logging state back the way the case found it.
 ///
-/// init() installs a process-wide logger and nothing takes it down, so the sink it built keeps
-/// lens.log open past the test -- and on Windows an open file cannot be deleted, which would
-/// leave every ScratchDir behind. Re-initing with no directory releases it, and declaring this
-/// after the ScratchDir runs it first, while the directory is still there to remove.
-class StderrOnlyLogger {
+/// Two things outlive a case unless they are put back. init() installs a logger nothing takes
+/// down, and the file sink it built keeps lens.log open -- on Windows an open file cannot be
+/// deleted, which would leave every ScratchDir behind. LENS_LOG_LEVEL is process-wide too, and
+/// TEST.md documents setting it, so a case that reads it must not leave its own value there.
+/// Declared after the ScratchDir, this destructs before it, while the directory still exists.
+class LogStateRestore {
 public:
-    ~StderrOnlyLogger()
+    LogStateRestore()
     {
+        if (const char* existing = std::getenv("LENS_LOG_LEVEL")) previous_ = existing;
+    }
+
+    ~LogStateRestore()
+    {
+        _putenv_s("LENS_LOG_LEVEL", previous_.c_str());
         lens::log::init(lens::log::kDefaultLevel, {});
     }
+
+private:
+    std::string previous_;
 };
 
 } // namespace
@@ -84,7 +95,7 @@ public:
 TEST(LogInit, AnUnknownLevelNameFallsBackToThePassedLevel)
 {
     ScratchDir scratch("level");
-    [[maybe_unused]] StderrOnlyLogger release; // the last init() leaves a file sink open over the scratch dir
+    [[maybe_unused]] LogStateRestore release; // the last init() leaves a file sink open over the scratch dir
 
     // No override at all: the caller's level stands.
     _putenv_s("LENS_LOG_LEVEL", "");
@@ -109,7 +120,7 @@ TEST(LogInit, AnUnknownLevelNameFallsBackToThePassedLevel)
 TEST(LogInit, AUsableDirectoryAddsTheFileSink)
 {
     ScratchDir scratch("good");
-    StderrOnlyLogger release;
+    [[maybe_unused]] LogStateRestore release;
     lens::log::init(spdlog::level::info, scratch.path());
 
     EXPECT_EQ(sinkCount(), 2u) << "the rotating file sink was not added for a writable directory";

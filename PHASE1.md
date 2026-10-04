@@ -207,7 +207,7 @@ struct Usage { int promptTokens = 0; int completionTokens = 0; };  // 响应 usa
 class LlmClient : public QObject {
     Q_OBJECT
 public:
-    explicit LlmClient(Config, QObject* parent = nullptr);
+    explicit LlmClient(Config, QNetworkAccessManager* manager = nullptr, QObject* parent = nullptr);
 signals:
     void batchFinished(QVector<Explanation> results, Usage usage);  // 校验通过
     void failed(QString message);                                       // 网络 / schema 失败

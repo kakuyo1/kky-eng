@@ -227,17 +227,38 @@ bool putClipboardTextAndPalette(const QString& text)
     EmptyClipboard();
 
     const std::wstring wide = text.toStdWString();
+
+    // Each handle's ownership passes to the clipboard on success and stays here on failure, so
+    // every failure below has to release what it still holds before it returns.
     HGLOBAL memory = GlobalAlloc(GMEM_MOVEABLE, (wide.size() + 1) * sizeof(wchar_t));
-    if (memory != nullptr) {
-        if (void* target = GlobalLock(memory)) {
-            std::memcpy(target, wide.c_str(), (wide.size() + 1) * sizeof(wchar_t));
-            GlobalUnlock(memory);
-        }
-        if (SetClipboardData(CF_UNICODETEXT, memory) == nullptr) GlobalFree(memory);
+    if (memory == nullptr) {
+        DeleteObject(palette);
+        CloseClipboard();
+        return false;
+    }
+    if (void* target = GlobalLock(memory)) {
+        std::memcpy(target, wide.c_str(), (wide.size() + 1) * sizeof(wchar_t));
+        GlobalUnlock(memory);
+    } else {
+        // Handing an unlocked block to the clipboard would put garbage text on it, which is not
+        // the setup the case asked for.
+        GlobalFree(memory);
+        DeleteObject(palette);
+        CloseClipboard();
+        return false;
+    }
+    if (SetClipboardData(CF_UNICODETEXT, memory) == nullptr) {
+        GlobalFree(memory);
+        DeleteObject(palette);
+        CloseClipboard();
+        return false;
     }
 
-    // Ownership of the palette passes to the clipboard on success and stays here on failure.
-    if (SetClipboardData(CF_PALETTE, palette) == nullptr) DeleteObject(palette);
+    if (SetClipboardData(CF_PALETTE, palette) == nullptr) {
+        DeleteObject(palette);
+        CloseClipboard();
+        return false;
+    }
 
     CloseClipboard();
     return true;
@@ -542,9 +563,10 @@ TEST(ClipboardSnapshot, LeavesAHandleFormatBehindRatherThanCopyingItsBytes)
 }
 
 /// A clipboard with nothing on it is still read successfully, and restoring that empty snapshot
-/// must not empty the clipboard it came from. This is the entries-empty branch, which the
-/// never-taken case above does not reach.
-TEST(ClipboardSnapshot, AnEmptyClipboardIsTakenAndRestoredAsNothing)
+/// is a no-op rather than a wipe. Content put on *after* the take is what makes the no-op
+/// visible: a restore that emptied the clipboard and refilled it from nothing would remove it.
+/// This is the entries-empty branch, which the never-taken case above does not reach.
+TEST(ClipboardSnapshot, AnEmptySnapshotRestoresToANoOp)
 {
     ASSERT_TRUE(openClipboardRetrying());
     EmptyClipboard();
@@ -552,8 +574,11 @@ TEST(ClipboardSnapshot, AnEmptyClipboardIsTakenAndRestoredAsNothing)
 
     const lens::app::ClipboardSnapshot snapshot = lens::app::ClipboardSnapshot::take();
     ASSERT_TRUE(snapshot.taken());
+
+    ASSERT_TRUE(putClipboardText(QStringLiteral("lens-keep-me")));
     EXPECT_TRUE(snapshot.restore());
-    EXPECT_FALSE(IsClipboardFormatAvailable(CF_UNICODETEXT));
+    EXPECT_EQ(readClipboardTextNow().value_or(QString()), QStringLiteral("lens-keep-me"))
+        << "restoring an empty snapshot emptied the clipboard";
 }
 
 /// Restoring a snapshot that was never taken must do nothing: it has no entries to fill an
