@@ -83,12 +83,22 @@ public:
     void recordPop(std::string lemma, std::string minute);
 
     /**
-     * @brief Attach the reader's verdict to the newest unmarked entry for a word.
+     * @brief Attach the reader's verdict to the newest entry for a word.
+     *
+     * The newest entry is the one the words list reads, so it is the one a mark has to reach:
+     * a word that already carries a verdict takes the new one, which is what makes the words
+     * popup's two pills a choice rather than a write-once button.
      *
      * The mark can come long after the pop, with other words shown in between, so the entry
      * is found rather than assumed to be the last one. Finding none is not an error: the
      * verdict may come from a pop that predates the history window, and the day's tally
      * still moves.
+     *
+     * @note The day's tally follows the word rather than the press: it is booked against the
+     *       day the pop happened, and a word re-marked moves from one column to the other, so
+     *       one word never counts in both. Pressing the verdict the word already carries moves
+     *       nothing. A verdict on a pop that has aged out of the window has no day to book
+     *       against and lands on the day of the mark.
      *
      * @param minute Local time of the mark; its date picks the daily bucket.
      * @param verdict "known" or "new".

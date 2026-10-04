@@ -182,6 +182,37 @@ Item {
             compare(marked.verdict, "known", "the tap did not reach the controller");
         }
 
+        /// The other half of the same control: a word the reader already settled has to take a
+        /// new verdict. The list reads each word's newest entry, so a pill that could only fill
+        /// an entry with no verdict yet left the second press looking dead.
+        function test_reMarkingAWordMovesTheRowToTheOtherVerdict() {
+            const popup = make(wordsComponent);
+            popup.visible = true;
+
+            const settled = Controller.words.filter(function (e) { return e.verdict === "known"; });
+            verify(settled.length > 0, "the fixture needs a word already marked known");
+            const word = settled[0].word;
+
+            const row = rowFor(popup, word);
+            verify(row, "the row for " + word + " is not on screen");
+            verify(Qt.colorEqual(pillFor(row, "Known").color, Tokens.ink),
+                   "a known word should show a filled Known pill");
+
+            const fresh = pillFor(row, "New");
+            mouseClick(fresh, fresh.width / 2, fresh.height / 2);
+
+            tryVerify(function () {
+                const follow = rowFor(popup, word);
+                return follow !== null
+                    && Qt.colorEqual(pillFor(follow, "New").color, Tokens.ink)
+                    && !Qt.colorEqual(pillFor(follow, "Known").color, Tokens.ink);
+            }, 1000, "the row did not follow the word to its new verdict");
+
+            // The Controller is shared by every case in the run, so put the word back where the
+            // case found it rather than leaving the fixture settled the other way.
+            Controller.mark(word, true);
+        }
+
         /// The export's text half is the controller's, and lens_gtest_unit pins its shape. What
         /// is left for this case is the seam the file dialog hands its answer to: the scope the
         /// row filter maps to, and that an unknown one is refused rather than written.

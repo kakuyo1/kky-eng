@@ -63,7 +63,7 @@ TEST_F(StatsStoreTest, RecordsPopsNewestFirst)
     EXPECT_EQ(stats.daily().at("2026-10-03").pops, 2);
 }
 
-TEST_F(StatsStoreTest, VerdictAttachesToTheNewestUnmarkedEntryOfThatWord)
+TEST_F(StatsStoreTest, VerdictAttachesToTheNewestEntryOfThatWord)
 {
     auto store = KnownStore::load(path);
     StatsStore stats(store.document());
@@ -82,6 +82,33 @@ TEST_F(StatsStoreTest, VerdictAttachesToTheNewestUnmarkedEntryOfThatWord)
     const DailyUsage& day = stats.daily().at("2026-10-03");
     EXPECT_EQ(day.pops, 3);
     EXPECT_EQ(day.learned, 1);
+}
+
+/// The words popup's two verdict pills are a choice, not a one-shot: a word that already carries
+/// a verdict has to take the new one, and the day's tally has to follow it there rather than
+/// counting the word in both columns.
+TEST_F(StatsStoreTest, ReMarkingAWordMovesTheRowAndTheDayCount)
+{
+    auto store = KnownStore::load(path);
+    StatsStore stats(store.document());
+
+    stats.recordPop("apple", "2026-10-03 09:00");
+    stats.recordVerdict("apple", "2026-10-03 09:01", "known");
+
+    const auto& history = stats.history();
+    ASSERT_EQ(history.size(), 1u);
+    EXPECT_EQ(history[0].verdict, "known");
+    EXPECT_EQ(stats.daily().at("2026-10-03").learned, 1);
+
+    stats.recordVerdict("apple", "2026-10-03 09:02", "new");
+
+    EXPECT_EQ(history[0].verdict, "new") << "the list reads the newest entry, so the second press has to reach it";
+    EXPECT_EQ(stats.daily().at("2026-10-03").learned, 0) << "the word is not known any more";
+    EXPECT_EQ(stats.daily().at("2026-10-03").fresh, 1) << "one word, settled once, counted once";
+
+    stats.recordVerdict("apple", "2026-10-03 09:03", "new"); // the pill it already carries
+
+    EXPECT_EQ(stats.daily().at("2026-10-03").fresh, 1) << "pressing the same verdict again is not a second word";
 }
 
 TEST_F(StatsStoreTest, VerdictWithNoMatchingEntryStillMovesTheDay)
