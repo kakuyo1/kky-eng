@@ -90,7 +90,7 @@ set_source_files_properties(qml/components/Tokens.qml PROPERTIES QT_QML_SINGLETO
 # including the dedicated profiler tree.
 set(QT_QML_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Lens")
 
-# Three groups, split by what the file is rather than by where it is used. The nine windows are
+# Three groups, split by what the file is rather than by where it is used. The ten windows are
 # the surfaces themselves -- one per thing the reader sees -- and they sit at the root so that
 # Main stays loadFromModule("Lens", "Main"). Everything a surface is built out of lives in
 # qml/components/, and the two theme value tables sit in qml/theme/, where nothing reads them by
@@ -114,6 +114,7 @@ qt_add_qml_module(lens_app
     qml/TrayMenu.qml
     qml/SelectionBar.qml
     qml/Bubble.qml
+    qml/Notice.qml
     qml/SettingsPopup.qml
     qml/StatsPopup.qml
     qml/WordsPopup.qml

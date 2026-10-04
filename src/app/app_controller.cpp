@@ -100,6 +100,31 @@ QString currencySymbol(const QString& code)
     return code;
 }
 
+/// @return A translated explanation for a selection capture failure.
+QString grabFailureMessage(GrabStatus status)
+{
+    switch (status) {
+        case GrabStatus::ForegroundIsSelf:
+            return QCoreApplication::translate("lens::app::AppController",
+                                               "Lens cannot read a selection from its own surface.");
+        case GrabStatus::ProcessExcluded:
+            return QCoreApplication::translate("lens::app::AppController",
+                                               "Selection capture is unavailable in terminal applications.");
+        case GrabStatus::ClipboardBusy:
+            return QCoreApplication::translate("lens::app::AppController",
+                                               "The clipboard is busy, so the selection was not read.");
+        case GrabStatus::CopyTimedOut:
+            return QCoreApplication::translate("lens::app::AppController",
+                                               "The selection could not be copied from the foreground application.");
+        case GrabStatus::EmptyText:
+            return QCoreApplication::translate("lens::app::AppController",
+                                               "The selected content did not contain readable text.");
+        case GrabStatus::Captured:
+            break;
+    }
+    return {};
+}
+
 } // namespace
 
 AppController::AppController(core::KnownStore& store, llm::LlmClient& llm, MouseSelectionHook& hook, const llm::Pricing& pricing, QObject* parent)
@@ -175,9 +200,10 @@ void AppController::beginSelection(QPoint anchor)
 {
     const auto grabbed = grabber_->grab();
     if (const auto* status = std::get_if<GrabStatus>(&grabbed)) {
-        // Expected outcomes, not faults: a release inside our own surface, a terminal, or a
-        // drag over something that does not copy. The grabber has already logged the reason.
+        // These are expected platform outcomes, but silence makes a failed selection look like
+        // a broken action bar. The notice is deliberately unanchored because no text was read.
         LENS_DEBUG("selection at ({}, {}) produced no text (status {})", anchor.x(), anchor.y(), static_cast<int>(*status));
+        showNotice(tr("Selection unavailable"), grabFailureMessage(*status), kNoticeError);
         return;
     }
 
@@ -470,13 +496,18 @@ void AppController::bubbleHoverChanged(bool hovering)
 
 void AppController::dismissBubble()
 {
-    // Both kinds of pop take the one dismissal: to the reader, the close button and the
-    // bubble's countdown are the same gesture.
-    if (bubble_.isEmpty() && notice_.isEmpty())
+    if (bubble_.isEmpty())
         return;
     clearBubble();
+    LENS_DEBUG("the current explanation was dismissed");
+}
+
+void AppController::dismissNotice()
+{
+    if (notice_.isEmpty())
+        return;
     clearNotice();
-    LENS_DEBUG("the current pop was dismissed");
+    LENS_DEBUG("the current notice was dismissed");
 }
 
 QVariantMap AppController::bubble() const

@@ -31,7 +31,7 @@ UI 上占位项：控件存在但 `enabled: false`——文案转 `faint`、开�
      （判定的唯一入口是 FilterCore.classifySelection：出候选 = Word；一个候选都没有 =
        Sentence，句子 / 实体通道属阶段二，见 §2。候选带 New / Known / Mastered 状态，
        后两者只标注不删，见 §4.1）
-  → 选区动作条弹出（翻译 / 解释 / 复制文本。前两项是同一决策的两个入口，见 `UI.md` §4.9）
+  → 选区动作条弹出（翻译 / 解释 / 复制文本。前两项是同一决策的两个入口，见 `UI.md` §4.10）
   → 复制文本 → 本地结束，不发请求。
   → 翻译 / 解释 → 同一条路，通道由上面判的类型定；阶段一只有 Word 走得通
   → Sentence：不发请求，以浮层说明没有可解释的单词（动作条三项一律可用，见 §4.4）
@@ -43,7 +43,7 @@ UI 上占位项：控件存在但 `enabled: false`——文案转 `faint`、开�
   → 用户 [已会]/[新词] → KnownStore 回写
 ```
 
-阶段一单次复制最多弹 1 个词（`filterWords` 的首个 `New` 候选，即选区内最先出现的、读者尚未掌握的实词；整段都被标过或都在档位带内时取首个候选），5 秒自动消失；鼠标悬浮时计时挂起、永不消失，移出后重新计时。悬停同时展开反馈按钮——规格见 `UI.md`。（多词错峰属多气泡场景，阶段一单气泡不涉及。）无候选时动作条照样弹出，三项一律可用；翻译与解释不发请求，改由浮层说明没有可解释的单词——动作条点完即自隐，若此处静默，读者看到的是一次毫无反应的点击（`UI.md` §4.9 不灰化，反馈只能落在 “点了之后”）。
+阶段一单次复制最多弹 1 个词（`filterWords` 的首个 `New` 候选，即选区内最先出现的、读者尚未掌握的实词；整段都被标过或都在档位带内时取首个候选），5 秒自动消失；鼠标悬浮时计时挂起、永不消失，移出后重新计时。悬停同时展开反馈按钮——规格见 `UI.md`。（多词错峰属多气泡场景，阶段一单气泡不涉及。）无候选时动作条照样弹出，三项一律可用；翻译与解释不发请求，改由浮层说明没有可解释的单词——动作条点完即自隐，若此处静默，读者看到的是一次毫无反应的点击（`UI.md` §4.10 不灰化，反馈只能落在 “点了之后”）。
 
 ## 4 模块接口（契约先行）
 
@@ -88,7 +88,7 @@ struct Selection {
 };
 
 // 类型判定的唯一入口。出参同时带着候选，免得再跑一遍 filterWords，也给阶段二的实体分支
-// 留出唯一的落点。按钮不参与判定：翻译与解释是同一决策的两个入口（`UI.md` §4.9）。
+// 留出唯一的落点。按钮不参与判定：翻译与解释是同一决策的两个入口（`UI.md` §4.10）。
 Selection classifySelection(
     std::string_view text,
     const std::unordered_set<std::string>& knownLemmas,
@@ -252,7 +252,8 @@ public:
     Q_INVOKABLE void setAutostart(bool on);              // HKCU 的 Run 项，见 autostart.h
 
     Q_INVOKABLE void bubbleHoverChanged(bool hovering);  // QML 持有 5 秒计时，这里只记状态
-    Q_INVOKABLE void dismissBubble();                    // 关掉当前那一张（解释或通知）
+    Q_INVOKABLE void dismissBubble();                    // 关掉当前解释
+    Q_INVOKABLE void dismissNotice();                    // 只关掉当前通知，不影响解释或动作条
 
     Q_INVOKABLE QString exportWords(QString scope);      // "all" / "known" / "new"，纯文本一行一个词根；不选路径也不写文件
     Q_INVOKABLE bool saveWords(QUrl path, QString scope); // 把上一行那份文本写进 path（对话框选的文件），LF 结尾
@@ -284,14 +285,17 @@ signals:
 - **通知是它自己的一张卡片，不是气泡的一格**：请求失败与 “没有可解释的单词” 原先都往气泡里塞一段文字，
   气泡因此兼任错误播报。现在两者都走 `notice`——`{title, body, kind}`（`src/app/notice.h`），不带 status
   chip，因为什么都没被解释；气泡重新只装解释。`kind` 只有 `info`（无通道）与 `error`（请求失败）两个值，
-  渲染方式留给表面。清空时机：弹出新解释时、`dismissBubble()` 时、以及被下一条通知替换时。通知**不带锚点**
-  ——它不属于某一次选区，落点由表面自己定。
+  渲染方式留给表面。清空时机：弹出新解释时、`dismissNotice()` 时、以及被下一条通知替换时。通知**不带锚点**
+  ——它不属于某一次选区，落点由表面自己定。解释的 `dismissBubble()` 只清解释，避免旧窗口的关闭回调清掉当前通知。
 - **剪贴板被别的进程抢走时不再写回**：抓取期间剪贴板若被改写（剪贴板管理器、或读者自己复制了别的），
   把快照写回会毁掉对方刚放下的内容，于是快照留在原地，`GrabbedText::clipboardReplaced` 记下这件事。
   **读到的文本仍然有效**——它是在第二次写入之前读出来的——所以这不是一次失败的抓取，缺的只是读者的
   剪贴板（那一刻已经丢了，救不回来）。`clipboardPolicy` 因此只回答一个问题：这次还要不要弹。`topmost`
   （缺省）照常弹，表面显示时本来就会 `raise()`（`docs/QML.md` §2），置顶正是这个值的意思；`silent`
-  这一次什么都不弹，读者自己再选一次即可。
+  这一次什么都不弹，读者自己再选一次即可；快照无法取得、前台是终端或无法注入复制时，则显示未锚定的
+  `error` 通知。
+- **通知路径的覆盖边界**：无可用通道、网络失败、schema 校验失败、缺少 API key、剪贴板拒绝与终端排除都能
+  到达通知卡片。每日预算上限仍是阶段二占位项，当前没有生产事件，也不以 fixture 冒充已覆盖。
 - **开机自启**：`settings()` 多一个 `autostart`，写入 HKCU 的 Run 项（`src/app/autostart.{h,cpp}`）。键名与
   命令行由纯函数拼装，可离线断言；真正的注册表写入是机器状态，属人工用例。
 - **词汇可导出**：`exportWords(scope)` 返回纯文本（一行一个词根，与 `data/wordlist.txt` 同形），不选路径、
@@ -309,14 +313,14 @@ signals:
 - **接口形状**：`bubble` 与 `settings` 都是 `QVariantMap`，不是 QObject 模型——表面数量个位数、字段都是标量，为每个表面写一个 `QAbstractItemModel` 是给 QML 添一层没人问的间接。`modeLabel` 一个属性喂托盘菜单首行与 tooltip 两处（`UI.md` §4.2 / §4.5），分两处拼字符串必然漂移。`cost` 的五个数在 C++ 算：本月 / 今天 / 昨天 / 本周 / 日均的日期运算用 `QDate`，core 侧只存 token 与按日计数（§4.2）。
 - **5 秒计时归 QML**：自动消失与悬停挂起是视图行为（`UI.md` §4.3），计时的持有者在 QML；`bubbleHoverChanged` 只让 C++ 知道状态，不参与计时。否则计时器要跨进程边界地和悬停事件对齐。
 - **类型判定从 `beginSelection` 里提出来**：判定原本是行内一句 `candidates.empty()`，现收到 `core::classifySelection`（§4.1），出参是 `SelectionKind` 加候选。两条理由：它要可单测，而 `lens_gtest_unit` 不链接 `lens_app`，所以只能落在 `lens_core`；阶段二的实体分支需要一个唯一的落点，各写各的分支正是这一条要挡掉的。`beginSelection` 改按 `switch (kind)` 取值而非再看一次 `empty()`——枚举穷尽时编译器会在加通道那一刻报错，这正是要的。
-- **无通道时不再静默**：`explain()` 原先对非 word 选区直接 `return`，而动作条点完即 `visible = false`，于是选一段非单词文本点翻译 / 解释，看到的是动作条自己消失、什么都没发生，读起来就是 “只有复制能用”——尽管解释在那段选择上同样什么都没做。现在走 `showNotice()`，与请求失败同一条路，落到 `notice` 上（2026-10-04 起不经气泡）：通知不带 status chip，说明放 body，标题放选区文本（句子没有单个词可命名，空标题会让卡片悬在半空）。判定悬停展开的已会 / 新词按钮因此加了一条前提 `status !== ""`——通知的标题不是词，在那里按下会把整句当作 lemma 写进词库。`UI.md` §4.9 的 “三项一律可用、不灰化” 保持不变，反馈只能落在点之后，这是那条规格的直接推论。
+- **无通道时不再静默**：`explain()` 原先对非 word 选区直接 `return`，而动作条点完即 `visible = false`，于是选一段非单词文本点翻译 / 解释，看到的是动作条自己消失、什么都没发生，读起来就是 “只有复制能用”——尽管解释在那段选择上同样什么都没做。现在走 `showNotice()`，与请求失败同一条路，落到 `notice` 上（2026-10-04 起不经气泡）：通知不带 status chip，说明放 body，标题放选区文本（句子没有单个词可命名，空标题会让卡片悬在半空）。判定悬停展开的已会 / 新词按钮因此加了一条前提 `status !== ""`——通知的标题不是词，在那里按下会把整句当作 lemma 写进词库。`UI.md` §4.10 的 “三项一律可用、不灰化” 保持不变，反馈只能落在点之后，这是那条规格的直接推论。
 
 落地注记（2026-10-02）：
 
 - **触发是选区完成，不是剪贴板变化**：Windows 没有 API 能直接读到别的应用里被选中的文字，所以入口定为低层鼠标钩子（`WH_MOUSE_LL`）：`LBUTTONUP` 且按下期间确实拖动过（双击选词、三击选段同理）即算选区完成，回调 `onSelectionReleased(anchor)`，锚点就是松手坐标，不必再拿 `QCursor::pos()` 近似。取文靠 `SendInput` 向当前前台应用注入 Ctrl+C 再读剪贴板——覆盖最广的一条路，凡能复制的应用都通（含 PDF 阅读器）。
 - **两个必须处理的副作用**：一是剪贴板被顶掉——注入前存、读完还原，其间用户恰好复制的东西会被吞（`ponytail:` 竞争窗口，真被投诉再上 UIA TextPattern 绕开剪贴板取文；2026-10-04 起，窗口内被别的进程写入的剪贴板会被认出来，快照不再写回，见上面那条注记）；二是注入的 Ctrl+C 在终端里就是 SIGINT——按前台进程名排除终端类（Windows Terminal / conhost / PowerShell），与 `PRODUCT.md` 的扫描白名单同源。
 - **注入前必须确认前台不是自己**：靠 `WindowDoesNotAcceptFocus`——动作条与气泡都不夺焦点，点它们不会污染下一次注入的目标。**钩子也必须认自己的窗口**：按下落在本进程的窗口上时，这次按下既不是选区手势，也不算双击的第一击（`WindowFromPoint` + `GetWindowThreadProcessId` 比对 PID），否则在面板上拖动会被当成拖选、松开时注入 Ctrl+C 把背后应用里的选中内容弹出来。代价写在函数注释里：透明的阴影边距也算自己的窗口，贴着面板 26 px 内起手的真选区会被放掉。
-- **动作条介入数据流**：`onSelectionReleased` 不再直接通向气泡，中间隔着选区动作条。回传的 `action` 取 `translate` / `explain` / `copy`，前两者行为相同（通道由类型定，见 `UI.md` §4.9），故 `action` 只用来区分 “本地复制” 与 “发 LLM 请求” 两条路。类型判定在动作**之前**发生，结果放进 `selectionBarRequested` 的 `kind`，QML 不参与判定。
+- **动作条介入数据流**：`onSelectionReleased` 不再直接通向气泡，中间隔着选区动作条。回传的 `action` 取 `translate` / `explain` / `copy`，前两者行为相同（通道由类型定，见 `UI.md` §4.10），故 `action` 只用来区分 “本地复制” 与 “发 LLM 请求” 两条路。类型判定在动作**之前**发生，结果放进 `selectionBarRequested` 的 `kind`，QML 不参与判定。
 - **捕获组件是两个文件**：`mouse_selection_hook.{h,cpp}`（低层钩子与手势规则）与 `selection_text_grabber.{h,cpp}`（注入 Ctrl+C、剪贴板存还原）。终端排除与前台自查都落在取文那一步——危险发生在注入处，那也才是查得到前台进程的地方；`selectionReleased` 只带 `QPoint`，不带进程名。两条纯谓词 `isSelectionGesture` / `isExcludedProcess` 收普通参数，可离线断言。
 - **锚点从钩子到表面要先换算**：钩子拿到的坐标是物理像素，而 QML 窗口落在设备无关像素上，两者差一个 `devicePixelRatio`（本机 125% 实测：物理 x=275 的松手位置，窗口坐标是 220）；按 1:1 直接用，动作条会偏出选区四分之一屏。换算必须在交出之前做完，`Main.qml` 的 `toDip()` 是唯一换算点；它自己的实现坑（`QVariantMap` 属性赋回自己无效，得造新对象）见 `docs/QML.md` §4。
 

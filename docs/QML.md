@@ -6,7 +6,7 @@
 
 ## 1 模块与目录
 
-`src/app/qml/` 根下是九个 `Window`（表面），`src/app/qml/components/` 下是十个可复用件
+`src/app/qml/` 根下是十个 `Window`（表面），`src/app/qml/components/` 下是十个可复用件
 （`Icon` / `ShadowCard` / `Tokens` / `MixedText` / `Segment` / `StatRow` / `MenuRow` /
 `DropdownField` / `Switch` / `SwitchRow`），`src/app/qml/theme/` 下是两个主题各一份色值表
 （`Light` / `Dark`）。三组同属一个 QML 模块（`qt_add_qml_module` 的 `QML_FILES` 里写子目录路径
@@ -17,7 +17,7 @@
 主题是那里多一个文件、`Tokens` 多一臂；为什么不放在 `Tokens` 里见 `docs/adr/0007`。
 
 判据取 “是不是窗口” 而非 “被几处用到”：`Switch` / `MenuRow` / `DropdownField` 今天各只被一处使用，
-它们仍是组件，而按使用次数切会把同类东西拆到两边。九个搬走的文件里没有一处 `qsTr`（文案一律由表面
+它们仍是组件，而按使用次数切会把同类东西拆到两边。十个搬走的文件里没有一处 `qsTr`（文案一律由表面
 传入），所以两份 `.ts` 一行未动。
 
 `qt_add_qml_module` 在 `src/app/CMakeLists.txt`：新增 QML 文件改 `QML_FILES` 即可，单例另需
@@ -110,7 +110,7 @@
 
 **鼠标钩子跑在自己的线程上**。`WH_MOUSE_LL` 的回调在**安装它的那个线程**上执行，Windows 让鼠标等这个
 线程应答，等满 `LowLevelHooksTimeout`（默认 300 ms）就放弃——那个线程只要有一段时间不抽消息，鼠标就
-整段卡住。原先钩子装在主线程上，而主线程要做的启动工作（建托盘图标、编译 QML、建九个窗口、第一帧的
+整段卡住。原先钩子装在主线程上，而主线程要做的启动工作（建托盘图标、编译 QML、建十个窗口、第一帧的
 图形初始化）里没有一处抽消息。现在钩子装在自己的线程上（`hookThreadMain`：先 `PeekMessage` 让本线程
 有消息队列，再 `SetWindowsHookEx`，然后 `GetMessage` 泵到底），主线程再怎么卡都与鼠标无关。
 
@@ -144,7 +144,7 @@
   `engine.loadFromModule("Lens", "Main")` 一个调用里——`QQmlApplicationEngine` 构造 20 ms、两个 context
   property 0 ms、装翻译器 0 ms。数据侧另算：`wordlist` 229 ms + `irregulars` 24 ms。钩子搬走之后这段
   时间**不再冻结鼠标**，所以它只是 “起得慢”，不是卡顿；里面在花什么时间尚未查清（QML 已由
-  `qmlcachegen` 预编译，九个窗口的创建与 SVG 图标的栅格化都还没被单独量过）。
+  `qmlcachegen` 预编译，十个窗口的创建与 SVG 图标的栅格化都还没被单独量过）。
 
 ## 7 托盘
 

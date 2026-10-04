@@ -239,6 +239,10 @@ Window {
         id: bubble
     }
 
+    Notice {
+        id: notice
+    }
+
     SettingsPopup {
         id: settingsPopup
     }
@@ -281,6 +285,16 @@ Window {
             const payload = Controller.bubble;
             if (payload && Object.keys(payload).length > 0)
                 bubble.show(root.toDip(payload));
+            else
+                bubble.visible = false;
+        }
+
+        function onNoticeChanged() {
+            const payload = Controller.notice;
+            if (payload && Object.keys(payload).length > 0)
+                notice.show(payload);
+            else
+                notice.visible = false;
         }
 
         function onPointerPressed(at) {

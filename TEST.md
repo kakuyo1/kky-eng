@@ -43,7 +43,7 @@ test/
 | `lens_gtest_perf` | FilterCore 吞吐 + profiling 报告 | 动内核时 |
 | `lens_gtest_smoke` | 1 词真模型往返，一次进程最多 3 次真实调用 | 动 LLM 链路时，人工执行 |
 | `lens_qtest_components` | `qml/components/` 那八个的接线与交互 | 动组件时，无头，可进 CI |
-| `lens_qtest_surfaces` | 表面：Main 的摆放与关闭、托盘菜单、三张面板、行动条 | 动表面时，无头，可进 CI |
+| `lens_qtest_surfaces` | 表面：Main 的摆放与关闭、托盘菜单、通知卡片、三张面板、行动条 | 动表面时，无头，可进 CI |
 
 ```
 PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
@@ -226,7 +226,9 @@ sh scripts/qml-coverage.sh
 上那条约束（`docs/QML.md` §5），一次运行三四十秒。
 
 还有一条既不驱动、也不显示窗口的路：`qml-snapshot.ps1` 用 Qt 的 `offscreen` 平台跑 QTest，把真实 QML 场景
-渲进内存图再写成 PNG。它不显示窗口、不动鼠标、不抓桌面，所以不受桌面遮挡影响，也不需要人工在屏幕前。方法
+渲进内存图再写成 PNG。它不显示窗口、不动鼠标、不抓桌面，所以不受桌面遮挡影响，也不需要人工在屏幕前。注意：
+offscreen 不会栅格化 `MultiEffect`，因此图标与阴影在这类快照中可能为空；需要核对真实图标、阴影和窗口合成时，必须
+在未设置 `QT_QPA_PLATFORM` 的真实平台重跑同一用例。方法
 分两处：`setup.cpp` 用 `QFontDatabase::addApplicationFont` 逐个载入 Windows 字体文件，再把输出目录经
 `lensQaSnapshotDir` 交给每个引擎——offscreen 平台本身不带字体，不载就是满屏方框；用例调用 `testutil.js` 的
 `saveSnapshot(testCase, item, name)`，内部走 `TestCase.grabImage(item)` 再 `save()`。脚本设好

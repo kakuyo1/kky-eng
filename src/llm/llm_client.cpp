@@ -80,6 +80,10 @@ void LlmClient::explainWords(QStringList words)
         LENS_WARN("LlmClient::explainWords: {} entries requested, keeping the first {}", words.size(), kMaxWords);
         words = words.mid(0, kMaxWords);
     }
+    if (config_.apiKey.isEmpty()) {
+        emit failed(tr("The API key is missing."));
+        return;
+    }
 
     QUrl url = config_.baseUrl;
     QString path = url.path();

@@ -129,6 +129,9 @@ public:
     /// @brief Drop the current pop, e.g. when the bubble's timer expires.
     Q_INVOKABLE void dismissBubble();
 
+    /// @brief Drop the current notice without touching an explanation or selection action.
+    Q_INVOKABLE void dismissNotice();
+
     /// @return The bubble's contents, or an empty map when no bubble is up.
     QVariantMap bubble() const;
 
@@ -140,7 +143,7 @@ public:
      * explained. The keys are defined in notice.h.
      *
      * @return The current notice, or an empty map when there is none. It is cleared by an
-     *         explanation going up, by dismissBubble(), and by the next notice replacing it.
+     *         explanation going up, by dismissNotice(), and by the next notice replacing it.
      */
     QVariantMap notice() const;
 
