@@ -8,7 +8,7 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build-ninja",
       "cacheVariables": {
-        "CMAKE_PREFIX_PATH": "B:/qtt/6.9.0/msvc2022_64",
+        "CMAKE_PREFIX_PATH": "$env{QT_ROOT}",
         "CMAKE_BUILD_TYPE": "Debug",
         "DEV_SEND_CONFIRM": "ON",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
@@ -21,7 +21,7 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build-ninja-perf",
       "cacheVariables": {
-        "CMAKE_PREFIX_PATH": "B:/qtt/6.9.0/msvc2022_64",
+        "CMAKE_PREFIX_PATH": "$env{QT_ROOT}",
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "DEV_SEND_CONFIRM": "ON",
         "LENS_ENABLE_PROFILE": "ON"
@@ -35,7 +35,7 @@
       "architecture": "x64",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
-        "CMAKE_PREFIX_PATH": "B:/qtt/6.9.0/msvc2022_64",
+        "CMAKE_PREFIX_PATH": "$env{QT_ROOT}",
         "CMAKE_BUILD_TYPE": "Debug",
         "DEV_SEND_CONFIRM": "ON"
       }

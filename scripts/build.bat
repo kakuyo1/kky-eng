@@ -11,6 +11,29 @@ REM        scripts\build.bat --target lens_gtest_unit
 setlocal
 cd /d "%~dp0.."
 
+REM The Qt prefix comes from config/paths.json, through the same reader the PowerShell scripts use.
+REM CMakePresets.json can only read the environment -- a preset cannot open the file -- so it takes
+REM QT_ROOT and this exports it. config/README.md owns the rule, docs/adr/0006 the reasoning.
+REM Through a temp file rather than "for /f", for the same reason the VSDIR lookup below avoids it:
+REM a command line carrying quotes or parens trips cmd's own parser. This one has both.
+set "QTFILE=%TEMP%\lens_qtroot.txt"
+powershell -NoProfile -ExecutionPolicy Bypass -Command ". .\scripts\paths.ps1; $p = Get-LensPaths -Root $PWD; $p.qtRoot" > "%QTFILE%" 2>nul
+set /p QT_ROOT=<"%QTFILE%"
+del "%QTFILE%" >nul 2>&1
+if not defined QT_ROOT (
+  echo [build] config\paths.json has no readable qtRoot -- see config\README.md
+  exit /b 1
+)
+REM cmd's "if exist" reads a forward slash as a switch, and the config writes paths with forward
+REM slashes, so the value is turned back into backslashes before it is tested. Both echo texts
+REM below avoid parentheses for the reason the VSDIR note gives: inside an if block, a stray
+REM "(" opens a group cmd never closes, and the sentence quietly becomes the block.
+set "QTBACK=%QT_ROOT:/=\%"
+if not exist "%QTBACK%\lib\cmake\Qt6" (
+  echo [build] Qt is not at "%QT_ROOT%" -- edit config\paths.json, see config\README.md
+  exit /b 1
+)
+
 REM vcvarsall.bat shells out to vswhere.exe and expects it on PATH. Add the Installer
 REM directory up front, otherwise every build prints a stray "vswhere.exe is not
 REM recognized" even though the environment is set up correctly.

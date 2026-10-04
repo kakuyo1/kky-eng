@@ -1,5 +1,5 @@
 #!/bin/sh
-# Lens pre-commit: the five checks that are mechanical and cheap.
+# Lens pre-commit: the six checks that are mechanical and cheap.
 #
 # 1. Chinese typography, as a ratchet. Several docs carry errors that predate this hook --
 #    English prose tripping Chinese rules, mostly -- so each doc is compared against the
@@ -17,6 +17,10 @@
 # 5. QML. The odd one out: a .qml file only lints correctly beside its whole module, so this
 #    runs the full set instead of the staged subset, and it wants a configured build tree.
 #    scripts/qml-lint.sh owns the arguments, the count and the reasoning.
+# 6. Absolute paths in our own sources. A machine path written into a file is a value that is
+#    wrong on the next machine, and this project had the same Qt prefix handwritten in four
+#    places. config/paths.json is the one file allowed to hold them; config/README.md owns the
+#    rule and names every exemption, docs/adr/0006 the reasoning.
 #
 # Only what this commit touches is checked, which keeps a commit hook under a few seconds. The
 # QML check is the exception, and it is the one that only runs when a .qml file is staged.
@@ -56,9 +60,33 @@ docs/adr/0001-mouse-hook-own-thread.md 0
 docs/adr/0002-qml-split-by-window.md 0
 docs/adr/0003-instructions-live-in-agents-md.md 0
 docs/adr/0004-qml-module-on-the-static-library.md 0
-docs/adr/0005-cjk-latin-shared-face.md 0'
+docs/adr/0005-cjk-latin-shared-face.md 0
+docs/adr/0006-machine-paths-in-config.md 0
+config/README.md 0'
 
 staged=$(git diff --cached --name-only --diff-filter=ACM)
+
+# One value out of config/paths.json, through the reader the PowerShell scripts and CMake use, so
+# the merge with config/paths.local.json happens the same way everywhere. Through PowerShell
+# because it is the only JSON parser this machine is certain to have: jq is not on PATH, and a
+# grep for a JSON value is a check that breaks the first time a value contains a comma.
+#
+# Prints nothing when the key, the file or PowerShell is missing; each caller then skips its own
+# check with a message, the contract the rest of this hook keeps.
+lens_path() {
+    command -v powershell >/dev/null 2>&1 || return 0
+    [ -f config/paths.json ] || return 0
+    powershell -NoProfile -ExecutionPolicy Bypass -Command \
+        ". ./scripts/paths.ps1; \$p = Get-LensPaths -Root \$PWD; \$p.$1" 2>/dev/null | tr -d '\r'
+}
+
+# The same for a list-valued key: one item per line.
+lens_path_list() {
+    command -v powershell >/dev/null 2>&1 || return 0
+    [ -f config/paths.json ] || return 0
+    powershell -NoProfile -ExecutionPolicy Bypass -Command \
+        ". ./scripts/paths.ps1; Get-LensPathList -Root \$PWD -Key $1" 2>/dev/null | tr -d '\r'
+}
 
 check_typography() {
     # zhlint from PATH when it is installed (npm i -g zhlint), because the npx fallback
@@ -74,7 +102,11 @@ check_typography() {
         return 0
     fi
 
-    config="$HOME/.claude/skills/zhlint/assets/zhlintrc.json"
+    config=$(lens_path zhlintConfig)
+    if [ -z "$config" ]; then
+        echo "pre-commit: config/paths.json gave no zhlint config path, skipping typography"
+        return 0
+    fi
     [ -f "$config" ] || { echo "pre-commit: $config not found, skipping typography"; return 0; }
 
     status=0
@@ -106,7 +138,7 @@ check_typography() {
             lines=$(printf '%s\n' "$report" | grep -oE "^$doc:[0-9]+" | cut -d: -f2 | sort -nu | head -10 | tr '\n' ' ')
             echo "pre-commit: $doc has $count typography errors, its budget is $limit"
             echo "  affected lines: $lines"
-            echo "  messages: zhlint --config \"\$HOME/.claude/skills/zhlint/assets/zhlintrc.json\" $doc"
+            echo "  messages: zhlint --config \"$config\" $doc"
             echo "  (the budget only goes down; fix the line rather than raise it)"
             status=1
         fi
@@ -144,9 +176,11 @@ check_prototype_list() {
     return 0
 }
 
-# clang-format is not on PATH on this machine; the copy Visual Studio ships is the fallback.
-CLANG_FORMAT_FALLBACKS='/d/VS 2022/VC/Tools/Llvm/x64/bin/clang-format.exe
-/c/Program Files/LLVM/bin/clang-format.exe'
+# clang-format is not on PATH on this machine; the copy Visual Studio ships is the fallback. That
+# list is a machine path like any other and comes from config/paths.json. Read inside the function
+# rather than at the top of the file: the check skips itself when there is no formatter, and
+# paying for a PowerShell start on every commit that touches no C++ would be the tail wagging the
+# dog.
 
 check_formatting() {
     printf '%s\n' "$staged" | grep -qE '\.(cpp|h|hpp|cc)$' || return 0
@@ -159,7 +193,7 @@ check_formatting() {
                 break
             fi
         done <<EOF
-$CLANG_FORMAT_FALLBACKS
+$(lens_path_list clangFormatFallbacks)
 EOF
     fi
     if [ -z "$formatter" ]; then
@@ -220,6 +254,39 @@ check_qml() {
     scripts/qml-lint.sh
 }
 
+# A machine path written into a source file is a value that is wrong on the next machine. The one
+# file that may hold one is config/paths.json, which exists for that; config/README.md names every
+# exemption below and why it is exempt. Scoped to the files a commit touches, like the rest here.
+check_absolute_paths() {
+    status=0
+    for file in $staged; do
+        case "$file" in
+            # Vendored and generated trees, and the file that exists to hold these values.
+            third_party/* | package-lock.json | config/paths.json) continue ;;
+            # Documents quote paths as prose, and every icon carries an xmlns URL.
+            *.md | *.svg) continue ;;
+        esac
+        [ -f "$file" ] || continue
+
+        # A URL is not a filesystem path and neither is a Qt resource URI. The line is filtered
+        # rather than the file, so a real path sharing a line with a link is still reported.
+        #
+        # The drive letter has to start a token -- nothing alphanumeric or _ before it -- or
+        # cmd's own substitution syntax reports itself: build.bat's QTBACK line puts a letter, a
+        # colon and a slash in that order inside %QT_ROOT:/=\%, with the letter mid-word. The
+        # sequence is spelled out rather than quoted here because the quoting is what matched.
+        hits=$(grep -nE '(^|[^A-Za-z0-9_])[A-Za-z]:[\\/]' "$file" 2>/dev/null | grep -vE 'https?://|qrc:/' || true)
+        [ -n "$hits" ] || continue
+
+        echo "pre-commit: $file carries an absolute path"
+        printf '%s\n' "$hits" | head -10
+        echo "  machine paths belong in config/paths.json; config/README.md says how to read it,"
+        echo "  and what the check deliberately does not cover."
+        status=1
+    done
+    return $status
+}
+
 # "fail", not "status": every check below keeps its own running answer in a shell-wide
 # "status", so a dispatcher that used the same name would have an earlier failure wiped out by
 # the next check finishing cleanly. That is not hypothetical -- with "status" here, a document
@@ -231,4 +298,5 @@ check_prototype_list || fail=1
 check_formatting || fail=1
 check_probes || fail=1
 check_qml || fail=1
+check_absolute_paths || fail=1
 exit $fail

@@ -29,6 +29,7 @@ target_link_libraries(lens_qtest_components PRIVATE
 target_compile_definitions(lens_qtest_components PRIVATE
   LENS_QTEST_NAME="lens_qtest_components"
   LENS_QTEST_DIR="${CMAKE_SOURCE_DIR}/test/qtest/components"
+  LENS_SYSTEM_FONTS="${LENS_SYSTEM_FONTS}"
 )
 
 # The surfaces: Main.qml and the nine windows it owns, which read Controller and Tray from the
@@ -54,4 +55,5 @@ target_compile_definitions(lens_qtest_surfaces PRIVATE
   # The price list the cost surfaces are formatted from, read from the same place the
   # application reads it.
   LENS_DATA_DIR="${CMAKE_SOURCE_DIR}/data"
+  LENS_SYSTEM_FONTS="${LENS_SYSTEM_FONTS}"
 )

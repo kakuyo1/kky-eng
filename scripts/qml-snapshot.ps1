@@ -71,8 +71,11 @@ function Get-QtBin([string]$root, [string]$build, [string]$requested) {
         }
     }
 
-    return "B:\qtt\6.9.0\msvc2022_64\bin"
+    return (Get-LensPaths -Root $root).qtBin
 }
+
+# Machine paths come from config/paths.json; config/README.md owns the rule.
+. "$PSScriptRoot\paths.ps1"
 
 $root = Get-RepositoryRoot
 

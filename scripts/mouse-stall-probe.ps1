@@ -19,7 +19,7 @@
 #   ./scripts/ui-mouse-stall.ps1 -App build-ninja-perf/src/app/lens.exe -Seconds 30
 param(
     [string]$App = 'build-ninja/src/app/lens.exe',  # relative to the repository root, or absolute
-    [string]$QtBin = 'B:\qtt\6.9.0\msvc2022_64\bin',  # the app needs the Qt DLLs on PATH
+    [string]$QtBin,                 # the app needs the Qt DLLs on PATH; default is config/paths.json
     [int]$Seconds = 20,             # how long to sample for
     [double]$LaunchAfter = 1.5,     # seconds of baseline before the app is started
     [double]$ThresholdMs = 60       # report a call slower than this
@@ -34,6 +34,11 @@ $MOVE = 0x0001
 $root = Split-Path $PSScriptRoot -Parent
 $exe = if ([IO.Path]::IsPathRooted($App)) { $App } else { Join-Path $root $App }
 if (-not (Test-Path $exe)) { throw "no executable at $exe" }
+
+# The Qt DLLs the app links against: -QtBin overrides, otherwise config/paths.json, which is the
+# one place a machine path is written (config/README.md).
+. "$PSScriptRoot\paths.ps1"
+if ([string]::IsNullOrWhiteSpace($QtBin)) { $QtBin = (Get-LensPaths -Root $root).qtBin }
 if (Test-Path $QtBin) { $env:PATH = "$QtBin;$env:PATH" }
 
 $t0 = [Diagnostics.Stopwatch]::StartNew()

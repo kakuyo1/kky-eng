@@ -20,6 +20,9 @@ function Get-RepositoryRoot {
     return $root.Trim()
 }
 
+# Machine paths come from config/paths.json; config/README.md owns the rule.
+. "$PSScriptRoot\paths.ps1"
+
 $root = Get-RepositoryRoot
 $build = $BuildDir
 if (-not [System.IO.Path]::IsPathRooted($build)) {
@@ -46,7 +49,7 @@ if ([string]::IsNullOrWhiteSpace($profiler)) {
     }
 }
 if (-not (Test-Path -LiteralPath $profiler)) {
-    $profiler = "B:\qtt\6.9.0\msvc2022_64\bin\qmlprofiler.exe"
+    $profiler = Join-Path (Get-LensPaths -Root $root).qtBin "qmlprofiler.exe"
 }
 if (-not (Test-Path -LiteralPath $profiler)) {
     throw "qml-profile: qmlprofiler.exe is neither on PATH nor at the configured Qt path"

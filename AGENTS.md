@@ -17,7 +17,8 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 lens/
 ├── .claude           # project settings: the Qt skill family enabled (settings.json)
 ├── .clang-format     # code format spec
-├── .githooks         # pre-commit: typography budget, prototype list, clang-format, PROBE, QML
+├── .githooks         # pre-commit: typography budget, prototype list, clang-format, PROBE, QML, absolute paths
+├── config            # paths.json — the machine paths; README.md owns the rule and its exemptions
 ├── data              # wordlist + llm/ (wire protocol as data)
 ├── docs              # QML.md (how QML works here) + adr/ (major trade-offs)
 ├── i18n              # .ts translations; English is the source language
@@ -39,6 +40,10 @@ Toolchain (verified): cmake 4.0.1 · Ninja 1.12.1 · MSVC 19.44
 ./scripts/build.bat                      # configure once, then incremental
 ./scripts/build.bat --target lens_gtest_unit
 ```
+
+The Qt prefix lives in `config/paths.json`, which `build.bat` exports as `QT_ROOT` before it drives
+the presets. `config/README.md` owns the rule: machine paths come from that file, project paths stay
+relative to the repository root, and nothing else writes either kind by hand.
 
 ## Test
 

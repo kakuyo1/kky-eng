@@ -10,6 +10,10 @@ test/records/
 # API and settings
 settings.local.json
 
+# This machine's paths, overriding config/paths.json. The tracked file carries the values the
+# repository was set up with; another machine overrides the ones that differ here.
+config/paths.local.json
+
 # Runtime logs: keep the directory, ignore its contents
 logs/*
 !logs/.gitkeep

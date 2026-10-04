@@ -19,11 +19,14 @@ namespace {
 
 void installUiFonts()
 {
-    const int latin = QFontDatabase::addApplicationFont(QStringLiteral("C:/Windows/Fonts/SegUIVar.ttf"));
-    const int chinese = QFontDatabase::addApplicationFont(QStringLiteral("C:/Windows/Fonts/msyhl.ttc"));
-    const int chineseRegular = QFontDatabase::addApplicationFont(QStringLiteral("C:/Windows/Fonts/msyh.ttc"));
-    const int noto = QFontDatabase::addApplicationFont(QStringLiteral("C:/Windows/Fonts/NotoSansSC-VF.ttf"));
-    const int mono = QFontDatabase::addApplicationFont(QStringLiteral("C:/Windows/Fonts/CascadiaCode.ttf"));
+    // LENS_SYSTEM_FONTS is a machine path and arrives from config/paths.json through CMake, the
+    // way LENS_DATA_DIR and LENS_QTEST_DIR already do; only the file names belong here. Adjacent
+    // literals concatenate in the preprocessor, so this is still one QStringLiteral.
+    const int latin = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/SegUIVar.ttf"));
+    const int chinese = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/msyhl.ttc"));
+    const int chineseRegular = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/msyh.ttc"));
+    const int noto = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/NotoSansSC-VF.ttf"));
+    const int mono = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/CascadiaCode.ttf"));
     if (latin < 0 or chinese < 0 or chineseRegular < 0 or mono < 0)
         qFatal("could not load the Windows UI font files for the offscreen snapshot");
 
