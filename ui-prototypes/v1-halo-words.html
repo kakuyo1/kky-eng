@@ -8,7 +8,7 @@
 :root{
   --bg:#f6f6f8; --panel:#fff; --panel2:#fafafb; --line:#e9e9ee; --line2:#f2f2f5;
   --text:#1a1a1f; --muted:#66666f; --faint:#9d9da8;
-  --r-lg:18px;
+   --ink:#1a1a1f; --on:#fff; --r-lg:18px;
   --sh2:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
   --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
 }
@@ -23,49 +23,58 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 
 .words{width:320px;margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);padding:18px 20px 16px}
 .wd-h{display:flex;align-items:center;font-size:14px;font-weight:650}
-.wd-h svg{margin-left:auto;width:15px;height:15px;color:var(--faint)}
+.wd-h .hdr-ico{margin-left:auto;display:flex;align-items:center;gap:6px}
+.wd-h svg{width:15px;height:15px;color:var(--faint)}
 .wd-sub{font-size:11.5px;color:var(--faint);margin-top:3px}
 
 .seg{display:flex;margin-top:12px;border:1px solid var(--line);border-radius:9px;overflow:hidden}
 .seg span{flex:1;text-align:center;padding:5.5px 0;font-size:12px;color:var(--muted);cursor:default}
 .seg span.on{background:var(--ink);color:var(--on);font-weight:600}
 
-.wd-list{margin-top:12px;padding-top:7px;border-top:1px solid var(--line2);max-height:306px;overflow-y:auto}
-.wd-list::-webkit-scrollbar{width:6px}
-.wd-list::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
-.wd-list::-webkit-scrollbar-track{background:transparent}
-.wd-item{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:13px}
+.wd-total{display:flex;align-items:center;margin-top:12px;font-size:11.5px;color:var(--faint)}
+.wd-total .export{margin-left:auto;padding:4px 10px;border:1px solid var(--line);border-radius:99px;background:var(--panel2);color:var(--muted);font-size:11px;font-weight:600}
+.wd-list-wrap{position:relative;margin-top:12px;padding-top:7px;border-top:1px solid var(--line2);max-height:320px}
+.wd-list{height:306px;overflow:hidden;padding-right:0}
+.wd-scroll{position:absolute;right:-12px;top:10px;width:6px;height:72px;border-radius:3px;background:var(--line)}
+.wd-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px}
 .wd-item:hover .wd-w{color:var(--text)}
 .themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:var(--f);font-size:11.5px;cursor:pointer}
 .themebtn:hover{color:var(--text)}
 .wd-w{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wd-t{margin-left:auto;font-size:11px;color:var(--faint);font-family:var(--mono);flex:none}
-.wd-tag{margin-left:9px;font-size:10.5px;padding:2px 8px;border-radius:99px;background:var(--panel2);color:var(--muted);flex:none}
+.wd-w{flex:1;min-width:0}
+.wd-side{display:flex;align-items:center;gap:8px;flex:none}
+.wd-meta{display:flex;gap:5px;font-size:11px;color:var(--faint);font-family:var(--mono);white-space:nowrap}
+.wd-pills{display:flex;gap:4px}
+.wd-tag{font-size:10.5px;padding:3px 7px;border:1px solid var(--line);border-radius:99px;background:var(--panel2);color:var(--muted);white-space:nowrap}
+.wd-tag.on{background:var(--ink);border-color:var(--ink);color:var(--on);font-weight:600}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <div class="words">
-  <div class="wd-h">词汇<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></div>
-  <div class="wd-sub">共 612 词</div>
-
+  <div class="wd-h">词汇<span class="hdr-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></span></div>
   <div class="seg" id="fseg"><span class="on">全部</span><span>已会</span><span>新词</span></div>
 
-  <div class="wd-list">
-    <div class="wd-item"><span class="wd-w">serendipity</span><span class="wd-t">今天 14:20</span><span class="wd-tag">已会</span></div>
-    <div class="wd-item"><span class="wd-w">ephemeral</span><span class="wd-t">今天 11:05</span><span class="wd-tag">新词</span></div>
-    <div class="wd-item"><span class="wd-w">ubiquitous</span><span class="wd-t">昨天 21:48</span><span class="wd-tag">新词</span></div>
-    <div class="wd-item"><span class="wd-w">juxtapose</span><span class="wd-t">昨天 09:12</span><span class="wd-tag">已会</span></div>
-    <div class="wd-item"><span class="wd-w">quintessential</span><span class="wd-t">10-01 18:30</span><span class="wd-tag">新词</span></div>
-    <div class="wd-item"><span class="wd-w">idiosyncratic</span><span class="wd-t">10-01 10:22</span><span class="wd-tag">已会</span></div>
-    <div class="wd-item"><span class="wd-w">pernicious</span><span class="wd-t">09-30 20:15</span><span class="wd-tag">新词</span></div>
-    <div class="wd-item"><span class="wd-w">obfuscate</span><span class="wd-t">09-30 14:02</span><span class="wd-tag">已会</span></div>
-    <div class="wd-item"><span class="wd-w">laconic</span><span class="wd-t">09-29 16:40</span><span class="wd-tag">新词</span></div>
-    <div class="wd-item"><span class="wd-w">magnanimous</span><span class="wd-t">09-29 08:55</span><span class="wd-tag">已会</span></div>
-    <div class="wd-item"><span class="wd-w">ostensibly</span><span class="wd-t">09-28 19:21</span><span class="wd-tag">新词</span></div>
-    <div class="wd-item"><span class="wd-w">recalcitrant</span><span class="wd-t">09-28 12:08</span><span class="wd-tag">已会</span></div>
-    <div class="wd-item"><span class="wd-w">vicissitude</span><span class="wd-t">09-27 15:33</span><span class="wd-tag">新词</span></div>
-    <div class="wd-item"><span class="wd-w">sycophant</span><span class="wd-t">09-27 09:47</span><span class="wd-tag">已会</span></div>
+  <div class="wd-total"><span>共 612 词</span><span class="export">导出</span></div>
+
+  <div class="wd-list-wrap">
+    <div class="wd-list">
+      <div class="wd-item" data-verdict="known"><span class="wd-w">serendipity</span><span class="wd-side"><span class="wd-meta"><span>今天 14:20</span><span>2×</span></span><span class="wd-pills"><span class="wd-tag on">已会</span><span class="wd-tag">新词</span></span></span></div>
+      <div class="wd-item" data-verdict="new"><span class="wd-w">ephemeral</span><span class="wd-side"><span class="wd-meta"><span>今天 11:05</span><span>1×</span></span><span class="wd-pills"><span class="wd-tag">已会</span><span class="wd-tag on">新词</span></span></span></div>
+      <div class="wd-item" data-verdict="new"><span class="wd-w">ubiquitous</span><span class="wd-side"><span class="wd-meta"><span>昨天 21:48</span><span>3×</span></span><span class="wd-pills"><span class="wd-tag">已会</span><span class="wd-tag on">新词</span></span></span></div>
+      <div class="wd-item" data-verdict="known"><span class="wd-w">juxtapose</span><span class="wd-side"><span class="wd-meta"><span>昨天 09:12</span><span>1×</span></span><span class="wd-pills"><span class="wd-tag on">已会</span><span class="wd-tag">新词</span></span></span></div>
+      <div class="wd-item" data-verdict="new"><span class="wd-w">quintessential</span><span class="wd-side"><span class="wd-meta"><span>10-01 18:30</span><span>2×</span></span><span class="wd-pills"><span class="wd-tag">已会</span><span class="wd-tag on">新词</span></span></span></div>
+      <div class="wd-item" data-verdict="known"><span class="wd-w">idiosyncratic</span><span class="wd-side"><span class="wd-meta"><span>10-01 10:22</span><span>1×</span></span><span class="wd-pills"><span class="wd-tag on">已会</span><span class="wd-tag">新词</span></span></span></div>
+      <div class="wd-item" data-verdict="new"><span class="wd-w">pernicious</span><span class="wd-side"><span class="wd-meta"><span>09-30 20:15</span><span>4×</span></span><span class="wd-pills"><span class="wd-tag">已会</span><span class="wd-tag on">新词</span></span></span></div>
+      <div class="wd-item" data-verdict="known"><span class="wd-w">obfuscate</span><span class="wd-side"><span class="wd-meta"><span>09-30 14:02</span><span>1×</span></span><span class="wd-pills"><span class="wd-tag on">已会</span><span class="wd-tag">新词</span></span></span></div>
+      <div class="wd-item" data-verdict="new"><span class="wd-w">laconic</span><span class="wd-side"><span class="wd-meta"><span>09-29 16:40</span><span>1×</span></span><span class="wd-pills"><span class="wd-tag">已会</span><span class="wd-tag on">新词</span></span></span></div>
+      <div class="wd-item" data-verdict="known"><span class="wd-w">magnanimous</span><span class="wd-side"><span class="wd-meta"><span>09-29 08:55</span><span>2×</span></span><span class="wd-pills"><span class="wd-tag on">已会</span><span class="wd-tag">新词</span></span></span></div>
+      <div class="wd-item" data-verdict="new"><span class="wd-w">ostensibly</span><span class="wd-side"><span class="wd-meta"><span>09-28 19:21</span><span>1×</span></span><span class="wd-pills"><span class="wd-tag">已会</span><span class="wd-tag on">新词</span></span></span></div>
+      <div class="wd-item" data-verdict="known"><span class="wd-w">recalcitrant</span><span class="wd-side"><span class="wd-meta"><span>09-28 12:08</span><span>1×</span></span><span class="wd-pills"><span class="wd-tag on">已会</span><span class="wd-tag">新词</span></span></span></div>
+      <div class="wd-item" data-verdict="new"><span class="wd-w">vicissitude</span><span class="wd-side"><span class="wd-meta"><span>09-27 15:33</span><span>2×</span></span><span class="wd-pills"><span class="wd-tag">已会</span><span class="wd-tag on">新词</span></span></span></div>
+      <div class="wd-item" data-verdict="known"><span class="wd-w">sycophant</span><span class="wd-side"><span class="wd-meta"><span>09-27 09:47</span><span>1×</span></span><span class="wd-pills"><span class="wd-tag on">已会</span><span class="wd-tag">新词</span></span></span></div>
+    </div>
+    <span class="wd-scroll" aria-hidden="true"></span>
   </div>
 </div>
 <button class="themebtn" id="tb">黑夜</button>
@@ -82,10 +91,11 @@ const fseg = document.getElementById('fseg'), fs = [...fseg.children];
 fs.forEach(s => s.onclick = () => {
   fs.forEach(x => x.classList.remove('on'));
   s.classList.add('on');
-  const sel = s.textContent;
-  document.querySelectorAll('.wd-item').forEach(it => {
-    it.style.display = (sel === '全部' || sel === it.querySelector('.wd-tag').textContent) ? '' : 'none';
-  });
+     const sel = s.textContent;
+     document.querySelectorAll('.wd-item').forEach(it => {
+     const verdict = sel === '已会' ? 'known' : sel === '新词' ? 'new' : '';
+     it.style.display = (!verdict || verdict === it.dataset.verdict) ? '' : 'none';
+   });
 });
 </script>
 </body>

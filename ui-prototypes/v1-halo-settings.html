@@ -23,7 +23,7 @@ html[data-theme=dark]{
 html{-webkit-font-smoothing:antialiased}
 body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh;display:flex;padding:36px 20px}
 
-.settings{width:360px;margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);padding:18px 20px;display:flex;flex-direction:column;gap:15px}
+.settings{width:360px;margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);padding:18px 20px;display:flex;flex-direction:column;gap:12px}
 .set-h{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:650}
 .set-h svg{margin-left:auto;color:var(--faint);width:15px;height:15px}
 .sg .l{font-size:11.5px;color:var(--muted);margin-bottom:7px}
@@ -48,6 +48,7 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 .kbdrow kbd{margin-left:auto;font-family:var(--f);font-size:11px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:2px 8px;color:var(--muted)}
 .swgroup{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:4px 12px}
 .swrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;font-size:12.5px}
+.swrow.flat{padding:1px 0 0}
 .swrow.off,.kbdrow.off{color:var(--faint);cursor:default}
 .swrow.off .switch{opacity:.45}
 .kbdrow.off kbd{opacity:.5}
@@ -56,7 +57,7 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 .switch.off{background:var(--line)}
 .switch.off::after{left:2px;right:auto}
 html[data-theme=dark] .switch.off::after{background:var(--faint)}
-.set-actions{display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--line2);padding-top:14px}
+.set-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:2px}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:6px 13px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid transparent;cursor:pointer;font-family:var(--f);transition:.15s}
 .btn.ghost{background:var(--panel2);color:var(--muted);border-color:var(--line)}
@@ -97,7 +98,9 @@ html[data-theme=dark] .switch.off::after{background:var(--faint)}
     </div>
   </div>
   <div class="sg"><div class="l">全局热键</div><div class="kbdrow off">开关自动扫描<kbd>F8</kbd></div></div>
-  <div class="set-actions"><button class="btn ghost">恢复默认</button><button class="btn ink">保存</button></div>
+  <div class="sg"><div class="l">自启</div><div class="swrow flat"><span>随登录启动</span><span class="switch off"></span></div></div>
+  <div class="sg"><div class="l">剪贴板</div><div class="seg"><span class="on">提到最上面</span><span>静默放弃</span></div></div>
+  <div class="set-actions"><button class="btn ghost">Defaults</button><button class="btn ink">Save</button></div>
 </div>
 <script>
 const dd = document.querySelector('.dd'), lab = dd.querySelector('.dd-lab');
