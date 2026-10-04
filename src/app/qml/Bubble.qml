@@ -33,7 +33,7 @@ Window {
     property string ipa: "" ///< Pronunciation in slashes, beside the word (app_controller.h).
     property string english: ""
     property string chinese: ""
-    property string status: "" ///< "new", "known", or empty for a plain notice.
+    property string status: "" ///< "new", "known", or empty when there is no word verdict (entity / sentence).
 
     property bool hovering: false
 
