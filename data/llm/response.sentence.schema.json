@@ -7,12 +7,11 @@
   "properties": {
     "results": {
       "type": "array",
-      "description": "One entry per requested sentence, echoed in any order.",
+      "description": "One entry per request, in request order. No echoed title: the app stamps the selected text onto the result.",
       "items": {
         "type": "object",
-        "required": ["title", "en", "zh"],
+        "required": ["en", "zh"],
         "properties": {
-          "title": { "type": "string", "description": "The input sentence, exactly as requested." },
           "en": { "type": "string", "description": "One-line English translation or explanation." },
           "zh": { "type": "string", "description": "One-line Chinese translation or explanation." }
         }

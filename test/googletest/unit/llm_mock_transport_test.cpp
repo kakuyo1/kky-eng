@@ -34,7 +34,7 @@ using lens::test::LlmTest;
 QByteArray entityResponse()
 {
     const QString content = QStringLiteral(
-        R"({"results":[{"title":"New York","en":"A major city in the United States.","zh":"美国的一座大城市。"}]})");
+        R"({"results":[{"en":"A major city in the United States.","zh":"美国的一座大城市。"}]})");
     return QJsonDocument(QJsonObject{
                              {"choices", QJsonArray{QJsonObject{{"finish_reason", "stop"}, {"message", QJsonObject{{"content", content}}}}}},
                              {"usage", QJsonObject{{"prompt_tokens", 12}, {"completion_tokens", 9}}},
@@ -103,5 +103,5 @@ TEST_F(LlmTest, CompletesEntityAgainstAnOfflineHttpServer)
     EXPECT_EQ(usage.promptTokens, 12);
     EXPECT_EQ(usage.completionTokens, 9);
     EXPECT_TRUE(requestBytes.contains("New York"));
-    EXPECT_TRUE(requestBytes.contains("title"));
+    EXPECT_TRUE(requestBytes.contains("zh"));
 }

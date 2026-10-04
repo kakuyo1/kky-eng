@@ -38,7 +38,7 @@ UI 上占位项：控件存在但 `enabled: false`——文案转 `faint`、开�
    → Entity / Sentence：只发送原选区文本，不查单词缓存
    → LlmClient.explainWords（发送前脱敏）
   → DeepSeek（一次批量 HTTP，严格 JSON）
-  → 响应按 schema 校验 + 回显核对（第三方不可信）
+  → 响应按 schema 校验（word 另做逐词回显核对；entity / sentence 的 title 由 App 盖上）（第三方不可信）
    → Word：缓存写 → 浮层弹词 → 用户 [已会]/[新词] → KnownStore 回写
    → Entity / Sentence：浮层弹标题与释义，不显示 IPA / verdict，不写入单词缓存与词汇统计
 ```
@@ -200,7 +200,7 @@ public:
 namespace lens::llm {
 
 struct Config { QUrl baseUrl; QString apiKey; QString model; };
-struct Explanation { QString title, ipa, en, zh; }; // word：四字段；entity / sentence：title、en、zh 三字段
+struct Explanation { QString title, ipa, en, zh; }; // word：word/ipa/en/zh；entity / sentence：en/zh，title 由 App 盖上
 struct Usage { int promptTokens = 0; int completionTokens = 0; };  // 响应 usage 字段
 
 class LlmClient : public QObject {
@@ -220,7 +220,7 @@ public slots:
 契约要点：
 
 - 发送前脱敏（邮箱 / 长数字 / URL 掩码）；单词已过硬过滤，此处为兜底。
-- **响应是不可信数据**：按 schema 校验 + 输入词逐一回显核对，缺失或多余 → 整体失败，不静默丢词。
+- **响应是不可信数据**：按 schema 校验；单词通道另做输入词逐一回显核对，缺失或多余 → 整体失败，不静默丢词。实体 / 句子不回显，按请求顺序取结果。
 - 一次请求上限 20 词；超出静默截断（当前调用方单次仅 1 词，实际不触达）。
 - `setExplanationLang(QString)` 为切片二新增，契约原表未列：解释语言在设置浮层里运行时可变，塞进构造期的 `Config` 不合适；它只切 §5 提示词末句。
 - 纯函数内核与传输层分离：`src/llm/llm_pure.{h,cpp}` 放脱敏、请求体构造、响应校验三个无网络函数（`lens_gtest_unit` 覆盖），`llm_client.{h,cpp}` 只剩 QObject + `QNetworkAccessManager`。
@@ -361,9 +361,10 @@ QML 表面：设置浮层、选区动作条、解释气泡、统计弹窗及其�
 
 落地注记（2026-10-02，与 V3 一并定）：按通道拆分文件、系统提示词用英文且只切末句、响应 schema 是校验
 的唯一真源、`llm_protocol` 加载失败一律抛而不回落默认值——见 `API.md`。word schema 是 `word / ipa / en / zh`（
-`ipa` 可选，见 §4.1），entity 与 sentence schema 是 `title / en / zh`，IPA 只属于单词。句子请求的两预设
-任务随解释语言改变：中文时 `translate`=字面中文翻译、`explain`=中文通俗解释；英文时两者都=英文通俗解释
-（提示词相同），气泡只画所选语言那一行。
+`ipa` 可选，见 §4.1），entity 与 sentence schema 是 `en / zh`（不回显 `title`，App 把选中文本盖上——
+模型逐字复现长串 / 带标点 / 指令式文本会漂移，2026-10-04 改），IPA 只属于单词。句子请求的两预设任务随
+解释语言改变：中文时 `translate`=字面中文翻译、`explain`=中文通俗解释；英文时两者都=英文通俗解释（提示词
+相同），气泡只画所选语言那一行。
 
 ## 6 隐私与密钥边界
 
@@ -431,7 +432,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 - 选区捕获（2026-10-03）：`lens_gtest_integration` 15 例中 14 例通过、1 例跳过。机器已验证——手势规则（含阈值边界、双击 / 三击、反向拖动）、终端排除名单的大小写与全路径匹配、钩子装上后能收到拖拽并按松手坐标发出锚点（拖拽由 `SendInput` 合成，低层钩子对合成事件与真实事件一视同仁）、前台是自己时取文拒绝执行，以及剪贴板存还原的三面（内容被顶掉后还原、非文本格式一并还原、没取过快照时不许动剪贴板）。真人手测过一次（2026-10-03，Windows 记事本 11.2607 商店版）：注入的 Ctrl+C 确实取到了选区，十字相符——契约里那句 “凡能复制的应用都通” 有实证了。同一次的日志还给出了逐格式拷贝的量化理由：记事本一次 Ctrl+C 往剪贴板放了 4 种格式，快照全数取回并全数还原，**只存文本会毁掉其中 3 种**。
 - **剪贴板的存还原用 OLE 是错的**（2026-10-03 实测推翻）：`OleGetClipboard` 取出的 `IDataObject` 交给 `OleSetClipboard` 一律失败，`CLIPBRD_E_CANT_CLOSE` 或 `CLIPBRD_E_CANT_OPEN`；中间有没有变化、内容由本进程还是别的进程（`clip.exe` 验过）放入，结果都一样，而同一次运行里 `OleSetClipboard(nullptr)` 却成功，所以坏的是对象往返而非 setter。现在的做法是裸开剪贴板逐格式读出字节，还原时空盘再逐格式写回；位图 / 调色板 / 增强图元文件 / owner-display 族这类句柄格式按名跳过并记日志；`ole32` 不再需要。这条错误原先只有人工用例能碰，改成三个离线用例后当场复现。
 - 全链手测：复制真实英文句 → 浮层弹词 → [已会]/[新词] 回写 → 复弹不重复。
-- V3 离线验证（2026-10-04）：`lens_gtest_unit` 43 例全绿；语料 1004 段回放 `0 mismatched`，独立语料检查 `0 problem(s)`；两条 sentence preset 与 entity 三字段响应各有纯函数断言，并有 loopback mocked HTTP 往返。
+- V3 离线验证（2026-10-04）：`lens_gtest_unit` 43 例全绿；语料 1004 段回放 `0 mismatched`，独立语料检查 `0 problem(s)`；两条 sentence preset 与 entity 两字段响应各有纯函数断言，并有 loopback mocked HTTP 往返。
 - V3 表面验证（2026-10-04）：`lens_qtest_surfaces` 43 例通过、1 例按快照目录跳过；`lens_qtest_components` 44 例通过、1 例按快照目录跳过；新增 `tst_channels.qml` 独立覆盖三类动作条与 entity / sentence 气泡。
 - V3 的 `lens_gtest_smoke` 仍未执行真实请求，避免未经批准产生费用；人工命令见 `TEST.md` §2，结果待 supervisor / user 批准后记录。
 - 切片三（2026-10-03）：`lens_gtest_unit` 29 例全绿——切片一的 11 例之外，新增 `StatsStore` 8 例（往返、判定回填、上限截断、畸形文档、与 `KnownStore` 共用文档时的互不覆盖）、`parseUsage` 3 例、价目 5 例（含展示币种与乘数）、`classifySelection` 2 例。
@@ -478,6 +479,6 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 
 ### 切片四：阶段二通道（V3 已完成，OCR 仍占位）
 
-- **V3 范围**：选区实体与句子解释。实体使用一个 `default` 预设，句子使用 `translate` / `explain` 两个预设；两类响应均为 `title / en / zh` 三字段，不进入单词缓存与 verdict。实体分类只接受至少两个相邻的名称 token（Title Case 或全大写缩写），单个 token 不升级为实体。
+- **V3 范围**：选区实体与句子解释。实体使用一个 `default` 预设，句子使用 `translate` / `explain` 两个预设；两类响应均为 `en` / `zh` 两字段（2026-10-04 起不回显 `title`，由 App 盖上），不进入单词缓存与 verdict。实体分类只接受至少两个相邻的名称 token（Title Case 或全大写缩写），单个 token 不升级为实体。
 - **剩余范围**：OCR 取词（扫描 / 悬停 / 截图）、误弹反馈入口、每日预算上限仍是占位项，设置中不可触发。
 - **交付**：`data/llm/` 的三通道请求与 schema、`llm_protocol` 的 preset loader、`LlmClient` 的 channel / preset 路由、`FilterCore` 的实体分支、`AppController` 的三通道动作路由与独立 QML 通道测试。

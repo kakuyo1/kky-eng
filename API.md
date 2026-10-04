@@ -10,8 +10,8 @@
 | 通道 | 请求 | 响应 schema | 状态 |
 |---|---|---|---|
 | 单词 | `data/llm/request.word.json` | `data/llm/response.word.schema.json` | 已落地，四字段含 IPA |
-| 实体 | `data/llm/request.entity.json` | `data/llm/response.entity.schema.json` | V3 已落地，三字段 |
-| 句子 | `data/llm/request.sentence.json` | `data/llm/response.sentence.schema.json` | V3 已落地，翻译 / 解释两个预设 |
+| 实体 | `data/llm/request.entity.json` | `data/llm/response.entity.schema.json` | V3 已落地，两字段（en / zh） |
+| 句子 | `data/llm/request.sentence.json` | `data/llm/response.sentence.schema.json` | V3 已落地，两字段 + 翻译 / 解释两个预设 |
 
 `llm_protocol.{h,cpp}` 加载并校验这些文件：缺文件、非法 JSON、必填值为空一律抛，**不回落内置默认值**——回落会正好掩盖这次抽离要防的漂移。
 
@@ -83,13 +83,12 @@
 
 ## 3.1 响应体：实体
 
-实体响应同样嵌在 `choices[0].message.content`，但不带单词专属的 IPA 字段：
+实体响应同样嵌在 `choices[0].message.content`，只带 `en` / `zh` 两行，不带单词专属的 IPA，也不回显实体名：
 
 ```json
 {
   "results": [
     {
-      "title": "New York",
       "en": "A major city in the United States.",
       "zh": "美国的一座大城市。"
     }
@@ -97,17 +96,16 @@
 }
 ```
 
-`title` 原样回显实体名，`en` 与 `zh` 各是一行百科式说明。实体通道只有一个 `default` 预设，动作条上的 “翻译” 和 “解释” 共用它。
+`en` 与 `zh` 各是一行百科式说明。**实体响应不回显实体名**：App 已知道选中的文本，让模型逐字复现长串或带标点的名字只会漂移；解析后由 App 把选中文本盖到 `title` 上。实体通道只有一个 `default` 预设，动作条上的 “翻译” 和 “解释” 共用它。
 
 ## 3.2 响应体：句子
 
-句子响应也是三字段形状，`request.sentence.json` 提供 `translate` 与 `explain` 两个预设：
+句子响应也只有 `en` / `zh` 两个字段（同样不回显标题），`request.sentence.json` 提供 `translate` 与 `explain` 两个预设：
 
 ```json
 {
   "results": [
     {
-      "title": "The quiet room felt different.",
       "en": "The room seemed changed.",
       "zh": "这个安静的房间感觉不一样。"
     }
@@ -115,7 +113,7 @@
 }
 ```
 
-`title` 原样回显选中的句子。两个预设共用三字段 schema，任务随**解释语言**改变：解释语言为中文时，`translate` 给字面中文翻译、`explain` 给中文通俗解释；解释语言为英文时，两者都只做 “用英文通俗解释这句话”，提示词因此相同。句子响应不包含 `ipa`，也不进入单词缓存与 verdict；气泡按设置只画所选解释语言那一行（`en` 或 `zh`），另一行虽在响应里但不显示。
+`en` 与 `zh` 是译文或讲解，App 把选中的句子盖到 `title` 上（同实体）。两个预设共用 schema，任务随**解释语言**改变：解释语言为中文时，`translate` 给字面中文翻译、`explain` 给中文通俗解释；解释语言为英文时，两者都只做 “用英文通俗解释这句话”，提示词因此相同。句子响应不包含 `ipa`，也不进入单词缓存与 verdict；气泡按设置只画所选解释语言那一行（`en` 或 `zh`），另一行虽在响应里但不显示。
 
 `usage` 在 envelope 层，不在载荷里，因此**不参与上面那套校验**：`parseUsage()` 从同一个响应体独立读 `prompt_tokens` / `completion_tokens`，缺失按 0 计并记警告。统计少一笔可忍，把一次成功的解释整批丢掉不可忍；`usage` 与解释内容是否合法互不影响（`PHASE1.md` §4.3）。金额不由线上格式给出，见 §6。
 
@@ -127,8 +125,8 @@
 2. `finish_reason` 必须是 `stop`——`length`（截断）、`content_filter`、`insufficient_system_resource`、`aborted` 一律判失败；
 3. `message.content` 能解析成 JSON 对象，且带 `results` 数组；
 4. `results` 每一项是对象，且**具备所选 schema 要求的全部字段**；
-5. `title` / `en` / `zh` 非空；单词通道额外要求 `word` 非空，`ipa` 可空（孤立缩写的单词没有音标）；
-6. 回显的标题与请求**逐一对应**：不多、不少、不重、不拼错。返回顺序不作要求，代码按请求顺序回填。
+5. `en` / `zh` 非空；单词通道额外要求 `word` 非空，`ipa` 可空（孤立缩写的单词没有音标）；
+6. 单词通道回显的词与请求**逐一对应**：不多、不少、不重、不拼错；实体 / 句子不回显，按请求顺序取结果（`title` 由 App 盖上）。返回顺序不作要求，代码按请求顺序回填。
 
 失败原因会经 Qt 翻译（`tr()` / `QCoreApplication::translate()`）后交给 `LlmClient::failed(QString)`，译文见 `i18n/lens_zh_CN.ts`。
 

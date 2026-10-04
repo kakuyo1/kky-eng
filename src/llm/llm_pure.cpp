@@ -131,9 +131,10 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
 
     // Presence is gated on the response schema, so adding a required field is a data edit.
     const QStringList& requiredFields = requiredResultFields(channel);
+    const bool isWord = channel == Channel::Word;
+    const QString titleField = isWord ? QStringLiteral("word") : QStringLiteral("title");
 
-    const QString titleField = channel == Channel::Word ? QStringLiteral("word") : QStringLiteral("title");
-    QHash<QString, Explanation> byTitle;
+    QVector<Explanation> parsed;
     for (const auto& item : resultsValue.toArray()) {
         if (!item.isObject())
             return reject(QCoreApplication::translate(
@@ -151,14 +152,43 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
                       obj.value(QStringLiteral("ipa")).toString(),
                       obj.value(QStringLiteral("en")).toString(),
                       obj.value(QStringLiteral("zh")).toString()};
-        // Presence is the schema's business; emptiness is not. The bubble title and both
-        // language definitions are required by every channel. IPA is optional even for a word:
-        // a lone acronym has no pronunciation, so an empty one is not a failure.
-        if (e.title.isEmpty() || e.en.isEmpty() || e.zh.isEmpty())
+        // Presence is the schema's business; emptiness is not. Both language definitions are
+        // required by every channel. A word must also name itself (its IPA stays optional: an
+        // acronym has none); the entity and sentence channels carry no echoed title.
+        if (e.en.isEmpty() || e.zh.isEmpty() || (isWord && e.title.isEmpty()))
             return reject(QCoreApplication::translate("lens::llm",
                                                       "A results entry has an empty field "
                                                       "(title=%1).")
                               .arg(e.title));
+        parsed.push_back(e);
+    }
+
+    if (parsed.size() != expectedInputs.size())
+        return reject(QCoreApplication::translate("lens::llm",
+                                                  "The model echoed %1 result(s) for the %2 that "
+                                                  "were asked for.")
+                          .arg(parsed.size())
+                          .arg(expectedInputs.size()));
+
+    if (!isWord) {
+        // Entity and sentence carry no echoed title on the wire: the app already knows the
+        // selected text, and making a model reproduce a long, punctuation-heavy string exactly
+        // only invites drift. Stamp the requested text onto the results in request order.
+        QVector<Explanation> ordered;
+        ordered.reserve(expectedInputs.size());
+        for (int i = 0; i < expectedInputs.size(); ++i) {
+            Explanation e = parsed.at(i);
+            e.title = expectedInputs.at(i);
+            ordered.push_back(e);
+        }
+        LENS_TRACE("parseExplanations: accepted {} explanation(s) for channel '{}'", ordered.size(), channelKey(channel));
+        return ordered;
+    }
+
+    // A word keeps the echo contract: the model must name the exact word requested, which
+    // catches an explanation attached to the wrong entry before it reaches the bubble.
+    QHash<QString, Explanation> byTitle;
+    for (const auto& e : parsed) {
         if (byTitle.contains(e.title))
             return reject(QCoreApplication::translate("lens::llm",
                                                       "The model echoed the same title twice: %1.")
@@ -166,14 +196,6 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
         byTitle.insert(e.title, e);
     }
 
-    if (byTitle.size() != expectedInputs.size())
-        return reject(QCoreApplication::translate("lens::llm",
-                                                  "The model echoed %1 result(s) for the %2 that "
-                                                  "were asked for.")
-                          .arg(byTitle.size())
-                          .arg(expectedInputs.size()));
-
-    // Restore request order. The order the model chose carries no meaning.
     QVector<Explanation> ordered;
     ordered.reserve(expectedInputs.size());
     for (const auto& input : expectedInputs) {

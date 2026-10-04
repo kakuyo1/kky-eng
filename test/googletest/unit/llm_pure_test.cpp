@@ -164,21 +164,28 @@ TEST_F(LlmTest, UsesSentencePresetsAndTheSharedEntityPreset)
     EXPECT_TRUE(entityPrompt.contains("named entity"));
 }
 
-TEST_F(LlmTest, ParsesTheThreeFieldEntityAndSentenceShapeWithoutIPA)
+TEST_F(LlmTest, StampsTheRequestedTextOntoEntityAndSentenceResults)
 {
-    const QString entityContent = QStringLiteral(
-        R"({"results":[{"title":"New York","en":"a city","zh":"一座城市"}]})");
-    const auto entity = parseExplanations(Channel::Entity, envelope(entityContent), {"New York"});
+    // Entity and sentence responses carry only the two explanations; the app supplies the
+    // title, so a model that drifts on a long echo cannot fail the batch.
+    const auto entity = parseExplanations(
+        Channel::Entity,
+        envelope(QStringLiteral(R"({"results":[{"en":"a city","zh":"一座城市"}]})")),
+        {"New York"});
     ASSERT_TRUE(accepted(entity)) << errorOf(entity).toStdString();
-    const auto& entityResult = std::get<QVector<Explanation>>(entity).at(0);
-    EXPECT_EQ(entityResult.title, "New York");
-    EXPECT_TRUE(entityResult.ipa.isEmpty());
+    EXPECT_EQ(std::get<QVector<Explanation>>(entity).at(0).title, "New York");
 
-    const QString sentenceContent = QStringLiteral(
-        R"({"results":[{"title":"New York is busy.","en":"The city is busy.","zh":"纽约很忙。"}]})");
-    const auto sentence = parseExplanations(Channel::Sentence, envelope(sentenceContent), {"New York is busy."});
+    const auto sentence = parseExplanations(
+        Channel::Sentence,
+        envelope(QStringLiteral(R"({"results":[{"en":"The city is busy.","zh":"纽约很忙。"}]})")),
+        {"New York is busy."});
     ASSERT_TRUE(accepted(sentence)) << errorOf(sentence).toStdString();
     EXPECT_EQ(std::get<QVector<Explanation>>(sentence).at(0).title, "New York is busy.");
+
+    // A missing title no longer matters for entity / sentence, but a missing language does.
+    const auto missing = parseExplanations(
+        Channel::Sentence, envelope(QStringLiteral(R"({"results":[{"zh":"只有中文"}]})")), {"text"});
+    EXPECT_FALSE(accepted(missing));
 }
 
 TEST_F(LlmTest, RejectsTheWholeBatchOnAnyMalformedResponse)
