@@ -29,6 +29,7 @@ Window {
 
     /// The word and its explanation, as the controller hands them over.
     property string word: ""
+    property string ipa: "" ///< Pronunciation in slashes, beside the word (app_controller.h).
     property string english: ""
     property string chinese: ""
     property string status: "" ///< "new", "known", or empty for a plain notice.
@@ -37,6 +38,19 @@ Window {
 
     /// True while the reader is moving the card with the pointer.
     property bool dragging: false
+
+    /// Milliseconds left before the countdown takes the bubble down. The display's number comes
+    /// from here rather than from the timer's interval: hovering and dragging stop the clock, and
+    /// the number has to stand still with it. `show()` refills it from `dismissAfterMs`.
+    property int remainingMs: 0
+
+    /// Where the pointer and the card were the last time the hover state changed, in screen
+    /// coordinates. Nothing in the application reads them: they are what TODO.md's hover jitter
+    /// needs before it can be told a real exit from something else moving `visible`, and there is
+    /// no QML-to-log path in this tree that is not a probe -- so the sighting is read off these
+    /// two under a debugger instead. See TODO.md "定位气泡 hover 抖动".
+    property point lastHoverCursor: Qt.point(0, 0)
+    property rect lastHoverCard: Qt.rect(0, 0, 0, 0)
 
     /// @brief Put the card above the anchor, or below it when there is no room up there.
     ///
@@ -53,9 +67,11 @@ Window {
     function show(payload) {
         dragging = false; // a fresh bubble is never mid-drag
         word = payload.word;
+        ipa = payload.ipa;
         english = payload.en;
         chinese = payload.zh;
         status = payload.status;
+        remainingMs = dismissAfterMs;
         visible = true;
         place(payload);
         // ...and again once the content has laid out. `height` is the content's, and a Text
@@ -68,7 +84,7 @@ Window {
         // Showing a surface is two steps: see Main.qml placePanel() for why `visible` on its
         // own can leave a topmost window under the taskbar.
         raise();
-        countdown.restart();
+        updateCountdown();
     }
 
     onHoveringChanged: {
@@ -79,20 +95,29 @@ Window {
     onDraggingChanged: updateCountdown()
 
     /// The countdown stands still while the reader is holding the bubble, under the pointer or
-    /// in the middle of a drag, and picks up again when they let go of it.
+    /// in the middle of a drag, and picks up the time that is left when they let go of it.
     function updateCountdown() {
         if (hovering || dragging)
             countdown.stop();
         else if (visible)
-            countdown.restart();
+            countdown.start();
     }
 
     Timer {
         id: countdown
-        interval: bubble.dismissAfterMs
+        // It ticks finer than the second it displays and subtracts, rather than being the whole
+        // dismissal in one shot: stopping and starting a timer begins a fresh interval, so a tick
+        // as long as the display would swallow up to a second of the clock on every hover, and
+        // the hover this bubble sees arrives in bursts (TODO.md, "定位气泡 hover 抖动").
+        interval: 100
+        repeat: true
         onTriggered: {
-            bubble.visible = false;
-            Controller.dismissBubble();
+            bubble.remainingMs -= interval;
+            if (bubble.remainingMs <= 0) {
+                stop();
+                bubble.visible = false;
+                Controller.dismissBubble();
+            }
         }
     }
 
@@ -183,6 +208,12 @@ Window {
             // it outlasts this, raise the interval.
             HoverHandler {
                 onHoveredChanged: {
+                    // Both readings, every flip: a real exit and something else moving `visible`
+                    // look the same in the log the controller keeps, and these two are what tells
+                    // them apart (TODO.md, "定位气泡 hover 抖动").
+                    bubble.lastHoverCursor = Controller.cursorPos();
+                    const at = card.mapToGlobal(0, 0);
+                    bubble.lastHoverCard = Qt.rect(at.x, at.y, card.width, card.height);
                     if (hovered) {
                         hoverSettle.stop();
                         bubble.hovering = true;
@@ -244,14 +275,42 @@ Window {
                     }
                 }
 
-                Text {
+                // The word and its pronunciation share one line: the IPA is set beside the word,
+                // the way a dictionary prints it, rather than behind the explanation. Read only --
+                // it is not a control, and nothing about it invites a press. The pair is placed by
+                // hand rather than by a RowLayout: a layout with no item left to grow does not
+                // keep the slack at the end -- measured, a 30 px word and its pronunciation 36 px
+                // apart in a 238 px row -- and a gap that wide reads as two unrelated things.
+                // The prototype's 7 px is what the pair is set with.
+                Item {
+                    id: wordRow
                     width: parent.width
-                    topPadding: 8
-                    text: bubble.word
-                    color: Tokens.text
-                    font.pixelSize: 20
-                    font.weight: Font.Bold
-                    elide: Text.ElideRight
+                    height: wordText.implicitHeight
+
+                    Text {
+                        id: wordText
+                        // What is left once the pronunciation has its room: a word with none left
+                        // ends in an ellipsis rather than running under its own IPA.
+                        width: Math.min(implicitWidth, wordRow.width - (ipaText.visible ? ipaText.implicitWidth + 7 : 0))
+                        topPadding: 8
+                        text: bubble.word
+                        color: Tokens.text
+                        font.pixelSize: 20
+                        font.weight: Font.Bold
+                        elide: Text.ElideRight
+                    }
+
+                    Text {
+                        id: ipaText
+                        // On the word's baseline: each item's own baseline offset is the distance
+                        // from its top to that baseline, padding included.
+                        x: wordText.width + 7
+                        y: wordText.baselineOffset - baselineOffset
+                        visible: bubble.ipa !== ""
+                        text: bubble.ipa
+                        color: Tokens.faint
+                        font.pixelSize: 13 // the prototype's 12.5 px, as the definition line rounds it
+                    }
                 }
 
                 Text {
@@ -351,7 +410,9 @@ Window {
                 Text {
                     width: parent.width
                     topPadding: 9
-                    text: qsTr("Disappears in %1s").arg(bubble.dismissAfterMs / 1000)
+                    // The remaining seconds, not the setting that seeded them: the count stands
+                    // still while the pointer holds the bubble and steps down again when it goes.
+                    text: qsTr("Disappears in %1s").arg(Math.ceil(bubble.remainingMs / 1000))
                     color: Tokens.faint
                     font.pixelSize: 11
                 }

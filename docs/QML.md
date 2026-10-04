@@ -134,6 +134,10 @@
   `QFont::setFamilies({"Noto Sans SC", "Segoe UI Variable"})`，Noto 缺失时回到原系统栈。QML 侧默认靠继承，
   不把单个字体族写到整段混排文本上。纯数字 / 金额可以写 `font.family: Tokens.monoFamily`；混排值使用
   `MixedText` 拆 run，让数字 / 货币保留 Cascadia Code，中文 run 继承应用字体。
+- **音标一行同样不能钉字体族**：IPA 扩展块（U+0250-U+02AF）Noto Sans SC 一个字形都没有——本机按码点实测
+  ə ɪ ˈ ˌ 等 12 个全缺；Segoe UI Variable 全有，而 Cascadia Code 缺 ˈ ˌ 两个重音符号。`Tokens.monoFamily`
+  指的正是 Cascadia Code，所以 `Bubble.qml` 的音标 Text 不写 `font.family`，让上面那条族列表回退接手；钉到
+  任何单族都会缺字。
 - **标题行的图标贴右锚定，不用固定占位**：原先的 `Item { width: parent.width - 40 }` 是按英文标题估的，
   中文标题一变宽就把关闭按钮整个挤出卡片外（放大实测）。改成左锚标题、右锚图标行。
 - **界面出现前仍有约 1.5 s，其中 `loadFromModule` 占 810–923 ms**：临时埋点（已删）测出这一段几乎全在
