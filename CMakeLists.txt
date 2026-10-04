@@ -106,3 +106,47 @@ foreach(LENS_PCH_TARGET lens_app lens
     lens_gtest_integration lens_qtest_components lens_qtest_surfaces)
   target_precompile_headers(${LENS_PCH_TARGET} PRIVATE "${CMAKE_SOURCE_DIR}/cmake/lens_pch_quick.h")
 endforeach()
+
+# Packaging. The version the installer reads comes from project() above, through the three-line
+# include installer/lens.iss opens, so there is one number to bump and not two.
+configure_file(
+  "${CMAKE_SOURCE_DIR}/installer/version.iss.in"
+  "${CMAKE_BINARY_DIR}/installer/version.iss"
+  @ONLY
+)
+
+# Two steps, driven by naming the target: windeployqt writes the Qt runtime into
+# installer/payload beside the executable, then Inno Setup (installer/lens.iss) packs that
+# payload and data/ into one installer under the build tree's installer/.
+#
+# The payload is wiped first. A dependency dropped from the deploy options would otherwise go on
+# sitting there from the previous run, and the size would be measuring a directory nothing
+# produces any more.
+#
+# Run it in the release tree: scripts\build-release.bat --target installer. The target is defined
+# in every tree, but installer/lens.iss names build-ninja-release as what it packs, so from
+# another tree it would deploy the payload here and then pack whatever is over there.
+#
+# Two machine paths, both from config/paths.json; config/README.md owns the rule.
+lens_path(LENS_QT_BIN qtBin)
+lens_path(LENS_INNO_SETUP innoSetup)
+
+set(LENS_PAYLOAD_DIR "${CMAKE_BINARY_DIR}/installer/payload")
+
+add_custom_target(installer
+  COMMAND ${CMAKE_COMMAND} -E rm -rf "${LENS_PAYLOAD_DIR}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory "${LENS_PAYLOAD_DIR}"
+  COMMAND "${LENS_QT_BIN}/windeployqt.exe" --release --dir "${LENS_PAYLOAD_DIR}"
+          --qmldir "${CMAKE_SOURCE_DIR}/src/app/qml"
+          --no-compiler-runtime
+          --no-opengl-sw
+          --no-translations
+          --skip-plugin-types qmltooling
+          "$<TARGET_FILE:lens>"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:lens>" "${LENS_PAYLOAD_DIR}"
+  COMMAND "${LENS_INNO_SETUP}" "/I${CMAKE_BINARY_DIR}/installer" "${CMAKE_SOURCE_DIR}/installer/lens.iss"
+  DEPENDS lens
+  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+  COMMENT "Packaging Lens: windeployqt, then Inno Setup"
+  VERBATIM
+)

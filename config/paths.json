@@ -12,6 +12,7 @@
   "qtBin": "B:/qtt/6.9.0/msvc2022_64/bin",
   "vsLlvmBin": "D:/VS 2022/VC/Tools/Llvm/x64/bin",
   "systemFonts": "C:/Windows/Fonts",
+  "innoSetup": "C:/Program Files (x86)/Inno Setup 6/ISCC.exe",
   "zhlintConfig": "${HOME}/.claude/skills/zhlint/assets/zhlintrc.json",
   "clangFormatFallbacks": [
     "D:/VS 2022/VC/Tools/Llvm/x64/bin/clang-format.exe",

@@ -1,0 +1,4 @@
+; The installer's version, filled in by CMake from project(Lens VERSION ...) -- see the
+; configure_file in the root CMakeLists.txt. Generated into the build tree; do not edit, and
+; do not carry a second copy of the number anywhere in installer/.
+#define AppVersion "@PROJECT_VERSION@"
