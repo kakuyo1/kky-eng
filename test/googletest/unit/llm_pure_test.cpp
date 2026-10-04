@@ -188,6 +188,22 @@ TEST_F(LlmTest, StampsTheRequestedTextOntoEntityAndSentenceResults)
     EXPECT_FALSE(accepted(missing));
 }
 
+TEST_F(LlmTest, FoldsSeveralEntityOrSentenceResultsIntoTheOneRequested)
+{
+    // A model may split a selected block (a numbered list, several sentences) into more entries
+    // than the single item that was sent; fold them instead of failing the whole batch.
+    const auto split = parseExplanations(
+        Channel::Sentence,
+        envelope(QStringLiteral(
+            R"({"results":[{"en":"First line.","zh":"第一行。"},{"en":"Second line.","zh":"第二行。"}]})")),
+        {"First line.\nSecond line."});
+    ASSERT_TRUE(accepted(split)) << errorOf(split).toStdString();
+    const auto& result = std::get<QVector<Explanation>>(split).at(0);
+    EXPECT_EQ(result.title, "First line.\nSecond line.");
+    EXPECT_EQ(result.en, "First line.\nSecond line.");
+    EXPECT_EQ(result.zh, "第一行。\n第二行。");
+}
+
 TEST_F(LlmTest, RejectsTheWholeBatchOnAnyMalformedResponse)
 {
     const struct {

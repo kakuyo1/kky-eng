@@ -163,23 +163,35 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
         parsed.push_back(e);
     }
 
-    if (parsed.size() != expectedInputs.size())
-        return reject(QCoreApplication::translate("lens::llm",
-                                                  "The model echoed %1 result(s) for the %2 that "
-                                                  "were asked for.")
-                          .arg(parsed.size())
-                          .arg(expectedInputs.size()));
-
     if (!isWord) {
         // Entity and sentence carry no echoed title on the wire: the app already knows the
         // selected text, and making a model reproduce a long, punctuation-heavy string exactly
-        // only invites drift. Stamp the requested text onto the results in request order.
+        // only invites drift. A model may also split a selected block (a numbered list, several
+        // sentences) into more entries than were asked for, so fold those into the one result
+        // rather than losing the whole batch.
         QVector<Explanation> ordered;
-        ordered.reserve(expectedInputs.size());
-        for (int i = 0; i < expectedInputs.size(); ++i) {
-            Explanation e = parsed.at(i);
-            e.title = expectedInputs.at(i);
+        if (parsed.size() == expectedInputs.size()) {
+            for (int i = 0; i < expectedInputs.size(); ++i) {
+                Explanation e = parsed.at(i);
+                e.title = expectedInputs.at(i);
+                ordered.push_back(e);
+            }
+        } else if (expectedInputs.size() == 1 && !parsed.isEmpty()) {
+            Explanation e;
+            for (const auto& part : parsed) {
+                if (!e.en.isEmpty()) e.en += QLatin1Char('\n');
+                e.en += part.en;
+                if (!e.zh.isEmpty()) e.zh += QLatin1Char('\n');
+                e.zh += part.zh;
+            }
+            e.title = expectedInputs.front();
             ordered.push_back(e);
+        } else {
+            return reject(QCoreApplication::translate("lens::llm",
+                                                      "The model echoed %1 result(s) for the %2 that "
+                                                      "were asked for.")
+                              .arg(parsed.size())
+                              .arg(expectedInputs.size()));
         }
         LENS_TRACE("parseExplanations: accepted {} explanation(s) for channel '{}'", ordered.size(), channelKey(channel));
         return ordered;
@@ -195,6 +207,13 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
                               .arg(e.title));
         byTitle.insert(e.title, e);
     }
+
+    if (byTitle.size() != expectedInputs.size())
+        return reject(QCoreApplication::translate("lens::llm",
+                                                  "The model echoed %1 result(s) for the %2 that "
+                                                  "were asked for.")
+                          .arg(byTitle.size())
+                          .arg(expectedInputs.size()));
 
     QVector<Explanation> ordered;
     ordered.reserve(expectedInputs.size());
