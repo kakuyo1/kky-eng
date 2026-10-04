@@ -70,8 +70,11 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_QPA_PLATFORM=offscreen QT_FORCE_STDER
   的形式消失。
 - 用例文件的根是一个 `Item`，`TestCase` 是它的孩子而不是根。`TestCase` 自带 `visible: false`，
   挂在它下面的东西于是收不到鼠标事件——而鼠标事件正是这个目标替掉人眼的那一半。
-- 图标资源挂在 `lens` 可执行文件上，不在 `lens_app` 里，于是 `qrc:/icons/*.svg` 在两个 QTest 目
-  标里都加载不了，每个用例刷几条 `QML Image: Cannot open`。没有一条断言依赖图标。
+- 图标资源挂在 `lens_app` 上，不在可执行文件里：`:/icons/` 只在带着它的二进制里解析，而读图标的是表面。
+  挂错地方时两个 QTest 目标每个用例刷一条 `QML Image: Cannot open`，一共三百多条。
+- 剩下的是 Qt 自己发的两类：offscreen 平台不能抬窗口，而表面显示时 `raise()` 是必需的；Qt 6 不再随包带字体，
+  `setup.cpp` 自己按文件载入。它们都走不带类别的 `qWarning()`，按类别过滤会连带盖掉其余无类别警告，所以留着，
+  一次运行合计十条左右。
 - 两个目标的差别只有一处：`lens_qtest_surfaces` 编译 `setup.cpp` 时定义 `LENS_QTEST_SINGLETONS`，
   组件目标不定义。`Controller` / `Tray` 的工厂在没人 `provide()` 时断言、Debug 下直接崩进程，而
   引擎自己造不出来（构造函数要 store、client 与 hook），所以 setup 照 `main()` 的做法造好再交出

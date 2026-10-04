@@ -3,7 +3,7 @@
 #   lens_app  -- the C++ the surfaces are driven by: the mouse hook, the grabber, the
 #                controller, and the tray -- plus the QML module those two types are registered
 #                in.
-#   lens      -- the executable: main.cpp, the icon resources and the .qm files.
+#   lens      -- the executable: main.cpp and the .qm files.
 #   icons/    -- the tray art, compiled into the binary as resources.
 #
 # The QML module hangs off lens_app and not off the executable, which is the reverse of what
@@ -123,6 +123,11 @@ qt_add_qml_module(lens_app
 # stay as written on disk. The tray-<state>-<taskbar> files are the shell's bitmap states, each
 # carrying its own two colours; the ui- files are the surfaces' outlines, stroked in white and
 # tinted from QML, so one file serves every surface and both themes.
+#
+# It hangs off lens_app and not off the executable, for the same reason the QML module does: a
+# resource only resolves in a binary that carries it, and the surfaces are the ones reading these
+# -- every QTest target links lens_app, so on `lens` each of them drew a missing image and printed
+# a warning per case. The executable still gets them, since it links lens_app.
 set(LENS_ICONS
   ${CMAKE_SOURCE_DIR}/icons/tray-auto-ondark.svg
   ${CMAKE_SOURCE_DIR}/icons/tray-auto-onlight.svg
@@ -144,7 +149,7 @@ set(LENS_ICONS
   ${CMAKE_SOURCE_DIR}/icons/ui-stats.svg
   ${CMAKE_SOURCE_DIR}/icons/ui-translate.svg
 )
-qt_add_resources(lens "icons"
+qt_add_resources(lens_app "icons"
   PREFIX "/icons"
   BASE ${CMAKE_SOURCE_DIR}/icons
   FILES ${LENS_ICONS}
