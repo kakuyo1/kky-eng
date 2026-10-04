@@ -186,3 +186,17 @@ token，其余只能是 `of` / `the` / `and` / `for`），`QML API` / `the QML A
 
 改后实际输出：`corpus: 1007 entries, 0 mismatched`；`python scripts/check-eval-corpus.py` 输出
 `corpus: 1007 entries, 0 problem(s)`；`lens_gtest_unit` 45 绿。
+
+## 11 样例集扩到 3005 段（2026-10-04）
+
+需求：把自检样例集从 1004 段扩到 3000+，含变体与组合、贴近真实文本，且不塞无意义条目。做法：新增一份由
+真实英文句子出发的系统变体——每句按「原句 / 加已知标记 / 加档位带 / 两者叠加 / 一个大写词 / 附 URL /
+附数字 / 附邮箱 / 引号包裹 / 括号包裹 / 附连字符复合词 / 附 POSIX 路径 / 单词 / 末词 / 两词」展开——再加
+一批专有名词实体与孤立 token。`expect` 由脚本按 `PHASE1.md` §4.1 与 `filter_core.h` 的规则重算（独立于
+C++），随后由 `check-eval-corpus.py` 与 `lens_gtest_unit` 双重核对。
+
+计数：1004 → 3005 段（新增 1998：Sentence 1781 / Word 201 / Entity 16；含 20 个专有名词实体与 16 个孤立
+token）。`check-eval-corpus.py` 报 0 问题；`lens_gtest_unit` 语料回放 `corpus: 3005 entries,
+0 mismatched`。为容纳真实正文，`check-eval-corpus.py` 修正三处与实现不符的建模：被跳过的全大写 token 不再
+误连到别处同名候选；去重按 lemma 集合比较；不规则形只认词干（`data → datum` 找不到即丢弃）。旧编号与旧
+数字不改。

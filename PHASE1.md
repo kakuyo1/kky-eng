@@ -421,7 +421,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 
 ## 9 验证
 
-- FilterCore 单测：样例集离线断言（`lens_gtest_unit`，零网络，可进 CI）。**已通过**：样例集 1001 段 + 存储往返，覆盖档位词频阈值、词根还原（后缀规则与 WordNet 异常表）、只有表能覆盖的形式（`criteria → criterion` 一类）、垃圾内容（URL / 邮箱 / 文件名 / 带数字串 / 连字 / 全大写）、不在词表即丢、同段同词根去重、已知与已掌握只标注不删。样例集另有 `scripts/check-eval-corpus.py` 按规则独立校验，与实现无关。
+- FilterCore 单测：样例集离线断言（`lens_gtest_unit`，零网络，可进 CI）。**已通过**：样例集 3005 段 + 存储往返，覆盖档位词频阈值、词根还原（后缀规则与 WordNet 异常表）、只有表能覆盖的形式（`criteria → criterion` 一类）、垃圾内容（URL / 邮箱 / 文件名 / 带数字串 / 连字 / 全大写）、不在词表即丢、同段同词根去重、已知与已掌握只标注不删。样例集另有 `scripts/check-eval-corpus.py` 按规则独立校验，与实现无关。
 - 单层判定准确率：**已测量**（2026-10-04，三轮，`lens_gtest_unit` 回放样例集）：1001 段中 336 段未命中，命中率 66.43%，三轮同值。未命中全部落在 “已知 / 已掌握被当作删除条件” 这一条轴上（带 minFreqRank 的 173 段错 172，带 known 的 163 段错 163，两者都不带的 664 段全对）——没有一段是层级判定问题，故不引入多层级策略。报告：`docs/metrics/code-quality/selection-classification-accuracy-2026-10-04.md`。
 - LLM 纯函数接缝：脱敏 / 请求体 / 响应校验三项离线断言（`lens_gtest_unit`）。**已通过**：覆盖邮箱、URL、长数字掩码；`model` / `stream:false` / `response_format` / `thinking:disabled` / `max_tokens` / 提示词含 `json` 与格式示例 / 解释语言切末句；`finish_reason != stop`、外层非 JSON、缺 `results`、字段缺失、回显错词 / 漏词 / 多余词一律整体失败。断言经变异验证确实会红。
 - 迁移核对：**已通过**（2026-10-02）：手写 `CHECK` 转入 gtest 后为 11 例（样例集 1 + KnownStore 6 + 掩码 1 + LLM 纯函数 3），`lens_gtest_unit` 全绿。原 `main.cpp`（452 行）删除。

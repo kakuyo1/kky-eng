@@ -111,7 +111,11 @@ def reductions(word: str) -> list[str]:
     can stop short of lemmatize(): the rank comparison that picks between them does not
     change whether the token is admitted.
     """
-    stems = [word, *IRREGULARS.get(word, ())]
+    # An irregular form's bases are authoritative: lemmatize() returns one of them and never
+    # falls back to the form itself, so data -> datum drops the token when datum is absent.
+    if word in IRREGULARS:
+        return list(IRREGULARS[word])
+    stems = [word]
     n = len(word)
 
     def push(stem: str) -> None:
@@ -225,25 +229,33 @@ def check_entry(index: int, entry: dict, ranks: dict[str, int]) -> list[str]:
     if len(set(expect)) != len(expect):
         problems.append(f"{where}: the same surface appears twice in expect")
 
-    # Order: by first appearance in the text.
+    # A token that the rules skip contributes nothing, even when its lower-cased form happens
+    # to match a candidate that some other token in the excerpt carries.
+    lone = is_lone_token(text)
+    surviving = {token.lower() for token in tokens(text) if lone or reject_reason(token, ranks) is None}
+
+    # Order: by first appearance among the tokens that survive the rules.
     order = []
     for token in tokens(text):
-        if token.lower() in expect and token.lower() not in order:
-            order.append(token.lower())
+        lowered = token.lower()
+        if not lone and reject_reason(token, ranks) is not None:
+            continue
+        if lowered in expect and lowered not in order:
+            order.append(lowered)
     if order != expect:
         problems.append(f"{where}: expect is {expect}, first appearance gives {order}")
 
     # Every token either survives into expect or is excluded by a named rule. A survivor that
     # is absent is the interesting case: it is either a missed expectation or a lemma the
     # excerpt already carried (de-duplication), which is why the two are called apart.
-    lone_token = is_lone_token(text)
     for token in tokens(text):
         lowered = token.lower()
-        reason = None if lone_token else reject_reason(token, ranks)
-        if lowered in expect:
-            if reason is not None:
+        reason = None if lone else reject_reason(token, ranks)
+        if reason is not None:
+            if lowered in expect and lowered not in surviving:
                 problems.append(f"{where}: expect carries '{lowered}', which {reason}")
-        elif reason is None and not any(lowered in reductions(kept) for kept in expect):
+            continue
+        if lowered not in expect and not any(set(reductions(lowered)) & set(reductions(kept)) for kept in expect):
             # Absent and admitted is only fine when an earlier candidate already carries the
             # same lemma: de-duplication keeps the first surface and drops this one.
             problems.append(f"{where}: '{lowered}' survives the rules but is not in expect")
