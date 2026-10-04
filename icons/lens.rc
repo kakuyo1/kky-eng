@@ -1,0 +1,13 @@
+// The executable's icon, and nothing else. The shell reads it to draw lens.exe in Explorer, on
+// the taskbar and in Alt-Tab, which is the one thing the tray art cannot do: a QSystemTrayIcon
+// paints only the notification area.
+//
+// lens.ico is generated from lens.svg, which is also the geometry every tray-*.svg follows --
+// docs/QML.md section 7 carries the command. The path below is relative to this file, so the
+// resource compiler finds the .ico beside it and no machine path is written down.
+//
+// WIN32_EXECUTABLE is already ON (src/app/CMakeLists.txt), so there is no console window for
+// this to sit in front of; the resource simply has to be compiled in, which is what the
+// enable_language(RC) beside it arranges.
+
+IDI_LENS ICON "lens.ico"
