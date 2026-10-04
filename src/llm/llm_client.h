@@ -53,7 +53,17 @@ struct Usage {
 class LlmClient : public QObject {
     Q_OBJECT
 public:
-    explicit LlmClient(Config config, QObject* parent = nullptr);
+    /// @brief Build a client, optionally over a caller-supplied network manager.
+    ///
+    /// The manager is the seam that lets a test answer without a socket: pass a subclass whose
+    /// createRequest() returns a stub reply, and the status-code, empty-body and transport-failure
+    /// branches become reachable offline. It must outlive this object. Null (the default) makes
+    /// one owned by this object, which is what every caller in the application passes.
+    ///
+    /// @param config  Connection settings.
+    /// @param manager Network manager to post through, or null to make one.
+    /// @param parent  QObject parent.
+    explicit LlmClient(Config config, QNetworkAccessManager* manager = nullptr, QObject* parent = nullptr);
 
     /// @brief Set the explanation language, "en" or "zh".
     ///

@@ -34,6 +34,18 @@ namespace lens::llm {
 QString maskSensitive(const QString& text);
 
 /**
+ * @brief Map an HTTP status onto something the reader can act on.
+ *
+ * Lives here rather than beside the transport so it can be tested without a network, the same
+ * reason the request body and the response check do. The API key is never part of the message,
+ * and neither is the response body, which may echo the request.
+ *
+ * @param status HTTP status code the service answered with.
+ * @return A reader-facing reason, already routed through translation.
+ */
+QString httpErrorFor(int status);
+
+/**
  * @brief Build the /chat/completions request body for one channel.
  *
  * Channel decides which template is used, so the caller must know whether it is sending a
