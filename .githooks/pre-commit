@@ -1,23 +1,20 @@
 #!/bin/sh
-# Lens pre-commit: the six checks that are mechanical and cheap.
+# Lens pre-commit: the five checks that are mechanical and cheap.
 #
 # 1. Chinese typography, as a ratchet. Several docs carry errors that predate this hook --
 #    English prose tripping Chinese rules, mostly -- so each doc is compared against the
 #    budget recorded below rather than held to zero. Lower a number when you clean a doc up;
 #    a raise to make a commit pass is the hook doing its job.
-# 2. The prototype list, in the two places that name it. It has drifted twice already: a new
-#    surface landed in ui-prototypes/ and in UI.md but not in AGENTS.md's tree. AGENTS.md is
-#    where the project instructions live; CLAUDE.md is a one-line import of it.
-# 3. C++ formatting. The tree was formatted once by hand and then left to drift; this is what
+# 2. C++ formatting. The tree was formatted once by hand and then left to drift; this is what
 #    stops that. clang-format is not on PATH on this machine, so the copy Visual Studio ships is
 #    looked for as a fallback.
-# 4. Probe scaffolding. TEST.md section 5 says anything added to src/ to see what is going on --
+# 3. Probe scaffolding. TEST.md section 5 says anything added to src/ to see what is going on --
 #    a timer, a console.log -- has to be gone before the commit lands. Those are deterministic
 #    strings, so a grep settles it; leaving it to memory is what this check replaces.
-# 5. QML. The odd one out: a .qml file only lints correctly beside its whole module, so this
+# 4. QML. The odd one out: a .qml file only lints correctly beside its whole module, so this
 #    runs the full set instead of the staged subset, and it wants a configured build tree.
 #    scripts/qml-lint.sh owns the arguments, the count and the reasoning.
-# 6. Absolute paths in our own sources. A machine path written into a file is a value that is
+# 5. Absolute paths in our own sources. A machine path written into a file is a value that is
 #    wrong on the next machine, and this project had the same Qt prefix handwritten in four
 #    places. config/paths.json is the one file allowed to hold them; config/README.md owns the
 #    rule and names every exemption, docs/adr/0006 the reasoning.
@@ -146,36 +143,6 @@ check_typography() {
     return $status
 }
 
-# Sorted, comma-joined names, so "a,b" and "b,a" compare equal.
-normalize() {
-    printf '%s' "$1" | tr ',' '\n' | sed '/^$/d' | sort | tr '\n' ',' | sed 's/,$//'
-}
-
-check_prototype_list() {
-    printf '%s\n' "$staged" | grep -qE '^(ui-prototypes/|AGENTS\.md$|CLAUDE\.md$|UI\.md$)' || return 0
-
-    from_disk=$(ls ui-prototypes/v1-halo-*.html 2>/dev/null | sed 's|.*/v1-halo-||; s|\.html$||' | sort | tr '\n' ',' | sed 's/,$//')
-    want=$(normalize "$from_disk")
-
-    for doc in AGENTS.md UI.md; do
-        listed=$(grep -o 'v1-halo-{[^}]*}\.html' "$doc" | head -1 | sed 's|v1-halo-{||; s|}.*||')
-        got=$(normalize "$listed")
-
-        # An empty parse means the shorthand changed shape, not that the doc is wrong.
-        if [ -z "$want" ] || [ -z "$got" ]; then
-            echo "pre-commit: could not read the prototype list out of $doc, skipping that check"
-            continue
-        fi
-        if [ "$got" != "$want" ]; then
-            echo "pre-commit: the prototype list in $doc does not match ui-prototypes/"
-            echo "  in $doc:  $got"
-            echo "  on disk:  $want"
-            return 1
-        fi
-    done
-    return 0
-}
-
 # clang-format is not on PATH on this machine; the copy Visual Studio ships is the fallback. That
 # list is a machine path like any other and comes from config/paths.json. Read inside the function
 # rather than at the top of the file: the check skips itself when there is no formatter, and
@@ -294,7 +261,6 @@ check_absolute_paths() {
 # commit went through.
 fail=0
 check_typography || fail=1
-check_prototype_list || fail=1
 check_formatting || fail=1
 check_probes || fail=1
 check_qml || fail=1

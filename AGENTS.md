@@ -17,7 +17,7 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 lens/
 ├── .claude           # project settings: the Qt skill family enabled (settings.json)
 ├── .clang-format     # code format spec
-├── .githooks         # pre-commit: typography budget, prototype list, clang-format, PROBE, QML, absolute paths
+├── .githooks         # pre-commit: typography budget, clang-format, PROBE, QML, absolute paths
 ├── config            # paths.json — the machine paths; README.md owns the rule and its exemptions
 ├── data              # wordlist + llm/ (wire protocol as data)
 ├── docs              # QML.md (how QML works here) + adr/ (major trade-offs)
