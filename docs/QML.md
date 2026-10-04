@@ -8,13 +8,15 @@
 
 `src/app/qml/` 根下是九个 `Window`（表面），`src/app/qml/components/` 下是十个可复用件
 （`Icon` / `ShadowCard` / `Tokens` / `MixedText` / `Segment` / `StatRow` / `MenuRow` /
-`DropdownField` / `Switch` / `SwitchRow`），`src/app/qml/theme/` 下是两个主题各一份色值表
-（`Light` / `Dark`）。三组同属一个 QML 模块（`qt_add_qml_module` 的 `QML_FILES` 里写子目录路径
-即可），Qt 给模块内每个文件隐式导入本模块的类型，**跨目录照样按类型名解析，谁也不需要写 import**。
+`DropdownField` / `Switch` / `SwitchRow`），`src/app/qml/theme/` 下是两套主题各一份色值表
+（`Light` / `Dark`）加一份动效表（`Motion`）。三组同属一个 QML 模块（`qt_add_qml_module` 的
+`QML_FILES` 里写子目录路径即可），Qt 给模块内每个文件隐式导入本模块的类型，**跨目录照样按类型名解析，
+谁也不需要写 import**。
 
-主题表既不是表面也不是组件：`Tokens` 把 `Light` / `Dark` 两份都建出来，按 `dark` 取一份，逐令牌转发
+值表既不是表面也不是组件：`Tokens` 把 `Light` / `Dark` 两份都建出来，按 `dark` 取一份，逐令牌转发
 到同名属性上——表面读的还是 `Tokens.<token>`，换主题仍是一次赋值。色值因此只写进 `theme/`，加第三个
-主题是那里多一个文件、`Tokens` 多一臂；为什么不放在 `Tokens` 里见 `docs/adr/0007`。
+主题是那里多一个文件、`Tokens` 多一臂；为什么不放在 `Tokens` 里见 `docs/adr/0007`。动效表同路进来
+（`Tokens.motion.<token>`），见 §9。
 
 判据取 “是不是窗口” 而非 “被几处用到”：`Switch` / `MenuRow` / `DropdownField` 今天各只被一处使用，
 它们仍是组件，而按使用次数切会把同类东西拆到两边。十个搬走的文件里没有一处 `qsTr`（文案一律由表面
@@ -196,3 +198,25 @@ PY
   `TrayMenu.qml` 里的 `root.showStats()` 会解析到 `Main.qml` 的根（两文件探针实测）。它能跑，但没有任何地方
   声明它，qmllint 对这种名字只给一句 `Unqualified access`、不说该怎么办。表面之间的通信因此走信号：
   `TrayMenu` 现在发 `statsRequested` / `settingsRequested`，由 `Main.qml` 接。
+
+## 9 动效
+
+- **时长与缓动是令牌，住在 `qml/theme/Motion.qml`**：`press`（150 ms）、`pop`（180 ms）、`bubble`
+  （220 ms）与一条 `easing`。`Tokens` 以 `readonly property Motion motion` 转发，表面写
+  `Tokens.motion.<token>`，QML 里不出现毫秒字面量。它与 `Light` / `Dark` 同处一个目录，因为 `theme/`
+  是**值表**所在而不是色值所在。
+- **减少动效读的是 Win32，不是媒体查询**：`src/app/system_motion.h` 的 `SystemMotion` 是个
+  `QML_SINGLETON`，构造时读一次 `SystemParametersInfoW(SPI_GETCLIENTAREAANIMATION, 0, &enabled, 0)`——
+  动画状态在 `pvParam` 指的 BOOL 里，返回值只说读成功没有，读失败按 “没有减少动效” 处理。`Motion.reduced`
+  默认取它的值且可写，为真时每个时长解析为 0。**Windows 上没有 `prefers-reduced-motion`**，去找它的
+  下一个人应当停在那份文件头。
+- **出现动画只有一处，在 `ShadowCard.qml`**：卡片的不透明度跟着它所在窗口的 `visible` 走，配一条
+  `Behavior on opacity` 和一条由 `1 - opacity` 推出的 `Translate`（上移 8 px）——一个值驱动两者，减少动效
+  时两者一起归零。四张面板、托盘菜单、通知与下拉列表都画在 `ShadowCard` 上，于是 “浮层出现” 写一次就够，
+  不必抄六遍。`Bubble` 与 `SelectionBar` 自带卡片、不走这一处，它们的动效只有按压与反馈展开。
+  - 例外是托盘菜单的语言列表：它由 `Loader` 在 “该出来” 之后才创建，那时窗口已可见，没有 0→1 的翻转
+    可跟。该卡片的 `shown` 因此绑到 `Loader.status === Loader.Ready`，让创建完成本身成为那次翻转。
+- **动效拍不到快照，也不该拿快照验收**：能断言的是两条——规格表里每个时长都取自令牌、`reduced` 为真时
+  时长解析为 0（`test/qtest/components/tst_motion.qml`），以及卡片确实随窗口在 0 与 1 之间走
+  （`tst_shadowcard.qml`）。观感靠一次 QML profiler 运行加人工看。写快照用例时要等 `Tokens.motion.pop`
+  走完再抓，否则拍到的是半透明的卡片。

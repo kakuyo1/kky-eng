@@ -222,12 +222,19 @@
 
 | 动效 | 规格 | 触发 |
 |---|---|---|
-| 气泡反馈按钮展开 | `max-height` + 透明度，0.22 s ease | hover 气泡 |
-| 按钮按压 | `scale(.97)`，0.15 s | 按下 |
-| 开关切换 | 0.15 s 过渡 | 点击 |
-| 菜单 / 浮层出现 | 淡入 + 轻微上移 0.15–0.2 s | 打开 |
+| 气泡反馈按钮展开 | 高度 + 透明度，`Tokens.motion.bubble`（220 ms） | hover 气泡 |
+| 按钮按压 | `scale(.97)`，`Tokens.motion.press`（150 ms） | 按下 |
+| 开关切换 | 底色与滑块位置，`Tokens.motion.press`（150 ms） | 点击 |
+| 菜单 / 浮层出现 | 卡片淡入 + 上移 8 px，`Tokens.motion.pop`（180 ms） | 打开 |
+| 行 hover 填充 | 底色，`Tokens.motion.press`（150 ms） | 指针进入 |
+| 词汇列表行的进出 | 行高 + 透明度，`Tokens.motion.pop`（180 ms） | 分段筛选变化 |
 
-动效仅用于反馈与状态变化，克制。需支持 `prefers-reduced-motion`（关闭后所有过渡退化为瞬时）。
+动效仅用于反馈与状态变化，克制，不加转场。时长与缓动一律取 `Tokens.motion`，表面不写毫秒数；四张面板、
+托盘菜单、通知与下拉列表的出现都走 `ShadowCard.qml` 这一处。
+
+**减少动效**：本应用没有 `prefers-reduced-motion`，那是 Web 的概念。开关就是 Windows 的
+“辅助功能 → 视觉效果 → 动画效果”，读法是 `SystemParametersInfoW(SPI_GETCLIENTAREAANIMATION)`
+（`src/app/system_motion.h`，启动时读一次）。关闭后 `Tokens.motion` 的每个时长解析为 0，所有过渡退化为瞬时。
 
 ## 无障碍与约束
 
