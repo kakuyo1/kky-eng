@@ -130,8 +130,12 @@ Singletons& singletons()
         built.settingsPath = writableSettingsCopy();
         built.store = std::make_unique<KnownStore>(KnownStore::load(std::filesystem::path(built.settingsPath.toStdString())));
         // No key and no URL: nothing in this target asks the model anything, and a config that
-        // could reach the network is one a case could accidentally spend money through.
-        built.llm = std::make_unique<lens::llm::LlmClient>(lens::llm::Config{});
+        // could reach the network is one a case could accidentally spend money through. The model
+        // is named anyway, the way main() defaults one -- AppController prices every cost row
+        // with it, and a client built from a default Config reports an empty model, which made
+        // each of those calls warn that it had no rate: 280 lines a run, none of them news.
+        built.llm = std::make_unique<lens::llm::LlmClient>(
+            lens::llm::Config{QUrl{}, QString{}, QStringLiteral("deepseek-flash")});
         built.hook = std::make_unique<MouseSelectionHook>();
         built.pricing = std::make_unique<lens::llm::Pricing>(lens::llm::Pricing::load(std::filesystem::path(LENS_DATA_DIR) / "llm" / "pricing.json"));
         built.controller = std::make_unique<AppController>(*built.store, *built.llm, *built.hook, *built.pricing);
