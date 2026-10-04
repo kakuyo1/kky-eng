@@ -30,6 +30,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/llm_pure_test.cpp
   unit/llm_mock_transport_test.cpp
   unit/llm_pricing_test.cpp
+  unit/log_test.cpp
 )
 target_link_libraries(lens_gtest_unit PRIVATE lens_core lens_llm GTest::gtest_main)
 lens_gtest_configure(lens_gtest_unit)
