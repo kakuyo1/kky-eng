@@ -28,8 +28,9 @@ UI 上占位项：控件存在但 `enabled: false`——文案转 `faint`、开�
 ```
 拖选松手（低层鼠标钩子 WH_MOUSE_LL：LBUTTONUP 且按下期间确实拖动过，双击 / 三击选词选段同理）
   → AppController.onSelectionReleased(anchor)：注入 Ctrl+C → 读剪贴板（存还原）→ 选区类型判定
-     （判定的唯一入口是 FilterCore.classifySelection：出候选 = Word；无候选 = Sentence，
-       句子 / 实体通道属阶段二，见 §2）
+     （判定的唯一入口是 FilterCore.classifySelection：出候选 = Word；一个候选都没有 =
+       Sentence，句子 / 实体通道属阶段二，见 §2。候选带 New / Known / Mastered 状态，
+       后两者只标注不删，见 §4.1）
   → 选区动作条弹出（翻译 / 解释 / 复制文本。前两项是同一决策的两个入口，见 `UI.md` §4.9）
   → 复制文本 → 本地结束，不发请求。
   → 翻译 / 解释 → 同一条路，通道由上面判的类型定；阶段一只有 Word 走得通
@@ -43,7 +44,7 @@ UI 上占位项：控件存在但 `enabled: false`——文案转 `faint`、开�
   → 用户 [已会]/[新词] → KnownStore 回写
 ```
 
-阶段一单次复制最多弹 1 个词（`filterWords` 的首个候选，即选区内最先出现的那个），5 秒自动消失；鼠标悬浮时计时挂起、永不消失，移出后重新计时。悬停同时展开反馈按钮——规格见 `UI.md`。（多词错峰属多气泡场景，阶段一单气泡不涉及。）无候选时动作条照样弹出，三项一律可用；翻译与解释不发请求，改由浮层说明没有可解释的单词——动作条点完即自隐，若此处静默，读者看到的是一次毫无反应的点击（`UI.md` §4.9 不灰化，反馈只能落在 “点了之后”）。
+阶段一单次复制最多弹 1 个词（`filterWords` 的首个 `New` 候选，即选区内最先出现的、读者尚未掌握的实词；整段都被标过或都在档位带内时取首个候选），5 秒自动消失；鼠标悬浮时计时挂起、永不消失，移出后重新计时。悬停同时展开反馈按钮——规格见 `UI.md`。（多词错峰属多气泡场景，阶段一单气泡不涉及。）无候选时动作条照样弹出，三项一律可用；翻译与解释不发请求，改由浮层说明没有可解释的单词——动作条点完即自隐，若此处静默，读者看到的是一次毫无反应的点击（`UI.md` §4.9 不灰化，反馈只能落在 “点了之后”）。
 
 ## 4 模块接口（契约先行）
 
@@ -59,22 +60,27 @@ void loadWordlist(const std::filesystem::path& path);
 // 词根：running/ran → run。known-set、缓存、词表查询均按 lemma 进行。
 std::string lemmatize(std::string_view token);
 
+// 候选与读者的关系：新词 / 读者标过已知 / 落在档位词频带内。本模块只标注，由调用方
+// 决定怎么用——选区取词取首个新词，阶段二的自动扫描才整体跳过后两类。
+enum class CandidateState { New, Known, Mastered };
+
 struct Candidate {
-    std::string surface;   // 原文形态（已小写，如 "running"）
-    std::string lemma;     // 词根（"run"）
+    std::string surface;                       // 原文形态（已小写，如 "running"）
+    std::string lemma;                         // 词根（"run"）
+    CandidateState state = CandidateState::New; // 读者的既有判断
 };
 
 // 纯管道，无 I/O。known-set 与词频阈值注入，保持本模块无依赖、可单测。
-// 返回按出现顺序去重后的候选；空 = 无需弹词。
+// 返回按出现顺序去重后的候选，状态随行；空 = 整段不含词表词。
 std::vector<Candidate> filterWords(
     std::string_view text,
-    const std::unordered_set<std::string>& knownLemmas,
-    std::size_t minFreqRank);   // 档位 → 词表词频阈值（词书数据未就绪时的近似，见 TODO.md）
+    const std::unordered_set<std::string>& knownLemmas,  // 命中即标 Known
+    std::size_t minFreqRank);   // 档位 → 词表词频阈值（词书数据未就绪时的近似，见 TODO.md）；命中即标 Mastered
 
 // 选区是什么，决定它走哪条通道。阶段二的实体通道并入本枚举。
 enum class SelectionKind {
-    Word,      // 出了候选：word 通道有东西可发
-    Sentence,  // 无候选：阶段二的句子 / 实体通道接管
+    Word,      // 出了候选（任何状态）：word 通道有东西可发
+    Sentence,  // 一个候选都没有：阶段二的句子 / 实体通道接管
 };
 
 struct Selection {
@@ -92,7 +98,9 @@ Selection classifySelection(
 }
 ```
 
-判定次序：分词硬过滤（含元音、长度 ≥3、无数字、去 URL/邮箱/粘连串）→ 全大写跳过 → 词根还原 → 静态词表白名单（不在表即丢）→ 档位词频阈值跳过 → known-set 跳过。句中首字母大写的普通词本阶段按单词通道处理（实体分类属阶段二，`ponytail:` 简化，验证期观察误弹）。
+判定次序：分词硬过滤（含元音、长度 ≥3、无数字、去 URL/邮箱/粘连串）→ 全大写跳过 → 词根还原 → 静态词表白名单（不在表即丢）→ 按 lemma 去重 → 给每个幸存候选标状态（New / Known / Mastered）。句中首字母大写的普通词本阶段按单词通道处理（实体分类属阶段二，`ponytail:` 简化，验证期观察误弹）。
+
+**known-set 与档位阈值只标注，不删候选**（2026-10-04）：它们是候选的状态，不是候选的删除条件——读者手选一段文字就是在要求解释它，而他可能早忘了自己标过的词。于是 `SelectionKind::Word` 的含义变成 “这段里有词表词”，而不是 “这段里有值得弹的词”；整段不含任何词表词（URL、数字、乱码）才落 `Sentence`。取舍与实测见 `docs/metrics/code-quality/selection-classification-accuracy-2026-10-04.md`。
 
 落地注记（2026-10-02，与测试样例集一并定）：
 
@@ -104,6 +112,12 @@ Selection classifySelection(
 - **分词**：按空白切段，削去首尾既非字母也非数字的字节，剩余内部只要还有非字母字节，整段判粘连串丢弃。数字留在 token 内而不是削掉——否则 version2 会被削成 version 反被弹出。
 - **含元音**判定把 `y` 计入，救回 rhythm / myth / gym。
 - 去重按 **lemma**（非 surface）：同段内 run 与 running 只留首次出现。
+
+落地注记（2026-10-04，与样例集扩容一并定）：
+
+- **状态进候选，删除逻辑出模块**：`Candidate` 加 `state`。known-set 命中记 `Known`，`rankOf(lemma) <= minFreqRank` 记 `Mastered`，两者都命中时 Known 优先——读者的明示标记比档位推断更具体。`filterWords` 不再因这两者丢候选，`classifySelection` 的 kind 因此只看 “这段有没有词表词”。阶段二的自动扫描才是需要整体跳过这两类状态的调用方，本阶段没有调用方需要这个跳过，所以调用方侧不加过滤。
+- **选区发首个 `New`，一个都没有时发首个候选**：`AppController::beginSelection` 按状态挑词。不挑的话，句首冠词会变成请求词（`The ubiquitous …` 会去解释 the）。整段都被标过、或都落在档位带内时首个候选顶上——读者手选的词照样解释，这正是本次要修的那条。
+- **气泡状态与通知路径**：`showBubble` 的 status 一直由 `store_.isKnown()` 现算，所以已知词的气泡现在一上来就带 “已知” chip，而不是等到一次判定之后。`showNotice` 的 status 仍是空串，QML 的反馈按钮以 `status !== ""` 为前提，因此通知的标题（选区原文，不是词根）不会写进已知词库。
 
 ### 4.2 KnownStore（JSON 持久化，无 Qt）
 
@@ -369,11 +383,12 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 
 ## 9 验证
 
-- FilterCore 单测：样例集离线断言（`lens_gtest_unit`，零网络，可进 CI）。**已通过**：样例集 8 段 + 存储往返，覆盖档位词频阈值、词根还原（后缀规则与 WordNet 异常表）、只有表能覆盖的形式（`criteria → criterion` 一类）、垃圾内容（URL / 邮箱 / 文件名 / 带数字串 / 连字 / 全大写）、不在词表即丢、同段同词根去重、known-set 跳过。
+- FilterCore 单测：样例集离线断言（`lens_gtest_unit`，零网络，可进 CI）。**已通过**：样例集 1001 段 + 存储往返，覆盖档位词频阈值、词根还原（后缀规则与 WordNet 异常表）、只有表能覆盖的形式（`criteria → criterion` 一类）、垃圾内容（URL / 邮箱 / 文件名 / 带数字串 / 连字 / 全大写）、不在词表即丢、同段同词根去重、已知与已掌握只标注不删。样例集另有 `scripts/check-eval-corpus.py` 按规则独立校验，与实现无关。
+- 单层判定准确率：**已测量**（2026-10-04，三轮，`lens_gtest_unit` 回放样例集）：1001 段中 336 段未命中，命中率 66.43%，三轮同值。未命中全部落在 “已知 / 已掌握被当作删除条件” 这一条轴上（带 minFreqRank 的 173 段错 172，带 known 的 163 段错 163，两者都不带的 664 段全对）——没有一段是层级判定问题，故不引入多层级策略。报告：`docs/metrics/code-quality/selection-classification-accuracy-2026-10-04.md`。
 - LLM 纯函数接缝：脱敏 / 请求体 / 响应校验三项离线断言（`lens_gtest_unit`）。**已通过**：覆盖邮箱、URL、长数字掩码；`model` / `stream:false` / `response_format` / `thinking:disabled` / `max_tokens` / 提示词含 `json` 与格式示例 / 解释语言切末句；`finish_reason != stop`、外层非 JSON、缺 `results`、字段缺失、回显错词 / 漏词 / 多余词一律整体失败。断言经变异验证确实会红。
 - 迁移核对：**已通过**（2026-10-02）：手写 `CHECK` 转入 gtest 后为 11 例（样例集 1 + KnownStore 6 + 掩码 1 + LLM 纯函数 3），`lens_gtest_unit` 全绿。原 `main.cpp`（452 行）删除。
 - LLM 冒烟：**已通过**（2026-10-02，迁移前的手写版本）：`ubiquitous` 经 `deepseek-flash` 真实往返，`word` / `en` / `zh` 三字段回显与 §5 schema 一致，`finish_reason=stop`。迁移后的 `lens_gtest_smoke` 尚未跑过真实往返，待人工执行。
-- FilterCore 热点：**已测量**（2026-10-02，RelWithDebInfo，`LENS_ENABLE_PROFILE=ON`，样例集 8 段 × 200 轮，`filterWords` 1600 次 / `lemmatize` 8400 次 / token 10800 个）。**`lemmatize` 只占一部分，其余落在分词与硬过滤阶段**，比此前 “热路径即 lemmatize” 的说法更宽。五轮数据（见 `TEST.md` 的记录约定）：`lemmatize` 很稳，1.85–2.04 ms（221–240 ns/次）；`filterWords` 在 4.36–7.04 ms 之间摆，占机器干扰最大的分词侧。因此占比是区间而非点值：**最干净的三轮约 43%，受干扰时降到 27%**。同株关掉插桩作对照，插桩整体抬高约 16%，反推一次计时器约 60 ns；扣掉后下限约 36%。
+- FilterCore 热点：**已测量**（2026-10-02，RelWithDebInfo，`LENS_ENABLE_PROFILE=ON`，样例集 8 段 × 200 轮，`filterWords` 1600 次 / `lemmatize` 8400 次 / token 10800 个）。**`lemmatize` 只占一部分，其余落在分词与硬过滤阶段**，比此前 “热路径即 lemmatize” 的说法更宽。五轮数据（见 `TEST.md` 的记录约定）：`lemmatize` 很稳，1.85–2.04 ms（221–240 ns/次）；`filterWords` 在 4.36–7.04 ms 之间摆，占机器干扰最大的分词侧。因此占比是区间而非点值：**最干净的三轮约 43%，受干扰时降到 27%**。同株关掉插桩作对照，插桩整体抬高约 16%，反推一次计时器约 60 ns；扣掉后下限约 36%。样例集扩到 1001 段后（2026-10-04）同法重测，七轮：`filterWords` 每轮中位 32.60–42.99 ms（min 31.36–31.76），每段 0.0314–0.0430 ms。工作量变了，与上面 8 段时的绝对值不可比，只有每段的口径可比；七轮的中位摆到 10 ms 也再次说明这台机器的噪声，读这个数要连 min 一起读。
 - 一次运行的定量结论都带这类区间，跑 `lens_gtest_perf` 时至少看三轮。
 - 选区捕获（2026-10-03）：`lens_gtest_integration` 15 例中 14 例通过、1 例跳过。机器已验证——手势规则（含阈值边界、双击 / 三击、反向拖动）、终端排除名单的大小写与全路径匹配、钩子装上后能收到拖拽并按松手坐标发出锚点（拖拽由 `SendInput` 合成，低层钩子对合成事件与真实事件一视同仁）、前台是自己时取文拒绝执行，以及剪贴板存还原的三面（内容被顶掉后还原、非文本格式一并还原、没取过快照时不许动剪贴板）。真人手测过一次（2026-10-03，Windows 记事本 11.2607 商店版）：注入的 Ctrl+C 确实取到了选区，十字相符——契约里那句 “凡能复制的应用都通” 有实证了。同一次的日志还给出了逐格式拷贝的量化理由：记事本一次 Ctrl+C 往剪贴板放了 4 种格式，快照全数取回并全数还原，**只存文本会毁掉其中 3 种**。
 - **剪贴板的存还原用 OLE 是错的**（2026-10-03 实测推翻）：`OleGetClipboard` 取出的 `IDataObject` 交给 `OleSetClipboard` 一律失败，`CLIPBRD_E_CANT_CLOSE` 或 `CLIPBRD_E_CANT_OPEN`；中间有没有变化、内容由本进程还是别的进程（`clip.exe` 验过）放入，结果都一样，而同一次运行里 `OleSetClipboard(nullptr)` 却成功，所以坏的是对象往返而非 setter。现在的做法是裸开剪贴板逐格式读出字节，还原时空盘再逐格式写回；位图 / 调色板 / 增强图元文件 / owner-display 族这类句柄格式按名跳过并记日志；`ole32` 不再需要。这条错误原先只有人工用例能碰，改成三个离线用例后当场复现。
@@ -411,7 +426,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 - **含**：§4.2 遗留的 “档位序号 → 词频阈值” 映射，与 `TODO.md` 的词书数据一起做（`minFreqRank` 目前是近似，见 §4.1 落地注记）。
 - **含**：i18n 首次真正生效——QML 目录加入 `lupdate` 扫描，`.qm` 经 CMake 构建、启动时加载（现在 `.ts` 只有 llm 模块的 22 条，加载机制尚未接）。
 - **含**：统计三个弹窗的数据层 `StatsStore`（§4.2）与金额所需的 `Usage` + 价目（§4.3）——此前两个契约里都没有，是切片三补的。
-- **验收**：复制真实英文句 → 浮层弹词 → [已会] / [新词] 回写 → 复弹不重复；占位项 `enabled: false` 不可触发；界面语言中英切换生效。
+- **验收**：复制真实英文句 → 浮层弹词 → [已会] / [新词] 回写 → 复弹不重复。“复弹不重复” 指**请求**不重复：已知词不再被删（§4.1），第二次选中同一段仍会走到解释这一步，但 `store_.cacheGet`（lemma + 解释语言）命中就直接弹缓存，一次也不出网；弹词计数照记。占位项 `enabled: false` 不可触发；界面语言中英切换生效。
 
 落地注记（2026-10-03）：
 

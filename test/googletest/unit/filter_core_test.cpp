@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -103,6 +104,7 @@ TEST_F(CoreTest, ReplaysTheSampleCorpus)
     ASSERT_FALSE(corpus.empty());
     ASSERT_TRUE(corpus.is_array());
 
+    std::size_t mismatched = 0;
     std::size_t index = 0;
     for (const auto& item : corpus) {
         ++index;
@@ -111,20 +113,36 @@ TEST_F(CoreTest, ReplaysTheSampleCorpus)
         const std::string text = item.at("text").get<std::string>();
         const auto expect = item.at("expect").get<std::vector<std::string>>();
         const std::size_t minFreqRank = item.value("minFreqRank", std::size_t{0});
+        const std::string expectKind = item.value("expectKind", std::string());
 
         std::unordered_set<std::string> known;
         for (const auto& word : item.value("known", std::vector<std::string>{}))
             known.insert(word);
 
-        std::vector<Candidate> got;
-        ASSERT_NO_THROW(got = lens::core::filterWords(text, known, minFreqRank))
+        // Through classifySelection, not filterWords: the kind the corpus pins is the one the
+        // selection carries into the bar, and the candidates ride along with it.
+        lens::core::Selection got;
+        ASSERT_NO_THROW(got = lens::core::classifySelection(text, known, minFreqRank))
             << "text: " << text;
 
-        EXPECT_EQ(surfaces(got), expect) << "text: " << text;
+        const std::string kind = got.kind == lens::core::SelectionKind::Word ? "Word" : "Sentence";
+        std::vector<std::string> wantLemmas;
         if (item.contains("expectLemmas"))
-            EXPECT_EQ(lemmas(got), item.at("expectLemmas").get<std::vector<std::string>>())
-                << "text: " << text;
+            wantLemmas = item.at("expectLemmas").get<std::vector<std::string>>();
+
+        const bool ok = kind == expectKind && surfaces(got.candidates) == expect &&
+                        (!item.contains("expectLemmas") || lemmas(got.candidates) == wantLemmas);
+        if (!ok) ++mismatched;
+
+        EXPECT_EQ(kind, expectKind) << "text: " << text;
+        EXPECT_EQ(surfaces(got.candidates), expect) << "text: " << text;
+        if (item.contains("expectLemmas"))
+            EXPECT_EQ(lemmas(got.candidates), wantLemmas) << "text: " << text;
     }
+
+    // Also the measurement: how many excerpts the pipeline gets wrong. Printed because a red
+    // run is otherwise a wall of failures with no total, and docs/metrics reads this line.
+    std::cout << "\ncorpus: " << corpus.size() << " entries, " << mismatched << " mismatched\n";
 }
 
 TEST_F(CoreTest, ClassifiesAWordSelectionAsTheWordChannel)
@@ -133,13 +151,24 @@ TEST_F(CoreTest, ClassifiesAWordSelectionAsTheWordChannel)
         lens::core::classifySelection("The ubiquitous nature of modern software makes resilience essential.", {}, 3000);
 
     EXPECT_EQ(selection.kind, lens::core::SelectionKind::Word);
-    // The first candidate is the one the bar's request would carry, so a regression that
-    // reordered the list shows up here rather than in a bubble naming the wrong word.
     ASSERT_FALSE(selection.candidates.empty());
-    EXPECT_EQ(selection.candidates.front().surface, "ubiquitous");
+
+    // Every word that survived the hard filter is a candidate, in order of first appearance,
+    // and one inside the level's band is among them, marked rather than dropped (TODO.md
+    // item 0) -- which is why the list opens with the article.
+    EXPECT_EQ(selection.candidates.front().surface, "the");
+    EXPECT_EQ(selection.candidates.front().state, lens::core::CandidateState::Mastered);
+
+    // AppController sends the first candidate still new to the reader, so a regression that
+    // reordered the list shows up here rather than in a bubble naming the wrong word.
+    const auto fresh = std::find_if(selection.candidates.begin(), selection.candidates.end(), [](const Candidate& candidate) {
+        return candidate.state == lens::core::CandidateState::New;
+    });
+    ASSERT_NE(fresh, selection.candidates.end());
+    EXPECT_EQ(fresh->surface, "ubiquitous");
 }
 
-TEST_F(CoreTest, ClassifiesEverythingElseAsASentence)
+TEST_F(CoreTest, ClassifiesJunkAsASentence)
 {
     // Glued junk and a stray number: nothing in it survives the filter, so the word channel
     // has nothing to send.
@@ -147,11 +176,18 @@ TEST_F(CoreTest, ClassifiesEverythingElseAsASentence)
               lens::core::SelectionKind::Sentence);
     // Nothing was selected at all.
     EXPECT_EQ(lens::core::classifySelection("", {}, 0).kind, lens::core::SelectionKind::Sentence);
-    // A lone word the reader already knows: the filter drops it, and there is genuinely
-    // nothing left to explain, so this is not a misclassification.
+    // A lone word the reader already knows is still a word: the mark annotates the candidate,
+    // it does not take it away, because an explicit selection is a request to explain it --
+    // the reader cannot be assumed to remember a word they marked (TODO.md item 0).
     const auto known = lens::core::classifySelection("ubiquitous", {"ubiquitous"}, 3000);
-    EXPECT_EQ(known.kind, lens::core::SelectionKind::Sentence);
-    EXPECT_TRUE(known.candidates.empty());
+    EXPECT_EQ(known.kind, lens::core::SelectionKind::Word);
+    ASSERT_EQ(known.candidates.size(), 1u);
+    EXPECT_EQ(known.candidates.front().state, lens::core::CandidateState::Known);
+    // A lone word inside the level's band is the same story from the other side.
+    const auto mastered = lens::core::classifySelection("nature", {}, 3000);
+    EXPECT_EQ(mastered.kind, lens::core::SelectionKind::Word);
+    ASSERT_EQ(mastered.candidates.size(), 1u);
+    EXPECT_EQ(mastered.candidates.front().state, lens::core::CandidateState::Mastered);
 }
 
 TEST_F(KnownStoreTest, FreshStoreHoldsTheDocumentedDefaults)
