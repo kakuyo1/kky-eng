@@ -120,28 +120,35 @@ TEST_F(CoreTest, ReplaysTheSampleCorpus)
         for (const auto& word : item.value("known", std::vector<std::string>{}))
             known.insert(word);
 
-        // Through classifySelection, not filterWords: the kind the corpus pins is the one the
-        // selection carries into the bar, and the candidates ride along with it.
+        // The kind comes from classifySelection: the shape of the selection decides the channel.
+        // The candidate list comes from filterWords directly, because a sentence now rides the
+        // sentence channel while still exercising the word pipeline that fills `expect`.
         lens::core::Selection got;
         ASSERT_NO_THROW(got = lens::core::classifySelection(text, known, minFreqRank))
             << "text: " << text;
-
         const std::string kind = got.kind == lens::core::SelectionKind::Word
                                      ? "Word"
                                  : got.kind == lens::core::SelectionKind::Entity ? "Entity"
                                                                                  : "Sentence";
-        std::vector<std::string> wantLemmas;
-        if (item.contains("expectLemmas"))
-            wantLemmas = item.at("expectLemmas").get<std::vector<std::string>>();
-
-        const bool ok = kind == expectKind && surfaces(got.candidates) == expect &&
-                        (!item.contains("expectLemmas") || lemmas(got.candidates) == wantLemmas);
-        if (!ok) ++mismatched;
-
         EXPECT_EQ(kind, expectKind) << "text: " << text;
-        EXPECT_EQ(surfaces(got.candidates), expect) << "text: " << text;
-        if (item.contains("expectLemmas"))
-            EXPECT_EQ(lemmas(got.candidates), wantLemmas) << "text: " << text;
+        bool ok = kind == expectKind;
+
+        if (expectKind == "Entity") {
+            // An entity phrase is not a word candidate list; filterWords is not its contract.
+            if (!ok) ++mismatched;
+            continue;
+        }
+
+        std::vector<Candidate> words;
+        ASSERT_NO_THROW(words = lens::core::filterWords(text, known, minFreqRank)) << "text: " << text;
+        EXPECT_EQ(surfaces(words), expect) << "text: " << text;
+        ok = ok && surfaces(words) == expect;
+        if (item.contains("expectLemmas")) {
+            const auto wantLemmas = item.at("expectLemmas").get<std::vector<std::string>>();
+            EXPECT_EQ(lemmas(words), wantLemmas) << "text: " << text;
+            ok = ok && lemmas(words) == wantLemmas;
+        }
+        if (!ok) ++mismatched;
     }
 
     // Also the measurement: how many excerpts the pipeline gets wrong. Printed because a red
@@ -149,26 +156,28 @@ TEST_F(CoreTest, ReplaysTheSampleCorpus)
     std::cout << "\ncorpus: " << corpus.size() << " entries, " << mismatched << " mismatched\n";
 }
 
-TEST_F(CoreTest, ClassifiesAWordSelectionAsTheWordChannel)
+TEST_F(CoreTest, RoutesASentenceToTheSentenceChannelButStillFiltersItsWords)
 {
-    const auto selection =
-        lens::core::classifySelection("The ubiquitous nature of modern software makes resilience essential.", {}, 3000);
+    constexpr const char* text = "The ubiquitous nature of modern software makes resilience essential.";
 
-    EXPECT_EQ(selection.kind, lens::core::SelectionKind::Word);
-    ASSERT_FALSE(selection.candidates.empty());
+    // The channel is the shape of the selection: a sentence is a sentence, so the action bar
+    // translates or explains it whole instead of explaining one word.
+    EXPECT_EQ(lens::core::classifySelection(text, {}, 3000).kind, lens::core::SelectionKind::Sentence);
 
-    // Every word that survived the hard filter is a candidate, in order of first appearance,
-    // and one inside the level's band is among them, marked rather than dropped (TODO.md
-    // item 0) -- which is why the list opens with the article.
-    EXPECT_EQ(selection.candidates.front().surface, "the");
-    EXPECT_EQ(selection.candidates.front().state, lens::core::CandidateState::Mastered);
+    // filterWords still produces the candidate list the corpus pins, in first-appearance order,
+    // with the in-band article marked rather than dropped (TODO.md item 0) -- which is why the
+    // list opens with the article.
+    const auto words = lens::core::filterWords(text, {}, 3000);
+    ASSERT_FALSE(words.empty());
+    EXPECT_EQ(words.front().surface, "the");
+    EXPECT_EQ(words.front().state, lens::core::CandidateState::Mastered);
 
-    // AppController sends the first candidate still new to the reader, so a regression that
-    // reordered the list shows up here rather than in a bubble naming the wrong word.
-    const auto fresh = std::find_if(selection.candidates.begin(), selection.candidates.end(), [](const Candidate& candidate) {
+    // The candidate still fresh to the reader is what a word request would carry; a regression
+    // that reordered the list shows up here rather than in a bubble naming the wrong word.
+    const auto fresh = std::find_if(words.begin(), words.end(), [](const Candidate& candidate) {
         return candidate.state == lens::core::CandidateState::New;
     });
-    ASSERT_NE(fresh, selection.candidates.end());
+    ASSERT_NE(fresh, words.end());
     EXPECT_EQ(fresh->surface, "ubiquitous");
 }
 
@@ -198,11 +207,10 @@ TEST_F(CoreTest, ClassifiesALoneLettersTokenAsTheWordChannel)
     EXPECT_EQ(lens::core::classifySelection("a", {}, 3000).kind, lens::core::SelectionKind::Sentence);
     EXPECT_EQ(lens::core::classifySelection("MP3", {}, 3000).kind, lens::core::SelectionKind::Sentence);
 
-    // The same term inside continuous prose is still skipped: only a selection that is exactly
-    // this token qualifies.
-    const auto prose = lens::core::classifySelection("the qml source", {}, 3000);
-    EXPECT_EQ(prose.kind, lens::core::SelectionKind::Word);
-    for (const auto& candidate : prose.candidates)
+    // The same term inside continuous prose makes the selection a sentence, and the all-caps /
+    // no-vowel gates still keep it out of the candidate list.
+    EXPECT_EQ(lens::core::classifySelection("the qml source", {}, 3000).kind, lens::core::SelectionKind::Sentence);
+    for (const auto& candidate : lens::core::filterWords("the qml source", {}, 3000))
         EXPECT_NE(candidate.surface, "qml") << "a lone-selection token inside prose must stay skipped";
 }
 

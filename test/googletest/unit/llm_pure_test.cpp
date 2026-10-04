@@ -143,23 +143,25 @@ TEST_F(LlmTest, UsesSentencePresetsAndTheSharedEntityPreset)
 {
     const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
 
-    const auto translated = QJsonDocument::fromJson(
-        buildRequestBody(config, Channel::Sentence, {"New York is busy."}, "en", "translate"));
-    const auto explained = QJsonDocument::fromJson(
-        buildRequestBody(config, Channel::Sentence, {"New York is busy."}, "en", "explain"));
-    const auto entity = QJsonDocument::fromJson(
-        buildRequestBody(config, Channel::Entity, {"New York"}, "en"));
-
-    ASSERT_TRUE(translated.isObject());
-    ASSERT_TRUE(explained.isObject());
-    ASSERT_TRUE(entity.isObject());
-    const auto translatedPrompt = translated.object().value("messages").toArray().at(0).toObject().value("content").toString();
-    const auto explainedPrompt = explained.object().value("messages").toArray().at(0).toObject().value("content").toString();
+    const auto sentencePrompt = [&](const QString& lang, const QString& preset) {
+        const auto body = QJsonDocument::fromJson(
+            buildRequestBody(config, Channel::Sentence, {"New York is busy."}, lang, preset));
+        return body.object().value("messages").toArray().at(0).toObject().value("content").toString();
+    };
+    const auto entity = QJsonDocument::fromJson(buildRequestBody(config, Channel::Entity, {"New York"}, "en"));
     const auto entityPrompt = entity.object().value("messages").toArray().at(0).toObject().value("content").toString();
-    EXPECT_TRUE(translatedPrompt.contains("Translate"));
-    EXPECT_TRUE(explainedPrompt.contains("Explain"));
+
+    // With an English explanation language the two sentence items are the same job: explain in
+    // plain English. The distinction only exists for Chinese readers.
+    EXPECT_EQ(sentencePrompt("en", "translate"), sentencePrompt("en", "explain"));
+    EXPECT_TRUE(sentencePrompt("en", "translate").contains("plain English"));
+
+    // With Chinese, translate is literal and explain is plain-language.
+    EXPECT_TRUE(sentencePrompt("zh", "translate").contains("literally"));
+    EXPECT_TRUE(sentencePrompt("zh", "explain").contains("everyday Chinese"));
+    EXPECT_NE(sentencePrompt("zh", "translate"), sentencePrompt("zh", "explain"));
+
     EXPECT_TRUE(entityPrompt.contains("named entity"));
-    EXPECT_FALSE(translatedPrompt == explainedPrompt);
 }
 
 TEST_F(LlmTest, ParsesTheThreeFieldEntityAndSentenceShapeWithoutIPA)

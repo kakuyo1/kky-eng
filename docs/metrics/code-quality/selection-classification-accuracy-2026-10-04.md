@@ -136,3 +136,30 @@ V3 后的实际输出为 `corpus: 1004 entries, 0 mismatched`，独立脚本输�
 `corpus: 1004 entries, 0 problem(s)`；`lens_gtest_unit` 45 绿（覆盖
 `ClassifiesALoneLettersTokenAsTheWordChannel` 与 `AcceptsAWordResponseWithoutIPAForAnAcronym`）。
 旧编号与旧数字不改。
+
+## 9 通道由选区形状定，句子翻译 / 解释生效（2026-10-04）
+
+需求侧观察：选中一句英文，动作条出现但点 翻译 / 解释 只解释了其中一个词，整句翻译 / 解释没有发生。根因：
+`classifySelection` 原以 “有候选 = Word” 分流，任何含词表词的英文句子都进 word 通道，只剩 “一个词表词都
+没有” 的选区走 sentence。定夺：**通道由选区形状定**——整个选区是单个 letters-only token（≥2 字母、
+不分大小写）→ Word；多 token → Sentence；多 token Title Case 短语 → Entity。`filterWords` 对多 token
+文本仍照常产出候选（语料里的 `expect` 列表保留，改由它在测试里断言），`check-eval-corpus.py` 的
+`expectKind` 与 `expect` 解耦。
+
+句子预设的语义一并定稿（`API.md` §3.2、`PHASE1.md` §5）：解释语言为中文时 `translate` 给字面中文翻译、
+`explain` 给中文通俗解释；解释语言为英文时两者都做 “用英文通俗解释这句话”（提示词相同）。气泡按解释
+语言只画 `en` 或 `zh` 那一行。
+
+| 指标 | 改前 | 改后 |
+| --- | ---: | ---: |
+| 多 token → Word | 500 | 0 |
+| 多 token → Sentence | 2 | 502 |
+| 多 token → Entity | 2 | 2 |
+| 单 token → Word | 401 | 401 |
+| 单 token → Sentence | 99 | 99 |
+| corpus mismatched | 0 | 0 |
+| 独立检查脚本问题数 | 0 | 0 |
+
+改后实际输出：`corpus: 1004 entries, 0 mismatched`；`python scripts/check-eval-corpus.py` 输出
+`corpus: 1004 entries, 0 problem(s)`；`lens_gtest_unit` 45 绿、`lens_qtest_surfaces` 52 绿。真实模型
+往返（句子翻译 / 解释）属人工 / 付费验收，未跑。

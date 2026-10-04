@@ -504,8 +504,14 @@ Selection classifySelection(
     if (isEntitySelection(text)) {
         selection.kind = SelectionKind::Entity;
         selection.candidates.clear();
+    } else if (!loneToken(text).empty()) {
+        // One word is a lookup; a phrase or sentence is a translation. The channel follows the
+        // shape of the selection, not whether the excerpt happens to hold word-list words -- a
+        // sentence is full of them, and routing it to the word channel would only explain one.
+        selection.kind = SelectionKind::Word;
     } else {
-        selection.kind = selection.candidates.empty() ? SelectionKind::Sentence : SelectionKind::Word;
+        selection.kind = SelectionKind::Sentence;
+        selection.candidates.clear();
     }
 
     LENS_TRACE("classifySelection: {} char(s) -> {}",

@@ -27,9 +27,9 @@ UI 上占位项：控件存在但 `enabled: false`——文案转 `faint`、开�
 ```
 拖选松手（低层鼠标钩子 WH_MOUSE_LL：LBUTTONUP 且按下期间确实拖动过，双击 / 三击选词选段同理）
   → AppController.onSelectionReleased(anchor)：注入 Ctrl+C → 读剪贴板（存还原）→ 选区类型判定
-      （判定的唯一入口是 FilterCore.classifySelection：实体短语 = Entity；有候选 = Word；
-        其余 = Sentence。候选带 New / Known / Mastered 状态，
-       后两者只标注不删，见 §4.1）
+      （判定的唯一入口是 FilterCore.classifySelection：多 token Title Case 短语 = Entity；
+        整个选区是单个字母 token = Word；其余（多 token）= Sentence。
+        候选带 New / Known / Mastered 状态，后两者只标注不删，见 §4.1）
   → 选区动作条弹出（翻译 / 解释 / 复制文本。前两项是同一决策的两个入口，见 `UI.md` §4.10）
   → 复制文本 → 本地结束，不发请求。
    → 翻译 / 解释 → 同一条路，通道由上面判的类型定；Sentence 再按动作选择 preset
@@ -43,7 +43,7 @@ UI 上占位项：控件存在但 `enabled: false`——文案转 `faint`、开�
    → Entity / Sentence：浮层弹标题与释义，不显示 IPA / verdict，不写入单词缓存与词汇统计
 ```
 
-单次选区最多弹 1 个词（`filterWords` 的首个 `New` 候选，即选区内最先出现的、读者尚未掌握的实词；整段都被标过或都在档位带内时取首个候选），或弹 1 个实体 / 句子结果。5 秒自动消失；鼠标悬浮时计时挂起、永不消失，移出后重新计时。悬停只对单词解释展开 [已会] / [新词] 按钮——规格见 `UI.md`。（多词错峰属多气泡场景，当前单气泡不涉及。）动作条三项一律可用：句子的翻译 / 解释分别选择对应预设，实体的两个按钮共用同一预设，复制始终本地结束。
+单次选区按形状分流：整个选区是单个字母 token 时走 word（读者手选一个词就是要查它，它经 `filterWords` 的例外产出候选），多 token 走实体 / 句子，整段翻译或解释。5 秒自动消失；鼠标悬浮时计时挂起、永不消失，移出后重新计时。悬停只对单词解释展开 [已会] / [新词] 按钮——规格见 `UI.md`。（多词错峰属多气泡场景，当前单气泡不涉及。）动作条三项一律可用：句子的翻译 / 解释分别选择对应预设（随解释语言改变语义，见 §5），实体的两个按钮共用同一预设，复制始终本地结束。
 
 ## 4 模块接口（契约先行）
 
@@ -78,9 +78,9 @@ std::vector<Candidate> filterWords(
 
 // 选区是什么，决定它走哪条通道。实体判定只接受完整的多 token Title Case 短语。
 enum class SelectionKind {
-    Word,      // 出了候选（任何状态）：word 通道有东西可发
+    Word,      // 整个选区是单个 letters-only token：查词通道
     Entity,    // 至少两个相邻的 Title Case token：entity 通道
-    Sentence,  // 没有候选，也不是实体短语：sentence 通道
+    Sentence,  // 多 token 且非实体短语：整段翻译 / 解释
 };
 
 struct Selection {
@@ -98,9 +98,11 @@ Selection classifySelection(
 }
 ```
 
-判定次序：先识别完整的多 token Title Case 实体短语（至少两个 token，单个首字母大写词不算），再进行单词分词硬过滤（含元音、长度 ≥3、无数字、去 URL / 邮箱 / 粘连串）→ 全大写跳过 → 词根还原 → 静态词表白名单（不在表即丢）→ 按 lemma 去重 → 给每个幸存候选标状态（New / Known / Mastered）。实体规则刻意保守，无法满足时回到 Word 或 Sentence。**例外**：整个选区是单个 letters-only token（≥2 字母、不分大小写，如 `QML` / `qml` / `am`）时，按读者手选的词处理，见下条。
+判定次序：先识别完整的多 token Title Case 实体短语（至少两个 token，单个首字母大写词不算），再按**选区形状**定通道——整个选区是单个 letters-only token（≥2 字母、不分大小写，如 `QML` / `qml` / `am`）为 `Word`，多 token 为 `Sentence`。`Word` 的候选由 `filterWords` 产出：分词硬过滤（含元音、长度 ≥3、无数字、去 URL / 邮箱 / 粘连串）→ 全大写跳过 → 词根还原 → 静态词表白名单（不在表即丢）→ 按 lemma 去重 → 标状态（New / Known / Mastered）；单个 letters-only token 不走这三道门，见下条。
 
-**known-set 与档位阈值只标注，不删候选**（2026-10-04）：它们是候选的状态，不是候选的删除条件——读者手选一段文字就是在要求解释它，而他可能早忘了自己标过的词。于是 `SelectionKind::Word` 的含义变成 “这段里有词表词”，而不是 “这段里有值得弹的词”；实体短语先于该规则判定，剩余文本没有词表词才落 `Sentence`。取舍与实测见 `docs/metrics/code-quality/selection-classification-accuracy-2026-10-04.md`。
+**通道由选区形状定，不由是否含词表词定**（2026-10-04）：原先 “有候选 = Word” 会把任何含词表词的英文句子送进 word 通道，动作条只解释其中一个词，句子的翻译 / 解释形同虚设。现改为：整个选区是一个字母 token → `Word`（查一个词）；多 token → `Sentence`（整段翻译 / 解释）；多 token Title Case 短语 → `Entity`。语料里 500 条多 token 条目由 `Word` 改为 `Sentence`（`expect` 候选列表保留，仍由 `filterWords` 断言），`check-eval-corpus.py` 的 `expectKind` 与 `expect` 解耦。取舍见 `docs/metrics/code-quality/selection-classification-accuracy-2026-10-04.md` §9。
+
+**known-set 与档位阈值只标注，不删候选**（2026-10-04）：它们是候选的状态，不是候选的删除条件——读者手选一个词就是在要求解释它，而他可能早忘了自己标过的词。`SelectionKind::Word` 是**选区的形状**（单个字母 token），与 “这段里有没有词表词” 无关；候选只在这条形状下产出并带 New / Known / Mastered 状态，调用方按状态挑词。
 
 **孤立字母 token 走单词通道**（2026-10-04）：读者把整个选区选成一个 letters-only token，就是明确地在问这个词，而不是在正文里误选了一个片段。故 `filterWords` 在分词前先看这一条：整个选区经去空白与首尾标点后是 ≥2 字母、纯 ASCII 字母的 token 时（不分大小写），直接产出一个候选——`surface` / `lemma` 取小写，经 `lemmatize` 后 `RUNNING` 仍还原为 `run`，缩写 / 标识符按自身定形（`QML` / `qml` → `qml`）——不再经长度下限、含元音与静态词表白名单三道硬过滤。含数字或内部标点的 token 仍被排除（`MP3`、缩写号、两词）；连续正文里的同类 run 仍由常规过滤处理：`The API returns …` 里 `API` 不是候选。响应侧随之放宽：word schema 的 `ipa` 由必填改为可选（缩写 / 标识符没有音标），`llm_pure` 不再因空 `ipa` 整批失败，缓存只把缺 `ipa` 键的旧条目当过期丢弃（空 `ipa` 是合法条目）。语料分两轮共 183 条单 token 由 `Sentence` 改为 `Word`，`check-eval-corpus.py` 的 `is_lone_token` 规则同步。
 
@@ -358,8 +360,10 @@ QML 表面：设置浮层、选区动作条、解释气泡、统计弹窗及其�
 目标模型：DeepSeek（OpenAI 兼容）。**提示词与 schema 都是数据，不是代码**——三通道的请求与响应文件在 `data/llm/`，句子请求文件包含 `translate` / `explain` 两个预设，改提示词或加字段是改数据，不用重编译。
 
 落地注记（2026-10-02，与 V3 一并定）：按通道拆分文件、系统提示词用英文且只切末句、响应 schema 是校验
-的唯一真源、`llm_protocol` 加载失败一律抛而不回落默认值——见 `API.md`。word schema 是 `word / ipa / en / zh`，
-entity 与 sentence schema 是 `title / en / zh`，IPA 只属于单词。
+的唯一真源、`llm_protocol` 加载失败一律抛而不回落默认值——见 `API.md`。word schema 是 `word / ipa / en / zh`（
+`ipa` 可选，见 §4.1），entity 与 sentence schema 是 `title / en / zh`，IPA 只属于单词。句子请求的两预设
+任务随解释语言改变：中文时 `translate`=字面中文翻译、`explain`=中文通俗解释；英文时两者都=英文通俗解释
+（提示词相同），气泡只画所选语言那一行。
 
 ## 6 隐私与密钥边界
 

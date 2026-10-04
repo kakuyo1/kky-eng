@@ -11,7 +11,9 @@ It restates the rules from PHASE1.md section 4.1 and the header comment of
 src/core/filter_core.h rather than calling the implementation, so a disagreement is a finding
 to read, not a check that failed. Every token of an excerpt must be accounted for: one that
 survives the hard filters and the static word list belongs in `expect`, and one that does not
-is fine as long as a named rule excludes it.
+is fine as long as a named rule excludes it. `expectKind` is checked apart from `expect`: a
+single-token selection that yields a candidate is Word, and everything else -- any multi-token
+selection, or a lone token with no candidate -- is Sentence.
 
     python scripts/check-eval-corpus.py [test/eval_corpus.json]
 
@@ -203,9 +205,12 @@ def check_entry(index: int, entry: dict, ranks: dict[str, int]) -> list[str]:
         if not is_entity_selection(text):
             problems.append(f"{where}: Entity text does not meet the conservative phrase rule")
         return problems
-    wanted = "Word" if expect else "Sentence"
+    # The channel is the shape of the selection, not whether it holds candidates: a single
+    # token with a candidate is a Word, and every multi-token selection (or a lone token with
+    # no candidate) is a Sentence. `expect` still describes filterWords output independently.
+    wanted = "Word" if (len(tokens(text)) == 1 and expect) else "Sentence"
     if kind != wanted:
-        problems.append(f"{where}: expectKind is '{kind}' but expect is {'empty' if not expect else 'not empty'}")
+        problems.append(f"{where}: expectKind is '{kind}' but the selection shape wants '{wanted}'")
 
     for word in expect:
         if word != word.lower():

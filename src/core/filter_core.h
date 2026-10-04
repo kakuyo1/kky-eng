@@ -119,9 +119,9 @@ std::vector<Candidate> filterWords(
 /// 4.9). Entity detection is deliberately conservative: only a complete phrase with at least
 /// two adjacent Title Case tokens qualifies, never a single capitalized token.
 enum class SelectionKind {
-    Word,     ///< At least one word came back; the word channel has something to send.
+    Word,     ///< The whole selection is one letters-only token: a lookup, not a translation.
     Entity,   ///< A complete multi-token Title Case phrase was selected.
-    Sentence, ///< No word or entity phrase was recognized; the sentence channel owns this case.
+    Sentence, ///< More than one token; the sentence channel translates or explains it whole.
 };
 
 /// @brief A selection, classified: what it is, and the candidates it carries.
@@ -143,12 +143,11 @@ struct Selection {
  * @return The kind, and the candidates when there are any.
  * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet.
  *
- * @note Word means "this excerpt is made of words", not "it holds one worth showing": a
- *       sentence of common English lands there with every word mastered, so does a lone word
- *       the reader marked known, and so does a lone all-caps acronym (see filterWords).
- *       Sentence is the absence of any word from the static list -- junk, a URL, a number.
- *       Which candidate a request carries is the caller's decision, taken from each candidate's
- *       state.
+ * @note The channel is the shape of the selection, not whether it holds a word worth showing: a
+ *       lone letters-only token (a word, an acronym, a word the reader marked known) is Word,
+ *       and anything with more than one token -- a phrase or a sentence -- is Sentence, whatever
+ *       its words are. Entity takes the multi-token Title Case phrases first. Which candidate a
+ *       Word carries is the caller's decision, taken from each candidate's state.
  */
 Selection classifySelection(
     std::string_view text,

@@ -3174,7 +3174,7 @@
     "note": "the lemma appears once, the surface kept is the first",
     "text": "running run",
     "expect": ["running"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 4500,
     "expectLemmas": ["run"]
   },
@@ -3182,7 +3182,7 @@
     "note": "the lemma appears once, the surface kept is the first",
     "text": "studies study",
     "expect": ["studies"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 4500,
     "expectLemmas": ["study"]
   },
@@ -3190,7 +3190,7 @@
     "note": "the lemma appears once, the surface kept is the first",
     "text": "children child",
     "expect": ["children"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 4500,
     "expectLemmas": ["child"]
   },
@@ -3198,7 +3198,7 @@
     "note": "the lemma appears once, the surface kept is the first",
     "text": "quickly quick",
     "expect": ["quickly"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 4500,
     "expectLemmas": ["quick"]
   },
@@ -3206,7 +3206,7 @@
     "note": "the lemma appears once, the surface kept is the first",
     "text": "moves move",
     "expect": ["moves"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 4500,
     "expectLemmas": ["move"]
   },
@@ -3214,7 +3214,7 @@
     "note": "the lemma appears once, the surface kept is the first",
     "text": "books book",
     "expect": ["books"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 4500,
     "expectLemmas": ["book"]
   },
@@ -3222,7 +3222,7 @@
     "note": "the lemma appears once, the surface kept is the first",
     "text": "making make",
     "expect": ["making"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 4500,
     "expectLemmas": ["make"]
   },
@@ -3230,7 +3230,7 @@
     "note": "news is kept as itself, so the second one is a repeat",
     "text": "news news",
     "expect": ["news"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 4500,
     "expectLemmas": ["news"]
   },
@@ -3238,7 +3238,7 @@
     "note": "news and means are their own base form",
     "text": "means mean",
     "expect": ["means", "mean"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 4500,
     "expectLemmas": ["means", "mean"]
   },
@@ -3246,7 +3246,7 @@
     "note": "the second infrastructure is the same lemma; the band drops nothing",
     "text": "Leveraging infrastructure and scrutinizing infrastructure again.",
     "expect": ["leveraging", "infrastructure", "and", "scrutinizing", "again"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 4500,
     "expectLemmas": ["leverage", "infrastructure", "and", "scrutinize", "again"]
   },
@@ -3254,3267 +3254,3267 @@
     "note": "mixed prose: API (all caps); JSON (all caps); HTTPS (all caps); a (short: under 3 letters); 200 (glued: a non-letter inside the token); the rest are candidates",
     "text": "The API returns JSON over HTTPS with a 200 status code.",
     "expect": ["the", "returns", "over", "with", "status", "code"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: API (all caps); JSON (all caps); HTTPS (all caps); a (short: under 3 letters); 200 (glued: a non-letter inside the token); and every candidate is known already",
     "text": "The API returns JSON over HTTPS with a 200 status code.",
     "expect": ["the", "returns", "over", "with", "status", "code"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["code", "over", "return", "returns", "status", "the", "with"]
   },
   {
     "note": "mixed prose: API (all caps); JSON (all caps); HTTPS (all caps); a (short: under 3 letters); 200 (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "The API returns JSON over HTTPS with a 200 status code.",
     "expect": ["the", "returns", "over", "with", "status", "code"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: to (short: under 3 letters); tmp (no vowel); the rest are candidates",
     "text": "Copy the file to /tmp and run make.",
     "expect": ["copy", "the", "file", "and", "run", "make"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: to (short: under 3 letters); tmp (no vowel); and every candidate is known already",
     "text": "Copy the file to /tmp and run make.",
     "expect": ["copy", "the", "file", "and", "run", "make"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["and", "copy", "file", "make", "run", "the"]
   },
   {
     "note": "mixed prose: to (short: under 3 letters); tmp (no vowel); and the cut-off annotates rather than drops",
     "text": "Copy the file to /tmp and run make.",
     "expect": ["copy", "the", "file", "and", "run", "make"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: to (short: under 3 letters); 30 (glued: a non-letter inside the token); the (the same lemma as an earlier word); the rest are candidates",
     "text": "Set the timeout to 30 seconds before the retry.",
     "expect": ["set", "the", "timeout", "seconds", "before", "retry"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: to (short: under 3 letters); 30 (glued: a non-letter inside the token); the (the same lemma as an earlier word); and every candidate is known already",
     "text": "Set the timeout to 30 seconds before the retry.",
     "expect": ["set", "the", "timeout", "seconds", "before", "retry"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["before", "retry", "second", "seconds", "set", "the", "timeout"]
   },
   {
     "note": "mixed prose: to (short: under 3 letters); 30 (glued: a non-letter inside the token); the (the same lemma as an earlier word); and the cut-off annotates rather than drops",
     "text": "Set the timeout to 30 seconds before the retry.",
     "expect": ["set", "the", "timeout", "seconds", "before", "retry"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: CEO (all caps); the (the same lemma as an earlier word); on (short: under 3 letters); 2026-10-04 (glued: a non-letter inside the token); the rest are candidates",
     "text": "The CEO signed the contract on 2026-10-04.",
     "expect": ["the", "signed", "contract"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: CEO (all caps); the (the same lemma as an earlier word); on (short: under 3 letters); 2026-10-04 (glued: a non-letter inside the token); and every candidate is known already",
     "text": "The CEO signed the contract on 2026-10-04.",
     "expect": ["the", "signed", "contract"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["contract", "sign", "signe", "signed", "the"]
   },
   {
     "note": "mixed prose: CEO (all caps); the (the same lemma as an earlier word); on (short: under 3 letters); 2026-10-04 (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "The CEO signed the contract on 2026-10-04.",
     "expect": ["the", "signed", "contract"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: HTTP (all caps); the rest are candidates",
     "text": "Our HTTP client retries three times.",
     "expect": ["our", "client", "retries", "three", "times"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: HTTP (all caps); and every candidate is known already",
     "text": "Our HTTP client retries three times.",
     "expect": ["our", "client", "retries", "three", "times"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["client", "our", "retries", "retry", "three", "tim", "time", "times"]
   },
   {
     "note": "mixed prose: HTTP (all caps); and the cut-off annotates rather than drops",
     "text": "Our HTTP client retries three times.",
     "expect": ["our", "client", "retries", "three", "times"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: userId (not in the static word list); to (short: under 3 letters); the rest are candidates",
     "text": "Add userId to the query string.",
     "expect": ["add", "the", "query", "string"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: userId (not in the static word list); to (short: under 3 letters); and every candidate is known already",
     "text": "Add userId to the query string.",
     "expect": ["add", "the", "query", "string"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["add", "query", "str", "string", "the"]
   },
   {
     "note": "mixed prose: userId (not in the static word list); to (short: under 3 letters); and the cut-off annotates rather than drops",
     "text": "Add userId to the query string.",
     "expect": ["add", "the", "query", "string"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: report_final.txt (glued: a non-letter inside the token); the (the same lemma as an earlier word); the rest are candidates",
     "text": "The report_final.txt file holds the summary.",
     "expect": ["the", "file", "holds", "summary"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: report_final.txt (glued: a non-letter inside the token); the (the same lemma as an earlier word); and every candidate is known already",
     "text": "The report_final.txt file holds the summary.",
     "expect": ["the", "file", "holds", "summary"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["file", "hold", "holds", "summary", "the"]
   },
   {
     "note": "mixed prose: report_final.txt (glued: a non-letter inside the token); the (the same lemma as an earlier word); and the cut-off annotates rather than drops",
     "text": "The report_final.txt file holds the summary.",
     "expect": ["the", "file", "holds", "summary"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: kebab-case (glued: a non-letter inside the token); CSS (all caps); the rest are candidates",
     "text": "Use kebab-case names for the CSS classes.",
     "expect": ["use", "names", "for", "the", "classes"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: kebab-case (glued: a non-letter inside the token); CSS (all caps); and every candidate is known already",
     "text": "Use kebab-case names for the CSS classes.",
     "expect": ["use", "names", "for", "the", "classes"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["class", "classe", "classes", "for", "nam", "name", "names", "the", "use"]
   },
   {
     "note": "mixed prose: kebab-case (glued: a non-letter inside the token); CSS (all caps); and the cut-off annotates rather than drops",
     "text": "Use kebab-case names for the CSS classes.",
     "expect": ["use", "names", "for", "the", "classes"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: to (short: under 3 letters); user@example.com (glued: a non-letter inside the token); the rest are candidates",
     "text": "Write to user@example.com before Friday.",
     "expect": ["write", "before", "friday"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: to (short: under 3 letters); user@example.com (glued: a non-letter inside the token); and every candidate is known already",
     "text": "Write to user@example.com before Friday.",
     "expect": ["write", "before", "friday"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["before", "friday", "write"]
   },
   {
     "note": "mixed prose: to (short: under 3 letters); user@example.com (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "Write to user@example.com before Friday.",
     "expect": ["write", "before", "friday"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: v2 (glued: a non-letter inside the token); endpoint (not in the static word list); 404 (glued: a non-letter inside the token); the rest are candidates",
     "text": "The v2 endpoint returns 404 for missing pages.",
     "expect": ["the", "returns", "for", "missing", "pages"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: v2 (glued: a non-letter inside the token); endpoint (not in the static word list); 404 (glued: a non-letter inside the token); and every candidate is known already",
     "text": "The v2 endpoint returns 404 for missing pages.",
     "expect": ["the", "returns", "for", "missing", "pages"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["for", "mis", "miss", "misse", "missing", "pag", "page", "pages", "return", "returns", "the"]
   },
   {
     "note": "mixed prose: v2 (glued: a non-letter inside the token); endpoint (not in the static word list); 404 (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "The v2 endpoint returns 404 for missing pages.",
     "expect": ["the", "returns", "for", "missing", "pages"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: an (short: under 3 letters); a (short: under 3 letters); the rest are candidates",
     "text": "She bought an iPhone and a laptop.",
     "expect": ["she", "bought", "iphone", "and", "laptop"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: an (short: under 3 letters); a (short: under 3 letters); and every candidate is known already",
     "text": "She bought an iPhone and a laptop.",
     "expect": ["she", "bought", "iphone", "and", "laptop"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["and", "bought", "buy", "iphone", "laptop", "she"]
   },
   {
     "note": "mixed prose: an (short: under 3 letters); a (short: under 3 letters); and the cut-off annotates rather than drops",
     "text": "She bought an iPhone and a laptop.",
     "expect": ["she", "bought", "iphone", "and", "laptop"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: CSV (all caps); the rest are candidates",
     "text": "The Python script parses CSV rows.",
     "expect": ["the", "python", "script", "parses", "rows"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: CSV (all caps); and every candidate is known already",
     "text": "The Python script parses CSV rows.",
     "expect": ["the", "python", "script", "parses", "rows"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["pars", "parse", "parses", "python", "row", "rows", "script", "the"]
   },
   {
     "note": "mixed prose: CSV (all caps); and the cut-off annotates rather than drops",
     "text": "The Python script parses CSV rows.",
     "expect": ["the", "python", "script", "parses", "rows"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: of (short: under 3 letters); the rest are candidates",
     "text": "Ninety percent of the network stayed online.",
     "expect": ["ninety", "percent", "the", "network", "stayed", "online"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: of (short: under 3 letters); and every candidate is known already",
     "text": "Ninety percent of the network stayed online.",
     "expect": ["ninety", "percent", "the", "network", "stayed", "online"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["network", "ninety", "online", "percent", "stay", "stayed", "the"]
   },
   {
     "note": "mixed prose: of (short: under 3 letters); and the cut-off annotates rather than drops",
     "text": "Ninety percent of the network stayed online.",
     "expect": ["ninety", "percent", "the", "network", "stayed", "online"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: He (short: under 3 letters); 100 (glued: a non-letter inside the token); the rest are candidates",
     "text": "He paid $100 for the ticket.",
     "expect": ["paid", "for", "the", "ticket"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: He (short: under 3 letters); 100 (glued: a non-letter inside the token); and every candidate is known already",
     "text": "He paid $100 for the ticket.",
     "expect": ["paid", "for", "the", "ticket"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["for", "paid", "pay", "the", "ticket"]
   },
   {
     "note": "mixed prose: He (short: under 3 letters); 100 (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "He paid $100 for the ticket.",
     "expect": ["paid", "for", "the", "ticket"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: to (short: under 3 letters); 5 (glued: a non-letter inside the token); the rest are candidates",
     "text": "The temperature fell to -5 degrees.",
     "expect": ["the", "temperature", "fell", "degrees"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: to (short: under 3 letters); 5 (glued: a non-letter inside the token); and every candidate is known already",
     "text": "The temperature fell to -5 degrees.",
     "expect": ["the", "temperature", "fell", "degrees"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["degree", "degrees", "fall", "fell", "temperature", "the"]
   },
   {
     "note": "mixed prose: to (short: under 3 letters); 5 (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "The temperature fell to -5 degrees.",
     "expect": ["the", "temperature", "fell", "degrees"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: 3 (glued: a non-letter inside the token); the rest are candidates",
     "text": "Chapter 3 covers the basic rules.",
     "expect": ["chapter", "covers", "the", "basic", "rules"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: 3 (glued: a non-letter inside the token); and every candidate is known already",
     "text": "Chapter 3 covers the basic rules.",
     "expect": ["chapter", "covers", "the", "basic", "rules"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["basic", "chapter", "cover", "covers", "rule", "rules", "the"]
   },
   {
     "note": "mixed prose: 3 (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "Chapter 3 covers the basic rules.",
     "expect": ["chapter", "covers", "the", "basic", "rules"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: 15 (glued: a non-letter inside the token); the rest are candidates",
     "text": "Wait 15 minutes before the second attempt.",
     "expect": ["wait", "minutes", "before", "the", "second", "attempt"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: 15 (glued: a non-letter inside the token); and every candidate is known already",
     "text": "Wait 15 minutes before the second attempt.",
     "expect": ["wait", "minutes", "before", "the", "second", "attempt"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["attempt", "before", "minute", "minutes", "second", "the", "wait"]
   },
   {
     "note": "mixed prose: 15 (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "Wait 15 minutes before the second attempt.",
     "expect": ["wait", "minutes", "before", "the", "second", "attempt"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: 50 (glued: a non-letter inside the token); on (short: under 3 letters); the rest are candidates",
     "text": "The 50% discount ends on Monday.",
     "expect": ["the", "discount", "ends", "monday"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: 50 (glued: a non-letter inside the token); on (short: under 3 letters); and every candidate is known already",
     "text": "The 50% discount ends on Monday.",
     "expect": ["the", "discount", "ends", "monday"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["discount", "end", "ends", "monday", "the"]
   },
   {
     "note": "mixed prose: 50 (glued: a non-letter inside the token); on (short: under 3 letters); and the cut-off annotates rather than drops",
     "text": "The 50% discount ends on Monday.",
     "expect": ["the", "discount", "ends", "monday"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: in (short: under 3 letters); at (short: under 3 letters); https://lens.example.com (glued: a non-letter inside the token); to (short: under 3 letters); the rest are candidates",
     "text": "Log in at https://lens.example.com to sync.",
     "expect": ["log", "sync"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: in (short: under 3 letters); at (short: under 3 letters); https://lens.example.com (glued: a non-letter inside the token); to (short: under 3 letters); and every candidate is known already",
     "text": "Log in at https://lens.example.com to sync.",
     "expect": ["log", "sync"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["log", "sync"]
   },
   {
     "note": "mixed prose: in (short: under 3 letters); at (short: under 3 letters); https://lens.example.com (glued: a non-letter inside the token); to (short: under 3 letters); and the cut-off annotates rather than drops",
     "text": "Log in at https://lens.example.com to sync.",
     "expect": ["log", "sync"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: npm (no vowel); install (the same lemma as an earlier word); the rest are candidates",
     "text": "Install the package with npm install.",
     "expect": ["install", "the", "package", "with"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: npm (no vowel); install (the same lemma as an earlier word); and every candidate is known already",
     "text": "Install the package with npm install.",
     "expect": ["install", "the", "package", "with"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["install", "package", "the", "with"]
   },
   {
     "note": "mixed prose: npm (no vowel); install (the same lemma as an earlier word); and the cut-off annotates rather than drops",
     "text": "Install the package with npm install.",
     "expect": ["install", "the", "package", "with"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: GPU (all caps); the (the same lemma as an earlier word); CPU (all caps); the rest are candidates",
     "text": "The GPU renders faster than the CPU here.",
     "expect": ["the", "renders", "faster", "than", "here"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: GPU (all caps); the (the same lemma as an earlier word); CPU (all caps); and every candidate is known already",
     "text": "The GPU renders faster than the CPU here.",
     "expect": ["the", "renders", "faster", "than", "here"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["fast", "faster", "here", "render", "renders", "than", "the"]
   },
   {
     "note": "mixed prose: GPU (all caps); the (the same lemma as an earlier word); CPU (all caps); and the cut-off annotates rather than drops",
     "text": "The GPU renders faster than the CPU here.",
     "expect": ["the", "renders", "faster", "than", "here"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: nothing here is dropped; the rest are candidates",
     "text": "His naive assumption broke the model.",
     "expect": ["his", "naive", "assumption", "broke", "the", "model"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: nothing here is dropped; and every candidate is known already",
     "text": "His naive assumption broke the model.",
     "expect": ["his", "naive", "assumption", "broke", "the", "model"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["assumption", "break", "broke", "his", "model", "naive", "the"]
   },
   {
     "note": "mixed prose: nothing here is dropped; and the cut-off annotates rather than drops",
     "text": "His naive assumption broke the model.",
     "expect": ["his", "naive", "assumption", "broke", "the", "model"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: state-of-the-art (glued: a non-letter inside the token); the rest are candidates",
     "text": "They discussed state-of-the-art methods.",
     "expect": ["they", "discussed", "methods"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: state-of-the-art (glued: a non-letter inside the token); and every candidate is known already",
     "text": "They discussed state-of-the-art methods.",
     "expect": ["they", "discussed", "methods"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["discus", "discuss", "discussed", "method", "methods", "they"]
   },
   {
     "note": "mixed prose: state-of-the-art (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "They discussed state-of-the-art methods.",
     "expect": ["they", "discussed", "methods"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: main.cpp (glued: a non-letter inside the token); the (the same lemma as an earlier word); the rest are candidates",
     "text": "The main.cpp file includes the header.",
     "expect": ["the", "file", "includes", "header"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: main.cpp (glued: a non-letter inside the token); the (the same lemma as an earlier word); and every candidate is known already",
     "text": "The main.cpp file includes the header.",
     "expect": ["the", "file", "includes", "header"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["file", "head", "header", "include", "includes", "the"]
   },
   {
     "note": "mixed prose: main.cpp (glued: a non-letter inside the token); the (the same lemma as an earlier word); and the cut-off annotates rather than drops",
     "text": "The main.cpp file includes the header.",
     "expect": ["the", "file", "includes", "header"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: README (all caps); the (the same lemma as an earlier word); the rest are candidates",
     "text": "Update the README before the release.",
     "expect": ["update", "the", "before", "release"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: README (all caps); the (the same lemma as an earlier word); and every candidate is known already",
     "text": "Update the README before the release.",
     "expect": ["update", "the", "before", "release"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["before", "release", "the", "update"]
   },
   {
     "note": "mixed prose: README (all caps); the (the same lemma as an earlier word); and the cut-off annotates rather than drops",
     "text": "Update the README before the release.",
     "expect": ["update", "the", "before", "release"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: 1,000 (glued: a non-letter inside the token); the rest are candidates",
     "text": "She earned 1,000 points this week.",
     "expect": ["she", "earned", "points", "this", "week"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: 1,000 (glued: a non-letter inside the token); and every candidate is known already",
     "text": "She earned 1,000 points this week.",
     "expect": ["she", "earned", "points", "this", "week"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["earn", "earned", "point", "points", "she", "thi", "this", "week"]
   },
   {
     "note": "mixed prose: 1,000 (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "She earned 1,000 points this week.",
     "expect": ["she", "earned", "points", "this", "week"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: at (short: under 3 letters); 14:30 (glued: a non-letter inside the token); the rest are candidates",
     "text": "The meeting starts at 14:30 sharp.",
     "expect": ["the", "meeting", "starts", "sharp"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: at (short: under 3 letters); 14:30 (glued: a non-letter inside the token); and every candidate is known already",
     "text": "The meeting starts at 14:30 sharp.",
     "expect": ["the", "meeting", "starts", "sharp"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["meet", "meeting", "sharp", "start", "starts", "the"]
   },
   {
     "note": "mixed prose: at (short: under 3 letters); 14:30 (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "The meeting starts at 14:30 sharp.",
     "expect": ["the", "meeting", "starts", "sharp"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: nothing here is dropped; the rest are candidates",
     "text": "Check the notes file later.",
     "expect": ["check", "the", "notes", "file", "later"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: nothing here is dropped; and every candidate is known already",
     "text": "Check the notes file later.",
     "expect": ["check", "the", "notes", "file", "later"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["check", "file", "later", "not", "note", "notes", "the"]
   },
   {
     "note": "mixed prose: nothing here is dropped; and the cut-off annotates rather than drops",
     "text": "Check the notes file later.",
     "expect": ["check", "the", "notes", "file", "later"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: URL (all caps); https://a.example/b?c=1 (glued: a non-letter inside the token); the rest are candidates",
     "text": "The URL https://a.example/b?c=1 redirects.",
     "expect": ["the", "redirects"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: URL (all caps); https://a.example/b?c=1 (glued: a non-letter inside the token); and every candidate is known already",
     "text": "The URL https://a.example/b?c=1 redirects.",
     "expect": ["the", "redirects"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["redirect", "redirects", "the"]
   },
   {
     "note": "mixed prose: URL (all caps); https://a.example/b?c=1 (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "The URL https://a.example/b?c=1 redirects.",
     "expect": ["the", "redirects"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: v1.2.3 (glued: a non-letter inside the token); the rest are candidates",
     "text": "Version v1.2.3 fixed the login bug.",
     "expect": ["version", "fixed", "the", "login", "bug"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: v1.2.3 (glued: a non-letter inside the token); and every candidate is known already",
     "text": "Version v1.2.3 fixed the login bug.",
     "expect": ["version", "fixed", "the", "login", "bug"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["bug", "fix", "fixed", "login", "the", "version"]
   },
   {
     "note": "mixed prose: v1.2.3 (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "Version v1.2.3 fixed the login bug.",
     "expect": ["version", "fixed", "the", "login", "bug"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: first.last@company.co.uk (glued: a non-letter inside the token); the rest are candidates",
     "text": "Contact first.last@company.co.uk today.",
     "expect": ["contact", "today"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: first.last@company.co.uk (glued: a non-letter inside the token); and every candidate is known already",
     "text": "Contact first.last@company.co.uk today.",
     "expect": ["contact", "today"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["contact", "today"]
   },
   {
     "note": "mixed prose: first.last@company.co.uk (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "Contact first.last@company.co.uk today.",
     "expect": ["contact", "today"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: is (short: under 3 letters); a (short: under 3 letters); the rest are candidates",
     "text": "The contraction is not a word here.",
     "expect": ["the", "contraction", "not", "word", "here"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: is (short: under 3 letters); a (short: under 3 letters); and every candidate is known already",
     "text": "The contraction is not a word here.",
     "expect": ["the", "contraction", "not", "word", "here"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["contraction", "here", "not", "the", "word"]
   },
   {
     "note": "mixed prose: is (short: under 3 letters); a (short: under 3 letters); and the cut-off annotates rather than drops",
     "text": "The contraction is not a word here.",
     "expect": ["the", "contraction", "not", "word", "here"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: A (short: under 3 letters); 3D (glued: a non-letter inside the token); the rest are candidates",
     "text": "A 3D model needs careful lighting.",
     "expect": ["model", "needs", "careful", "lighting"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: A (short: under 3 letters); 3D (glued: a non-letter inside the token); and every candidate is known already",
     "text": "A 3D model needs careful lighting.",
     "expect": ["model", "needs", "careful", "lighting"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["careful", "light", "lighting", "model", "need", "needs"]
   },
   {
     "note": "mixed prose: A (short: under 3 letters); 3D (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "A 3D model needs careful lighting.",
     "expect": ["model", "needs", "careful", "lighting"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: k8s (glued: a non-letter inside the token); the rest are candidates",
     "text": "The k8s cluster runs three services.",
     "expect": ["the", "cluster", "runs", "three", "services"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: k8s (glued: a non-letter inside the token); and every candidate is known already",
     "text": "The k8s cluster runs three services.",
     "expect": ["the", "cluster", "runs", "three", "services"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["cluster", "run", "runs", "service", "services", "the", "three"]
   },
   {
     "note": "mixed prose: k8s (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "The k8s cluster runs three services.",
     "expect": ["the", "cluster", "runs", "three", "services"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: Twenty-one (glued: a non-letter inside the token); the rest are candidates",
     "text": "Twenty-one students passed the exam.",
     "expect": ["students", "passed", "the", "exam"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: Twenty-one (glued: a non-letter inside the token); and every candidate is known already",
     "text": "Twenty-one students passed the exam.",
     "expect": ["students", "passed", "the", "exam"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["exam", "pas", "pass", "passe", "passed", "student", "students", "the"]
   },
   {
     "note": "mixed prose: Twenty-one (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "Twenty-one students passed the exam.",
     "expect": ["students", "passed", "the", "exam"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: at (short: under 3 letters); the rest are candidates",
     "text": "The cafe opens at eight.",
     "expect": ["the", "cafe", "opens", "eight"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: at (short: under 3 letters); and every candidate is known already",
     "text": "The cafe opens at eight.",
     "expect": ["the", "cafe", "opens", "eight"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["cafe", "eight", "open", "opens", "the"]
   },
   {
     "note": "mixed prose: at (short: under 3 letters); and the cut-off annotates rather than drops",
     "text": "The cafe opens at eight.",
     "expect": ["the", "cafe", "opens", "eight"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: nothing here is dropped; the rest are candidates",
     "text": "Nobody knows why the server crashed.",
     "expect": ["nobody", "knows", "why", "the", "server", "crashed"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: nothing here is dropped; and every candidate is known already",
     "text": "Nobody knows why the server crashed.",
     "expect": ["nobody", "knows", "why", "the", "server", "crashed"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["crash", "crashed", "know", "knows", "nobody", "serv", "serve", "server", "the", "why"]
   },
   {
     "note": "mixed prose: nothing here is dropped; and the cut-off annotates rather than drops",
     "text": "Nobody knows why the server crashed.",
     "expect": ["nobody", "knows", "why", "the", "server", "crashed"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: by (short: under 3 letters); 50 (glued: a non-letter inside the token); the rest are candidates",
     "text": "The cost rose by 50% last quarter.",
     "expect": ["the", "cost", "rose", "last", "quarter"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: by (short: under 3 letters); 50 (glued: a non-letter inside the token); and every candidate is known already",
     "text": "The cost rose by 50% last quarter.",
     "expect": ["the", "cost", "rose", "last", "quarter"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["cost", "last", "quart", "quarter", "rise", "rose", "the"]
   },
   {
     "note": "mixed prose: by (short: under 3 letters); 50 (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "The cost rose by 50% last quarter.",
     "expect": ["the", "cost", "rose", "last", "quarter"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: to (short: under 3 letters); a (short: under 3 letters); monorepo (not in the static word list); in (short: under 3 letters); 2024 (glued: a non-letter inside the token); the rest are candidates",
     "text": "Their team moved to a monorepo in 2024.",
     "expect": ["their", "team", "moved"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: to (short: under 3 letters); a (short: under 3 letters); monorepo (not in the static word list); in (short: under 3 letters); 2024 (glued: a non-letter inside the token); and every candidate is known already",
     "text": "Their team moved to a monorepo in 2024.",
     "expect": ["their", "team", "moved"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["mov", "move", "moved", "team", "their"]
   },
   {
     "note": "mixed prose: to (short: under 3 letters); a (short: under 3 letters); monorepo (not in the static word list); in (short: under 3 letters); 2024 (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "Their team moved to a monorepo in 2024.",
     "expect": ["their", "team", "moved"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: lockfile (not in the static word list); the (the same lemma as an earlier word); the rest are candidates",
     "text": "Debug the lockfile before the build.",
     "expect": ["debug", "the", "before", "build"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: lockfile (not in the static word list); the (the same lemma as an earlier word); and every candidate is known already",
     "text": "Debug the lockfile before the build.",
     "expect": ["debug", "the", "before", "build"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["before", "build", "debug", "the"]
   },
   {
     "note": "mixed prose: lockfile (not in the static word list); the (the same lemma as an earlier word); and the cut-off annotates rather than drops",
     "text": "Debug the lockfile before the build.",
     "expect": ["debug", "the", "before", "build"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: nothing here is dropped; the rest are candidates",
     "text": "The framework handles routing and caching.",
     "expect": ["the", "framework", "handles", "routing", "and", "caching"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: nothing here is dropped; and every candidate is known already",
     "text": "The framework handles routing and caching.",
     "expect": ["the", "framework", "handles", "routing", "and", "caching"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["and", "cache", "caching", "framework", "handle", "handles", "rout", "route", "routing", "the"]
   },
   {
     "note": "mixed prose: nothing here is dropped; and the cut-off annotates rather than drops",
     "text": "The framework handles routing and caching.",
     "expect": ["the", "framework", "handles", "routing", "and", "caching"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: A (short: under 3 letters); mutex (not in the static word list); the rest are candidates",
     "text": "A mutex protects the shared counter.",
     "expect": ["protects", "the", "shared", "counter"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: A (short: under 3 letters); mutex (not in the static word list); and every candidate is known already",
     "text": "A mutex protects the shared counter.",
     "expect": ["protects", "the", "shared", "counter"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["count", "counter", "protect", "protects", "shar", "share", "shared", "the"]
   },
   {
     "note": "mixed prose: A (short: under 3 letters); mutex (not in the static word list); and the cut-off annotates rather than drops",
     "text": "A mutex protects the shared counter.",
     "expect": ["protects", "the", "shared", "counter"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: changelog (not in the static word list); the rest are candidates",
     "text": "Read the changelog for breaking changes.",
     "expect": ["read", "the", "for", "breaking", "changes"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: changelog (not in the static word list); and every candidate is known already",
     "text": "Read the changelog for breaking changes.",
     "expect": ["read", "the", "for", "breaking", "changes"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["break", "breaking", "chang", "change", "changes", "for", "read", "the"]
   },
   {
     "note": "mixed prose: changelog (not in the static word list); and the cut-off annotates rather than drops",
     "text": "Read the changelog for breaking changes.",
     "expect": ["read", "the", "for", "breaking", "changes"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: backend (not in the static word list); a (short: under 3 letters); webpack (not in the static word list); the rest are candidates",
     "text": "The backend calls a webpack bundler.",
     "expect": ["the", "calls", "bundler"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: backend (not in the static word list); a (short: under 3 letters); webpack (not in the static word list); and every candidate is known already",
     "text": "The backend calls a webpack bundler.",
     "expect": ["the", "calls", "bundler"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["bundle", "bundler", "call", "calls", "the"]
   },
   {
     "note": "mixed prose: backend (not in the static word list); a (short: under 3 letters); webpack (not in the static word list); and the cut-off annotates rather than drops",
     "text": "The backend calls a webpack bundler.",
     "expect": ["the", "calls", "bundler"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: nothing here is dropped; the rest are candidates",
     "text": "Run the linter after every commit.",
     "expect": ["run", "the", "linter", "after", "every", "commit"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: nothing here is dropped; and every candidate is known already",
     "text": "Run the linter after every commit.",
     "expect": ["run", "the", "linter", "after", "every", "commit"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["after", "commit", "every", "lint", "linter", "run", "the"]
   },
   {
     "note": "mixed prose: nothing here is dropped; and the cut-off annotates rather than drops",
     "text": "Run the linter after every commit.",
     "expect": ["run", "the", "linter", "after", "every", "commit"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: middleware (not in the static word list); the rest are candidates",
     "text": "Their middleware logs each request.",
     "expect": ["their", "logs", "each", "request"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: middleware (not in the static word list); and every candidate is known already",
     "text": "Their middleware logs each request.",
     "expect": ["their", "logs", "each", "request"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["each", "log", "logs", "request", "their"]
   },
   {
     "note": "mixed prose: middleware (not in the static word list); and the cut-off annotates rather than drops",
     "text": "Their middleware logs each request.",
     "expect": ["their", "logs", "each", "request"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: frontend (not in the static word list); the (the same lemma as an earlier word); the rest are candidates",
     "text": "The frontend bundles the code.",
     "expect": ["the", "bundles", "code"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: frontend (not in the static word list); the (the same lemma as an earlier word); and every candidate is known already",
     "text": "The frontend bundles the code.",
     "expect": ["the", "bundles", "code"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["bundle", "bundles", "code", "the"]
   },
   {
     "note": "mixed prose: frontend (not in the static word list); the (the same lemma as an earlier word); and the cut-off annotates rather than drops",
     "text": "The frontend bundles the code.",
     "expect": ["the", "bundles", "code"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: A (short: under 3 letters); refactor (not in the static word list); the rest are candidates",
     "text": "A refactor shortened the module.",
     "expect": ["shortened", "the", "module"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: A (short: under 3 letters); refactor (not in the static word list); and every candidate is known already",
     "text": "A refactor shortened the module.",
     "expect": ["shortened", "the", "module"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["module", "shorten", "shortened", "the"]
   },
   {
     "note": "mixed prose: A (short: under 3 letters); refactor (not in the static word list); and the cut-off annotates rather than drops",
     "text": "A refactor shortened the module.",
     "expect": ["shortened", "the", "module"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: stacktrace (not in the static word list); at (short: under 3 letters); 42 (glued: a non-letter inside the token); the rest are candidates",
     "text": "The stacktrace points at line 42.",
     "expect": ["the", "points", "line"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: stacktrace (not in the static word list); at (short: under 3 letters); 42 (glued: a non-letter inside the token); and every candidate is known already",
     "text": "The stacktrace points at line 42.",
     "expect": ["the", "points", "line"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["line", "point", "points", "the"]
   },
   {
     "note": "mixed prose: stacktrace (not in the static word list); at (short: under 3 letters); 42 (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "The stacktrace points at line 42.",
     "expect": ["the", "points", "line"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: breakpoint (not in the static word list); stdin (not in the static word list); the rest are candidates",
     "text": "Set the breakpoint and inspect stdin.",
     "expect": ["set", "the", "and", "inspect"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: breakpoint (not in the static word list); stdin (not in the static word list); and every candidate is known already",
     "text": "Set the breakpoint and inspect stdin.",
     "expect": ["set", "the", "and", "inspect"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["and", "inspect", "set", "the"]
   },
   {
     "note": "mixed prose: breakpoint (not in the static word list); stdin (not in the static word list); and the cut-off annotates rather than drops",
     "text": "Set the breakpoint and inspect stdin.",
     "expect": ["set", "the", "and", "inspect"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: A (short: under 3 letters); namespace (not in the static word list); the rest are candidates",
     "text": "A namespace groups the helper functions.",
     "expect": ["groups", "the", "helper", "functions"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: A (short: under 3 letters); namespace (not in the static word list); and every candidate is known already",
     "text": "A namespace groups the helper functions.",
     "expect": ["groups", "the", "helper", "functions"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["function", "functions", "group", "groups", "help", "helper", "the"]
   },
   {
     "note": "mixed prose: A (short: under 3 letters); namespace (not in the static word list); and the cut-off annotates rather than drops",
     "text": "A namespace groups the helper functions.",
     "expect": ["groups", "the", "helper", "functions"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: codebase (not in the static word list); refactoring (not in the static word list); the rest are candidates",
     "text": "The codebase needs another refactoring pass.",
     "expect": ["the", "needs", "another", "pass"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: codebase (not in the static word list); refactoring (not in the static word list); and every candidate is known already",
     "text": "The codebase needs another refactoring pass.",
     "expect": ["the", "needs", "another", "pass"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["another", "need", "needs", "pass", "the"]
   },
   {
     "note": "mixed prose: codebase (not in the static word list); refactoring (not in the static word list); and the cut-off annotates rather than drops",
     "text": "The codebase needs another refactoring pass.",
     "expect": ["the", "needs", "another", "pass"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: stdout (not in the static word list); stderr (not in the static word list); to (short: under 3 letters); gzip (not in the static word list); the rest are candidates",
     "text": "Write stdout and stderr to gzip files.",
     "expect": ["write", "and", "files"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: stdout (not in the static word list); stderr (not in the static word list); to (short: under 3 letters); gzip (not in the static word list); and every candidate is known already",
     "text": "Write stdout and stderr to gzip files.",
     "expect": ["write", "and", "files"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["and", "fil", "file", "files", "write"]
   },
   {
     "note": "mixed prose: stdout (not in the static word list); stderr (not in the static word list); to (short: under 3 letters); gzip (not in the static word list); and the cut-off annotates rather than drops",
     "text": "Write stdout and stderr to gzip files.",
     "expect": ["write", "and", "files"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: threadpool (not in the static word list); the rest are candidates",
     "text": "Their threadpool handles many tasks.",
     "expect": ["their", "handles", "many", "tasks"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: threadpool (not in the static word list); and every candidate is known already",
     "text": "Their threadpool handles many tasks.",
     "expect": ["their", "handles", "many", "tasks"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["handle", "handles", "many", "task", "tasks", "their"]
   },
   {
     "note": "mixed prose: threadpool (not in the static word list); and the cut-off annotates rather than drops",
     "text": "Their threadpool handles many tasks.",
     "expect": ["their", "handles", "many", "tasks"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: gzip (not in the static word list); the (the same lemma as an earlier word); syslog (not in the static word list); the rest are candidates",
     "text": "The gzip archive holds the syslog.",
     "expect": ["the", "archive", "holds"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: gzip (not in the static word list); the (the same lemma as an earlier word); syslog (not in the static word list); and every candidate is known already",
     "text": "The gzip archive holds the syslog.",
     "expect": ["the", "archive", "holds"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["archive", "hold", "holds", "the"]
   },
   {
     "note": "mixed prose: gzip (not in the static word list); the (the same lemma as an earlier word); syslog (not in the static word list); and the cut-off annotates rather than drops",
     "text": "The gzip archive holds the syslog.",
     "expect": ["the", "archive", "holds"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: postgres (not in the static word list); redis (not in the static word list); the rest are candidates",
     "text": "Install postgres and redis tonight.",
     "expect": ["install", "and", "tonight"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: postgres (not in the static word list); redis (not in the static word list); and every candidate is known already",
     "text": "Install postgres and redis tonight.",
     "expect": ["install", "and", "tonight"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["and", "install", "tonight"]
   },
   {
     "note": "mixed prose: postgres (not in the static word list); redis (not in the static word list); and the cut-off annotates rather than drops",
     "text": "Install postgres and redis tonight.",
     "expect": ["install", "and", "tonight"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: nginx (not in the static word list); the rest are candidates",
     "text": "The nginx proxy caches static assets.",
     "expect": ["the", "proxy", "caches", "static", "assets"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: nginx (not in the static word list); and every candidate is known already",
     "text": "The nginx proxy caches static assets.",
     "expect": ["the", "proxy", "caches", "static", "assets"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["asset", "assets", "cache", "caches", "proxy", "static", "the"]
   },
   {
     "note": "mixed prose: nginx (not in the static word list); and the cut-off annotates rather than drops",
     "text": "The nginx proxy caches static assets.",
     "expect": ["the", "proxy", "caches", "static", "assets"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: kubernetes (not in the static word list); the rest are candidates",
     "text": "Our pod runs inside the kubernetes cluster.",
     "expect": ["our", "pod", "runs", "inside", "the", "cluster"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: kubernetes (not in the static word list); and every candidate is known already",
     "text": "Our pod runs inside the kubernetes cluster.",
     "expect": ["our", "pod", "runs", "inside", "the", "cluster"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["cluster", "inside", "our", "pod", "run", "runs", "the"]
   },
   {
     "note": "mixed prose: kubernetes (not in the static word list); and the cut-off annotates rather than drops",
     "text": "Our pod runs inside the kubernetes cluster.",
     "expect": ["our", "pod", "runs", "inside", "the", "cluster"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: the (the same lemma as an earlier word); the rest are candidates",
     "text": "Read the manual for the template engine.",
     "expect": ["read", "the", "manual", "for", "template", "engine"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: the (the same lemma as an earlier word); and every candidate is known already",
     "text": "Read the manual for the template engine.",
     "expect": ["read", "the", "manual", "for", "template", "engine"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["engine", "for", "manual", "read", "template", "the"]
   },
   {
     "note": "mixed prose: the (the same lemma as an earlier word); and the cut-off annotates rather than drops",
     "text": "Read the manual for the template engine.",
     "expect": ["read", "the", "manual", "for", "template", "engine"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: the (the same lemma as an earlier word); the rest are candidates",
     "text": "The quick brown fox jumps over the lazy dog.",
     "expect": ["the", "quick", "brown", "fox", "jumps", "over", "lazy", "dog"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: the (the same lemma as an earlier word); and every candidate is known already",
     "text": "The quick brown fox jumps over the lazy dog.",
     "expect": ["the", "quick", "brown", "fox", "jumps", "over", "lazy", "dog"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["brown", "dog", "fox", "jump", "jumps", "lazy", "over", "quick", "the"]
   },
   {
     "note": "mixed prose: the (the same lemma as an earlier word); and the cut-off annotates rather than drops",
     "text": "The quick brown fox jumps over the lazy dog.",
     "expect": ["the", "quick", "brown", "fox", "jumps", "over", "lazy", "dog"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: nothing here is dropped; the rest are candidates",
     "text": "Every good boy deserves fruit.",
     "expect": ["every", "good", "boy", "deserves", "fruit"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: nothing here is dropped; and every candidate is known already",
     "text": "Every good boy deserves fruit.",
     "expect": ["every", "good", "boy", "deserves", "fruit"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["boy", "deserve", "deserves", "every", "fruit", "good"]
   },
   {
     "note": "mixed prose: nothing here is dropped; and the cut-off annotates rather than drops",
     "text": "Every good boy deserves fruit.",
     "expect": ["every", "good", "boy", "deserves", "fruit"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "mixed prose: my (short: under 3 letters); the rest are candidates",
     "text": "Pack my box with five dozen jugs.",
     "expect": ["pack", "box", "with", "five", "dozen", "jugs"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: my (short: under 3 letters); and every candidate is known already",
     "text": "Pack my box with five dozen jugs.",
     "expect": ["pack", "box", "with", "five", "dozen", "jugs"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["box", "dozen", "five", "jug", "jugs", "pack", "with"]
   },
   {
     "note": "mixed prose: my (short: under 3 letters); and the cut-off annotates rather than drops",
     "text": "Pack my box with five dozen jugs.",
     "expect": ["pack", "box", "with", "five", "dozen", "jugs"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "The weather turned colder after sunset.",
     "expect": ["the", "weather", "turned", "colder", "after", "sunset"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "The weather turned colder after sunset.",
     "expect": ["the", "weather", "turned", "colder", "after", "sunset"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "The weather turned colder after sunset.",
     "expect": ["the", "weather", "turned", "colder", "after", "sunset"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["after", "cold", "colder", "sunset", "the", "turn", "turned", "weather"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "She opened every window before sunrise.",
     "expect": ["she", "opened", "every", "window", "before", "sunrise"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "She opened every window before sunrise.",
     "expect": ["she", "opened", "every", "window", "before", "sunrise"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "She opened every window before sunrise.",
     "expect": ["she", "opened", "every", "window", "before", "sunrise"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["before", "every", "open", "opened", "she", "sunrise", "window"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Quiet mornings help careful thinking.",
     "expect": ["quiet", "mornings", "help", "careful", "thinking"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Quiet mornings help careful thinking.",
     "expect": ["quiet", "mornings", "help", "careful", "thinking"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Quiet mornings help careful thinking.",
     "expect": ["quiet", "mornings", "help", "careful", "thinking"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["careful", "help", "morning", "mornings", "quiet", "think", "thinking"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Ancient forests shelter countless creatures.",
     "expect": ["ancient", "forests", "shelter", "countless", "creatures"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Ancient forests shelter countless creatures.",
     "expect": ["ancient", "forests", "shelter", "countless", "creatures"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Ancient forests shelter countless creatures.",
     "expect": ["ancient", "forests", "shelter", "countless", "creatures"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["ancient", "countless", "creature", "creatures", "forest", "forests", "shelter"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Patient teachers explain difficult ideas clearly.",
     "expect": ["patient", "teachers", "explain", "difficult", "ideas", "clearly"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Patient teachers explain difficult ideas clearly.",
     "expect": ["patient", "teachers", "explain", "difficult", "ideas", "clearly"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Patient teachers explain difficult ideas clearly.",
     "expect": ["patient", "teachers", "explain", "difficult", "ideas", "clearly"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["clear", "clearly", "difficult", "explain", "idea", "ideas", "patient", "teacher", "teachers"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "That heavy rainfall damaged several bridges.",
     "expect": ["that", "heavy", "rainfall", "damaged", "several", "bridges"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "That heavy rainfall damaged several bridges.",
     "expect": ["that", "heavy", "rainfall", "damaged", "several", "bridges"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "That heavy rainfall damaged several bridges.",
     "expect": ["that", "heavy", "rainfall", "damaged", "several", "bridges"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["bridg", "bridge", "bridges", "damage", "damaged", "heavy", "rainfall", "several", "that"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Nobody noticed the missing pages.",
     "expect": ["nobody", "noticed", "the", "missing", "pages"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Nobody noticed the missing pages.",
     "expect": ["nobody", "noticed", "the", "missing", "pages"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Nobody noticed the missing pages.",
     "expect": ["nobody", "noticed", "the", "missing", "pages"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["mis", "miss", "misse", "missing", "nobody", "notice", "noticed", "pag", "page", "pages", "the"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Winter winds whistle through narrow valleys.",
     "expect": ["winter", "winds", "whistle", "through", "narrow", "valleys"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Winter winds whistle through narrow valleys.",
     "expect": ["winter", "winds", "whistle", "through", "narrow", "valleys"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Winter winds whistle through narrow valleys.",
     "expect": ["winter", "winds", "whistle", "through", "narrow", "valleys"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["narrow", "through", "valley", "valleys", "whistle", "wind", "winds", "winter"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Their garden produces enormous vegetables.",
     "expect": ["their", "garden", "produces", "enormous", "vegetables"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Their garden produces enormous vegetables.",
     "expect": ["their", "garden", "produces", "enormous", "vegetables"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Their garden produces enormous vegetables.",
     "expect": ["their", "garden", "produces", "enormous", "vegetables"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["enormous", "garden", "produce", "produces", "their", "vegetable", "vegetables"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Someone borrowed her favourite umbrella.",
     "expect": ["someone", "borrowed", "her", "favourite", "umbrella"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Someone borrowed her favourite umbrella.",
     "expect": ["someone", "borrowed", "her", "favourite", "umbrella"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Someone borrowed her favourite umbrella.",
     "expect": ["someone", "borrowed", "her", "favourite", "umbrella"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["borrow", "borrowed", "favourite", "her", "someone", "umbrella"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Careful planning prevents serious mistakes.",
     "expect": ["careful", "planning", "prevents", "serious", "mistakes"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Careful planning prevents serious mistakes.",
     "expect": ["careful", "planning", "prevents", "serious", "mistakes"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Careful planning prevents serious mistakes.",
     "expect": ["careful", "planning", "prevents", "serious", "mistakes"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["careful", "mistake", "mistakes", "plan", "planning", "prevent", "prevents", "serious"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Distant thunder warned everyone about lightning.",
     "expect": ["distant", "thunder", "warned", "everyone", "about", "lightning"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Distant thunder warned everyone about lightning.",
     "expect": ["distant", "thunder", "warned", "everyone", "about", "lightning"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Distant thunder warned everyone about lightning.",
     "expect": ["distant", "thunder", "warned", "everyone", "about", "lightning"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["about", "distant", "everyone", "lightning", "thunder", "warn", "warne", "warned"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "One sudden storm delayed every flight.",
     "expect": ["one", "sudden", "storm", "delayed", "every", "flight"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "One sudden storm delayed every flight.",
     "expect": ["one", "sudden", "storm", "delayed", "every", "flight"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "One sudden storm delayed every flight.",
     "expect": ["one", "sudden", "storm", "delayed", "every", "flight"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["delay", "delayed", "every", "flight", "one", "storm", "sudden"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "These old buildings need urgent repairs.",
     "expect": ["these", "old", "buildings", "need", "urgent", "repairs"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "These old buildings need urgent repairs.",
     "expect": ["these", "old", "buildings", "need", "urgent", "repairs"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "These old buildings need urgent repairs.",
     "expect": ["these", "old", "buildings", "need", "urgent", "repairs"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["building", "buildings", "need", "old", "repair", "repairs", "these", "urgent"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Several students volunteered during holidays.",
     "expect": ["several", "students", "volunteered", "during", "holidays"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Several students volunteered during holidays.",
     "expect": ["several", "students", "volunteered", "during", "holidays"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Several students volunteered during holidays.",
     "expect": ["several", "students", "volunteered", "during", "holidays"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["dur", "during", "holiday", "holidays", "several", "student", "students", "volunteer", "volunteered"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Her explanation sounded perfectly reasonable.",
     "expect": ["her", "explanation", "sounded", "perfectly", "reasonable"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Her explanation sounded perfectly reasonable.",
     "expect": ["her", "explanation", "sounded", "perfectly", "reasonable"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Her explanation sounded perfectly reasonable.",
     "expect": ["her", "explanation", "sounded", "perfectly", "reasonable"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["explanation", "her", "perfect", "perfectly", "reasonable", "sound", "sounded"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Honest answers build lasting trust.",
     "expect": ["honest", "answers", "build", "lasting", "trust"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Honest answers build lasting trust.",
     "expect": ["honest", "answers", "build", "lasting", "trust"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Honest answers build lasting trust.",
     "expect": ["honest", "answers", "build", "lasting", "trust"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["answer", "answers", "build", "honest", "last", "lasting", "trust"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "That empty theatre echoes strangely.",
     "expect": ["that", "empty", "theatre", "echoes", "strangely"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "That empty theatre echoes strangely.",
     "expect": ["that", "empty", "theatre", "echoes", "strangely"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "That empty theatre echoes strangely.",
     "expect": ["that", "empty", "theatre", "echoes", "strangely"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["echo", "echoes", "empty", "strange", "strangely", "that", "theatre"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Wildflowers cover these gentle hills.",
     "expect": ["wildflowers", "cover", "these", "gentle", "hills"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Wildflowers cover these gentle hills.",
     "expect": ["wildflowers", "cover", "these", "gentle", "hills"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Wildflowers cover these gentle hills.",
     "expect": ["wildflowers", "cover", "these", "gentle", "hills"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["cover", "gentle", "hill", "hills", "these", "wildflower", "wildflowers"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Deep water hides dangerous currents.",
     "expect": ["deep", "water", "hides", "dangerous", "currents"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Deep water hides dangerous currents.",
     "expect": ["deep", "water", "hides", "dangerous", "currents"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Deep water hides dangerous currents.",
     "expect": ["deep", "water", "hides", "dangerous", "currents"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["current", "currents", "dangerous", "deep", "hid", "hide", "hides", "water"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Our neighbour collects antique clocks.",
     "expect": ["our", "neighbour", "collects", "antique", "clocks"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Our neighbour collects antique clocks.",
     "expect": ["our", "neighbour", "collects", "antique", "clocks"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Our neighbour collects antique clocks.",
     "expect": ["our", "neighbour", "collects", "antique", "clocks"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["antique", "clock", "clocks", "collect", "collects", "neighbour", "our"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Thick fog covered the entire valley.",
     "expect": ["thick", "fog", "covered", "the", "entire", "valley"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Thick fog covered the entire valley.",
     "expect": ["thick", "fog", "covered", "the", "entire", "valley"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Thick fog covered the entire valley.",
     "expect": ["thick", "fog", "covered", "the", "entire", "valley"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["cover", "covered", "entire", "fog", "the", "thick", "valley"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Every argument requires solid evidence.",
     "expect": ["every", "argument", "requires", "solid", "evidence"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Every argument requires solid evidence.",
     "expect": ["every", "argument", "requires", "solid", "evidence"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Every argument requires solid evidence.",
     "expect": ["every", "argument", "requires", "solid", "evidence"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["argument", "every", "evidence", "require", "requires", "solid"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "That lonely lighthouse guides returning sailors.",
     "expect": ["that", "lonely", "lighthouse", "guides", "returning", "sailors"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "That lonely lighthouse guides returning sailors.",
     "expect": ["that", "lonely", "lighthouse", "guides", "returning", "sailors"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "That lonely lighthouse guides returning sailors.",
     "expect": ["that", "lonely", "lighthouse", "guides", "returning", "sailors"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["guide", "guides", "lighthouse", "lone", "lonely", "return", "returning", "sailor", "sailors", "that"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Those wooden stairs creak loudly.",
     "expect": ["those", "wooden", "stairs", "creak", "loudly"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Those wooden stairs creak loudly.",
     "expect": ["those", "wooden", "stairs", "creak", "loudly"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Those wooden stairs creak loudly.",
     "expect": ["those", "wooden", "stairs", "creak", "loudly"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["creak", "loud", "loudly", "stair", "stairs", "those", "wooden"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Warm sunlight filled the narrow kitchen.",
     "expect": ["warm", "sunlight", "filled", "the", "narrow", "kitchen"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Warm sunlight filled the narrow kitchen.",
     "expect": ["warm", "sunlight", "filled", "the", "narrow", "kitchen"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Warm sunlight filled the narrow kitchen.",
     "expect": ["warm", "sunlight", "filled", "the", "narrow", "kitchen"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["fil", "fill", "fille", "filled", "kitchen", "narrow", "sunlight", "the", "warm"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Our grandfather tells wonderful stories.",
     "expect": ["our", "grandfather", "tells", "wonderful", "stories"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Our grandfather tells wonderful stories.",
     "expect": ["our", "grandfather", "tells", "wonderful", "stories"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Our grandfather tells wonderful stories.",
     "expect": ["our", "grandfather", "tells", "wonderful", "stories"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["grandfather", "our", "stories", "story", "tell", "tells", "wonderful"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Sharp scissors cut through thick cardboard.",
     "expect": ["sharp", "scissors", "cut", "through", "thick", "cardboard"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Sharp scissors cut through thick cardboard.",
     "expect": ["sharp", "scissors", "cut", "through", "thick", "cardboard"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Sharp scissors cut through thick cardboard.",
     "expect": ["sharp", "scissors", "cut", "through", "thick", "cardboard"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["cardboard", "cut", "scissor", "scissors", "sharp", "thick", "through"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Somebody left these muddy boots outside.",
     "expect": ["somebody", "left", "these", "muddy", "boots", "outside"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Somebody left these muddy boots outside.",
     "expect": ["somebody", "left", "these", "muddy", "boots", "outside"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Somebody left these muddy boots outside.",
     "expect": ["somebody", "left", "these", "muddy", "boots", "outside"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["boot", "boots", "leave", "left", "muddy", "outside", "somebody", "these"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Winter mornings feel especially peaceful.",
     "expect": ["winter", "mornings", "feel", "especially", "peaceful"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Winter mornings feel especially peaceful.",
     "expect": ["winter", "mornings", "feel", "especially", "peaceful"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Winter mornings feel especially peaceful.",
     "expect": ["winter", "mornings", "feel", "especially", "peaceful"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["especial", "especially", "feel", "morning", "mornings", "peaceful", "winter"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Their children study foreign languages.",
     "expect": ["their", "children", "study", "foreign", "languages"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Their children study foreign languages.",
     "expect": ["their", "children", "study", "foreign", "languages"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Their children study foreign languages.",
     "expect": ["their", "children", "study", "foreign", "languages"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["child", "children", "foreign", "language", "languages", "study", "their"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "That curious squirrel watched everyone closely.",
     "expect": ["that", "curious", "squirrel", "watched", "everyone", "closely"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "That curious squirrel watched everyone closely.",
     "expect": ["that", "curious", "squirrel", "watched", "everyone", "closely"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "That curious squirrel watched everyone closely.",
     "expect": ["that", "curious", "squirrel", "watched", "everyone", "closely"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["close", "closely", "curious", "everyone", "squirrel", "that", "watch", "watched"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Early travellers crossed these dangerous mountains.",
     "expect": ["early", "travellers", "crossed", "these", "dangerous", "mountains"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Early travellers crossed these dangerous mountains.",
     "expect": ["early", "travellers", "crossed", "these", "dangerous", "mountains"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Early travellers crossed these dangerous mountains.",
     "expect": ["early", "travellers", "crossed", "these", "dangerous", "mountains"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["cros", "cross", "crosse", "crossed", "dangerous", "early", "mountain", "mountains", "these", "traveller", "travellers"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Constant practice improves almost everything.",
     "expect": ["constant", "practice", "improves", "almost", "everything"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Constant practice improves almost everything.",
     "expect": ["constant", "practice", "improves", "almost", "everything"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Constant practice improves almost everything.",
     "expect": ["constant", "practice", "improves", "almost", "everything"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["almost", "constant", "everyth", "everything", "improv", "improve", "improves", "practice"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "That quiet village attracts many painters.",
     "expect": ["that", "quiet", "village", "attracts", "many", "painters"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "That quiet village attracts many painters.",
     "expect": ["that", "quiet", "village", "attracts", "many", "painters"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "That quiet village attracts many painters.",
     "expect": ["that", "quiet", "village", "attracts", "many", "painters"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["attract", "attracts", "many", "painter", "painters", "quiet", "that", "village"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Several workers repaired the damaged roof.",
     "expect": ["several", "workers", "repaired", "the", "damaged", "roof"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Several workers repaired the damaged roof.",
     "expect": ["several", "workers", "repaired", "the", "damaged", "roof"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Several workers repaired the damaged roof.",
     "expect": ["several", "workers", "repaired", "the", "damaged", "roof"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["damage", "damaged", "repair", "repaired", "roof", "several", "the", "worker", "workers"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Her gentle voice calmed everyone quickly.",
     "expect": ["her", "gentle", "voice", "calmed", "everyone", "quickly"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Her gentle voice calmed everyone quickly.",
     "expect": ["her", "gentle", "voice", "calmed", "everyone", "quickly"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Her gentle voice calmed everyone quickly.",
     "expect": ["her", "gentle", "voice", "calmed", "everyone", "quickly"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["calm", "calmed", "everyone", "gentle", "her", "quick", "quickly", "voice"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Fresh bread smells absolutely wonderful.",
     "expect": ["fresh", "bread", "smells", "absolutely", "wonderful"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Fresh bread smells absolutely wonderful.",
     "expect": ["fresh", "bread", "smells", "absolutely", "wonderful"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Fresh bread smells absolutely wonderful.",
     "expect": ["fresh", "bread", "smells", "absolutely", "wonderful"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["absolute", "absolutely", "bread", "fresh", "smell", "smells", "wonderful"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Nobody understands that ancient dialect.",
     "expect": ["nobody", "understands", "that", "ancient", "dialect"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Nobody understands that ancient dialect.",
     "expect": ["nobody", "understands", "that", "ancient", "dialect"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Nobody understands that ancient dialect.",
     "expect": ["nobody", "understands", "that", "ancient", "dialect"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["ancient", "dialect", "nobody", "that", "understand", "understands"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Thick curtains block the morning light.",
     "expect": ["thick", "curtains", "block", "the", "morning", "light"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Thick curtains block the morning light.",
     "expect": ["thick", "curtains", "block", "the", "morning", "light"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Thick curtains block the morning light.",
     "expect": ["thick", "curtains", "block", "the", "morning", "light"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["block", "curtain", "curtains", "light", "morn", "morning", "the", "thick"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Those distant mountains look almost purple.",
     "expect": ["those", "distant", "mountains", "look", "almost", "purple"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Those distant mountains look almost purple.",
     "expect": ["those", "distant", "mountains", "look", "almost", "purple"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Those distant mountains look almost purple.",
     "expect": ["those", "distant", "mountains", "look", "almost", "purple"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["almost", "distant", "look", "mountain", "mountains", "purple", "those"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "That patient gardener waters every seedling.",
     "expect": ["that", "patient", "gardener", "waters", "every", "seedling"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "That patient gardener waters every seedling.",
     "expect": ["that", "patient", "gardener", "waters", "every", "seedling"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "That patient gardener waters every seedling.",
     "expect": ["that", "patient", "gardener", "waters", "every", "seedling"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["every", "garden", "gardener", "patient", "seedling", "that", "water", "waters"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Careful readers notice subtle details.",
     "expect": ["careful", "readers", "notice", "subtle", "details"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Careful readers notice subtle details.",
     "expect": ["careful", "readers", "notice", "subtle", "details"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Careful readers notice subtle details.",
     "expect": ["careful", "readers", "notice", "subtle", "details"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["careful", "detail", "details", "notice", "reader", "readers", "subtle"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Their journey lasted several exhausting weeks.",
     "expect": ["their", "journey", "lasted", "several", "exhausting", "weeks"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Their journey lasted several exhausting weeks.",
     "expect": ["their", "journey", "lasted", "several", "exhausting", "weeks"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Their journey lasted several exhausting weeks.",
     "expect": ["their", "journey", "lasted", "several", "exhausting", "weeks"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["exhaust", "exhausting", "journey", "last", "lasted", "several", "their", "week", "weeks"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Autumn leaves gather beside the entrance.",
     "expect": ["autumn", "leaves", "gather", "beside", "the", "entrance"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Autumn leaves gather beside the entrance.",
     "expect": ["autumn", "leaves", "gather", "beside", "the", "entrance"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Autumn leaves gather beside the entrance.",
     "expect": ["autumn", "leaves", "gather", "beside", "the", "entrance"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["autumn", "beside", "entrance", "gath", "gather", "leaf", "leav", "leave", "leaves", "the"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Someone painted these wooden shutters blue.",
     "expect": ["someone", "painted", "these", "wooden", "shutters", "blue"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Someone painted these wooden shutters blue.",
     "expect": ["someone", "painted", "these", "wooden", "shutters", "blue"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Someone painted these wooden shutters blue.",
     "expect": ["someone", "painted", "these", "wooden", "shutters", "blue"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["blue", "paint", "painted", "shutter", "shutters", "someone", "these", "wooden"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "That narrow passage leads nowhere useful.",
     "expect": ["that", "narrow", "passage", "leads", "nowhere", "useful"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "That narrow passage leads nowhere useful.",
     "expect": ["that", "narrow", "passage", "leads", "nowhere", "useful"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "That narrow passage leads nowhere useful.",
     "expect": ["that", "narrow", "passage", "leads", "nowhere", "useful"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["lead", "leads", "narrow", "nowhere", "passage", "that", "useful"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Strong coffee wakes sleepy students.",
     "expect": ["strong", "coffee", "wakes", "sleepy", "students"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Strong coffee wakes sleepy students.",
     "expect": ["strong", "coffee", "wakes", "sleepy", "students"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Strong coffee wakes sleepy students.",
     "expect": ["strong", "coffee", "wakes", "sleepy", "students"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["coffee", "sleepy", "strong", "student", "students", "wak", "wake", "wakes"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Every visitor admired her beautiful garden.",
     "expect": ["every", "visitor", "admired", "her", "beautiful", "garden"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Every visitor admired her beautiful garden.",
     "expect": ["every", "visitor", "admired", "her", "beautiful", "garden"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Every visitor admired her beautiful garden.",
     "expect": ["every", "visitor", "admired", "her", "beautiful", "garden"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["admire", "admired", "beautiful", "every", "garden", "her", "visitor"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Gentle rain washed the dusty streets.",
     "expect": ["gentle", "rain", "washed", "the", "dusty", "streets"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Gentle rain washed the dusty streets.",
     "expect": ["gentle", "rain", "washed", "the", "dusty", "streets"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Gentle rain washed the dusty streets.",
     "expect": ["gentle", "rain", "washed", "the", "dusty", "streets"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["dusty", "gentle", "rain", "street", "streets", "the", "wash", "washed"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Those ancient rituals remain surprisingly popular.",
     "expect": ["those", "ancient", "rituals", "remain", "surprisingly", "popular"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Those ancient rituals remain surprisingly popular.",
     "expect": ["those", "ancient", "rituals", "remain", "surprisingly", "popular"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Those ancient rituals remain surprisingly popular.",
     "expect": ["those", "ancient", "rituals", "remain", "surprisingly", "popular"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["ancient", "popular", "remain", "ritual", "rituals", "surprising", "surprisingly", "those"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "The silent audience watched every performance.",
     "expect": ["the", "silent", "audience", "watched", "every", "performance"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "The silent audience watched every performance.",
     "expect": ["the", "silent", "audience", "watched", "every", "performance"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "The silent audience watched every performance.",
     "expect": ["the", "silent", "audience", "watched", "every", "performance"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["audience", "every", "performance", "silent", "the", "watch", "watched"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Her younger brother studies marine biology.",
     "expect": ["her", "younger", "brother", "studies", "marine", "biology"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Her younger brother studies marine biology.",
     "expect": ["her", "younger", "brother", "studies", "marine", "biology"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Her younger brother studies marine biology.",
     "expect": ["her", "younger", "brother", "studies", "marine", "biology"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["biology", "broth", "brother", "her", "marine", "studies", "study", "young", "younger"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Several forgotten letters surfaced recently.",
     "expect": ["several", "forgotten", "letters", "surfaced", "recently"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Several forgotten letters surfaced recently.",
     "expect": ["several", "forgotten", "letters", "surfaced", "recently"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Several forgotten letters surfaced recently.",
     "expect": ["several", "forgotten", "letters", "surfaced", "recently"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["forget", "forgotten", "letter", "letters", "recent", "recently", "several", "surface", "surfaced"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Cold winds arrive every December.",
     "expect": ["cold", "winds", "arrive", "every", "december"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Cold winds arrive every December.",
     "expect": ["cold", "winds", "arrive", "every", "december"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Cold winds arrive every December.",
     "expect": ["cold", "winds", "arrive", "every", "december"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["arrive", "cold", "december", "every", "wind", "winds"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "That wooden bridge survived many floods.",
     "expect": ["that", "wooden", "bridge", "survived", "many", "floods"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "That wooden bridge survived many floods.",
     "expect": ["that", "wooden", "bridge", "survived", "many", "floods"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "That wooden bridge survived many floods.",
     "expect": ["that", "wooden", "bridge", "survived", "many", "floods"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["bridge", "flood", "floods", "many", "survive", "survived", "that", "wooden"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Wise leaders listen carefully.",
     "expect": ["wise", "leaders", "listen", "carefully"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Wise leaders listen carefully.",
     "expect": ["wise", "leaders", "listen", "carefully"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Wise leaders listen carefully.",
     "expect": ["wise", "leaders", "listen", "carefully"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["careful", "carefully", "leader", "leaders", "listen", "wise"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Her favourite sweater shrunk slightly.",
     "expect": ["her", "favourite", "sweater", "shrunk", "slightly"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Her favourite sweater shrunk slightly.",
     "expect": ["her", "favourite", "sweater", "shrunk", "slightly"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Her favourite sweater shrunk slightly.",
     "expect": ["her", "favourite", "sweater", "shrunk", "slightly"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["favourite", "her", "shrink", "shrunk", "slight", "slightly", "sweat", "sweater"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Hungry pigeons gathered around the fountain.",
     "expect": ["hungry", "pigeons", "gathered", "around", "the", "fountain"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Hungry pigeons gathered around the fountain.",
     "expect": ["hungry", "pigeons", "gathered", "around", "the", "fountain"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Hungry pigeons gathered around the fountain.",
     "expect": ["hungry", "pigeons", "gathered", "around", "the", "fountain"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["around", "fountain", "gather", "gathered", "hungry", "pigeon", "pigeons", "the"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Those heavy curtains block almost everything.",
     "expect": ["those", "heavy", "curtains", "block", "almost", "everything"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Those heavy curtains block almost everything.",
     "expect": ["those", "heavy", "curtains", "block", "almost", "everything"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Those heavy curtains block almost everything.",
     "expect": ["those", "heavy", "curtains", "block", "almost", "everything"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["almost", "block", "curtain", "curtains", "everyth", "everything", "heavy", "those"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "That thoughtful answer deserves careful attention.",
     "expect": ["that", "thoughtful", "answer", "deserves", "careful", "attention"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "That thoughtful answer deserves careful attention.",
     "expect": ["that", "thoughtful", "answer", "deserves", "careful", "attention"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "That thoughtful answer deserves careful attention.",
     "expect": ["that", "thoughtful", "answer", "deserves", "careful", "attention"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["answer", "attention", "careful", "deserve", "deserves", "that", "thoughtful"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Ancient sailors navigated without compasses.",
     "expect": ["ancient", "sailors", "navigated", "without", "compasses"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Ancient sailors navigated without compasses.",
     "expect": ["ancient", "sailors", "navigated", "without", "compasses"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Ancient sailors navigated without compasses.",
     "expect": ["ancient", "sailors", "navigated", "without", "compasses"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["ancient", "compass", "compasses", "navigate", "navigated", "sailor", "sailors", "without"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Their youngest daughter paints landscapes.",
     "expect": ["their", "youngest", "daughter", "paints", "landscapes"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Their youngest daughter paints landscapes.",
     "expect": ["their", "youngest", "daughter", "paints", "landscapes"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Their youngest daughter paints landscapes.",
     "expect": ["their", "youngest", "daughter", "paints", "landscapes"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["daughter", "landscape", "landscapes", "paint", "paints", "their", "young", "youngest"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Several curious neighbours asked questions.",
     "expect": ["several", "curious", "neighbours", "asked", "questions"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Several curious neighbours asked questions.",
     "expect": ["several", "curious", "neighbours", "asked", "questions"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Several curious neighbours asked questions.",
     "expect": ["several", "curious", "neighbours", "asked", "questions"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["ask", "aske", "asked", "curious", "neighbour", "neighbours", "question", "questions", "several"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "That rusty bicycle needs another repair.",
     "expect": ["that", "rusty", "bicycle", "needs", "another", "repair"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "That rusty bicycle needs another repair.",
     "expect": ["that", "rusty", "bicycle", "needs", "another", "repair"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "That rusty bicycle needs another repair.",
     "expect": ["that", "rusty", "bicycle", "needs", "another", "repair"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["another", "bicycle", "need", "needs", "repair", "rusty", "that"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Winter evenings feel remarkably long.",
     "expect": ["winter", "evenings", "feel", "remarkably", "long"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Winter evenings feel remarkably long.",
     "expect": ["winter", "evenings", "feel", "remarkably", "long"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Winter evenings feel remarkably long.",
     "expect": ["winter", "evenings", "feel", "remarkably", "long"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["evening", "evenings", "feel", "long", "remarkably", "winter"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Someone whistled softly outside.",
     "expect": ["someone", "whistled", "softly", "outside"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Someone whistled softly outside.",
     "expect": ["someone", "whistled", "softly", "outside"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Someone whistled softly outside.",
     "expect": ["someone", "whistled", "softly", "outside"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["outside", "soft", "softly", "someone", "whistle", "whistled"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Her careful notes helped everyone.",
     "expect": ["her", "careful", "notes", "helped", "everyone"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Her careful notes helped everyone.",
     "expect": ["her", "careful", "notes", "helped", "everyone"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Her careful notes helped everyone.",
     "expect": ["her", "careful", "notes", "helped", "everyone"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["careful", "everyone", "help", "helped", "her", "not", "note", "notes"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Those distant bells sound beautiful.",
     "expect": ["those", "distant", "bells", "sound", "beautiful"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Those distant bells sound beautiful.",
     "expect": ["those", "distant", "bells", "sound", "beautiful"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Those distant bells sound beautiful.",
     "expect": ["those", "distant", "bells", "sound", "beautiful"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["beautiful", "bell", "bells", "distant", "sound", "those"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "One generous stranger paid everything.",
     "expect": ["one", "generous", "stranger", "paid", "everything"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "One generous stranger paid everything.",
     "expect": ["one", "generous", "stranger", "paid", "everything"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "One generous stranger paid everything.",
     "expect": ["one", "generous", "stranger", "paid", "everything"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["everyth", "everything", "generous", "one", "paid", "pay", "strang", "strange", "stranger"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Clean water remains dangerously scarce.",
     "expect": ["clean", "water", "remains", "dangerously", "scarce"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Clean water remains dangerously scarce.",
     "expect": ["clean", "water", "remains", "dangerously", "scarce"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Clean water remains dangerously scarce.",
     "expect": ["clean", "water", "remains", "dangerously", "scarce"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["clean", "dangerous", "dangerously", "remain", "remains", "scarce", "water"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Every mistake teaches valuable lessons.",
     "expect": ["every", "mistake", "teaches", "valuable", "lessons"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Every mistake teaches valuable lessons.",
     "expect": ["every", "mistake", "teaches", "valuable", "lessons"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Every mistake teaches valuable lessons.",
     "expect": ["every", "mistake", "teaches", "valuable", "lessons"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["every", "lesson", "lessons", "mistake", "teach", "teaches", "valuable"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "That quiet library closes early.",
     "expect": ["that", "quiet", "library", "closes", "early"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "That quiet library closes early.",
     "expect": ["that", "quiet", "library", "closes", "early"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "That quiet library closes early.",
     "expect": ["that", "quiet", "library", "closes", "early"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["clos", "close", "closes", "early", "library", "quiet", "that"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Several tourists photographed the cathedral.",
     "expect": ["several", "tourists", "photographed", "the", "cathedral"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Several tourists photographed the cathedral.",
     "expect": ["several", "tourists", "photographed", "the", "cathedral"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Several tourists photographed the cathedral.",
     "expect": ["several", "tourists", "photographed", "the", "cathedral"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["cathedral", "photograph", "photographed", "several", "the", "tourist", "tourists"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Her grandfather repaired broken radios.",
     "expect": ["her", "grandfather", "repaired", "broken", "radios"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Her grandfather repaired broken radios.",
     "expect": ["her", "grandfather", "repaired", "broken", "radios"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Her grandfather repaired broken radios.",
     "expect": ["her", "grandfather", "repaired", "broken", "radios"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["break", "broken", "grandfather", "her", "radio", "radios", "repair", "repaired"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Warm blankets feel wonderful tonight.",
     "expect": ["warm", "blankets", "feel", "wonderful", "tonight"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Warm blankets feel wonderful tonight.",
     "expect": ["warm", "blankets", "feel", "wonderful", "tonight"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Warm blankets feel wonderful tonight.",
     "expect": ["warm", "blankets", "feel", "wonderful", "tonight"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["blanket", "blankets", "feel", "tonight", "warm", "wonderful"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Her older sister teaches mathematics.",
     "expect": ["her", "older", "sister", "teaches", "mathematics"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Her older sister teaches mathematics.",
     "expect": ["her", "older", "sister", "teaches", "mathematics"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Her older sister teaches mathematics.",
     "expect": ["her", "older", "sister", "teaches", "mathematics"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["her", "mathematic", "mathematics", "older", "siste", "sister", "teach", "teaches"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Those muddy footprints led nowhere.",
     "expect": ["those", "muddy", "footprints", "led", "nowhere"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Those muddy footprints led nowhere.",
     "expect": ["those", "muddy", "footprints", "led", "nowhere"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Those muddy footprints led nowhere.",
     "expect": ["those", "muddy", "footprints", "led", "nowhere"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["footprint", "footprints", "lead", "led", "muddy", "nowhere", "those"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Complete silence followed.",
     "expect": ["complete", "silence", "followed"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Complete silence followed.",
     "expect": ["complete", "silence", "followed"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Complete silence followed.",
     "expect": ["complete", "silence", "followed"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["complete", "follow", "followed", "silence"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Ancient customs survive despite everything.",
     "expect": ["ancient", "customs", "survive", "despite", "everything"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Ancient customs survive despite everything.",
     "expect": ["ancient", "customs", "survive", "despite", "everything"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Ancient customs survive despite everything.",
     "expect": ["ancient", "customs", "survive", "despite", "everything"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["ancient", "custom", "customs", "despite", "everyth", "everything", "survive"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Their generous donation helped many families.",
     "expect": ["their", "generous", "donation", "helped", "many", "families"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Their generous donation helped many families.",
     "expect": ["their", "generous", "donation", "helped", "many", "families"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Their generous donation helped many families.",
     "expect": ["their", "generous", "donation", "helped", "many", "families"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["donation", "families", "family", "generous", "help", "helped", "many", "their"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Several passengers missed the connection.",
     "expect": ["several", "passengers", "missed", "the", "connection"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Several passengers missed the connection.",
     "expect": ["several", "passengers", "missed", "the", "connection"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Several passengers missed the connection.",
     "expect": ["several", "passengers", "missed", "the", "connection"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["connection", "mis", "miss", "misse", "missed", "passenger", "passengers", "several", "the"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "That wooden ladder looks unstable.",
     "expect": ["that", "wooden", "ladder", "looks", "unstable"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "That wooden ladder looks unstable.",
     "expect": ["that", "wooden", "ladder", "looks", "unstable"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "That wooden ladder looks unstable.",
     "expect": ["that", "wooden", "ladder", "looks", "unstable"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["lad", "ladd", "ladder", "look", "looks", "that", "unstable", "wooden"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Winter frost covers everything.",
     "expect": ["winter", "frost", "covers", "everything"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Winter frost covers everything.",
     "expect": ["winter", "frost", "covers", "everything"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Winter frost covers everything.",
     "expect": ["winter", "frost", "covers", "everything"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["cover", "covers", "everyth", "everything", "frost", "winter"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Someone whispered during the ceremony.",
     "expect": ["someone", "whispered", "during", "the", "ceremony"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Someone whispered during the ceremony.",
     "expect": ["someone", "whispered", "during", "the", "ceremony"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Someone whispered during the ceremony.",
     "expect": ["someone", "whispered", "during", "the", "ceremony"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["ceremony", "dur", "during", "someone", "the", "whisper", "whispered"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Her quiet confidence impressed everyone.",
     "expect": ["her", "quiet", "confidence", "impressed", "everyone"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Her quiet confidence impressed everyone.",
     "expect": ["her", "quiet", "confidence", "impressed", "everyone"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Her quiet confidence impressed everyone.",
     "expect": ["her", "quiet", "confidence", "impressed", "everyone"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["confidence", "everyone", "her", "impress", "impressed", "quiet"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Those gentle horses tolerate children.",
     "expect": ["those", "gentle", "horses", "tolerate", "children"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Those gentle horses tolerate children.",
     "expect": ["those", "gentle", "horses", "tolerate", "children"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Those gentle horses tolerate children.",
     "expect": ["those", "gentle", "horses", "tolerate", "children"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["child", "children", "gentle", "hors", "horse", "horses", "those", "tolerate"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "That careful listener remembers details.",
     "expect": ["that", "careful", "listener", "remembers", "details"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "That careful listener remembers details.",
     "expect": ["that", "careful", "listener", "remembers", "details"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "That careful listener remembers details.",
     "expect": ["that", "careful", "listener", "remembers", "details"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["careful", "detail", "details", "listen", "listener", "remember", "remembers", "that"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Fresh vegetables taste noticeably better.",
     "expect": ["fresh", "vegetables", "taste", "noticeably", "better"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Fresh vegetables taste noticeably better.",
     "expect": ["fresh", "vegetables", "taste", "noticeably", "better"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Fresh vegetables taste noticeably better.",
     "expect": ["fresh", "vegetables", "taste", "noticeably", "better"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["bet", "bett", "bette", "better", "fresh", "good", "noticeably", "taste", "vegetable", "vegetables", "well"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Every window faces the harbour.",
     "expect": ["every", "window", "faces", "the", "harbour"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Every window faces the harbour.",
     "expect": ["every", "window", "faces", "the", "harbour"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Every window faces the harbour.",
     "expect": ["every", "window", "faces", "the", "harbour"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["every", "fac", "face", "faces", "harbour", "the", "window"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "That ancient oak survived centuries.",
     "expect": ["that", "ancient", "oak", "survived", "centuries"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "That ancient oak survived centuries.",
     "expect": ["that", "ancient", "oak", "survived", "centuries"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "That ancient oak survived centuries.",
     "expect": ["that", "ancient", "oak", "survived", "centuries"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["ancient", "centuries", "century", "oak", "survive", "survived", "that"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Several friendly neighbours offered help.",
     "expect": ["several", "friendly", "neighbours", "offered", "help"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Several friendly neighbours offered help.",
     "expect": ["several", "friendly", "neighbours", "offered", "help"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Several friendly neighbours offered help.",
     "expect": ["several", "friendly", "neighbours", "offered", "help"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["friend", "friendly", "help", "neighbour", "neighbours", "offer", "offered", "several"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Her younger cousin studies architecture.",
     "expect": ["her", "younger", "cousin", "studies", "architecture"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Her younger cousin studies architecture.",
     "expect": ["her", "younger", "cousin", "studies", "architecture"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Her younger cousin studies architecture.",
     "expect": ["her", "younger", "cousin", "studies", "architecture"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["architecture", "cousin", "her", "studies", "study", "young", "younger"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Strong winds damaged several greenhouses.",
     "expect": ["strong", "winds", "damaged", "several", "greenhouses"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Strong winds damaged several greenhouses.",
     "expect": ["strong", "winds", "damaged", "several", "greenhouses"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Strong winds damaged several greenhouses.",
     "expect": ["strong", "winds", "damaged", "several", "greenhouses"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["damage", "damaged", "greenhouse", "greenhouses", "several", "strong", "wind", "winds"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Her honest answer surprised nobody.",
     "expect": ["her", "honest", "answer", "surprised", "nobody"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Her honest answer surprised nobody.",
     "expect": ["her", "honest", "answer", "surprised", "nobody"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Her honest answer surprised nobody.",
     "expect": ["her", "honest", "answer", "surprised", "nobody"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["answer", "her", "honest", "nobody", "surprise", "surprised"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Those empty classrooms echo loudly.",
     "expect": ["those", "empty", "classrooms", "echo", "loudly"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Those empty classrooms echo loudly.",
     "expect": ["those", "empty", "classrooms", "echo", "loudly"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Those empty classrooms echo loudly.",
     "expect": ["those", "empty", "classrooms", "echo", "loudly"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["classroom", "classrooms", "echo", "empty", "loud", "loudly", "those"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "One distant train whistled twice.",
     "expect": ["one", "distant", "train", "whistled", "twice"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "One distant train whistled twice.",
     "expect": ["one", "distant", "train", "whistled", "twice"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "One distant train whistled twice.",
     "expect": ["one", "distant", "train", "whistled", "twice"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["distant", "one", "train", "twice", "whistle", "whistled"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Ancient maps confuse modern readers.",
     "expect": ["ancient", "maps", "confuse", "modern", "readers"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Ancient maps confuse modern readers.",
     "expect": ["ancient", "maps", "confuse", "modern", "readers"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Ancient maps confuse modern readers.",
     "expect": ["ancient", "maps", "confuse", "modern", "readers"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["ancient", "confuse", "map", "maps", "modern", "reader", "readers"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Their careful measurements confirmed everything.",
     "expect": ["their", "careful", "measurements", "confirmed", "everything"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Their careful measurements confirmed everything.",
     "expect": ["their", "careful", "measurements", "confirmed", "everything"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Their careful measurements confirmed everything.",
     "expect": ["their", "careful", "measurements", "confirmed", "everything"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["careful", "confirm", "confirmed", "everyth", "everything", "measurement", "measurements", "their"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "Several wooden benches need painting.",
     "expect": ["several", "wooden", "benches", "need", "painting"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "Several wooden benches need painting.",
     "expect": ["several", "wooden", "benches", "need", "painting"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "Several wooden benches need painting.",
     "expect": ["several", "wooden", "benches", "need", "painting"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["bench", "benches", "need", "paint", "painting", "several", "wooden"]
   },
   {
     "note": "prose: every word-list word in the excerpt is a candidate",
     "text": "That gentle reminder helped enormously.",
     "expect": ["that", "gentle", "reminder", "helped", "enormously"],
-    "expectKind": "Word"
+    "expectKind": "Sentence"
   },
   {
     "note": "prose: the band annotates a candidate, it does not drop it",
     "text": "That gentle reminder helped enormously.",
     "expect": ["that", "gentle", "reminder", "helped", "enormously"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000
   },
   {
     "note": "prose: every word marked known, still candidates",
     "text": "That gentle reminder helped enormously.",
     "expect": ["that", "gentle", "reminder", "helped", "enormously"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "known": ["enormous", "enormously", "gentle", "help", "helped", "remind", "reminder", "that"]
   },
   {
     "note": "Frequency cut-off and the known set both annotate; neither drops",
     "text": "The ubiquitous nature of modern software makes resilience essential.",
     "expect": ["the", "ubiquitous", "nature", "modern", "software", "makes", "resilience", "essential"],
-    "expectKind": "Word",
+    "expectKind": "Sentence",
     "minFreqRank": 3000,
     "known": ["the", "ubiquitous"]
   },
