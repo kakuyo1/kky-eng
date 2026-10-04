@@ -346,67 +346,37 @@
         <translation>Study-abroad exams</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="108"/>
-        <source>Lens cannot read a selection from its own surface.</source>
-        <translation>Lens cannot read a selection from its own surface.</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="111"/>
-        <source>Selection capture is unavailable in terminal applications.</source>
-        <translation>Selection capture is unavailable in terminal applications.</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="114"/>
-        <source>The clipboard is busy, so the selection was not read.</source>
-        <translation>The clipboard is busy, so the selection was not read.</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="117"/>
-        <source>The selection could not be copied from the foreground application.</source>
-        <translation>The selection could not be copied from the foreground application.</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="120"/>
-        <source>The selected content did not contain readable text.</source>
-        <translation>The selected content did not contain readable text.</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="213"/>
-        <source>Selection unavailable</source>
-        <translation>Selection unavailable</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="335"/>
+        <location filename="../src/app/app_controller.cpp" line="310"/>
         <source>Explaining…</source>
         <translation>Explaining…</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="631"/>
+        <location filename="../src/app/app_controller.cpp" line="606"/>
         <source>Today %1</source>
         <translation>Today %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="633"/>
+        <location filename="../src/app/app_controller.cpp" line="608"/>
         <source>Yesterday %1</source>
         <translation>Yesterday %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="640"/>
+        <location filename="../src/app/app_controller.cpp" line="615"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="642"/>
+        <location filename="../src/app/app_controller.cpp" line="617"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="785"/>
+        <location filename="../src/app/app_controller.cpp" line="760"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="785"/>
+        <location filename="../src/app/app_controller.cpp" line="760"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>

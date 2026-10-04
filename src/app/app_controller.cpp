@@ -100,31 +100,6 @@ QString currencySymbol(const QString& code)
     return code;
 }
 
-/// @return A translated explanation for a selection capture failure.
-QString grabFailureMessage(GrabStatus status)
-{
-    switch (status) {
-        case GrabStatus::ForegroundIsSelf:
-            return QCoreApplication::translate("lens::app::AppController",
-                                               "Lens cannot read a selection from its own surface.");
-        case GrabStatus::ProcessExcluded:
-            return QCoreApplication::translate("lens::app::AppController",
-                                               "Selection capture is unavailable in terminal applications.");
-        case GrabStatus::ClipboardBusy:
-            return QCoreApplication::translate("lens::app::AppController",
-                                               "The clipboard is busy, so the selection was not read.");
-        case GrabStatus::CopyTimedOut:
-            return QCoreApplication::translate("lens::app::AppController",
-                                               "The selection could not be copied from the foreground application.");
-        case GrabStatus::EmptyText:
-            return QCoreApplication::translate("lens::app::AppController",
-                                               "The selected content did not contain readable text.");
-        case GrabStatus::Captured:
-            break;
-    }
-    return {};
-}
-
 } // namespace
 
 AppController::AppController(core::KnownStore& store, llm::LlmClient& llm, MouseSelectionHook& hook, const llm::Pricing& pricing, QObject* parent)
@@ -207,10 +182,10 @@ void AppController::beginSelection(QPoint anchor)
 {
     const auto grabbed = grabber_->grab();
     if (const auto* status = std::get_if<GrabStatus>(&grabbed)) {
-        // These are expected platform outcomes, but silence makes a failed selection look like
-        // a broken action bar. The notice is deliberately unanchored because no text was read.
+        // Expected platform outcomes -- the reader's own surface, a terminal, a busy clipboard,
+        // unreadable text. These drop the selection silently: a popup on every miss reads as a
+        // nag, so the action bar simply never appears.
         LENS_DEBUG("selection at ({}, {}) produced no text (status {})", anchor.x(), anchor.y(), static_cast<int>(*status));
-        showNotice(tr("Selection unavailable"), grabFailureMessage(*status), kNoticeError);
         return;
     }
 

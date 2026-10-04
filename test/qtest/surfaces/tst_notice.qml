@@ -4,13 +4,14 @@ import Lens
 import "../testutil.js" as Util
 
 /**
- * The notice surface for failed requests and failed selection grabs.
+ * The notice surface for failed requests.
  *
  * The controller owns the payload; this case exercises the surface contract with the failure
- * families that can actually reach it. Every current path is an error: the three channels mean
- * a selection always has somewhere to go, so the old "no available channel" info notice no
- * longer exists. The daily budget event is a phase-two placeholder and has no production payload
- * or fixture here.
+ * families that can actually reach it. Every current path is an error: network, key, and schema
+ * failures. A failed selection grab is dropped silently (a popup per miss was a nag), and the
+ * three channels mean a selection always has somewhere to go, so the old "no available channel"
+ * info notice no longer exists. The daily budget event is a phase-two placeholder and has no
+ * production payload or fixture here.
  */
 Item {
     id: root
@@ -44,10 +45,7 @@ Item {
             const failures = [
                 { title: "Network", body: "The request could not reach the service.", kind: "error" },
                 { title: "Schema", body: "The explanation response was invalid.", kind: "error" },
-                { title: "API key", body: "The API key is missing.", kind: "error" },
-                { title: "Clipboard", body: "The clipboard is busy, so the selection was not read.", kind: "error" },
-                { title: "Terminal", body: "Selection capture is unavailable in terminal applications.", kind: "error" },
-                { title: "Selection unavailable", body: "The selection could not be copied from the foreground application.", kind: "error" }
+                { title: "API key", body: "The API key is missing.", kind: "error" }
             ];
 
             for (let i = 0; i < failures.length; ++i) {
@@ -85,7 +83,7 @@ Item {
                 skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qml-snapshot.ps1) to save the snapshot");
 
             Tokens.theme = "light";
-            const notice = opened("Selection unavailable", "The selected content did not contain readable text.", "error");
+            const notice = opened("API key", "The API key is missing.", "error");
             verify(Util.saveSnapshot(testCase, notice.contentItem, lensQaSnapshotDir, "notice-light"));
             notice.visible = false;
 

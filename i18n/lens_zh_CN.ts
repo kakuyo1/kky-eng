@@ -346,67 +346,37 @@
         <translation>出国考试</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="108"/>
-        <source>Lens cannot read a selection from its own surface.</source>
-        <translation>Lens 无法从自己的界面上读取选区。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="111"/>
-        <source>Selection capture is unavailable in terminal applications.</source>
-        <translation>终端类应用不支持选区取词。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="114"/>
-        <source>The clipboard is busy, so the selection was not read.</source>
-        <translation>剪贴板被占用，未能读取选区。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="117"/>
-        <source>The selection could not be copied from the foreground application.</source>
-        <translation>无法从前台应用复制选区。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="120"/>
-        <source>The selected content did not contain readable text.</source>
-        <translation>选中的内容不含可读文本。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="213"/>
-        <source>Selection unavailable</source>
-        <translation>选区不可用</translation>
-    </message>
-    <message>
-        <location filename="../src/app/app_controller.cpp" line="335"/>
+        <location filename="../src/app/app_controller.cpp" line="310"/>
         <source>Explaining…</source>
         <translation>正在解释…</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="631"/>
+        <location filename="../src/app/app_controller.cpp" line="606"/>
         <source>Today %1</source>
         <translation>今天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="633"/>
+        <location filename="../src/app/app_controller.cpp" line="608"/>
         <source>Yesterday %1</source>
         <translation>昨天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="640"/>
+        <location filename="../src/app/app_controller.cpp" line="615"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="642"/>
+        <location filename="../src/app/app_controller.cpp" line="617"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="785"/>
+        <location filename="../src/app/app_controller.cpp" line="760"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="785"/>
+        <location filename="../src/app/app_controller.cpp" line="760"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>
