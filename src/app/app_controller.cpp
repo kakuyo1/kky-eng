@@ -100,6 +100,11 @@ QString currencySymbol(const QString& code)
     return code;
 }
 
+/// Cap on what a selection may send. A word, phrase, or sentence is far below this; a whole
+/// document grabbed by accident is not, and sending it would burn tokens, stall the request,
+/// and paint an enormous title on the card.
+constexpr int kMaxSelectionChars = 1000;
+
 } // namespace
 
 AppController::AppController(core::KnownStore& store, llm::LlmClient& llm, MouseSelectionHook& hook, const llm::Pricing& pricing, QObject* parent)
@@ -123,8 +128,19 @@ AppController::AppController(core::KnownStore& store, llm::LlmClient& llm, Mouse
 
         const llm::Explanation& first = results.front();
         const bool isWord = pending_.kind == QLatin1String("word");
+        // A second selection may have replaced the pending one while this request was in flight;
+        // a response that no longer matches what is pending is stale and is dropped, or it would
+        // paint the wrong text on the card (and cache a word against the wrong lemma).
+        const bool matches = isWord ? (QString::compare(first.title, pending_.lemma, Qt::CaseInsensitive) == 0)
+                                    : (first.title == pending_.text);
+        if (!matches) {
+            LENS_DEBUG("dropping a stale response for '{}'", first.title.toStdString());
+            store_.save();
+            emit statsChanged();
+            return;
+        }
         if (isWord)
-            store_.cachePut(first.title.toStdString(), {first.ipa.toStdString(), first.en.toStdString(), first.zh.toStdString()});
+            store_.cachePut(pending_.lemma.toStdString(), {first.ipa.toStdString(), first.en.toStdString(), first.zh.toStdString()});
         store_.save();
         showBubble(first.title,
                    pending_.kind,
@@ -200,7 +216,9 @@ void AppController::beginSelection(QPoint anchor)
         return;
     }
 
-    const QString text = captured.text;
+    QString text = captured.text;
+    if (text.size() > kMaxSelectionChars)
+        text = text.left(kMaxSelectionChars) + QStringLiteral("…");
     // What the selection is gets decided here, once, and the two items on the bar only route
     // on the answer. That ordering is the specification, not a convenience: translate and
     // explain are two ways into the same decision (UI.md section 4.9).

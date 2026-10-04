@@ -123,7 +123,7 @@
 
 1. 外层是 JSON 对象，且 `choices` 非空；
 2. `finish_reason` 必须是 `stop`——`length`（截断）、`content_filter`、`insufficient_system_resource`、`aborted` 一律判失败；
-3. `message.content` 能解析成 JSON 对象，且带 `results` 数组；
+3. `message.content` 能解析成 JSON 对象，且带 `results` 数组（容忍 Markdown ``` 围栏或前后闲话：提取首个 `{` 到末个 `}`）；
 4. `results` 每一项是对象，且**具备所选 schema 要求的全部字段**；
 5. `en` / `zh` 非空；单词通道额外要求 `word` 非空，`ipa` 可空（孤立缩写的单词没有音标）；
 6. 单词通道回显的词与请求**逐一对应**：不多、不少、不重、不拼错；实体 / 句子不回显，按请求顺序取结果（`title` 由 App 盖上），模型把一段拆成多条时按顺序**合并**（各条 `en` / `zh` 以换行拼接）。返回顺序不作要求，代码按请求顺序回填。

@@ -33,6 +33,30 @@ QString renderSystemPrompt(Channel channel, const QString& explanationLang, cons
     return prompt;
 }
 
+/// @return The JSON object bytes inside a model's content, tolerating a surrounding markdown
+/// fence or a line of prose. The model is asked for bare JSON, but a wrapped answer is common
+/// enough that failing the whole batch over it would be brittle.
+QByteArray extractJsonObject(const QString& content)
+{
+    QString text = content.trimmed();
+    if (text.startsWith(QLatin1String("```"))) {
+        const int newline = text.indexOf(QLatin1Char('\n'));
+        if (newline >= 0)
+            text = text.mid(newline + 1);
+        const int fence = text.lastIndexOf(QLatin1String("```"));
+        if (fence >= 0)
+            text = text.left(fence);
+        text = text.trimmed();
+    }
+    if (!text.startsWith(QLatin1Char('{'))) {
+        const int open = text.indexOf(QLatin1Char('{'));
+        const int close = text.lastIndexOf(QLatin1Char('}'));
+        if (open >= 0 && close > open)
+            text = text.mid(open, close - open + 1);
+    }
+    return text.toUtf8();
+}
+
 } // namespace
 
 QString maskSensitive(const QString& text)
@@ -119,7 +143,7 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
                                    : finish));
 
     const QString content = choice.value("message").toObject().value("content").toString();
-    const auto payload = QJsonDocument::fromJson(content.toUtf8());
+    const auto payload = QJsonDocument::fromJson(extractJsonObject(content));
     if (!payload.isObject())
         return reject(QCoreApplication::translate("lens::llm",
                                                   "The model's answer is not valid JSON."));
@@ -197,15 +221,18 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
         return ordered;
     }
 
-    // A word keeps the echo contract: the model must name the exact word requested, which
-    // catches an explanation attached to the wrong entry before it reaches the bubble.
+    // A word keeps the echo contract: the model must name the word requested, which catches an
+    // explanation attached to the wrong entry before it reaches the bubble. Matching is
+    // case-insensitive (a model may capitalize an acronym) and the requested spelling wins, so
+    // the cache key and the bubble title stay canonical.
     QHash<QString, Explanation> byTitle;
     for (const auto& e : parsed) {
-        if (byTitle.contains(e.title))
+        const QString key = e.title.toLower();
+        if (byTitle.contains(key))
             return reject(QCoreApplication::translate("lens::llm",
                                                       "The model echoed the same title twice: %1.")
                               .arg(e.title));
-        byTitle.insert(e.title, e);
+        byTitle.insert(key, e);
     }
 
     if (byTitle.size() != expectedInputs.size())
@@ -218,12 +245,14 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
     QVector<Explanation> ordered;
     ordered.reserve(expectedInputs.size());
     for (const auto& input : expectedInputs) {
-        const auto it = byTitle.constFind(input);
+        const auto it = byTitle.constFind(input.toLower());
         if (it == byTitle.cend())
             return reject(QCoreApplication::translate(
                               "lens::llm", "The model never echoed \"%1\".")
                               .arg(input));
-        ordered.push_back(*it);
+        Explanation e = *it;
+        e.title = input;
+        ordered.push_back(e);
     }
 
     LENS_TRACE("parseExplanations: accepted {} explanation(s) for channel '{}'", ordered.size(), channelKey(channel));

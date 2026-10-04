@@ -204,6 +204,29 @@ TEST_F(LlmTest, FoldsSeveralEntityOrSentenceResultsIntoTheOneRequested)
     EXPECT_EQ(result.zh, "第一行。\n第二行。");
 }
 
+TEST_F(LlmTest, ToleratesAMarkdownFencedContent)
+{
+    // A model often wraps its JSON in a ```json fence even when asked not to; that is not a
+    // reason to throw the whole explanation away.
+    const QString fenced = QStringLiteral(
+        "```json\n{\"results\":[{\"word\":\"ubiquitous\",\"en\":\"x\",\"zh\":\"y\"}]}\n```");
+    const auto parsed = parseExplanations(Channel::Word, envelope(fenced), {"ubiquitous"});
+    ASSERT_TRUE(accepted(parsed)) << errorOf(parsed).toStdString();
+    EXPECT_EQ(std::get<QVector<Explanation>>(parsed).at(0).title, "ubiquitous");
+}
+
+TEST_F(LlmTest, MatchesAWordEchoCaseInsensitively)
+{
+    // The request sends a lower-cased lemma; a model may capitalize an acronym on echo. The
+    // requested spelling wins, so the cache key and the bubble title stay canonical.
+    const auto parsed = parseExplanations(
+        Channel::Word,
+        envelope(results(QStringLiteral(R"({"word":"QML","en":"a markup language","zh":"一种标记语言"})"))),
+        {"qml"});
+    ASSERT_TRUE(accepted(parsed)) << errorOf(parsed).toStdString();
+    EXPECT_EQ(std::get<QVector<Explanation>>(parsed).at(0).title, "qml");
+}
+
 TEST_F(LlmTest, RejectsTheWholeBatchOnAnyMalformedResponse)
 {
     const struct {
