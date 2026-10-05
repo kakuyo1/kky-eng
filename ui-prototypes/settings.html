@@ -122,7 +122,7 @@ const categories = [
 ];
 const titles = { clipboard: "弹窗与剪贴板", connection: "API 配置" };
 const defaults = { theme: "light", uiLang: "zh", level: "CET-4", language: "en", startup: false, selection: true,
-  policy: "topmost", frequency: "standard", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
+  policy: "topmost", frequency: "standard", drag: "standard", minLen: "3", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
   multi: false, pet: false };
 const app = document.getElementById("app"), view = document.getElementById("view");
 const titleEl = document.getElementById("title"), crumbEl = document.getElementById("crumb");
@@ -165,6 +165,13 @@ function page(id) {
       sw("多义解释", "multi");
     case "capture": return `<div class="field"><div class="group-title">触发通道</div><div class="swgroup">${sw("选区取词", "selection")}${sw("OCR", "ocr", true)}${sw("自动扫描", "scan", true)}</div></div>` +
       `<div class="kbdrow off"><span>开关自动扫描</span><kbd>F8</kbd></div>` +
+      seg("拖拽阈值", "drag", [["sensitive", "灵敏"], ["standard", "标准"], ["sluggish", "迟钝"]]) +
+      dropdown("最小词长", "minLen", [
+        { value: "2", label: "2 字母", group: "" },
+        { value: "3", label: "3 字母", group: "" },
+        { value: "4", label: "4 字母", group: "" },
+        { value: "5", label: "5 字母", group: "" }
+      ]) +
       `<button type="button" class="link-row" data-route="clipboard"><span>弹窗与剪贴板</span><span class="chevm">${values.policy === "silent" ? "静默放弃" : "强制置顶"}<span aria-hidden="true">›</span></span></button>`;
     case "model": return dropdown("服务商", "provider", [
         { value: "DeepSeek", label: "DeepSeek", group: "国内" },

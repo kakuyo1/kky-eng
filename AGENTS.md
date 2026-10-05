@@ -108,6 +108,8 @@ Log through the `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_
 
 `.githooks/pre-commit` is the source of truth for the C++ and documentation checks: the tools, their fallback paths and the per-doc typography budgets all live there, and it checks only the files a commit touches, so a hand run is what covers the rest.
 
+`zhlint` 只用于仓库内供人类阅读的中文技术文档；不用于临时 handoff、agent-facing 文档或其他临时文件。
+
 QML is the exception. `scripts/quality/qml-lint.sh`, called by the hook and by CI, owns its own argument list and its warning ratchet, because a .qml file only lints correctly beside its whole module.
 
 ## Reference Documents
