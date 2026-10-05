@@ -111,6 +111,7 @@ QML is the exception. `scripts/qml-lint.sh`, called by the hook and by CI, owns 
 
 ## Reference Documents
 
+- `README.md`: product overview, build, run, test, and packaging entry points
 - `GLOSSARY.md`: glossary
 - `PRODUCT.md`: design decisions
 - `UI.md`: UI spec
