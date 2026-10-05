@@ -13,7 +13,7 @@
 namespace lens::llm {
 namespace {
 
-constexpr int kMaxWords = 20; ///< Contract limit; see PHASE1.md section 4.3.
+constexpr int kMaxWords  = 20; ///< Contract limit; see PHASE1.md section 4.3.
 constexpr int kTimeoutMs = 30000;
 
 } // namespace
@@ -60,7 +60,7 @@ void LlmClient::explainWords(QStringList words)
         return;
     }
 
-    QUrl url = config_.baseUrl;
+    QUrl url     = config_.baseUrl;
     QString path = url.path();
     while (path.endsWith(QLatin1Char('/')))
         path.chop(1);
@@ -72,7 +72,7 @@ void LlmClient::explainWords(QStringList words)
     request.setTransferTimeout(kTimeoutMs);
 
     const Channel channel = channel_;
-    const QString preset = preset_;
+    const QString preset  = preset_;
     LENS_INFO("explaining {} item(s) on channel '{}' preset '{}' with '{}'", words.size(), channelKey(channel), preset.toStdString(), config_.model.toStdString());
     LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kTimeoutMs);
 
@@ -94,7 +94,7 @@ void LlmClient::explainWords(QStringList words)
         }
 
         const QByteArray body = reply->readAll();
-        const auto parsed = parseExplanations(channel, body, words);
+        const auto parsed     = parseExplanations(channel, body, words);
         if (const auto* message = std::get_if<QString>(&parsed)) {
             emit failed(*message);
             return;

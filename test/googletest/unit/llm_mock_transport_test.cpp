@@ -55,7 +55,7 @@ struct QtApplication {
         : application(argc, argv)
     {}
 
-    int argc = 1;
+    int argc      = 1;
     char name[20] = "lens_gtest_unit";
     char* argv[2] = {name, nullptr};
     QCoreApplication application;
@@ -76,7 +76,7 @@ TEST_F(LlmTest, CompletesEntityAgainstAnOfflineHttpServer)
         ASSERT_NE(socket, nullptr);
         QObject::connect(socket, &QTcpSocket::readyRead, socket, [socket, &requestBytes] {
             requestBytes += socket->readAll();
-            const QByteArray body = entityResponse();
+            const QByteArray body    = entityResponse();
             const QByteArray headers = "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: " +
                                        QByteArray::number(body.size()) + "\r\nConnection: close\r\n\r\n";
             socket->write(headers + body);
@@ -100,7 +100,7 @@ TEST_F(LlmTest, CompletesEntityAgainstAnOfflineHttpServer)
     QObject::connect(&timeout, &QTimer::timeout, &loop, &QEventLoop::quit);
     QObject::connect(&client, &LlmClient::batchFinished, &loop, [&](QVector<Explanation> received, Usage receivedUsage) {
         results = std::move(received);
-        usage = receivedUsage;
+        usage   = receivedUsage;
         loop.quit();
     });
     QObject::connect(&client, &LlmClient::failed, &loop, [&](QString message) {

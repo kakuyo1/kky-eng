@@ -19,7 +19,7 @@ namespace lens::app {
 
 /// @brief Kinds a notice carries. Nothing depends on a particular rendering of them yet; the
 ///        surface that arrives later decides whether it distinguishes them.
-inline constexpr const char* kNoticeInfo = "info";
+inline constexpr const char* kNoticeInfo  = "info";
 inline constexpr const char* kNoticeError = "error";
 
 /**

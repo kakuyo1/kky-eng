@@ -30,7 +30,7 @@ namespace lens::llm {
 
 /// @brief What one model charges for each direction of traffic.
 struct ModelPrice {
-    double input = 0.0;  ///< Per `unit` prompt tokens.
+    double input  = 0.0; ///< Per `unit` prompt tokens.
     double output = 0.0; ///< Per `unit` completion tokens.
 };
 
@@ -81,7 +81,7 @@ public:
     }
 
 private:
-    QString currency_ = QStringLiteral("USD");        ///< What the vendor quotes its rates in.
+    QString currency_        = QStringLiteral("USD"); ///< What the vendor quotes its rates in.
     QString displayCurrency_ = QStringLiteral("USD"); ///< What the surfaces show; the file's
                                                       ///< `display.currency`, or the vendor's.
     double displayMultiplier_ = 1.0;                  ///< currency_ -> displayCurrency_.

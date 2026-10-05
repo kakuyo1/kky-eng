@@ -63,7 +63,7 @@ KnownStore KnownStore::load(std::filesystem::path path)
     if (doc.contains("known") && doc["known"].is_object()) {
         for (auto it = doc["known"].begin(); it != doc["known"].end(); ++it) {
             if (!it.value().is_boolean()) continue;
-            const bool learned = it.value().get<bool>();
+            const bool learned     = it.value().get<bool>();
             store.marks_[it.key()] = learned;
             if (learned) store.known_.insert(it.key());
         }
@@ -160,8 +160,8 @@ void KnownStore::save() const
 {
     // Start from the document as loaded and overwrite only our own keys; everything else
     // (API-KEY, URL, settings added later) is carried through untouched.
-    nlohmann::json doc = doc_.is_object() ? doc_ : nlohmann::json::object();
-    doc["level"] = level_;
+    nlohmann::json doc     = doc_.is_object() ? doc_ : nlohmann::json::object();
+    doc["level"]           = level_;
     doc["explanationLang"] = lang_;
 
     nlohmann::json known = nlohmann::json::object();
@@ -171,7 +171,7 @@ void KnownStore::save() const
 
     nlohmann::json cache = nlohmann::json::object();
     for (const auto& [key, entry] : cache_) {
-        const std::size_t sep = key.find(kSep);
+        const std::size_t sep                          = key.find(kSep);
         cache[key.substr(0, sep)][key.substr(sep + 1)] = {{"ipa", entry.ipa}, {"en", entry.en}, {"zh", entry.zh}};
     }
     doc["cache"] = std::move(cache);

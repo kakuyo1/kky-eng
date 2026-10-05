@@ -65,7 +65,7 @@ inline constexpr const char* kLogFileName = "lens.log";
  *               stderr only.
  * @note Safe to call more than once; the newest call wins.
  */
-void init(spdlog::level::level_enum level = kDefaultLevel,
+void init(spdlog::level::level_enum level     = kDefaultLevel,
           const std::filesystem::path& logDir = std::filesystem::path{"logs"});
 
 }

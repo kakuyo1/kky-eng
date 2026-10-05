@@ -33,10 +33,10 @@ struct HistoryEntry {
 
 /// @brief One day's tallies, for the statistics and cost popups.
 struct DailyUsage {
-    int pops = 0;
-    int learned = 0;
-    int fresh = 0;
-    long long promptTokens = 0;
+    int pops                   = 0;
+    int learned                = 0;
+    int fresh                  = 0;
+    long long promptTokens     = 0;
     long long completionTokens = 0;
 };
 

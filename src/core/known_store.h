@@ -111,7 +111,7 @@ private:
     std::unordered_set<std::string> known_;
     /// Keyed by explanation language + lemma so switching language never mixes meanings.
     std::unordered_map<std::string, WordCache> cache_;
-    int level_ = 2;           ///< CET-4, the default difficulty level.
+    int level_        = 2;    ///< CET-4, the default difficulty level.
     std::string lang_ = "en"; ///< English by default.
 };
 

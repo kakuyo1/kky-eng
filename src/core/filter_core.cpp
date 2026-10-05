@@ -39,7 +39,7 @@ std::string lower(std::string_view s);
 std::string trimPunctuation(std::string_view token)
 {
     std::size_t first = 0;
-    std::size_t last = token.size();
+    std::size_t last  = token.size();
     while (first < last && !isLetter(token[first]))
         ++first;
     while (last > first && !isLetter(token[last - 1]))
@@ -76,7 +76,7 @@ bool isEntitySelection(std::string_view text)
     while (start < text.size()) {
         while (start < text.size() && isSpace(text[start]))
             ++start;
-        const std::size_t end = text.find_first_of(" \t\n\r\v\f", start);
+        const std::size_t end  = text.find_first_of(" \t\n\r\v\f", start);
         const std::size_t stop = end == std::string_view::npos ? text.size() : end;
         if (start < stop) {
             const std::string token = trimPunctuation(text.substr(start, stop - start));
@@ -121,8 +121,8 @@ std::string_view loneToken(std::string_view text)
     while (tail > head && isSpace(text[tail - 1]))
         --tail;
     const std::string_view body = text.substr(head, tail - head);
-    std::size_t first = 0;
-    std::size_t last = body.size();
+    std::size_t first           = 0;
+    std::size_t last            = body.size();
     while (first < last && !isAlnum(body[first]))
         ++first;
     while (last > first && !isAlnum(body[last - 1]))
@@ -284,7 +284,7 @@ void loadIrregulars(const std::filesystem::path& path)
         LENS_CRITICAL("loadIrregulars: '{}' holds no pairs", path.string());
         throw std::runtime_error("The irregular table is empty: " + path.string());
     }
-    g_irregulars = std::move(table);
+    g_irregulars       = std::move(table);
     g_irregularsLoaded = true;
 
     const auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -311,13 +311,13 @@ std::string lemmatize(std::string_view token)
     // told apart locally, so those are settled by the same frequency tie-break.
     if (const auto it = g_irregulars.find(t); it != g_irregulars.end()) {
         const std::vector<std::string>& bases = it->second;
-        const std::string* best = &bases.front();
-        std::size_t bestRank = std::numeric_limits<std::size_t>::max();
+        const std::string* best               = &bases.front();
+        std::size_t bestRank                  = std::numeric_limits<std::size_t>::max();
         for (const auto& base : bases) {
             const std::size_t rank = rankOf(base);
             if (rank != 0 && rank < bestRank) {
                 bestRank = rank;
-                best = &base;
+                best     = &base;
             }
         }
         if (*best != t) LENS_TRACE("lemmatize: '{}' -> '{}' (irregular)", t, *best);
@@ -388,12 +388,12 @@ std::string lemmatize(std::string_view token)
     if (cands.empty()) return t; // not in the list; the caller's whitelist stage drops it
 
     const std::string* best = &cands.front();
-    std::size_t bestRank = rankOf(*best);
+    std::size_t bestRank    = rankOf(*best);
     for (const auto& c : cands) {
         const std::size_t r = rankOf(c);
         if (r < bestRank) {
             bestRank = r;
-            best = &c;
+            best     = &c;
         }
     }
 
@@ -422,8 +422,8 @@ std::vector<Candidate> filterWords(
     // by the ordinary gates; only a selection that is exactly this token qualifies (see
     // check-eval-corpus.py's lone-token rule and test/eval_corpus.json).
     if (const std::string_view token = loneToken(text); !token.empty()) {
-        const std::string surface = lower(token);
-        const std::string lemma = lemmatize(surface); // RUNNING -> run; an acronym stands as-is
+        const std::string surface  = lower(token);
+        const std::string lemma    = lemmatize(surface); // RUNNING -> run; an acronym stands as-is
         const CandidateState state = knownLemmas.count(lemma) != 0                    ? CandidateState::Known
                                      : inTable(lemma) && rankOf(lemma) <= minFreqRank ? CandidateState::Mastered
                                                                                       : CandidateState::New;
@@ -437,7 +437,7 @@ std::vector<Candidate> filterWords(
     }
 
     const std::size_t size = text.size();
-    std::size_t i = 0;
+    std::size_t i          = 0;
     while (i < size) {
         while (i < size && isSpace(text[i]))
             ++i;
@@ -463,7 +463,7 @@ std::vector<Candidate> filterWords(
         LENS_PROFILE_COUNT("filterWords/tokens", 1); // every run that survived trimming
 
         const std::string_view tok = text.substr(head, tail - head);
-        bool glued = false;
+        bool glued                 = false;
         for (char c : tok)
             if (!isLetter(c)) {
                 glued = true;

@@ -40,7 +40,7 @@ struct Explanation {
 /// Missing from the response is recorded as zero rather than failing the batch: losing one
 /// line of a tally is survivable, throwing away an explanation that succeeded is not.
 struct Usage {
-    int promptTokens = 0;
+    int promptTokens     = 0;
     int completionTokens = 0;
 };
 
@@ -107,8 +107,8 @@ public slots:
 private:
     Config config_;
     Channel channel_ = Channel::Word;
-    QString preset_ = QStringLiteral("default");
-    QString lang_ = QStringLiteral("en");
+    QString preset_  = QStringLiteral("default");
+    QString lang_    = QStringLiteral("en");
     QNetworkAccessManager* manager_;
 };
 

@@ -25,9 +25,9 @@ Pricing Pricing::load(const std::filesystem::path& path)
 
     const QJsonObject root = doc.object();
     Pricing pricing;
-    pricing.currency_ = root.value("currency").toString();
+    pricing.currency_        = root.value("currency").toString();
     pricing.displayCurrency_ = pricing.currency_;
-    pricing.unit_ = root.value("unit").toInteger();
+    pricing.unit_            = root.value("unit").toInteger();
     if (pricing.currency_.isEmpty() || pricing.unit_ <= 0)
         throw std::runtime_error("The price list states no currency or no unit: " + path.string());
 
@@ -35,13 +35,13 @@ Pricing Pricing::load(const std::filesystem::path& path)
     // what a price list on its own means. With one, the rates below stay the vendor's and the
     // conversion is a separate, dated fact.
     if (const QJsonObject display = root.value("display").toObject(); !display.isEmpty()) {
-        const QString code = display.value("currency").toString();
+        const QString code      = display.value("currency").toString();
         const double multiplier = display.value("multiplier").toDouble();
         if (code.isEmpty() || multiplier <= 0.0)
             throw std::runtime_error("The price list's display block names no currency or no positive multiplier: " + path.string());
-        pricing.displayCurrency_ = code;
+        pricing.displayCurrency_   = code;
         pricing.displayMultiplier_ = multiplier;
-        pricing.rateAsOf_ = display.value("asOf").toString();
+        pricing.rateAsOf_          = display.value("asOf").toString();
     }
 
     const QJsonObject models = root.value("models").toObject();
@@ -80,7 +80,7 @@ double Pricing::cost(const QString& model, const Usage& usage) const
         return 0.0;
     }
 
-    const double unit = static_cast<double>(unit_);
+    const double unit   = static_cast<double>(unit_);
     const double quoted = (usage.promptTokens / unit) * it->input + (usage.completionTokens / unit) * it->output;
     return quoted * displayMultiplier_;
 }

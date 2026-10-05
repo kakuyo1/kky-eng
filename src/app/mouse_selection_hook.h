@@ -29,8 +29,8 @@ namespace lens::app {
 struct Gesture {
     int downX = 0; ///< Where the button went down.
     int downY = 0;
-    int upX = 0; ///< Where it came back up.
-    int upY = 0;
+    int upX   = 0; ///< Where it came back up.
+    int upY   = 0;
 };
 
 /**

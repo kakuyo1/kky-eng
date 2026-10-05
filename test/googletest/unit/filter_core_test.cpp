@@ -106,15 +106,15 @@ TEST_F(CoreTest, ReplaysTheSampleCorpus)
     ASSERT_TRUE(corpus.is_array());
 
     std::size_t mismatched = 0;
-    std::size_t index = 0;
+    std::size_t index      = 0;
     for (const auto& item : corpus) {
         ++index;
         SCOPED_TRACE("corpus #" + std::to_string(index) + " " + item.value("note", std::string()));
 
-        const std::string text = item.at("text").get<std::string>();
-        const auto expect = item.at("expect").get<std::vector<std::string>>();
+        const std::string text        = item.at("text").get<std::string>();
+        const auto expect             = item.at("expect").get<std::vector<std::string>>();
         const std::size_t minFreqRank = item.value("minFreqRank", std::size_t{0});
-        const std::string expectKind = item.value("expectKind", std::string());
+        const std::string expectKind  = item.value("expectKind", std::string());
 
         std::unordered_set<std::string> known;
         for (const auto& word : item.value("known", std::vector<std::string>{}))

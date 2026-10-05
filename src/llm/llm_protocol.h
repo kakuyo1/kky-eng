@@ -48,7 +48,7 @@ struct RequestTemplate {
     QJsonObject responseFormat;             ///< Passed through as `response_format`.
     QJsonObject thinking;                   ///< Passed through as `thinking`.
     int maxTokens = 0;                      ///< Output token cap.
-    bool stream = false;                    ///< A batch is answered whole.
+    bool stream   = false;                  ///< A batch is answered whole.
 };
 
 /// @return The lowercase channel name used in file names and log lines, e.g. "word".

@@ -76,7 +76,7 @@ PromptTemplate loadPrompt(const QJsonObject& preset, const std::filesystem::path
 
     PromptTemplate loaded;
     loaded.systemPromptTemplate = requireString(prompt, "template", file);
-    const QJsonObject lines = prompt.value("outputLanguage").toObject();
+    const QJsonObject lines     = prompt.value("outputLanguage").toObject();
     for (auto it = lines.begin(); it != lines.end(); ++it)
         loaded.outputLanguageLine.insert(it.key(), it.value().toString());
 
@@ -105,16 +105,16 @@ const char* channelKey(Channel channel)
 
 void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
 {
-    const std::string key = channelKey(channel);
+    const std::string key                   = channelKey(channel);
     const std::filesystem::path requestFile = dir / ("request." + key + ".json");
-    const std::filesystem::path schemaFile = dir / ("response." + key + ".schema.json");
+    const std::filesystem::path schemaFile  = dir / ("response." + key + ".schema.json");
 
     const QJsonObject root = readJsonObject(requestFile);
     RequestTemplate request;
     request.responseFormat = root.value("responseFormat").toObject();
-    request.thinking = root.value("thinking").toObject();
-    request.maxTokens = root.value("maxTokens").toInt();
-    request.stream = root.value("stream").toBool();
+    request.thinking       = root.value("thinking").toObject();
+    request.maxTokens      = root.value("maxTokens").toInt();
+    request.stream         = root.value("stream").toBool();
 
     const QJsonObject presets = root.value("presets").toObject();
     if (presets.isEmpty()) {
@@ -134,7 +134,7 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
     requireNonEmpty(request.thinking, "thinking", requestFile);
 
     const QJsonObject schema = readJsonObject(schemaFile);
-    const QJsonObject items = schema.value(QStringLiteral("properties"))
+    const QJsonObject items  = schema.value(QStringLiteral("properties"))
                                   .toObject()
                                   .value(QStringLiteral("results"))
                                   .toObject()
@@ -149,9 +149,9 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
         throw std::runtime_error("no 'properties.results.items.required' in " + schemaFile.string());
 
     LoadedProtocol& slot = slotFor(channel);
-    slot.request = std::move(request);
-    slot.requiredFields = std::move(required);
-    slot.loaded = true;
+    slot.request         = std::move(request);
+    slot.requiredFields  = std::move(required);
+    slot.loaded          = true;
 
     LENS_INFO("llm protocol loaded for channel '{}': {} preset(s), {} required result field(s), max_tokens={}", key, slot.request.prompts.size(), slot.requiredFields.size(), slot.request.maxTokens);
 }
@@ -168,7 +168,7 @@ const RequestTemplate& requestTemplate(Channel channel)
 const PromptTemplate& promptTemplate(Channel channel, const QString& preset)
 {
     const RequestTemplate& request = requestTemplate(channel);
-    const auto it = request.prompts.constFind(preset);
+    const auto it                  = request.prompts.constFind(preset);
     if (it == request.prompts.cend())
         throw std::logic_error("lens::llm::promptTemplate: preset '" + preset.toStdString() +
                                "' is not loaded for channel '" + channelKey(channel) + "'");

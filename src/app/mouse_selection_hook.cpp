@@ -30,15 +30,15 @@ struct GestureTracker {
     // Read from the system once, in install(). A reader who changes Mouse Properties while
     // the app runs keeps the old values until it restarts; ponytail: not worth a
     // WM_SETTINGCHANGE handler for a number nobody retunes mid-session.
-    int dragSlopPx = 4; ///< max(SM_CXDRAG, SM_CYDRAG).
-    int downX = 0;
-    int downY = 0;
+    int dragSlopPx     = 4; ///< max(SM_CXDRAG, SM_CYDRAG).
+    int downX          = 0;
+    int downY          = 0;
     bool overOwnWindow = false; ///< The press landed on a surface of this process.
 
     void onPress(int x, int y, bool own)
     {
-        downX = x;
-        downY = y;
+        downX         = x;
+        downY         = y;
         overOwnWindow = own;
 
         // A press on one of our own surfaces is not the start of a selection: the reader is
@@ -85,9 +85,9 @@ MouseSelectionHook* g_owner = nullptr;
 // something that blocks for longer than a mouse may wait: measured on the real machine, at
 // startup alone, three inputs at 312 ms apiece while it compiled the QML and built the first
 // frame. Installing the hook later only moves which work is caught, so it lives here instead.
-HHOOK g_handle = nullptr;
+HHOOK g_handle       = nullptr;
 DWORD g_hookThreadId = 0;
-DWORD g_hookError = 0;
+DWORD g_hookError    = 0;
 std::thread g_hookThread;
 std::mutex g_startMutex;
 std::condition_variable g_started;
@@ -163,8 +163,8 @@ void hookThreadMain()
     {
         const std::lock_guard<std::mutex> lock(g_startMutex);
         g_hookThreadId = GetCurrentThreadId();
-        g_hookError = g_handle == nullptr ? GetLastError() : 0;
-        g_startDone = true;
+        g_hookError    = g_handle == nullptr ? GetLastError() : 0;
+        g_startDone    = true;
     }
     g_started.notify_all();
 
@@ -180,7 +180,7 @@ void hookThreadMain()
     // it is the only one that can know no callback is in flight.
     UnhookWindowsHookEx(g_handle);
     g_handle = nullptr;
-    g_owner = nullptr;
+    g_owner  = nullptr;
 }
 
 } // namespace
@@ -216,13 +216,13 @@ bool MouseSelectionHook::install()
 
     // Read on this thread, before the hook starts: the tracker is touched only by the callback
     // afterwards, and starting the thread is what publishes these values to it.
-    const int dragX = GetSystemMetrics(SM_CXDRAG);
-    const int dragY = GetSystemMetrics(SM_CYDRAG);
+    const int dragX      = GetSystemMetrics(SM_CXDRAG);
+    const int dragY      = GetSystemMetrics(SM_CYDRAG);
     g_tracker.dragSlopPx = dragX > dragY ? dragX : dragY;
-    g_owner = this;
+    g_owner              = this;
     {
         std::unique_lock<std::mutex> lock(g_startMutex);
-        g_startDone = false;
+        g_startDone  = false;
         g_hookThread = std::thread(hookThreadMain);
         g_started.wait(lock, [] { return g_startDone; });
     }

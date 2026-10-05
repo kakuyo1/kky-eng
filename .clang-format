@@ -40,11 +40,11 @@ BraceWrapping:
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
 
-# Off: consecutive declarations and assignments are written flush, not padded into columns.
+# Consecutive assignments are aligned; consecutive declarations stay flush.
 # (AlignTrailingComments stays at its default: the `///<` comments in the tree are aligned, and
 # turning it off strips that padding from every field in the repository -- 3795 changed lines
 # instead of 1024, measured.)
-AlignConsecutiveAssignments: None
+AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveDeclarations: None
 AllowShortBlocksOnASingleLine: Never
 # The next two are permissions rather than normalisers: a short arm that arrives on one line is

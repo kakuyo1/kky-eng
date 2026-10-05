@@ -22,17 +22,17 @@ void installUiFonts()
     // LENS_SYSTEM_FONTS is a machine path and arrives from config/paths.json through CMake, the
     // way LENS_DATA_DIR and LENS_QTEST_DIR already do; only the file names belong here. Adjacent
     // literals concatenate in the preprocessor, so this is still one QStringLiteral.
-    const int latin = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/SegUIVar.ttf"));
-    const int chinese = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/msyhl.ttc"));
+    const int latin          = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/SegUIVar.ttf"));
+    const int chinese        = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/msyhl.ttc"));
     const int chineseRegular = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/msyh.ttc"));
-    const int noto = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/NotoSansSC-VF.ttf"));
-    const int mono = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/CascadiaCode.ttf"));
+    const int noto           = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/NotoSansSC-VF.ttf"));
+    const int mono           = QFontDatabase::addApplicationFont(QStringLiteral(LENS_SYSTEM_FONTS "/CascadiaCode.ttf"));
     if (latin < 0 or chinese < 0 or chineseRegular < 0 or mono < 0)
         qFatal("could not load the Windows UI font files for the offscreen snapshot");
 
-    const QString lightFamily = QFontDatabase::applicationFontFamilies(chinese).value(0);
+    const QString lightFamily   = QFontDatabase::applicationFontFamilies(chinese).value(0);
     const QString regularFamily = QFontDatabase::applicationFontFamilies(chineseRegular).value(0);
-    const QString notoFamily = noto >= 0 ? QFontDatabase::applicationFontFamilies(noto).value(0) : QString{};
+    const QString notoFamily    = noto >= 0 ? QFontDatabase::applicationFontFamilies(noto).value(0) : QString{};
     if (lightFamily.isEmpty() or regularFamily.isEmpty())
         qFatal("could not resolve the Windows Chinese font families for the offscreen snapshot");
 
@@ -87,7 +87,7 @@ using lens::core::KnownStore;
 /// a pointer the engine is told not to own -- so whatever stands behind it has to outlive all
 /// of them. Built on first use and never torn down; the process is the test run.
 struct Singletons {
-    Singletons() = default;
+    Singletons()             = default;
     Singletons(Singletons&&) = default; ///< What lets the lambda below hand the built one out.
     ~Singletons()
     {
@@ -128,7 +128,7 @@ Singletons& singletons()
     static Singletons one = [] {
         Singletons built;
         built.settingsPath = writableSettingsCopy();
-        built.store = std::make_unique<KnownStore>(KnownStore::load(std::filesystem::path(built.settingsPath.toStdString())));
+        built.store        = std::make_unique<KnownStore>(KnownStore::load(std::filesystem::path(built.settingsPath.toStdString())));
         // No key and no URL: nothing in this target asks the model anything, and a config that
         // could reach the network is one a case could accidentally spend money through. The model
         // is named anyway, the way main() defaults one -- AppController prices every cost row
@@ -136,10 +136,10 @@ Singletons& singletons()
         // each of those calls warn that it had no rate: 280 lines a run, none of them news.
         built.llm = std::make_unique<lens::llm::LlmClient>(
             lens::llm::Config{QUrl{}, QString{}, QStringLiteral("deepseek-flash")});
-        built.hook = std::make_unique<MouseSelectionHook>();
-        built.pricing = std::make_unique<lens::llm::Pricing>(lens::llm::Pricing::load(std::filesystem::path(LENS_DATA_DIR) / "llm" / "pricing.json"));
+        built.hook       = std::make_unique<MouseSelectionHook>();
+        built.pricing    = std::make_unique<lens::llm::Pricing>(lens::llm::Pricing::load(std::filesystem::path(LENS_DATA_DIR) / "llm" / "pricing.json"));
         built.controller = std::make_unique<AppController>(*built.store, *built.llm, *built.hook, *built.pricing);
-        built.tray = std::make_unique<Tray>(*built.controller);
+        built.tray       = std::make_unique<Tray>(*built.controller);
         return built;
     }();
     return one;

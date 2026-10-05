@@ -56,7 +56,7 @@ int callsMade = 0;
 ///         kDefaultCallCap otherwise.
 int callCap()
 {
-    bool ok = false;
+    bool ok         = false;
     const int asked = qEnvironmentVariableIntValue("LENS_SMOKE_MAX_CALLS", &ok);
     return ok && asked > 0 ? asked : kDefaultCallCap;
 }
@@ -69,9 +69,9 @@ std::optional<Config> readConfigFrom(const std::filesystem::path& path)
     const auto doc = nlohmann::json::parse(in, nullptr, false);
     if (doc.is_discarded() || !doc.is_object()) return std::nullopt;
 
-    const std::string url = doc.value("URL", std::string());
+    const std::string url   = doc.value("URL", std::string());
     const std::string model = doc.value("MODEL", std::string());
-    const std::string key = doc.value("API-KEY", std::string());
+    const std::string key   = doc.value("API-KEY", std::string());
     if (url.empty() || model.empty() || key.empty()) return std::nullopt;
 
     return Config{QUrl(QString::fromStdString(url)), QString::fromStdString(key), QString::fromStdString(model)};

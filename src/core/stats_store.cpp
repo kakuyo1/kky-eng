@@ -36,10 +36,10 @@ DailyUsage dailyFromJson(const nlohmann::json& j)
     DailyUsage day;
     if (!j.is_object())
         return day;
-    day.pops = j.value("pops", 0);
-    day.learned = j.value("learned", 0);
-    day.fresh = j.value("fresh", 0);
-    day.promptTokens = j.value("promptTokens", 0LL);
+    day.pops             = j.value("pops", 0);
+    day.learned          = j.value("learned", 0);
+    day.fresh            = j.value("fresh", 0);
+    day.promptTokens     = j.value("promptTokens", 0LL);
     day.completionTokens = j.value("completionTokens", 0LL);
     return day;
 }
@@ -53,7 +53,7 @@ StatsStore::StatsStore(nlohmann::json& document)
         for (const nlohmann::json& entry : doc_["history"]) {
             if (!entry.is_object())
                 continue;
-            const std::string lemma = entry.value("word", std::string());
+            const std::string lemma  = entry.value("word", std::string());
             const std::string minute = entry.value("time", std::string());
             if (lemma.empty() || dateOf(minute).empty())
                 continue; // a record with no word or no usable time is not one we can show

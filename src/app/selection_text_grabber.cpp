@@ -36,7 +36,7 @@ constexpr int kPollIntervalMs = 5;
 
 /// How many times to try opening the clipboard, and how long between tries.
 constexpr int kClipboardAttempts = 5;
-constexpr int kClipboardRetryMs = 10;
+constexpr int kClipboardRetryMs  = 10;
 
 /**
  * @brief Open the clipboard, retrying briefly.
@@ -154,23 +154,23 @@ bool sendCopyKeystroke()
 {
     const bool ctrlHeld = (GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0;
 
-    INPUT inputs[4] = {};
+    INPUT inputs[4]   = {};
     std::size_t count = 0;
     if (!ctrlHeld) {
-        inputs[count].type = INPUT_KEYBOARD;
+        inputs[count].type   = INPUT_KEYBOARD;
         inputs[count].ki.wVk = VK_CONTROL;
         ++count;
     }
-    inputs[count].type = INPUT_KEYBOARD;
+    inputs[count].type   = INPUT_KEYBOARD;
     inputs[count].ki.wVk = 'C';
     ++count;
-    inputs[count].type = INPUT_KEYBOARD;
-    inputs[count].ki.wVk = 'C';
+    inputs[count].type       = INPUT_KEYBOARD;
+    inputs[count].ki.wVk     = 'C';
     inputs[count].ki.dwFlags = KEYEVENTF_KEYUP;
     ++count;
     if (!ctrlHeld) {
-        inputs[count].type = INPUT_KEYBOARD;
-        inputs[count].ki.wVk = VK_CONTROL;
+        inputs[count].type       = INPUT_KEYBOARD;
+        inputs[count].ki.wVk     = VK_CONTROL;
         inputs[count].ki.dwFlags = KEYEVENTF_KEYUP;
         ++count;
     }

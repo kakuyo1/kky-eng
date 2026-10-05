@@ -49,7 +49,7 @@ QByteArray extractJsonObject(const QString& content)
         text = text.trimmed();
     }
     if (!text.startsWith(QLatin1Char('{'))) {
-        const int open = text.indexOf(QLatin1Char('{'));
+        const int open  = text.indexOf(QLatin1Char('{'));
         const int close = text.lastIndexOf(QLatin1Char('}'));
         if (open >= 0 && close > open)
             text = text.mid(open, close - open + 1);
@@ -160,7 +160,7 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
         return reject(QCoreApplication::translate("lens::llm",
                                                   "The model's answer carries no choices."));
 
-    const auto choice = choices.at(0).toObject();
+    const auto choice    = choices.at(0).toObject();
     const QString finish = choice.value("finish_reason").toString();
     // Only "stop" means the model finished on its own. "length" means the JSON was cut off
     // mid-way, which no amount of parsing can repair.
@@ -173,7 +173,7 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
                                    : finish));
 
     const QString content = choice.value("message").toObject().value("content").toString();
-    const auto payload = QJsonDocument::fromJson(extractJsonObject(content));
+    const auto payload    = QJsonDocument::fromJson(extractJsonObject(content));
     if (!payload.isObject())
         return reject(QCoreApplication::translate("lens::llm",
                                                   "The model's answer is not valid JSON."));
@@ -185,8 +185,8 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
 
     // Presence is gated on the response schema, so adding a required field is a data edit.
     const QStringList& requiredFields = requiredResultFields(channel);
-    const bool isWord = channel == Channel::Word;
-    const QString titleField = isWord ? QStringLiteral("word") : QStringLiteral("title");
+    const bool isWord                 = channel == Channel::Word;
+    const QString titleField          = isWord ? QStringLiteral("word") : QStringLiteral("title");
 
     QVector<Explanation> parsed;
     for (const auto& item : resultsValue.toArray()) {
@@ -227,7 +227,7 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
         if (parsed.size() == expectedInputs.size()) {
             for (int i = 0; i < expectedInputs.size(); ++i) {
                 Explanation e = parsed.at(i);
-                e.title = expectedInputs.at(i);
+                e.title       = expectedInputs.at(i);
                 ordered.push_back(e);
             }
         } else if (expectedInputs.size() == 1 && !parsed.isEmpty()) {
@@ -281,7 +281,7 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
                               "lens::llm", "The model never echoed \"%1\".")
                               .arg(input));
         Explanation e = *it;
-        e.title = input;
+        e.title       = input;
         ordered.push_back(e);
     }
 
@@ -292,14 +292,14 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
 Usage parseUsage(const QByteArray& responseBody)
 {
     const auto envelope = QJsonDocument::fromJson(responseBody).object();
-    const auto usage = envelope.value("usage").toObject();
+    const auto usage    = envelope.value("usage").toObject();
     if (usage.isEmpty()) {
         LENS_WARN("the response carries no usage object; the cost tally loses this call");
         return {};
     }
 
     Usage counts;
-    counts.promptTokens = usage.value("prompt_tokens").toInt();
+    counts.promptTokens     = usage.value("prompt_tokens").toInt();
     counts.completionTokens = usage.value("completion_tokens").toInt();
     LENS_TRACE("usage: {} prompt / {} completion token(s)", counts.promptTokens, counts.completionTokens);
     return counts;

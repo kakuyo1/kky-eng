@@ -42,7 +42,7 @@ std::vector<const char*> sortedKeys(const Registry& sites)
 /// @brief Write the header and one row for every key in @p keys.
 void writeTable(std::ostringstream& out, const Registry& sites, const std::vector<const char*>& keys, bool timed)
 {
-    constexpr int kNameWidth = 30;
+    constexpr int kNameWidth   = 30;
     constexpr int kNumberWidth = 16;
 
     out << std::left << std::setw(kNameWidth) << (timed ? "timer" : "counter") << std::right;

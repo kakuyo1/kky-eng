@@ -74,7 +74,7 @@ constexpr int kDragPx = 40;
 constexpr const char* kProbeWindowArg = "--lens-probe-window";
 
 /// How long to wait for the probe child to put its window up, and how often to look.
-constexpr int kProbeWindowWaitMs = 2000;
+constexpr int kProbeWindowWaitMs   = 2000;
 constexpr int kProbePollIntervalMs = 20;
 
 /// @return A name for the status, so a failure message says something a reader can act on
@@ -179,7 +179,7 @@ unsigned putClipboardTextAndFormat(const QString& text, const char* name, const 
     // Ownership passes to the clipboard on success and stays here on failure, so each handle
     // is freed only when its own SetClipboardData failed.
     const std::wstring wide = text.toStdWString();
-    HGLOBAL textMemory = GlobalAlloc(GMEM_MOVEABLE, (wide.size() + 1) * sizeof(wchar_t));
+    HGLOBAL textMemory      = GlobalAlloc(GMEM_MOVEABLE, (wide.size() + 1) * sizeof(wchar_t));
     if (textMemory != nullptr) {
         if (void* target = GlobalLock(textMemory)) {
             std::memcpy(target, wide.c_str(), (wide.size() + 1) * sizeof(wchar_t));
@@ -291,8 +291,8 @@ void sendDrag(POINT start, int dx)
 {
     auto mouseEvent = [](DWORD flag, int moveX) {
         INPUT input{};
-        input.type = INPUT_MOUSE;
-        input.mi.dx = moveX;
+        input.type       = INPUT_MOUSE;
+        input.mi.dx      = moveX;
         input.mi.dwFlags = flag;
         return input;
     };
@@ -342,7 +342,7 @@ public:
         close();
     }
 
-    ProbeChild(const ProbeChild&) = delete;
+    ProbeChild(const ProbeChild&)            = delete;
     ProbeChild& operator=(const ProbeChild&) = delete;
 
     /// @brief Start this executable in probe mode and put it in a kill-on-close job.
@@ -409,7 +409,7 @@ private:
     }
 
     HANDLE job_ = nullptr;
-    DWORD pid_ = 0;
+    DWORD pid_  = 0;
 };
 
 /**
@@ -739,7 +739,7 @@ int runProbeWindowHost()
     SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
     const std::wstring title = kProbeTitlePrefix + std::to_wstring(GetCurrentProcessId());
-    const HWND window = CreateWindowExW(WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, L"STATIC", title.c_str(), WS_POPUP | WS_VISIBLE, 80, 80, 220, 48, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+    const HWND window        = CreateWindowExW(WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, L"STATIC", title.c_str(), WS_POPUP | WS_VISIBLE, 80, 80, 220, 48, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
     // Nothing to find and no way to be told to quit: exit rather than block forever, so a broken
     // child does not outlive the parent that is waiting on its window.
     if (window == nullptr) return 1;

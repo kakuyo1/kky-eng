@@ -137,7 +137,7 @@ void Tray::refresh()
     }
 
     const QVariantMap stats = controller_.stats();
-    const QString today = tr("Today %1 words").arg(QString::number(stats.value("todayPops").toInt()));
+    const QString today     = tr("Today %1 words").arg(QString::number(stats.value("todayPops").toInt()));
     icon_->setToolTip(QStringLiteral("Lens · %1 · %2").arg(controller_.modeLabel(), today));
 }
 

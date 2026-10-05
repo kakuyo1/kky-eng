@@ -127,7 +127,7 @@ AppController::AppController(core::KnownStore& store, llm::LlmClient& llm, Mouse
         }
 
         const llm::Explanation& first = results.front();
-        const bool isWord = pending_.kind == QLatin1String("word");
+        const bool isWord             = pending_.kind == QLatin1String("word");
         // A second selection may have replaced the pending one while this request was in flight;
         // a response that no longer matches what is pending is stale and is dropped, or it would
         // paint the wrong text on the card (and cache a word against the wrong lemma).
@@ -241,15 +241,15 @@ void AppController::beginSelection(QPoint anchor)
             // nonsense. When every candidate is known or mastered the first one stands in --
             // a word the reader selected by hand is one they want explained, whatever they
             // once marked (TODO.md item 0).
-            const auto& candidates = selection.candidates;
-            const auto fresh = std::find_if(candidates.begin(), candidates.end(), [](const core::Candidate& candidate) {
+            const auto& candidates      = selection.candidates;
+            const auto fresh            = std::find_if(candidates.begin(), candidates.end(), [](const core::Candidate& candidate) {
                 return candidate.state == core::CandidateState::New;
             });
             const core::Candidate& word = fresh != candidates.end() ? *fresh : candidates.front();
 
-            pending_.kind = QStringLiteral("word");
+            pending_.kind    = QStringLiteral("word");
             pending_.surface = QString::fromStdString(word.surface);
-            pending_.lemma = QString::fromStdString(word.lemma);
+            pending_.lemma   = QString::fromStdString(word.lemma);
             LENS_INFO("selection of {} character(s): word channel, '{}' -> '{}'", text.size(), pending_.surface.toStdString(), pending_.lemma.toStdString());
             break;
         }
@@ -553,20 +553,20 @@ QVariantMap AppController::settings() const
 QVariantMap AppController::stats() const
 {
     const QString today = QDate::currentDate().toString(Qt::ISODate);
-    const auto& daily = stats_.daily();
+    const auto& daily   = stats_.daily();
 
-    int todayPops = 0;
+    int todayPops    = 0;
     int todayLearned = 0;
-    int todayFresh = 0;
+    int todayFresh   = 0;
     double todayCost = 0.0;
 
     for (const auto& [date, usage] : daily) {
         if (date != today.toStdString())
             continue;
-        todayPops = usage.pops;
+        todayPops    = usage.pops;
         todayLearned = usage.learned;
-        todayFresh = usage.fresh;
-        todayCost = amountOf(usage);
+        todayFresh   = usage.fresh;
+        todayCost    = amountOf(usage);
     }
 
     // No all-time total here: the statistics panel's last row counts the words the list holds,
@@ -709,25 +709,25 @@ QVariantMap AppController::cost() const
     const QDate today = QDate::currentDate();
     const auto& daily = stats_.daily();
 
-    double month = 0.0;
+    double month       = 0.0;
     double todayAmount = 0.0;
-    double yesterday = 0.0;
-    double week = 0.0;
+    double yesterday   = 0.0;
+    double week        = 0.0;
 
     // The tokens the amounts were priced from, per bucket, so a surface can show what was
     // bought as well as what it cost. Tokens are what is stored and the amounts are what the
     // current price list makes of them (PRODUCT.md "存储形状"), so the two travel together.
-    long long monthTokens = 0;
-    long long todayTokens = 0;
+    long long monthTokens     = 0;
+    long long todayTokens     = 0;
     long long yesterdayTokens = 0;
-    long long weekTokens = 0;
+    long long weekTokens      = 0;
 
     for (const auto& [date, usage] : daily) {
         const QDate when = QDate::fromString(QString::fromStdString(date), Qt::ISODate);
         if (!when.isValid())
             continue;
 
-        const double amount = amountOf(usage);
+        const double amount    = amountOf(usage);
         const long long tokens = usage.promptTokens + usage.completionTokens;
         if (when.year() == today.year() && when.month() == today.month()) {
             month += amount;
@@ -738,7 +738,7 @@ QVariantMap AppController::cost() const
             todayTokens = tokens;
         }
         if (when.daysTo(today) == 1) {
-            yesterday = amount;
+            yesterday       = amount;
             yesterdayTokens = tokens;
         }
         // ISO weeks start on Monday, which is what "this week" means on the calendar the

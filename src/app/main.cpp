@@ -239,9 +239,9 @@ int main(int argc, char* argv[])
         }
     }();
 
-    const QString apiKey = QString::fromStdString(settingsValue(store, "API-KEY"));
+    const QString apiKey  = QString::fromStdString(settingsValue(store, "API-KEY"));
     const QString baseUrl = QString::fromStdString(settingsValue(store, "URL"));
-    const QString model = QString::fromStdString(settingsValue(store, "MODEL"));
+    const QString model   = QString::fromStdString(settingsValue(store, "MODEL"));
     if (apiKey.isEmpty())
         LENS_WARN("no API key in the settings; explanations will be refused until one is set");
 

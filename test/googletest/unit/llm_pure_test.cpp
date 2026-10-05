@@ -141,7 +141,7 @@ TEST_F(LlmTest, RequestBodyKeepsTheDeepSeekContract)
         const auto messages = root.value("messages").toArray();
         ASSERT_EQ(messages.size(), 2);
         const auto system = messages.at(0).toObject().value("content").toString();
-        const auto user = messages.at(1).toObject().value("content").toString();
+        const auto user   = messages.at(1).toObject().value("content").toString();
 
         EXPECT_EQ(messages.at(0).toObject().value("role").toString(), "system");
         EXPECT_EQ(messages.at(1).toObject().value("role").toString(), "user");
@@ -181,7 +181,7 @@ TEST_F(LlmTest, UsesSentencePresetsAndTheSharedEntityPreset)
             buildRequestBody(config, Channel::Sentence, {"New York is busy."}, lang, preset));
         return body.object().value("messages").toArray().at(0).toObject().value("content").toString();
     };
-    const auto entity = QJsonDocument::fromJson(buildRequestBody(config, Channel::Entity, {"New York"}, "en"));
+    const auto entity       = QJsonDocument::fromJson(buildRequestBody(config, Channel::Entity, {"New York"}, "en"));
     const auto entityPrompt = entity.object().value("messages").toArray().at(0).toObject().value("content").toString();
 
     // With an English explanation language the two sentence items are the same job: explain in

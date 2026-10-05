@@ -22,7 +22,7 @@ spdlog::level::level_enum levelFromEnvironment(spdlog::level::level_enum fallbac
     if (name == nullptr) return fallback;
 
     const auto parsed = spdlog::level::from_str(name);
-    const bool known = parsed != spdlog::level::off || std::string_view{name} == "off";
+    const bool known  = parsed != spdlog::level::off || std::string_view{name} == "off";
     return known ? parsed : fallback;
 }
 
