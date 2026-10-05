@@ -16,6 +16,14 @@
 | [`source-code-review-hotspots-2026-10-03.md`](code-quality/source-code-review-hotspots-2026-10-03.md) | 哪些源码文件与函数应优先审阅 |
 | [`selection-classification-accuracy-2026-10-04.md`](code-quality/selection-classification-accuracy-2026-10-04.md) | 单层选区类型判定错在哪里，是否需要多层级策略 |
 
+## coverage
+
+| 文件 | 回答的问题 |
+| --- | --- |
+| [`coverage/test-coverage-baseline-2026-10-05.md`](coverage/test-coverage-baseline-2026-10-05.md) | 哪些 C++ 行与 QML 求值位置被测试跑过；取代 2026-10-03 那份 |
+| [`coverage/what-coverage-counts-2026-10-05.md`](coverage/what-coverage-counts-2026-10-05.md) | 覆盖率数的是代码行数还是别的：两条线各数什么，为什么不可比 |
+| [`coverage/coverage-plan-2026-10-03.md`](coverage/coverage-plan-2026-10-03.md) | 按性价比排序的补测清单与顺序 |
+
 ## runtime-performance
 
 | 文件 | 回答的问题 |
