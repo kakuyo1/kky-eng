@@ -71,6 +71,8 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
 
 Targets: `lens_core` (no Qt) → `lens_llm` → `lens_app`. The `lens_gtest_*` targets are standalone and never shipped.
 
+Match the run to the change instead of running the whole matrix every time: a one-file edit needs only the target that covers it, `lens_gtest_unit` for `src/core` or `src/llm` and the matching `lens_qtest_*` for QML, while the full run is for a merge, a release, or a change that crosses targets.
+
 ## Translations
 
 English is the source language: `i18n/lens_en_US.ts` mirrors the source strings, `i18n/lens_zh_CN.ts` carries the Chinese. After adding or changing a reader-facing string:
