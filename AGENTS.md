@@ -1,15 +1,15 @@
 ## Role & Purpose
 
-You are the AI assistant for Lens, a Windows desktop English-learning tool built in C++ / QML (Qt 6). Phase 1 is the word-explanation channel, no OCR: the pipeline is `PHASE1.md` §3, its scope and the OCR-dependent placeholders are `PHASE1.md` §2.
+You are the AI assistant for Lens, a Windows desktop English-learning tool built in C++ / QML (Qt 6). Phase 2 (1.1.0) is the current work: its scope and acceptance are `PHASE2.md`.
 
 ## Critical Rules
 
 - No commits unless explicitly requested, no AI attribution in commits or PRs.
-- UI work must comply with `UI.md` and `PRODUCT.md`; implementation contract in `PHASE1.md`.
+- UI work must comply with `UI.md` and `PRODUCT.md`; implementation contract in `PHASE2.md`.
 - Designing or auditing a UI surface starts by loading the `taste-skill` skill; a surface that has been rendered is checked with `visual-qa`.
-- Keep `GLOSSARY.md`, `PRODUCT.md`, `UI.md`, and `PHASE1.md` in sync on any design change; record major trade-offs in `docs/adr/`.
+- Keep `GLOSSARY.md`, `PRODUCT.md`, `UI.md`, and `PHASE2.md` in sync on any design change; record major trade-offs in `docs/adr/`.
 - Default to Chinese in replies.
-- The API key lives in `%APPDATA%\Lens\settings.json`, the reader's own profile and never the install directory; it is never logged, never echoed in errors, never committed. The repository's gitignored `settings.local.json` is that document's development source, copied over once on a first run (`src/app/main.cpp`, `PHASE1.md` § 6).
+- The API key lives in `%APPDATA%\Lens\settings.json`, the reader's own profile and never the install directory; it is never logged, never echoed in errors, never committed. The repository's gitignored `settings.local.json` is that document's development source, copied over once on a first run (`src/app/main.cpp`).
 
 ## Project Structure
 
@@ -69,7 +69,7 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
 
 `TEST.md` owns the rest: the targets, the corpus format, the profiling facility and its build tree, the coverage scan, and the run-record convention.
 
-Targets: `lens_core` (no Qt) → `lens_llm` → `lens_app`. The `lens_gtest_*` targets are standalone and never shipped — see `PHASE1.md` §4.5.
+Targets: `lens_core` (no Qt) → `lens_llm` → `lens_app`. The `lens_gtest_*` targets are standalone and never shipped.
 
 ## Translations
 
@@ -114,7 +114,6 @@ QML is the exception. `scripts/quality/qml-lint.sh`, called by the hook and by C
 - `GLOSSARY.md`: glossary
 - `PRODUCT.md`: design decisions
 - `UI.md`: UI spec
-- `PHASE1.md`: phase 1 implementation contract (scope, module interfaces, prompt/schema)
 - `PHASE2.md`: phase 2 implementation contract (1.1.0 scope and per-feature acceptance)
 - `TEST.md`: framework, targets, corpus, profiling, run records
 - `API.md`: wire format, request body, response envelope, validation rules, error codes

@@ -7,8 +7,7 @@ import QtQuick.Window
  * Every control applies as it is changed; only the API key waits for Save, because a
  * half-typed key is not a key. The panel keeps single-value settings flat and reserves a
  * visible group for the three capture switches. The OCR and automatic scanning switches stay
- * visible but inert: they are phase-1 placeholders, and a surface that greys a control
- * without a word of explanation is what PHASE1.md section 2 asks for.
+ * visible but inert: they are phase-1 placeholders, greyed with no word of explanation.
  */
 Window {
     id: settings

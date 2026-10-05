@@ -2,8 +2,8 @@
  * @file filter_core_test.cpp
  * @brief FilterCore and KnownStore, offline: no network, no API key, CI-safe.
  *
- * The corpus half replays test/eval_corpus.json, whose fields PHASE1.md section 4.5
- * documents. Change behaviour by changing the corpus first; touch src/ once this goes red.
+ * The corpus half replays test/eval_corpus.json.
+ * Change behaviour by changing the corpus first; touch src/ once this goes red.
  */
 
 #include <algorithm>

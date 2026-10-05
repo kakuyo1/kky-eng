@@ -282,8 +282,7 @@ Window {
                                 MixedText {
                                     anchors.verticalCenter: parent.verticalCenter
                                     // The history is what the count is read from, and it is
-                                    // capped, so this is a floor once a word outlives it
-                                    // (PHASE1.md section 4.2).
+                                    // capped, so this is a floor once a word outlives it.
                                     value: qsTr("%1×").arg(entry.modelData.pops)
                                     color: Tokens.faint
                                     pixelSize: 11

@@ -1,8 +1,8 @@
 # 测试
 
 > 本文是测试的唯一出处：框架、目录、目标、运行方式、样例集格式、profiling、覆盖率与记录约定。
-> `AGENTS.md` 的 Test 与 Profiling 两节只留指针；`PHASE1.md` §4.5 与 §4.6 只留契约要点。
-> 设计总览见 `PRODUCT.md`，模块接口见 `PHASE1.md`。
+> `AGENTS.md` 的 Test 与 Profiling 两节只留指针。
+> 设计总览见 `PRODUCT.md`。
 
 ## 1 框架与目录
 
@@ -103,13 +103,13 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_QPA_PLATFORM=offscreen QT_FORCE_STDER
 `test/eval_corpus.json` 是**行为规格**。每段一项：`text`（必填）、`expect`（必填，surface 序列）、
 `expectKind`（必填，`"Word"` / `"Entity"` / `"Sentence"`；Entity 的 `expect` 必须为空）、`expectLemmas`（选填）、
 `minFreqRank`（选填，缺省 0）、`known`（选填）、`note`（选填）。`minFreqRank` 与 `known` 现在只给
-候选**标状态**，不删候选（`PHASE1.md` §4.1），所以带这两项的段落，`expect` 与不带时相同——这正是
+候选**标状态**，不删候选，所以带这两项的段落，`expect` 与不带时相同——这正是
 它们要钉住的那条。
 
 改 FilterCore 的行为先改样例集，`lens_gtest_unit` 红了再动 `src/`。样例集撞出误判就在那里加一段，
 不要先把断言放宽。
 
-`scripts/data/check-eval-corpus.py` 按 `PHASE1.md` §4.1 的规则独立校验样例集（不走实现）：Word / Sentence
+`scripts/data/check-eval-corpus.py` 独立校验样例集（不走实现）：Word / Sentence
 段落中每个 token 要么进 `expect`，要么有一条具名规则把它排除；`expectKind` 另按选区形状核对——单 token
 在词表内为 Word、不在为 Entity（命名实体），多 token 名称短语（Title Case 或全大写缩写）为 Entity、其余为
 Sentence。改完样例集跑一次，它是期望值之外的那道独立核对。

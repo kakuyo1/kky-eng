@@ -346,7 +346,7 @@ std::variant<GrabbedText, GrabStatus> SelectionTextGrabber::grab()
     DWORD ownerPid = 0;
     GetWindowThreadProcessId(foreground, &ownerPid);
     if (ownerPid == GetCurrentProcessId()) {
-        // The overlay surfaces never take focus (PHASE1.md section 4.4), so this should not
+        // The overlay surfaces never take focus, so this should not
         // happen; if it ever does, injecting would press Ctrl+C into our own UI.
         LENS_TRACE("SelectionTextGrabber::grab: the foreground window is ours");
         return GrabStatus::ForegroundIsSelf;

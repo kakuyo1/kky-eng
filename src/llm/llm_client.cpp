@@ -13,7 +13,7 @@
 namespace lens::llm {
 namespace {
 
-constexpr int kMaxWords  = 20; ///< Contract limit; see PHASE1.md section 4.3.
+constexpr int kMaxWords  = 20; ///< Contract limit.
 constexpr int kTimeoutMs = 30000;
 
 } // namespace

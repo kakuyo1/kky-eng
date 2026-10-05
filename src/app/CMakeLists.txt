@@ -9,7 +9,7 @@
 # The QML module hangs off lens_app and not off the executable, which is the reverse of what
 # this file used to say. The reason is registration scope: qt_add_qml_module registers the C++
 # types of its own backing target and no others, so a module attached to `lens` could not
-# register classes that live in lens_app (PHASE1.md section 7).
+# register classes that live in lens_app.
 
 add_library(lens_app STATIC
   mouse_selection_hook.cpp

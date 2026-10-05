@@ -1,5 +1,5 @@
 # The gate that was missing. lens_gtest_unit has been offline, key-free and CI-ready since it was
-# written (PHASE1.md section 4.5), but nothing ever ran it -- it held only as long as someone
+# written, but nothing ever ran it -- it held only as long as someone
 # remembered to run it by hand.
 #
 # Five jobs, one concern each, so a red run says what broke instead of naming the one job that

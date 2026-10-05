@@ -39,7 +39,7 @@ QString nowMinute()
 }
 
 /**
- * Difficulty cut-off per level (PHASE1.md section 4.1).
+ * Difficulty cut-off per level.
  *
  * ponytail: a frequency rank is what a word book roughly is, so this stands in until
  * TODO.md's eight word books land -- at which point a level becomes a set membership test
@@ -324,7 +324,7 @@ void AppController::explain(const Pending& pending)
 void AppController::requestExplanations(const QStringList& words)
 {
     // Only the terms themselves leave the machine: hard-filtered by FilterCore, and masked
-    // once more in the request builder (PHASE1.md section 6).
+    // once more in the request builder.
     busyLabel_ = tr("Explaining…");
     emit busyChanged();
     if (pending_.kind == QLatin1String("word"))
@@ -601,7 +601,7 @@ QVariantList AppController::words() const
     // the history rather than stored: the stored shape is a locked decision (PRODUCT.md
     // "存储形状"), and the per-day tally is the only count it keeps. It needs its own pass --
     // a row is written at its lemma's newest entry, before the older ones have been seen.
-    // ponytail: the history holds the newest 2000 entries (PHASE1.md section 4.2), so these
+    // ponytail: the history holds the newest 2000 entries, so these
     // counts saturate at whatever the window still holds once it starts truncating.
     QHash<QString, int> pops;
     for (const core::HistoryEntry& entry : stats_.history())
@@ -774,7 +774,7 @@ QString AppController::modeLabel() const
 {
     // Automatic scanning is a phase-1 placeholder, so this is always the manual name; the
     // branch stays because the tray menu and tooltip both read the label from here and must
-    // never disagree (PHASE1.md section 4.4).
+    // never disagree.
     return autoScan_ ? tr("Auto") : tr("Manual");
 }
 

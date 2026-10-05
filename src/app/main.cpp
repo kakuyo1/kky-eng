@@ -186,7 +186,7 @@ std::string settingsValue(const KnownStore& store, const char* key)
 int main(int argc, char* argv[])
 {
     // Widgets, not just Gui: the tray menu is a QMenu, which the contract chose over QML's
-    // experimental platform menu types (PHASE1.md section 4.4).
+    // experimental platform menu types.
     QApplication app(argc, argv);
     // A tray application has no window to keep open, so the default rule would quit as soon
     // as the first surface closed.

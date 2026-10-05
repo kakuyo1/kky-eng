@@ -67,9 +67,9 @@ public:
 
     /// @brief Set the explanation language, "en" or "zh".
     ///
-    /// The language only switches the closing line of the system prompt (PHASE1.md
-    /// section 5). It is a setter rather than a Config field because the reader can change
-    /// it at runtime from the settings popup.
+    /// The language only switches the closing line of the system prompt. It is
+    /// a setter rather than a Config field because the reader can change it at
+    /// runtime from the settings popup.
     void setExplanationLang(const QString& lang);
 
     /// @brief Set which protocol the next request speaks.

@@ -4,8 +4,7 @@ import QtQuick
  * The 34x20 pill switch from UI.md 4.4.
  *
  * A disabled switch is dimmed and does not respond. It carries no explanation on the surface:
- * the phase-1 placeholders are meant to read as unavailable, not as a promise (PHASE1.md
- * section 2).
+ * the phase-1 placeholders are meant to read as unavailable, not as a promise.
  */
 Item {
     id: root

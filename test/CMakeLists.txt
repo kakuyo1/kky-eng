@@ -1,4 +1,4 @@
-# Test targets: built on the host only, never shipped. See PHASE1.md section 4.5.
+# Test targets: built on the host only, never shipped.
 add_subdirectory(googletest)
 
 # The Qt side: the components and the surfaces, driven through a real QML engine. Separate

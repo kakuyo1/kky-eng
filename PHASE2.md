@@ -1,7 +1,7 @@
 # 阶段二实现规格（1.1.0）
 
 > 目标版本 1.1.0。本文是阶段二的实施契约：范围、每项功能的要点与验收判据。
-> 阶段一的契约见 `PHASE1.md`（本文继承它，不重复）；术语见 `GLOSSARY.md`，UI 规格见 `UI.md`，
+> 阶段一的契约已归档，本文不重复；术语见 `GLOSSARY.md`，UI 规格见 `UI.md`，
 > 线上格式见 `API.md`，测试与运行方式见 `TEST.md`，QML 约束见 `docs/QML.md`。
 > 本文只排范围与验收，不复制它们的内容。
 
@@ -82,7 +82,7 @@
 ### 5.1 数据保存在用户安装目录下
 
 - **目标**：用户数据（设置、known-set、缓存、历史）改存到用户安装目录，与程序同在一处。
-- **冲突（必须裁决）**：阶段一把设置文档放 `%APPDATA%\Lens` 并**禁止**进安装目录（`AGENTS.md`、`PHASE1.md` §6），
+- **冲突（必须裁决）**：阶段一把设置文档放 `%APPDATA%\Lens` 并**禁止**进安装目录（`AGENTS.md`），
   理由是密钥隐私与安装目录可能全机共享。本条与该决定冲突，需重新裁决并记 `docs/adr/`：若安装是按用户的
   （`%LOCALAPPDATA%\Programs\Lens`，可写），数据可放安装目录；API key 是否随之外移必须在 ADR 里写明，
   不得静默把密钥写进可能全机共享的位置。
@@ -139,7 +139,7 @@
 
 - **i18n 只在波末跑一次**：`lupdate` / `lrelease`，目标零 unfinished（`AGENTS.md` Translations 一节）。
 - **QML 栅栏**：`scripts/quality/qml-lint.sh` 零警告，棘轮只降不升，新 `.qml` 同时进 `QML_FILES`。
-- **文档同步矩阵**：UI 形态变 → `UI.md` + 原型；实现契约变 → `PHASE1.md` 或本文；产品决定变 → `PRODUCT.md` 与 `GLOSSARY.md`；重大取舍 → `docs/adr/`；指标 → `docs/metrics/`。
+- **文档同步矩阵**：UI 形态变 → `UI.md` + 原型；实现契约变 → 本文；产品决定变 → `PRODUCT.md` 与 `GLOSSARY.md`；重大取舍 → `docs/adr/`；指标 → `docs/metrics/`。
 - **提交**：不写 AI 署名，密钥只从 gitignored 的 `settings.local.json` 读，不入日志。
 - **验收在合并树上重跑**，不看分支自述。
 

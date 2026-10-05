@@ -1,5 +1,5 @@
 # LLM 协议
-> 本文件描述 Lens 与释义模型之间的线上格式。契约来源见 `PHASE1.md` §4.3 与 §5；**实际生效的定义在 `data/llm/` 目录**，代码只组装与校验，不内联任何提示词或字段名。
+> 本文件描述 Lens 与释义模型之间的线上格式。**实际生效的定义在 `data/llm/` 目录**，代码只组装与校验，不内联任何提示词或字段名。
 
 服务：DeepSeek（OpenAI 兼容，BYOK）。端点 `POST {baseUrl}/chat/completions`，请求头 `Content-Type: application/json` 与 `Authorization: Bearer <API-KEY>`。`baseUrl = https://api.deepseek.com`；配置文件原值 `https://api.deepseek.com/anthropic` 是 Anthropic 格式的 base，对本调用不适用，已改。模型取 `settings.local.json` 的 `MODEL`（缺省 `deepseek-flash`）：`deepseek-flash` 即 DeepSeek-V4.1-Flash（支持 JSON Output），同代另有 `deepseek-v4-pro`；旧名 `deepseek-v4-flash` 仍被接受但模型已停服，请求实际由 V4.1-Flash 承接并按其价计费。
 
@@ -115,11 +115,11 @@
 
 `en` 与 `zh` 是译文或讲解，App 把选中的句子盖到 `title` 上（同实体）。两个预设共用 schema，任务随**解释语言**改变：解释语言为中文时，`translate` 给字面中文翻译、`explain` 给中文通俗解释；解释语言为英文时，两者都只做 “用英文通俗解释这句话”，提示词因此相同。句子响应不包含 `ipa`，也不进入单词缓存与 verdict；气泡按设置只画所选解释语言那一行（`en` 或 `zh`），另一行虽在响应里但不显示。
 
-`usage` 在 envelope 层，不在载荷里，因此**不参与上面那套校验**：`parseUsage()` 从同一个响应体独立读 `prompt_tokens` / `completion_tokens`，缺失按 0 计并记警告。统计少一笔可忍，把一次成功的解释整批丢掉不可忍；`usage` 与解释内容是否合法互不影响（`PHASE1.md` §4.3）。金额不由线上格式给出，见 §6。
+`usage` 在 envelope 层，不在载荷里，因此**不参与上面那套校验**：`parseUsage()` 从同一个响应体独立读 `prompt_tokens` / `completion_tokens`，缺失按 0 计并记警告。统计少一笔可忍，把一次成功的解释整批丢掉不可忍；`usage` 与解释内容是否合法互不影响。金额不由线上格式给出，见 §6。
 
 ## 4 校验规则
 
-响应是**第三方不可信数据**，任一项不过即整批失败，不静默丢词（`PHASE1.md` §4.3）：
+响应是**第三方不可信数据**，任一项不过即整批失败，不静默丢词：
 
 1. 外层是 JSON 对象，且 `choices` 非空；
 2. `finish_reason` 必须是 `stop`——`length`（截断）、`content_filter`、`insufficient_system_resource`、`aborted` 一律判失败；

@@ -73,7 +73,7 @@ scripts\build\build-release.bat --target installer
 - `src/app/`：Windows 选区捕获、托盘和 QML 浮层。
 - `data/llm/`：请求提示词与响应 schema。
 - `test/`：GoogleTest、QTest 和运行记录约定。
-- `docs/`、`PRODUCT.md`、`PHASE1.md`：设计、实现契约和 Qt Quick 说明。
+- `docs/`、`PRODUCT.md`、`PHASE2.md`：设计、实现契约和 Qt Quick 说明。
 
 更多开发约定与验证命令见 [`AGENTS.md`](AGENTS.md)，测试的完整说明见 [`TEST.md`](TEST.md)。
 

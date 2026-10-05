@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Check test/eval_corpus.json against the documented FilterCore rules.
 
-The corpus is FilterCore's behaviour spec (PHASE1.md section 4.5): a behaviour change is
+The corpus is FilterCore's behaviour spec: a behaviour change is
 written into the corpus first, and the suite stays red until src/ catches up. That makes the
 corpus itself the thing everything rests on -- and a wrong expectation in it is invisible to
 the suite, because the implementation agrees with it by construction. This is what looks at
 the corpus on its own.
 
-It restates the rules from PHASE1.md section 4.1 and the header comment of
+It restates the rules from the header comment of
 src/core/filter_core.h rather than calling the implementation, so a disagreement is a finding
 to read, not a check that failed. Every token of an excerpt must be accounted for: one that
 survives the hard filters and the static word list belongs in `expect`, and one that does not

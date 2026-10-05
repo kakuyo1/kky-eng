@@ -181,8 +181,8 @@ public:
      * @param scope "all", "known", or "new", as exportWords() takes it.
      * @return True when the file was written; false, logged, when the scope is unknown, the URL
      *         names no local file, or the write failed.
-     * @note Line endings are LF: the export's shape is one lemma per line (PHASE1.md section
-     *       4.4), not the platform's idea of a line break.
+     * @note Line endings are LF: the export's shape is one lemma per line, not the
+     *       platform's idea of a line break.
      */
     Q_INVOKABLE bool saveWords(QUrl path, QString scope);
 
