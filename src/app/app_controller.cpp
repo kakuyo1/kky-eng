@@ -381,8 +381,10 @@ void AppController::showNotice(const QString& title, const QString& body, const 
 QString AppController::noticeTitle(const Pending& pending)
 {
     // The word when the selection had one, the selection itself otherwise. A sentence has no
-    // single word to name, and an untitled card floats with nothing tying it to what it is
-    // about.
+    // single word to name; putting the whole sentence in the title can push the close affordance
+    // out of the reader's view, so the reason stays in the body instead.
+    if (pending.kind == QLatin1String("sentence"))
+        return tr("Request failed");
     return pending.surface.isEmpty() ? pending.text : pending.surface;
 }
 

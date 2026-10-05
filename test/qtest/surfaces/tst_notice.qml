@@ -78,6 +78,25 @@ Item {
             tryCompare(notice, "visible", false);
         }
 
+        function test_aLongTitleLeavesTheCloseControlInsideTheCard() {
+            const notice = opened(
+                "The first command of a session auto-starts the browser daemon, and that daemon inherits the command's stdout while living up to an hour.",
+                "The request could not reach the service.",
+                "error");
+            const title = Util.textWith(Util.textsUnder(notice), [notice.noticeTitle]);
+            const close = Util.findAll(notice, function (object) {
+                return object.source === "qrc:/icons/ui-close.svg";
+            })[0];
+
+            verify(title);
+            verify(close);
+            verify(title.width <= close.x - 12);
+            verify(close.x + close.width <= notice.cardWidth - 20);
+            compare(close.visible, true);
+
+            notice.visible = false;
+        }
+
         function test_captureTheNotice() {
             if (!lensQaSnapshotDir)
                 skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the snapshot");
