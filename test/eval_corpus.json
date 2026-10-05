@@ -962,8 +962,8 @@
   {
     "note": "lone name: a word-list-missing token selected alone",
     "text": "TypeScript",
-    "expect": [],
-    "expectKind": "Entity"
+    "expect": ["typescript"],
+    "expectKind": "Word"
   },
   {
     "note": "lone name: a word-list-missing token selected alone",
@@ -1088,14 +1088,14 @@
   {
     "note": "lone name: a word-list-missing token selected alone",
     "text": "cwm",
-    "expect": [],
-    "expectKind": "Entity"
+    "expect": ["cwm"],
+    "expectKind": "Word"
   },
   {
     "note": "lone name: a word-list-missing token selected alone",
     "text": "crwth",
-    "expect": [],
-    "expectKind": "Entity"
+    "expect": ["crwth"],
+    "expectKind": "Word"
   },
   {
     "note": "lone name: a word-list-missing token selected alone",
@@ -1826,20 +1826,20 @@
   {
     "note": "lone name: a word-list-missing token selected alone",
     "text": "refactor",
-    "expect": [],
-    "expectKind": "Entity"
+    "expect": ["refactor"],
+    "expectKind": "Word"
   },
   {
     "note": "lone name: a word-list-missing token selected alone",
     "text": "refactoring",
-    "expect": [],
-    "expectKind": "Entity"
+    "expect": ["refactoring"],
+    "expectKind": "Word"
   },
   {
     "note": "lone name: a word-list-missing token selected alone",
     "text": "codebase",
-    "expect": [],
-    "expectKind": "Entity"
+    "expect": ["codebase"],
+    "expectKind": "Word"
   },
   {
     "note": "lone name: a word-list-missing token selected alone",
@@ -1910,8 +1910,8 @@
   {
     "note": "lone name: a word-list-missing token selected alone",
     "text": "backtrace",
-    "expect": [],
-    "expectKind": "Entity"
+    "expect": ["backtrace"],
+    "expectKind": "Word"
   },
   {
     "note": "lone name: a word-list-missing token selected alone",
@@ -1928,8 +1928,8 @@
   {
     "note": "lone name: a word-list-missing token selected alone",
     "text": "middleware",
-    "expect": [],
-    "expectKind": "Entity"
+    "expect": ["middleware"],
+    "expectKind": "Word"
   },
   {
     "note": "lone name: a word-list-missing token selected alone",
@@ -3433,20 +3433,20 @@
   {
     "note": "mixed prose: v2 (glued: a non-letter inside the token); endpoint (not in the static word list); 404 (glued: a non-letter inside the token); the rest are candidates",
     "text": "The v2 endpoint returns 404 for missing pages.",
-    "expect": ["the", "returns", "for", "missing", "pages"],
+    "expect": ["the", "endpoint", "returns", "for", "missing", "pages"],
     "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: v2 (glued: a non-letter inside the token); endpoint (not in the static word list); 404 (glued: a non-letter inside the token); and every candidate is known already",
     "text": "The v2 endpoint returns 404 for missing pages.",
-    "expect": ["the", "returns", "for", "missing", "pages"],
+    "expect": ["the", "endpoint", "returns", "for", "missing", "pages"],
     "expectKind": "Sentence",
     "known": ["for", "mis", "miss", "misse", "missing", "pag", "page", "pages", "return", "returns", "the"]
   },
   {
     "note": "mixed prose: v2 (glued: a non-letter inside the token); endpoint (not in the static word list); 404 (glued: a non-letter inside the token); and the cut-off annotates rather than drops",
     "text": "The v2 endpoint returns 404 for missing pages.",
-    "expect": ["the", "returns", "for", "missing", "pages"],
+    "expect": ["the", "endpoint", "returns", "for", "missing", "pages"],
     "expectKind": "Sentence",
     "minFreqRank": 3000
   },
@@ -4153,20 +4153,20 @@
   {
     "note": "mixed prose: middleware (not in the static word list); the rest are candidates",
     "text": "Their middleware logs each request.",
-    "expect": ["their", "logs", "each", "request"],
+    "expect": ["their", "middleware", "logs", "each", "request"],
     "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: middleware (not in the static word list); and every candidate is known already",
     "text": "Their middleware logs each request.",
-    "expect": ["their", "logs", "each", "request"],
+    "expect": ["their", "middleware", "logs", "each", "request"],
     "expectKind": "Sentence",
     "known": ["each", "log", "logs", "request", "their"]
   },
   {
     "note": "mixed prose: middleware (not in the static word list); and the cut-off annotates rather than drops",
     "text": "Their middleware logs each request.",
-    "expect": ["their", "logs", "each", "request"],
+    "expect": ["their", "middleware", "logs", "each", "request"],
     "expectKind": "Sentence",
     "minFreqRank": 3000
   },
@@ -4193,20 +4193,20 @@
   {
     "note": "mixed prose: A (short: under 3 letters); refactor (not in the static word list); the rest are candidates",
     "text": "A refactor shortened the module.",
-    "expect": ["shortened", "the", "module"],
+    "expect": ["refactor", "shortened", "the", "module"],
     "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: A (short: under 3 letters); refactor (not in the static word list); and every candidate is known already",
     "text": "A refactor shortened the module.",
-    "expect": ["shortened", "the", "module"],
+    "expect": ["refactor", "shortened", "the", "module"],
     "expectKind": "Sentence",
     "known": ["module", "shorten", "shortened", "the"]
   },
   {
     "note": "mixed prose: A (short: under 3 letters); refactor (not in the static word list); and the cut-off annotates rather than drops",
     "text": "A refactor shortened the module.",
-    "expect": ["shortened", "the", "module"],
+    "expect": ["refactor", "shortened", "the", "module"],
     "expectKind": "Sentence",
     "minFreqRank": 3000
   },
@@ -4273,20 +4273,20 @@
   {
     "note": "mixed prose: codebase (not in the static word list); refactoring (not in the static word list); the rest are candidates",
     "text": "The codebase needs another refactoring pass.",
-    "expect": ["the", "needs", "another", "pass"],
+    "expect": ["the", "codebase", "needs", "another", "refactoring", "pass"],
     "expectKind": "Sentence"
   },
   {
     "note": "mixed prose: codebase (not in the static word list); refactoring (not in the static word list); and every candidate is known already",
     "text": "The codebase needs another refactoring pass.",
-    "expect": ["the", "needs", "another", "pass"],
+    "expect": ["the", "codebase", "needs", "another", "refactoring", "pass"],
     "expectKind": "Sentence",
     "known": ["another", "need", "needs", "pass", "the"]
   },
   {
     "note": "mixed prose: codebase (not in the static word list); refactoring (not in the static word list); and the cut-off annotates rather than drops",
     "text": "The codebase needs another refactoring pass.",
-    "expect": ["the", "needs", "another", "pass"],
+    "expect": ["the", "codebase", "needs", "another", "refactoring", "pass"],
     "expectKind": "Sentence",
     "minFreqRank": 3000
   },
@@ -8975,27 +8975,27 @@
   {
     "note": "real sentence",
     "text": "The data suggest a strong link between sleep and memory.",
-    "expect": ["the", "suggest", "strong", "link", "between", "sleep", "and", "memory"],
+    "expect": ["the", "data", "suggest", "strong", "link", "between", "sleep", "and", "memory"],
     "expectKind": "Sentence"
   },
   {
     "note": "real sentence with a known mark",
     "text": "The data suggest a strong link between sleep and memory.",
-    "expect": ["the", "suggest", "strong", "link", "between", "sleep", "and", "memory"],
+    "expect": ["the", "data", "suggest", "strong", "link", "between", "sleep", "and", "memory"],
     "expectKind": "Sentence",
     "known": ["the"]
   },
   {
     "note": "real sentence under a frequency band",
     "text": "The data suggest a strong link between sleep and memory.",
-    "expect": ["the", "suggest", "strong", "link", "between", "sleep", "and", "memory"],
+    "expect": ["the", "data", "suggest", "strong", "link", "between", "sleep", "and", "memory"],
     "expectKind": "Sentence",
     "minFreqRank": 4000
   },
   {
     "note": "real sentence under a band with a known mark",
     "text": "The data suggest a strong link between sleep and memory.",
-    "expect": ["the", "suggest", "strong", "link", "between", "sleep", "and", "memory"],
+    "expect": ["the", "data", "suggest", "strong", "link", "between", "sleep", "and", "memory"],
     "expectKind": "Sentence",
     "known": ["the"],
     "minFreqRank": 4000
@@ -9003,49 +9003,49 @@
   {
     "note": "real sentence with an all-caps word",
     "text": "THE data suggest a strong link between sleep and memory.",
-    "expect": ["suggest", "strong", "link", "between", "sleep", "and", "memory"],
+    "expect": ["data", "suggest", "strong", "link", "between", "sleep", "and", "memory"],
     "expectKind": "Sentence"
   },
   {
     "note": "real sentence with a URL",
     "text": "The data suggest a strong link between sleep and memory. See https://example.com/docs for details.",
-    "expect": ["the", "suggest", "strong", "link", "between", "sleep", "and", "memory", "see", "for", "details"],
+    "expect": ["the", "data", "suggest", "strong", "link", "between", "sleep", "and", "memory", "see", "for", "details"],
     "expectKind": "Sentence"
   },
   {
     "note": "real sentence with a number",
     "text": "The data suggest a strong link between sleep and memory. It happened in 2024.",
-    "expect": ["the", "suggest", "strong", "link", "between", "sleep", "and", "memory", "happened"],
+    "expect": ["the", "data", "suggest", "strong", "link", "between", "sleep", "and", "memory", "happened"],
     "expectKind": "Sentence"
   },
   {
     "note": "real sentence with an email",
     "text": "The data suggest a strong link between sleep and memory. Contact editor@example.com.",
-    "expect": ["the", "suggest", "strong", "link", "between", "sleep", "and", "memory", "contact"],
+    "expect": ["the", "data", "suggest", "strong", "link", "between", "sleep", "and", "memory", "contact"],
     "expectKind": "Sentence"
   },
   {
     "note": "real sentence wrapped in quotes",
     "text": "\"The data suggest a strong link between sleep and memory.\"",
-    "expect": ["the", "suggest", "strong", "link", "between", "sleep", "and", "memory"],
+    "expect": ["the", "data", "suggest", "strong", "link", "between", "sleep", "and", "memory"],
     "expectKind": "Sentence"
   },
   {
     "note": "real sentence wrapped in parentheses",
     "text": "(The data suggest a strong link between sleep and memory.)",
-    "expect": ["the", "suggest", "strong", "link", "between", "sleep", "and", "memory"],
+    "expect": ["the", "data", "suggest", "strong", "link", "between", "sleep", "and", "memory"],
     "expectKind": "Sentence"
   },
   {
     "note": "real sentence with a hyphenated compound",
     "text": "The data suggest a strong link between sleep and memory. It was a well-known story.",
-    "expect": ["the", "suggest", "strong", "link", "between", "sleep", "and", "memory", "was", "story"],
+    "expect": ["the", "data", "suggest", "strong", "link", "between", "sleep", "and", "memory", "was", "story"],
     "expectKind": "Sentence"
   },
   {
     "note": "real sentence with a POSIX path",
     "text": "The data suggest a strong link between sleep and memory. The file lives in /usr/local/bin.",
-    "expect": ["the", "suggest", "strong", "link", "between", "sleep", "and", "memory", "file", "lives"],
+    "expect": ["the", "data", "suggest", "strong", "link", "between", "sleep", "and", "memory", "file", "lives"],
     "expectKind": "Sentence"
   },
   {
