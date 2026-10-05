@@ -402,7 +402,7 @@ lens/
 │   ├── llm/                  # LlmClient + 纯函数内核 + 价目
 │   └── app/                  # 捕获组件 + AppController + 托盘 + main + qml/（表面在根，组件在 qml/components/）
 ├── test/                     # googletest/ 下的 unit / perf / smoke，以及样例集（独立于 src/）
-└── ui-prototypes/            # 设计原型（v1-halo-*.html）
+└── ui-prototypes/            # 设计原型（*.html，每块表面一个）
 ```
 
 CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `lens_gtest_*` 独立于这条链，只在本机构建、不进发布包：`unit` 与 `smoke` 链接 `lens_core` + `lens_llm`，`perf` 只链接 `lens_core`（保持无 Qt），`integration` 链接 `lens_app` + `lens_core`。

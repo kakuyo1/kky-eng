@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 设置</title>
+<style>
+:root{
+  --bg:#e9ebef; --panel:#fff; --panel2:#f1f3f7; --line:#d6dae1; --line2:#e6e9ee;
+  --text:#1a1a1f; --muted:#66666f; --faint:#9d9da8;
+  --ink:#1a1a1f; --on:#fff;
+  --r-lg:18px;
+  --sh2:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+}
+html[data-theme=dark]{
+  --bg:#131316; --panel:#1c1c20; --panel2:#242429; --line:#2f2f37; --line2:#26262c;
+  --text:#e9e9ee; --muted:#a3a3ae; --faint:#75757f;
+  --ink:#e9e9ee; --on:#16161a;
+  --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh;display:grid;place-items:center;padding:36px 20px;font-size:13px;line-height:1.5}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* 面板固定高度：首屏只列分类，设置再多也在内部滚动，不再把浮层撑高 */
+.settings{width:380px;height:480px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);display:flex;flex-direction:column;overflow:hidden}
+.set-h{display:flex;align-items:center;gap:9px;padding:0 20px;min-height:58px;border-bottom:1px solid var(--line2);flex:none}
+.set-back{display:none;place-items:center;width:26px;height:26px;margin-left:-6px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:20px;line-height:1}
+.set-back:hover{background:var(--panel2);color:var(--text)}
+.settings[data-level=sub] .set-back{display:grid}
+.set-title{font-size:14px;font-weight:700}
+.set-sep{color:var(--faint);font-size:12px}
+.set-crumb{font-size:12px;color:var(--muted);font-weight:400}
+.set-h .close{margin-left:auto;width:26px;height:26px;border:0;border-radius:8px;background:transparent;color:var(--faint);font-size:18px;line-height:1}
+.set-h .close:hover{background:var(--panel2);color:var(--text)}
+.set-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:12px 20px 18px}
+
+/* 分类目录：一行一类，新增设置落在分类内部 */
+.catalog{display:flex;flex-direction:column;gap:2px}
+.cat{display:flex;align-items:center;gap:12px;width:100%;min-height:60px;padding:11px 9px;border:0;border-radius:9px;background:transparent;text-align:left}
+.cat:hover{background:var(--panel2)}
+.cat-t{display:block;font-size:13px}
+.cat-s{display:block;margin-top:3px;font-size:11px;color:var(--muted)}
+.cat .chev{margin-left:auto;color:var(--faint);font-size:20px;line-height:1}
+
+/* 分类设置与子页面 */
+.field{margin-bottom:16px}
+.field:last-child{margin-bottom:0}
+.flabel{display:block;margin-bottom:7px;font-size:12px;color:var(--muted)}
+.fhelp{margin-top:6px;font-size:11px;color:var(--muted)}
+.input{width:100%;padding:8px 11px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text);font-family:var(--f);font-size:12px}
+.input::placeholder{color:var(--faint)}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{flex:1;text-align:center;padding:6.5px 0;border:0;background:transparent;font-size:12px;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--on);font-weight:600}
+.dd{position:relative}
+.dd-btn{display:flex;align-items:center;gap:8px;width:100%;height:35px;padding:0 11px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text);font-family:var(--f);font-size:13px;text-align:left}
+.dd-btn svg{margin-left:auto;width:14px;height:14px;color:var(--faint);flex:none}
+.dd-list{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:9;display:none;background:var(--panel);border:1px solid var(--line);border-radius:11px;box-shadow:var(--sh2);padding:5px;max-height:252px;overflow-y:auto}
+.dd.open .dd-list{display:block}
+.dd-item{display:flex;align-items:center;width:100%;height:29px;padding:0 11px;border:0;border-radius:8px;background:transparent;font-size:13px;color:var(--text);text-align:left}
+.dd-item:hover{background:var(--panel2)}
+.dd-item[aria-selected=true]{background:var(--ink);color:var(--on);font-weight:600}
+.dd-note{margin-left:auto;font-size:11px;color:var(--faint)}
+.dd-item[aria-selected=true] .dd-note{color:rgba(255,255,255,.62)}
+html[data-theme=dark] .dd-item[aria-selected=true] .dd-note{color:rgba(0,0,0,.5)}
+.dd-sep{height:1px;background:var(--line2);margin:5px 8px}
+.swrow{display:flex;align-items:center;gap:12px;min-height:44px}
+.swrow .swlabel{flex:1}
+.switch{flex:none;width:34px;height:20px;border:0;border-radius:99px;background:var(--line);position:relative;padding:0}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--panel)}
+.switch[aria-checked=true]{background:var(--ink)}
+.switch[aria-checked=true]::after{left:auto;right:2px;background:var(--on)}
+html[data-theme=dark] .switch::after{background:var(--faint)}
+html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
+.off{color:var(--faint)}
+.off .switch{opacity:.45}
+.group-title{font-size:11px;color:var(--muted);margin-bottom:7px}
+.swgroup{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:2px 12px}
+.kbdrow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;font-size:12.5px}
+.kbdrow kbd{font-family:var(--f);font-size:11px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:2px 8px;color:var(--muted)}
+.link-row{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:8px 0;border:0;border-top:1px solid var(--line2);background:transparent;text-align:left;font-size:12.5px}
+.link-row:hover{color:var(--ink)}
+.link-row .chevm{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--faint);font-size:11px}
+.set-f{display:flex;align-items:center;gap:8px;padding:0 20px;min-height:56px;border-top:1px solid var(--line2);flex:none}
+.btn{padding:6px 14px;border-radius:999px;border:1px solid transparent;font-size:12px;font-weight:600}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--text)}
+.btn.ghost:disabled{color:var(--faint);cursor:default}
+.btn.ink{background:var(--ink);color:var(--on)}
+.btn.ink:disabled{opacity:.45;cursor:default}
+.status{flex:1;text-align:center;font-size:11px;color:var(--faint)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="settings" id="app" data-level="home">
+  <div class="set-h">
+    <button class="set-back" id="back" type="button" aria-label="返回">‹</button>
+    <span class="set-title" id="title">设置</span>
+    <span class="set-sep" id="crumb-sep" hidden aria-hidden="true">/</span>
+    <span class="set-crumb" id="crumb" hidden></span>
+    <button class="close" type="button" aria-label="关闭">×</button>
+  </div>
+  <div class="set-body" id="view"></div>
+  <div class="set-f">
+    <button class="btn ghost" id="defaults" type="button" disabled>恢复默认</button>
+    <span class="status" id="status" role="status" aria-live="polite"></span>
+    <button class="btn ink" id="save" type="button" disabled>保存</button>
+  </div>
+</div>
+<script>
+const categories = [
+  { id: "general", name: "通用", summary: "主题、界面语言、开机自启" },
+  { id: "learning", name: "阅读学习", summary: "词汇档位、解释语言、多义解释" },
+  { id: "capture", name: "取词与弹窗", summary: "触发通道、剪贴板、弹出频率" },
+  { id: "model", name: "模型服务", summary: "模型选择、API 配置" },
+  { id: "extensions", name: "扩展", summary: "桌面宠物" }
+];
+const titles = { clipboard: "弹窗与剪贴板", connection: "API 配置" };
+const defaults = { theme: "light", uiLang: "zh", level: "CET-4", language: "en", startup: false, selection: true,
+  policy: "topmost", frequency: "standard", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
+  multi: false, pet: false };
+const app = document.getElementById("app"), view = document.getElementById("view");
+const titleEl = document.getElementById("title"), crumbEl = document.getElementById("crumb");
+const backBtn = document.getElementById("back"), statusEl = document.getElementById("status");
+const saveBtn = document.getElementById("save"), defaultsBtn = document.getElementById("defaults");
+let values = { ...defaults, theme: new URLSearchParams(location.search).get("theme") === "dark" ? "dark" : "light" };
+let saved = { ...values };
+let category = null, route = null, status = "";
+const esc = v => String(v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const dirty = () => JSON.stringify(values) !== JSON.stringify(saved);
+const seg = (label, key, opts) => `<div class="field"><span class="flabel">${label}</span><div class="seg">${opts.map(([v, t]) =>
+  `<button type="button" data-key="${key}" data-value="${v}" aria-pressed="${values[key] === v}">${t}</button>`).join("")}</div></div>`;
+const sw = (label, key, off = false) => `<div class="swrow${off ? " off" : ""}"><span class="swlabel">${label}</span><button type="button" class="switch" role="switch" data-toggle="${key}" aria-checked="${!!values[key]}" ${off ? "disabled" : ""}></button></div>`;
+const dropdown = (label, key, opts) => {
+  const cur = opts.find(o => o.value === values[key]) || opts[0];
+  const items = opts.map((o, i) => {
+    const rule = i > 0 && o.group !== opts[i - 1].group ? '<div class="dd-sep"></div>' : "";
+    const note = o.note ? `<span class="dd-note">${o.note}</span>` : "";
+    return `${rule}<button type="button" class="dd-item" role="option" data-key="${key}" data-value="${esc(o.value)}" aria-selected="${values[key] === o.value}"><span>${o.label}</span>${note}</button>`;
+  }).join("");
+  return `<div class="field"><span class="flabel">${label}</span><div class="dd"><button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false"><span>${cur.label}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="dd-list" role="listbox">${items}</div></div></div>`;
+};
+const inp = (label, key, ph, type = "text") => `<div class="field"><label class="flabel" for="${key}">${label}</label><input id="${key}" class="input" type="${type}" data-input="${key}" value="${esc(values[key])}" placeholder="${ph}" autocomplete="off" spellcheck="false"></div>`;
+const link = (id, label, val = "") => `<button type="button" class="link-row" data-route="${id}"><span>${label}</span><span class="chevm">${esc(val)}<span aria-hidden="true">›</span></span></button>`;
+
+function page(id) {
+  switch (id) {
+    case "general": return seg("主题", "theme", [["light", "白天"], ["dark", "黑夜"]]) +
+      seg("界面语言", "uiLang", [["zh", "中文"], ["en", "English"]]) + sw("开机自启", "startup");
+    case "learning": return dropdown("词汇档位", "level", [
+        { value: "B1–B2", label: "B1–B2", group: "CEFR" },
+        { value: "C1–C2", label: "C1–C2", group: "CEFR" },
+        { value: "CET-4", label: "CET-4", group: "National exams", note: "Minimum requirement" },
+        { value: "CET-6", label: "CET-6", group: "National exams" },
+        { value: "TEM-4", label: "TEM-4", group: "National exams" },
+        { value: "TEM-8", label: "TEM-8", group: "National exams" },
+        { value: "IELTS", label: "IELTS", group: "Study-abroad exams" },
+        { value: "TOEFL", label: "TOEFL", group: "Study-abroad exams" }
+      ]) + seg("解释语言", "language", [["en", "English"], ["zh", "中文"]]) +
+      sw("多义解释", "multi");
+    case "capture": return `<div class="field"><div class="group-title">触发通道</div><div class="swgroup">${sw("选区取词", "selection")}${sw("OCR", "ocr", true)}${sw("自动扫描", "scan", true)}</div></div>` +
+      `<div class="kbdrow off"><span>开关自动扫描</span><kbd>F8</kbd></div>` +
+      `<button type="button" class="link-row" data-route="clipboard"><span>弹窗与剪贴板</span><span class="chevm">${values.policy === "silent" ? "静默放弃" : "强制置顶"}<span aria-hidden="true">›</span></span></button>`;
+    case "model": return dropdown("服务商", "provider", [
+        { value: "DeepSeek", label: "DeepSeek", group: "国内" },
+        { value: "qwen", label: "通义千问", group: "国内" },
+        { value: "glm", label: "智谱 GLM", group: "国内" },
+        { value: "kimi", label: "Kimi", group: "国内" },
+        { value: "doubao", label: "豆包", group: "国内" },
+        { value: "openai", label: "OpenAI", group: "国际" },
+        { value: "anthropic", label: "Anthropic", group: "国际" },
+        { value: "gemini", label: "Google Gemini", group: "国际" },
+        { value: "openrouter", label: "OpenRouter", group: "其他" },
+        { value: "custom", label: "自定义服务", group: "其他" }
+      ]) + inp("模型", "model", "输入模型名称") + link("connection", "API 配置", values.api ? "已填写" : "未填写");
+    case "extensions": return sw("桌面宠物", "pet", true);
+    default: return "";
+  }
+}
+function detail() {
+  switch (route) {
+    case "clipboard": return seg("剪贴板被占用时", "policy", [["topmost", "强制置顶"], ["silent", "静默放弃"]]) +
+      seg("弹出频率", "frequency", [["standard", "标准"], ["less", "更少"]]);
+    case "connection": return inp("API key", "api", "输入 API key", "password") + inp("服务地址", "url", "服务商提供的地址") +
+      '<p class="fhelp">密钥只保存在本机。</p>';
+    default: return "";
+  }
+}
+function body() {
+  if (route) return detail();
+  if (!category) return `<nav class="catalog">${categories.map(c =>
+    `<button type="button" class="cat" data-category="${c.id}"><span><span class="cat-t">${c.name}</span><span class="cat-s">${c.summary}</span></span><span class="chev" aria-hidden="true">›</span></button>`).join("")}</nav>`;
+  return page(category);
+}
+function applyTheme() { document.documentElement.dataset.theme = values.theme; }
+function updateFoot() {
+  statusEl.textContent = dirty() ? "尚未保存" : status;
+  saveBtn.disabled = !dirty();
+  defaultsBtn.disabled = false;
+}
+function render(focus = false) {
+  app.dataset.level = (route || category) ? "sub" : "home";
+  titleEl.textContent = "设置";
+  const crumb = route ? titles[route] : category ? categories.find(c => c.id === category).name : "";
+  crumbEl.textContent = crumb; crumbEl.hidden = !crumb;
+  document.getElementById("crumb-sep").hidden = !crumb;
+  view.innerHTML = body();
+  applyTheme(); updateFoot();
+  if (focus) (view.querySelector(".cat") || backBtn).focus();
+}
+backBtn.onclick = () => { if (route) route = null; else category = null; render(true); };
+document.querySelector(".close").onclick = () => render();
+document.getElementById("save").onclick = () => { saved = { ...values }; status = "已保存"; updateFoot(); };
+defaultsBtn.onclick = () => { values = { ...defaults, api: values.api, url: values.url, provider: values.provider, model: values.model, startup: values.startup }; status = ""; render(); };
+view.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.classList.contains("dd-btn")) { const dd = b.closest(".dd"); const open = dd.classList.toggle("open"); b.setAttribute("aria-expanded", String(open)); return; }
+  if (b.dataset.category) { category = b.dataset.category; route = null; render(true); return; }
+  if (b.dataset.route) { route = b.dataset.route; render(true); return; }
+  if (b.dataset.key) {
+    values[b.dataset.key] = b.dataset.value; status = ""; render();
+    const el = view.querySelector(`[data-key="${b.dataset.key}"][data-value="${b.dataset.value}"]`);
+    if (el) (el.classList.contains("dd-item") ? el.closest(".dd").querySelector(".dd-btn") : el).focus();
+    return;
+  }
+  if (b.dataset.toggle) { const k = b.dataset.toggle; values[k] = !values[k]; status = ""; render(); return; }
+});
+view.addEventListener("input", e => { if (e.target.dataset.input) { values[e.target.dataset.input] = e.target.value; status = ""; updateFoot(); } });
+view.addEventListener("change", e => { if (e.target.dataset.input) { values[e.target.dataset.input] = e.target.value; status = ""; updateFoot(); } });
+document.addEventListener("click", e => {
+  if (e.target.closest(".dd")) return;
+  view.querySelectorAll(".dd.open").forEach(d => { d.classList.remove("open"); d.querySelector(".dd-btn").setAttribute("aria-expanded", "false"); });
+});
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape") return;
+  const open = view.querySelector(".dd.open");
+  if (open) { open.classList.remove("open"); const btn = open.querySelector(".dd-btn"); btn.setAttribute("aria-expanded", "false"); btn.focus(); return; }
+  if (route || category) { e.preventDefault(); if (route) route = null; else category = null; render(true); }
+});
+render();
+</script>
+</body>
+</html>

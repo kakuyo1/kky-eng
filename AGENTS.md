@@ -24,14 +24,13 @@ lens/
 ├── docs              # QML.md (how QML works here) + adr/ (major trade-offs)
 ├── i18n              # .ts translations; English is the source language
 ├── installer         # lens.iss — the Inno Setup script; version.iss.in, filled from project()
-├── scripts           # build/、quality/、profiling/、qa/、data/、release/；目录入口见 scripts/README.md
+├── scripts           # build/, quality/, profiling/, qa/, data/, release/; see scripts/README.md
 ├── third_party       # vendored: nlohmann/json, spdlog, googletest
 ├── icons
 ├── logs              # runtime logs, rotating, gitignored but for .gitkeep
 ├── src
 ├── test              # gtest (unit / integration / perf / smoke) and qtest targets, separate from src/
-└── ui-prototypes/
-     └── v1-halo-{tray-menu,stats,words,cost,settings,bubble,selection-bar}.html
+└── ui-prototypes/    # one HTML prototype per surface; see its README.md
 ```
 
 ## Build
@@ -122,5 +121,5 @@ QML is the exception. `scripts/quality/qml-lint.sh`, called by the hook and by C
 - `docs/QML.md`: QML facts, module layout, surfaces vs components, shadows, positioning, threading, fonts
 - `docs/adr/`: major trade-offs, one numbered file each; `README.md` has the numbering and template
 - `scripts/README.md`: script layout, verification entry points, and release commands
-- `ui-prototypes/v1-halo-*.html`: prototype, one file per surface
+- `ui-prototypes/*.html`: prototype, one file per surface; `README.md` owns the layout and the edit rules
 - `TODO.md`: waiting for implement
