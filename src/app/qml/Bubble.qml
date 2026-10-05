@@ -45,6 +45,11 @@ Window {
     /// the number has to stand still with it. `show()` refills it from `dismissAfterMs`.
     property int remainingMs: 0
 
+    property var pendingPayload: null
+    property bool pendingWasVisible: false
+    property int showGeneration: 0
+    property int pendingGeneration: 0
+
     /// Where the pointer and the card were the last time the hover state changed, in screen
     /// coordinates. Nothing in the application reads them: they are what TODO.md's hover jitter
     /// needs before it can be told a real exit from something else moving `visible`, and there is
@@ -66,6 +71,11 @@ Window {
     }
 
     function show(payload) {
+        const wasVisible = visible;
+        const generation = ++showGeneration;
+        pendingPayload = payload;
+        pendingWasVisible = wasVisible;
+        pendingGeneration = generation;
         dragging = false; // a fresh bubble is never mid-drag
         title = payload.title || "";
         type = payload.type || "";
@@ -74,19 +84,32 @@ Window {
         chinese = payload.zh || "";
         status = payload.status || "";
         remainingMs = dismissAfterMs;
-        visible = true;
-        place(payload);
-        // ...and again once the content has laid out. `height` is the content's, and a Text
-        // handed a new string has not been laid out yet when this runs: measured against the
-        // real window, this read 85 where the card went on to take 132, so the card was
-        // placed as though it were short and then grew down over the selection it was meant
-        // to sit above. The call above is what the frame painted before layout shows, so the
-        // card never jumps from somewhere else.
-        Qt.callLater(place, payload);
-        // Showing a surface is two steps: see Main.qml placePanel() for why `visible` on its
-        // own can leave a topmost window under the taskbar.
-        raise();
-        updateCountdown();
+
+        // A new window must not paint its first frame before Text has settled the card height:
+        // the old path showed it at the old height, then moved it on the next event-loop turn.
+        // Keep an already visible bubble up while its contents are refreshed, so that replacing
+        // one explanation does not turn the fix into a hide-then-show flash.
+        if (!wasVisible)
+            visible = false;
+
+        placement.restart();
+    }
+
+    Timer {
+        id: placement
+        interval: 0
+        onTriggered: {
+            if (bubble.pendingGeneration !== bubble.showGeneration)
+                return;
+            bubble.place(bubble.pendingPayload);
+            if (!bubble.pendingWasVisible) {
+                bubble.visible = true;
+            }
+            // Showing a surface is two steps: see Main.qml placePanel() for why `visible` on its
+            // own can leave a topmost window under the taskbar.
+            bubble.raise();
+            bubble.updateCountdown();
+        }
     }
 
     onHoveringChanged: {
