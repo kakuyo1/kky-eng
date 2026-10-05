@@ -5,7 +5,6 @@
 
 #include "mouse_selection_hook.h"
 
-#include <cstdint>
 #include <cstdlib>
 #include <condition_variable>
 #include <functional>
@@ -31,48 +30,20 @@ struct GestureTracker {
     // Read from the system once, in install(). A reader who changes Mouse Properties while
     // the app runs keeps the old values until it restarts; ponytail: not worth a
     // WM_SETTINGCHANGE handler for a number nobody retunes mid-session.
-    int dragSlopPx = 4;        ///< max(SM_CXDRAG, SM_CYDRAG).
-    int doubleClickMs = 500;   ///< GetDoubleClickTime().
-    int doubleClickSlopPx = 4; ///< SM_CXDOUBLECLK.
-
+    int dragSlopPx = 4; ///< max(SM_CXDRAG, SM_CYDRAG).
     int downX = 0;
     int downY = 0;
-    int clickRun = 0;
-    std::uint32_t lastPressTick = 0;
-    int lastPressX = 0;
-    int lastPressY = 0;
     bool overOwnWindow = false; ///< The press landed on a surface of this process.
 
-    void onPress(int x, int y, std::uint32_t tick, bool own)
+    void onPress(int x, int y, bool own)
     {
         downX = x;
         downY = y;
         overOwnWindow = own;
 
-        // A press on one of our own surfaces is neither the start of a selection nor the first
-        // half of a double click: the reader is dragging a panel or working a control, and the
-        // text the pipeline would go on to copy is whatever the application behind it has
-        // selected. So the run is reset rather than counted.
-        if (own) {
-            clickRun = 1;
-            lastPressTick = 0;
-            return;
-        }
-
-        // Unsigned subtraction, so the wrap of GetTickCount every 49 days compares correctly
-        // instead of reporting a 49-day gap.
-        const std::uint32_t sinceLast = tick - lastPressTick;
-        const bool inTime = lastPressTick != 0 && sinceLast <= static_cast<std::uint32_t>(doubleClickMs);
-        const bool inPlace = std::abs(x - lastPressX) <= doubleClickSlopPx && std::abs(y - lastPressY) <= doubleClickSlopPx;
-
-        // A low-level hook never receives WM_LBUTTONDBLCLK, so the run has to be rebuilt from
-        // the same two numbers Windows itself compares: how long since the last press, and
-        // how far it moved. Anything else starts a fresh run of one.
-        clickRun = (inTime && inPlace) ? clickRun + 1 : 1;
-
-        lastPressTick = tick;
-        lastPressX = x;
-        lastPressY = y;
+        // A press on one of our own surfaces is not the start of a selection: the reader is
+        // dragging a panel or working a control, and the text the pipeline would go on to copy
+        // is whatever the application behind it has selected.
     }
 
     /// @return Where the button came up, when the gesture was a selection.
@@ -80,7 +51,7 @@ struct GestureTracker {
     {
         if (overOwnWindow) return std::nullopt;
 
-        const Gesture gesture{downX, downY, x, y, clickRun};
+        const Gesture gesture{downX, downY, x, y};
         if (!isSelectionGesture(gesture, dragSlopPx)) return std::nullopt;
         return QPoint(x, y);
     }
@@ -153,7 +124,7 @@ LRESULT CALLBACK lowLevelMouseProc(int code, WPARAM wParam, LPARAM lParam)
             case WM_LBUTTONDOWN:
                 // WindowFromPoint is a single lookup, on the one message where the answer is
                 // needed; the callback's budget is the reason the rest of the work is deferred.
-                g_tracker.onPress(info->pt.x, info->pt.y, GetTickCount(), overOurWindow(info->pt));
+                g_tracker.onPress(info->pt.x, info->pt.y, overOurWindow(info->pt));
                 emitPressedLater(info->pt);
                 break;
 
@@ -216,11 +187,6 @@ void hookThreadMain()
 
 bool isSelectionGesture(const Gesture& gesture, int dragSlopPx)
 {
-    // Checked before the distance, because it is the more common way to pick a single word:
-    // the second click selects it and the third selects the paragraph, neither with any
-    // pointer movement for the distance test to see.
-    if (gesture.clickRun >= 2) return true;
-
     const int dx = std::abs(gesture.upX - gesture.downX);
     const int dy = std::abs(gesture.upY - gesture.downY);
     return dx >= dragSlopPx || dy >= dragSlopPx;
@@ -253,9 +219,6 @@ bool MouseSelectionHook::install()
     const int dragX = GetSystemMetrics(SM_CXDRAG);
     const int dragY = GetSystemMetrics(SM_CYDRAG);
     g_tracker.dragSlopPx = dragX > dragY ? dragX : dragY;
-    g_tracker.doubleClickMs = static_cast<int>(GetDoubleClickTime());
-    g_tracker.doubleClickSlopPx = GetSystemMetrics(SM_CXDOUBLECLK);
-
     g_owner = this;
     {
         std::unique_lock<std::mutex> lock(g_startMutex);
@@ -272,7 +235,7 @@ bool MouseSelectionHook::install()
     }
 
     installed_ = true;
-    LENS_INFO("MouseSelectionHook::install: listening on its own thread (drag slop {} px, double click {} ms, click slop {} px)", g_tracker.dragSlopPx, g_tracker.doubleClickMs, g_tracker.doubleClickSlopPx);
+    LENS_INFO("MouseSelectionHook::install: listening on its own thread (drag slop {} px; click-to-select disabled)", g_tracker.dragSlopPx);
     return true;
 }
 

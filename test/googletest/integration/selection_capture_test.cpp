@@ -425,35 +425,29 @@ HWND createFocusProbeWindow()
 
 } // namespace
 
-TEST(SelectionGesture, AStillClickIsNotASelection)
-{
-    EXPECT_FALSE(isSelectionGesture(Gesture{100, 200, 100, 200, 1}, kSlop));
-}
-
 TEST(SelectionGesture, JitterInsideTheSlopIsStillAClick)
 {
-    EXPECT_FALSE(isSelectionGesture(Gesture{100, 200, 100 + kSlop - 1, 200, 1}, kSlop));
-    EXPECT_FALSE(isSelectionGesture(Gesture{100, 200, 100, 200 + kSlop - 1, 1}, kSlop));
+    EXPECT_FALSE(isSelectionGesture(Gesture{100, 200, 100 + kSlop - 1, 200}, kSlop));
+    EXPECT_FALSE(isSelectionGesture(Gesture{100, 200, 100, 200 + kSlop - 1}, kSlop));
 }
 
 TEST(SelectionGesture, MovementAtTheSlopCounts)
 {
     // The boundary is inclusive: exactly the slop is already a drag, which is the reading
     // that keeps a two-character selection from being swallowed.
-    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100 + kSlop, 200, 1}, kSlop));
-    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100, 200 + kSlop, 1}, kSlop));
+    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100 + kSlop, 200}, kSlop));
+    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100, 200 + kSlop}, kSlop));
 
     // Dragging up or to the left selects just as much as dragging down or right.
-    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100 - kSlop, 200, 1}, kSlop));
-    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100, 200 - kSlop, 1}, kSlop));
+    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100 - kSlop, 200}, kSlop));
+    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100, 200 - kSlop}, kSlop));
 }
 
-TEST(SelectionGesture, LaterClicksOfARunSelectWithoutMoving)
+TEST(SelectionGesture, AStationaryClickNeverSelects)
 {
-    // This is the common case for a single word, and the pointer never moves, so the
-    // distance test alone would never see it.
-    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100, 200, 2}, kSlop));
-    EXPECT_TRUE(isSelectionGesture(Gesture{100, 200, 100, 200, 3}, kSlop));
+    // Double-clicking and triple-clicking have the same stationary endpoints here. Only a drag
+    // should open Lens's selection action bar, so click runs remain outside the selection path.
+    EXPECT_FALSE(isSelectionGesture(Gesture{100, 200, 100, 200}, kSlop));
 }
 
 TEST(ExcludedProcess, TerminalsAreExcluded)

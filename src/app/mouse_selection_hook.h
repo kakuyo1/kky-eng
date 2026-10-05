@@ -8,9 +8,9 @@
  * @brief Watches the mouse for the moment the reader finishes selecting text.
  *
  * Windows offers no API that hands over the selected text of another application, so the
- * trigger cannot be "the selection changed" — it has to be the gesture. A drag that ended,
- * or the release of a double or triple click, is the point at which a selection exists. The
- * hook reports only that moment; getting the text out is a separate step, see
+ * trigger cannot be "the selection changed" — it has to be the gesture. A drag that ended is
+ * the point at which a selection exists. The hook reports only that moment; getting the text out
+ * is a separate step, see
  * selection_text_grabber.h. Injecting Ctrl+C from inside a low-level hook callback would
  * overrun the budget Windows allows it and get the hook removed without a word, so the
  * callback stays O(1) and defers.
@@ -31,26 +31,20 @@ struct Gesture {
     int downY = 0;
     int upX = 0; ///< Where it came back up.
     int upY = 0;
-    int clickRun = 1; ///< 1 for a single click, 2 for a double, 3 for a triple.
 };
 
 /**
  * @brief Whether a finished gesture was the reader selecting text.
  *
- * Two things count. A drag that travelled at least @p dragSlopPx, and the release of a
- * double or triple click — Windows selects a word on the second click and a paragraph on
- * the third without the pointer moving at all, so distance alone would miss both and the
- * most common way to pick a single word would never fire. A single click that stayed inside
- * the slop is a caret placement, not a selection.
+ * A drag that travelled at least @p dragSlopPx counts. A click or click run that stayed inside
+ * the slop is not treated as a selection, so ordinary double-clicks do not open the selection
+ * action bar unexpectedly.
  *
- * @param gesture    Endpoints and the click run the hook accumulated.
+ * @param gesture    Endpoints the hook accumulated.
  * @param dragSlopPx Movement below this counts as jitter rather than a drag. The caller
  *                   seeds it from the system's own SM_CXDRAG / SM_CYDRAG so the rule
  *                   follows the reader's mouse settings.
  * @return True when the gesture should be treated as a selection.
- * @note A low-level mouse hook never receives WM_LBUTTONDBLCLK, so @p clickRun is
- *       synthesised by the hook from GetDoubleClickTime() and SM_CXDOUBLECLK. This function
- *       only reads it, which is what keeps the rule testable without a mouse.
  */
 bool isSelectionGesture(const Gesture& gesture, int dragSlopPx);
 
