@@ -251,6 +251,20 @@ TEST_F(LlmTest, RejectsAnEmptyBodyFromASuccessStatus)
     EXPECT_TRUE(failure.contains("JSON object")) << failure.toStdString();
 }
 
+/// A transport error can arrive after Qt has already recorded a successful HTTP status. It must
+/// not be misreported as a malformed model response.
+TEST_F(LlmTest, ReportsATransportFailureEvenWhenTheReplyHasA200Status)
+{
+    QtApplication qt;
+    StubManager manager(200, QByteArray(), QNetworkReply::UnknownNetworkError);
+    LlmClient client(stubConfig(), &manager);
+
+    const QString failure = runToFailure(client, {QStringLiteral("ubiquitous")});
+
+    EXPECT_TRUE(failure.contains("could not reach the service")) << failure.toStdString();
+    EXPECT_FALSE(failure.contains("JSON object")) << failure.toStdString();
+}
+
 /// More than the contract's twenty entries are truncated before the request is built, so the
 /// model never sees the extra ones.
 TEST_F(LlmTest, TruncatesAnOverlongBatchToTheContractCap)

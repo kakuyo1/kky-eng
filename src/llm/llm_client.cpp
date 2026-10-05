@@ -82,6 +82,13 @@ void LlmClient::explainWords(QStringList words)
         reply->deleteLater();
 
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if (reply->error() != QNetworkReply::NoError && (status == 0 || status == 200)) {
+            // Qt can retain a successful status after the stream fails. In that case the body is
+            // incomplete and must not be passed to the JSON/schema validator.
+            LENS_ERROR("request failed before a response: {}", reply->errorString().toStdString());
+            emit failed(tr("The request could not reach the service: %1").arg(reply->errorString()));
+            return;
+        }
         if (status == 0) { // no status code at all: the transfer itself never completed
             LENS_ERROR("request failed before a response: {}", reply->errorString().toStdString());
             emit failed(tr("The request could not reach the service: %1").arg(reply->errorString()));
