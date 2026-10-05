@@ -392,103 +392,103 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="124"/>
+        <location filename="../src/llm/llm_pure.cpp" line="154"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>模型返回的内容不是一个 JSON 对象。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="130"/>
+        <location filename="../src/llm/llm_pure.cpp" line="160"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>模型返回的内容里没有 choices。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="138"/>
+        <location filename="../src/llm/llm_pure.cpp" line="168"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>模型未正常结束（原因：%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="142"/>
+        <location filename="../src/llm/llm_pure.cpp" line="172"/>
         <source>absent</source>
         <translation>缺失</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="148"/>
+        <location filename="../src/llm/llm_pure.cpp" line="178"/>
         <source>The model&apos;s answer is not valid JSON.</source>
         <translation>模型返回的内容不是合法 JSON。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="153"/>
+        <location filename="../src/llm/llm_pure.cpp" line="183"/>
         <source>The model&apos;s answer has no results array.</source>
         <translation>模型返回的内容里没有 results 数组。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="164"/>
+        <location filename="../src/llm/llm_pure.cpp" line="194"/>
         <source>One of the results entries is not an object.</source>
         <translation>results 里有一项不是对象。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="170"/>
+        <location filename="../src/llm/llm_pure.cpp" line="200"/>
         <source>A results entry is missing the field &quot;%1&quot;.</source>
         <translation>results 里有一项缺少字段 “%1”。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="183"/>
+        <location filename="../src/llm/llm_pure.cpp" line="213"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>results 里有一项字段为空（title=%1）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="232"/>
+        <location filename="../src/llm/llm_pure.cpp" line="262"/>
         <source>The model echoed the same title twice: %1.</source>
         <translation>模型重复回显了同一个标题：%1。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="214"/>
-        <location filename="../src/llm/llm_pure.cpp" line="239"/>
+        <location filename="../src/llm/llm_pure.cpp" line="244"/>
+        <location filename="../src/llm/llm_pure.cpp" line="269"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>请求了 %2 项，模型回显了 %1 项。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="250"/>
+        <location filename="../src/llm/llm_pure.cpp" line="280"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>模型没有回显 “%1”。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="26"/>
+        <location filename="../src/llm/llm_pure.cpp" line="66"/>
         <source>The request was rejected as malformed (400).</source>
         <translation>请求格式有误，被服务拒绝（400）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="29"/>
+        <location filename="../src/llm/llm_pure.cpp" line="69"/>
         <source>The API key is missing or not accepted (401).</source>
         <translation>API key 缺失或未被接受（401）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="32"/>
+        <location filename="../src/llm/llm_pure.cpp" line="72"/>
         <source>The account is out of credit (402).</source>
         <translation>账户余额不足（402）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="35"/>
+        <location filename="../src/llm/llm_pure.cpp" line="75"/>
         <source>The request parameters were rejected (422).</source>
         <translation>请求参数被拒绝（422）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="38"/>
+        <location filename="../src/llm/llm_pure.cpp" line="78"/>
         <source>Too many requests; the service is rate-limiting (429).</source>
         <translation>请求过于频繁，已被限流（429）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="41"/>
+        <location filename="../src/llm/llm_pure.cpp" line="81"/>
         <source>The explanation service failed (500).</source>
         <translation>释义服务出错（500）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="44"/>
+        <location filename="../src/llm/llm_pure.cpp" line="84"/>
         <source>The explanation service is overloaded (503).</source>
         <translation>释义服务过载（503）。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="47"/>
+        <location filename="../src/llm/llm_pure.cpp" line="87"/>
         <source>Unexpected HTTP status %1.</source>
         <translation>意外的 HTTP 状态码 %1。</translation>
     </message>
@@ -496,17 +496,17 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="82"/>
+        <location filename="../src/llm/llm_client.cpp" line="51"/>
         <source>There is nothing to look up.</source>
         <translation>没有待查内容。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="90"/>
+        <location filename="../src/llm/llm_client.cpp" line="59"/>
         <source>The API key is missing.</source>
         <translation>未配置 API 密钥。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="118"/>
+        <location filename="../src/llm/llm_client.cpp" line="87"/>
         <source>The request could not reach the service: %1</source>
         <translation>请求未能送达服务：%1</translation>
     </message>

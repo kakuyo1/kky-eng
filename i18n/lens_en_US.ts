@@ -392,103 +392,103 @@
 <context>
     <name>lens::llm</name>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="124"/>
+        <location filename="../src/llm/llm_pure.cpp" line="154"/>
         <source>The model answered with something that is not a JSON object.</source>
         <translation>The model answered with something that is not a JSON object.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="130"/>
+        <location filename="../src/llm/llm_pure.cpp" line="160"/>
         <source>The model&apos;s answer carries no choices.</source>
         <translation>The model&apos;s answer carries no choices.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="138"/>
+        <location filename="../src/llm/llm_pure.cpp" line="168"/>
         <source>The model stopped before finishing (reason: %1).</source>
         <translation>The model stopped before finishing (reason: %1).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="142"/>
+        <location filename="../src/llm/llm_pure.cpp" line="172"/>
         <source>absent</source>
         <translation>absent</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="148"/>
+        <location filename="../src/llm/llm_pure.cpp" line="178"/>
         <source>The model&apos;s answer is not valid JSON.</source>
         <translation>The model&apos;s answer is not valid JSON.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="153"/>
+        <location filename="../src/llm/llm_pure.cpp" line="183"/>
         <source>The model&apos;s answer has no results array.</source>
         <translation>The model&apos;s answer has no results array.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="164"/>
+        <location filename="../src/llm/llm_pure.cpp" line="194"/>
         <source>One of the results entries is not an object.</source>
         <translation>One of the results entries is not an object.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="170"/>
+        <location filename="../src/llm/llm_pure.cpp" line="200"/>
         <source>A results entry is missing the field &quot;%1&quot;.</source>
         <translation>A results entry is missing the field &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="183"/>
+        <location filename="../src/llm/llm_pure.cpp" line="213"/>
         <source>A results entry has an empty field (title=%1).</source>
         <translation>A results entry has an empty field (title=%1).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="232"/>
+        <location filename="../src/llm/llm_pure.cpp" line="262"/>
         <source>The model echoed the same title twice: %1.</source>
         <translation>The model echoed the same title twice: %1.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="214"/>
-        <location filename="../src/llm/llm_pure.cpp" line="239"/>
+        <location filename="../src/llm/llm_pure.cpp" line="244"/>
+        <location filename="../src/llm/llm_pure.cpp" line="269"/>
         <source>The model echoed %1 result(s) for the %2 that were asked for.</source>
         <translation>The model echoed %1 result(s) for the %2 that were asked for.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_pure.cpp" line="250"/>
+        <location filename="../src/llm/llm_pure.cpp" line="280"/>
         <source>The model never echoed &quot;%1&quot;.</source>
         <translation>The model never echoed &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="26"/>
+        <location filename="../src/llm/llm_pure.cpp" line="66"/>
         <source>The request was rejected as malformed (400).</source>
         <translation>The request was rejected as malformed (400).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="29"/>
+        <location filename="../src/llm/llm_pure.cpp" line="69"/>
         <source>The API key is missing or not accepted (401).</source>
         <translation>The API key is missing or not accepted (401).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="32"/>
+        <location filename="../src/llm/llm_pure.cpp" line="72"/>
         <source>The account is out of credit (402).</source>
         <translation>The account is out of credit (402).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="35"/>
+        <location filename="../src/llm/llm_pure.cpp" line="75"/>
         <source>The request parameters were rejected (422).</source>
         <translation>The request parameters were rejected (422).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="38"/>
+        <location filename="../src/llm/llm_pure.cpp" line="78"/>
         <source>Too many requests; the service is rate-limiting (429).</source>
         <translation>Too many requests; the service is rate-limiting (429).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="41"/>
+        <location filename="../src/llm/llm_pure.cpp" line="81"/>
         <source>The explanation service failed (500).</source>
         <translation>The explanation service failed (500).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="44"/>
+        <location filename="../src/llm/llm_pure.cpp" line="84"/>
         <source>The explanation service is overloaded (503).</source>
         <translation>The explanation service is overloaded (503).</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="47"/>
+        <location filename="../src/llm/llm_pure.cpp" line="87"/>
         <source>Unexpected HTTP status %1.</source>
         <translation>Unexpected HTTP status %1.</translation>
     </message>
@@ -496,17 +496,17 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="82"/>
+        <location filename="../src/llm/llm_client.cpp" line="51"/>
         <source>There is nothing to look up.</source>
         <translation>There is nothing to look up.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="90"/>
+        <location filename="../src/llm/llm_client.cpp" line="59"/>
         <source>The API key is missing.</source>
         <translation>The API key is missing.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="118"/>
+        <location filename="../src/llm/llm_client.cpp" line="87"/>
         <source>The request could not reach the service: %1</source>
         <translation>The request could not reach the service: %1</translation>
     </message>
