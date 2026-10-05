@@ -13,5 +13,5 @@ target_include_directories(lens_llm PUBLIC ${CMAKE_SOURCE_DIR}/src)
 # lens_core is a private dependency: it supplies core/log.h and spdlog.
 target_link_libraries(lens_llm
   PUBLIC Qt6::Core Qt6::Network
-  PRIVATE lens_core
+  PRIVATE lens_core lens_util
 )

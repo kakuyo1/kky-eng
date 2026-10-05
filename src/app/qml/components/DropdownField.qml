@@ -14,9 +14,9 @@ Item {
 
     /// The controller's level list: {value, label, group, note}.
     property var options: []
-    property int currentValue: 0
+    property var currentValue: 0
 
-    signal picked(int value)
+    signal picked(var value)
 
     implicitHeight: 35
 

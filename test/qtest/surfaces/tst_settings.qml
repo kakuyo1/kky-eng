@@ -4,7 +4,7 @@ import Lens
 import "../testutil.js" as Util
 
 /**
- * The settings panel's two newer rows: the sign-in switch and the clipboard policy segment
+ * The settings panel's category navigation, sign-in switch and clipboard policy page
  * (UI.md section 4.4).
  *
  * The sign-in switch is only read, never driven: its setter writes HKCU, and a case that wrote
@@ -39,6 +39,7 @@ Item {
         /// that writes one puts it back rather than leaving the next suite reading it.
         function cleanup() {
             Controller.setClipboardPolicy("topmost");
+            Controller.setPopupFrequency("standard");
         }
 
         function settingsPanel(main) {
@@ -47,8 +48,24 @@ Item {
             return panel;
         }
 
-        /// @return The SwitchRow whose label is `label`, or null. Rows are reached through their
-        ///         own label rather than by position, the way the panels cases read StatRow.
+        function categoryRow(panel, title) {
+            const rows = Util.findAll(panel, function (o) {
+                return o.toString().indexOf("SettingsCategoryRow_QMLTYPE") === 0;
+            });
+            for (let i = 0; i < rows.length; ++i) {
+                if (rows[i].title === title)
+                    return rows[i];
+            }
+            return null;
+        }
+
+        function openCategory(panel, title) {
+            const row = categoryRow(panel, title);
+            verify(row, "the settings catalog has no " + title + " category");
+            mouseClick(row, row.width / 2, row.height / 2);
+            wait(20);
+        }
+
         function switchRowLabelled(panel, label) {
             const rows = Util.findAll(panel, function (o) {
                 return o.toString().indexOf("SwitchRow_QMLTYPE") === 0;
@@ -76,6 +93,7 @@ Item {
             const main = make();
             main.showSettings();
             const panel = settingsPanel(main);
+            openCategory(panel, "General");
 
             const row = switchRowLabelled(panel, "Launch at sign-in");
             verify(row, "the settings panel has no sign-in switch");
@@ -87,6 +105,12 @@ Item {
             const main = make();
             main.showSettings();
             const panel = settingsPanel(main);
+            openCategory(panel, "Capture & popups");
+
+            const link = Util.ofType(panel, "SettingsLinkRow");
+            verify(link, "the capture page has no popup link");
+            mouseClick(link, link.width / 2, link.height / 2);
+            wait(20);
 
             // The fixture carries no policy, so it starts on the default. Pinned here rather
             // than assumed, so the case reads the same whatever order the suites run in.

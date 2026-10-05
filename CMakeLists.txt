@@ -81,6 +81,7 @@ set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 add_subdirectory(third_party/googletest)
 
+add_subdirectory(src/util)
 add_subdirectory(src/core)
 add_subdirectory(src/llm)
 add_subdirectory(src/app)

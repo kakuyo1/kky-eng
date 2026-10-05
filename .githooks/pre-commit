@@ -66,6 +66,7 @@ docs/adr/0009-explicit-selection-and-channel-presets.md 0
 docs/adr/0010-model-ipa-without-speech.md 0
 docs/adr/0011-per-user-installer-and-release-version.md 0
 docs/adr/0012-user-data-stays-in-profile.md 0
+docs/adr/0013-app-duty-boundaries.md 0
 ui-prototypes/README.md 0'
 
 staged=$(git diff --cached --name-only --diff-filter=ACM)

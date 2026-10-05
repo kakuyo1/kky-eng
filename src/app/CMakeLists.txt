@@ -12,8 +12,16 @@
 # register classes that live in lens_app.
 
 add_library(lens_app STATIC
+  capture_duty.h
+  capture_duty.cpp
+  cost_duty.h
+  cost_duty.cpp
+  explanation_duty.h
+  explanation_duty.cpp
   mouse_selection_hook.cpp
   selection_text_grabber.cpp
+  storage_duty.h
+  storage_duty.cpp
   system_motion.cpp
   app_controller.cpp
   autostart.cpp
@@ -30,7 +38,7 @@ target_include_directories(lens_app PUBLIC ${CMAKE_SOURCE_DIR}/src)
 # linking the module: that now includes lens_gtest_integration, which used to need no QML.
 target_link_libraries(lens_app
   PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Quick lens_llm
-  PRIVATE lens_core
+  PRIVATE lens_core lens_util
 )
 
 # user32 for the hook, SendInput and the clipboard. Not guarded by if(WIN32): this module
@@ -122,6 +130,16 @@ qt_add_qml_module(lens_app
     qml/Bubble.qml
     qml/Notice.qml
     qml/SettingsPopup.qml
+    qml/SettingsCategoryRow.qml
+    qml/SettingsLinkRow.qml
+    qml/SettingsCatalog.qml
+    qml/SettingsGeneralPage.qml
+    qml/SettingsLearningPage.qml
+    qml/SettingsCapturePage.qml
+    qml/SettingsModelPage.qml
+    qml/SettingsExtensionsPage.qml
+    qml/SettingsClipboardPage.qml
+    qml/SettingsConnectionPage.qml
     qml/StatsPopup.qml
     qml/WordsPopup.qml
     qml/CostPopup.qml

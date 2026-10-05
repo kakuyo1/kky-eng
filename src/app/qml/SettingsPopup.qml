@@ -1,13 +1,13 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Window
 
 /**
- * The settings panel (UI.md section 4.4).
+ * The settings surface from UI.md section 4.4 and ui-prototypes/settings.html.
  *
- * Every control applies as it is changed; only the API key waits for Save, because a
- * half-typed key is not a key. The panel keeps single-value settings flat and reserves a
- * visible group for the three capture switches. The OCR and automatic scanning switches stay
- * visible but inert: they are phase-1 placeholders, greyed with no word of explanation.
+ * The window is fixed-size. Navigation changes the loaded page inside the card rather than
+ * changing the surface geometry, so placement beside the tray remains stable.
  */
 Window {
     id: settings
@@ -17,355 +17,328 @@ Window {
     visible: false
 
     readonly property int shadowMargin: 26
-    readonly property int cardWidth: 360
-
-    /// The card of a window this panel opened, in screen coordinates, or null. main.qml's
-    /// outside-press rule reads it: a press that lands on the level list belongs to the list.
-    readonly property var openChildRect: levelField.openChildRect
-
-    /// @brief Take down the window this panel opened, if any.
-    ///
-    /// main.qml's outside-press rule reaches this through the panel rather than through the
-    /// field: `levelField` is an id inside this file, and an id is not visible from another
-    /// one. Naming it from there threw, and the throw took the rest of that rule -- the closing
-    /// of the panels themselves -- down with it.
-    function closeChild() {
-        levelField.closeList();
-    }
-
-    /// The list outlives this panel otherwise: it is a window of its own, and nothing else
-    /// knows the panel has gone. Coming up clears the key field, which is never read back.
-    onVisibleChanged: {
-        levelField.closeList();
-        if (visible)
-            apiField.text = "";
-    }
+    readonly property int cardWidth: 380
+    readonly property int cardHeight: 480
+    property string category: ""
+    property string route: ""
+    property string apiDraft: ""
+    property string saveStatus: ""
+    readonly property bool hasUnsavedChanges: apiDraft.length > 0
+    // qmllint disable missing-property
+    readonly property var openChildRect: viewLoader.status === Loader.Ready && viewLoader.item
+        ? viewLoader.item.openChildRect
+        : null
+    // qmllint enable missing-property
 
     width: cardWidth + 2 * shadowMargin
-    height: column.implicitHeight + 36 + 2 * shadowMargin
+    height: cardHeight + 2 * shadowMargin
+
+    function categoryTitle(value) {
+        if (value === "general") return qsTranslate("SettingsPopup", "General");
+        if (value === "learning") return qsTranslate("SettingsPopup", "Reading & learning");
+        if (value === "capture") return qsTranslate("SettingsPopup", "Capture & popups");
+        if (value === "model") return qsTranslate("SettingsPopup", "Model service");
+        if (value === "extensions") return qsTranslate("SettingsPopup", "Extensions");
+        return "";
+    }
+
+    function routeTitle(value) {
+        if (value === "clipboard") return qsTranslate("SettingsPopup", "Popup & clipboard");
+        if (value === "connection") return qsTranslate("SettingsPopup", "API configuration");
+        return categoryTitle(category);
+    }
+
+    function closeChild() {
+        // qmllint disable missing-property
+        if (viewLoader.status === Loader.Ready && viewLoader.item && viewLoader.item.closeChild)
+            viewLoader.item.closeChild();
+        // qmllint enable missing-property
+    }
+
+    function openCategory(value) {
+        closeChild();
+        category = value;
+        route = "";
+        body.contentY = 0;
+    }
+
+    function openRoute(value) {
+        closeChild();
+        route = value;
+        body.contentY = 0;
+    }
+
+    function navigateBack() {
+        if (route !== "") {
+            closeChild();
+            route = "";
+        } else if (category !== "") {
+            category = "";
+        } else {
+            visible = false;
+        }
+        body.contentY = 0;
+    }
+
+    function saveSettings() {
+        if (apiDraft.length > 0)
+            Controller.setApiKey(apiDraft);
+        apiDraft = "";
+        saveStatus = qsTranslate("SettingsPopup", "Saved");
+    }
+
+    function restoreDefaults() {
+        Controller.setLevel(2);
+        Controller.setExplanationLang("en");
+        Controller.setMultiSense(false);
+        Controller.setTheme("light");
+        Controller.setUiLanguage("zh");
+        Controller.setSelectionCapture(true);
+        Controller.setClipboardPolicy("topmost");
+        Controller.setPopupFrequency("standard");
+        Controller.setProvider("DeepSeek");
+        Controller.setModel("deepseek-flash");
+        Controller.setAutoScan(false);
+        saveStatus = qsTranslate("SettingsPopup", "Defaults restored");
+    }
+
+    onVisibleChanged: {
+        if (visible) {
+            category = "";
+            route = "";
+            apiDraft = "";
+            saveStatus = "";
+            body.contentY = 0;
+        } else {
+            closeChild();
+        }
+    }
+
+    Shortcut {
+        sequence: "Escape"
+        onActivated: settings.navigateBack()
+    }
 
     ShadowCard {
         anchors.fill: parent
         radius: Tokens.radiusCard
         movable: true
+        onDraggingChanged: if (dragging) settings.closeChild()
 
-        // The level list is a window of its own and cannot follow the panel, so a drag takes
-        // it down rather than leaving it behind.
-        onDraggingChanged: if (dragging) levelField.closeList()
+        Item {
+            id: header
+            x: 0
+            y: 0
+            width: settings.cardWidth
+            height: 58
 
-        Column {
-            id: column
-            x: 20
-            y: 18
-            width: settings.cardWidth - 40
-            spacing: 12
-
-            // The close icon is anchored to the right edge rather than pushed there by a
-            // spacer: a spacer sized around the English title lands the glyph past the card
-            // the moment the title is a different width, which is every translation of it.
             Item {
-                width: parent.width
-                height: title.height
-
-                Text {
-                    id: title
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: qsTr("Settings")
-                    color: Tokens.text
-                    font.pixelSize: 14
-                    font.weight: Font.Bold
-                }
+                visible: settings.category !== ""
+                x: 14
+                y: 16
+                width: 26
+                height: 26
 
                 Icon {
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.centerIn: parent
+                    width: 16
+                    height: 16
+                    source: "qrc:/icons/ui-back.svg"
+                    color: Tokens.muted
+                }
+                HoverHandler { cursorShape: Qt.PointingHandCursor }
+                TapHandler { onTapped: settings.navigateBack() }
+            }
+
+            Text {
+                x: settings.category !== "" ? 54 : 20
+                anchors.verticalCenter: parent.verticalCenter
+                text: qsTranslate("SettingsPopup", "Settings")
+                color: Tokens.text
+                font.pixelSize: 14
+                font.weight: Font.Bold
+            }
+
+            Text {
+                visible: settings.category !== ""
+                anchors.left: parent.left
+                anchors.leftMargin: 120
+                anchors.verticalCenter: parent.verticalCenter
+                text: "/"
+                color: Tokens.faint
+                font.pixelSize: 12
+            }
+
+            Text {
+                visible: settings.category !== ""
+                anchors.left: parent.left
+                anchors.leftMargin: 136
+                anchors.right: closeButton.left
+                anchors.rightMargin: 12
+                anchors.verticalCenter: parent.verticalCenter
+                text: settings.route !== "" ? settings.routeTitle(settings.route) : settings.categoryTitle(settings.category)
+                color: Tokens.muted
+                font.pixelSize: 12
+                elide: Text.ElideRight
+            }
+
+            Item {
+                id: closeButton
+                anchors.right: parent.right
+                anchors.rightMargin: 14
+                anchors.verticalCenter: parent.verticalCenter
+                width: 26
+                height: 26
+
+                Icon {
+                    anchors.centerIn: parent
+                    width: 16
+                    height: 16
                     source: "qrc:/icons/ui-close.svg"
                     color: Tokens.faint
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                    TapHandler { onTapped: settings.visible = false }
                 }
+                HoverHandler { cursorShape: Qt.PointingHandCursor }
+                TapHandler { onTapped: settings.visible = false }
+            }
+        }
+
+        Flickable {
+            id: body
+            x: 0
+            y: header.height
+            width: settings.cardWidth
+            height: settings.cardHeight - header.height - footer.height
+            clip: true
+            contentWidth: width
+            contentHeight: Math.max(height, viewLoader.y + viewLoader.height + 18)
+
+            Loader {
+                id: viewLoader
+                x: 20
+                y: 12
+                width: settings.cardWidth - 40
+                // qmllint disable missing-property
+                height: status === Loader.Ready && item ? item.implicitHeight : 0
+                // qmllint enable missing-property
+                sourceComponent: settings.route === "clipboard" ? clipboardComponent
+                                 : settings.route === "connection" ? connectionComponent
+                                 : settings.category === "" ? catalogComponent
+                                 : settings.category === "general" ? generalComponent
+                                 : settings.category === "learning" ? learningComponent
+                                 : settings.category === "capture" ? captureComponent
+                                 : settings.category === "model" ? modelComponent
+                                 : extensionsComponent
+            }
+        }
+
+        Item {
+            id: footer
+            x: 0
+            y: settings.cardHeight - height
+            width: settings.cardWidth
+            height: 56
+
+            Rectangle {
+                anchors.top: parent.top
+                width: parent.width
+                height: 1
+                color: Tokens.line2
             }
 
-            Column {
-                width: parent.width
-                spacing: 7
+            Rectangle {
+                x: 20
+                y: 15
+                width: defaultsLabel.width + 28
+                height: 27
+                radius: Tokens.radiusPill
+                color: Tokens.panel2
+                border.width: 1
+                border.color: Tokens.line
+
                 Text {
-                    text: qsTr("Vocabulary level")
+                    id: defaultsLabel
+                    anchors.centerIn: parent
+                    text: qsTranslate("SettingsPopup", "Defaults")
                     color: Tokens.muted
                     font.pixelSize: 12
+                    font.weight: Font.Bold
                 }
-                DropdownField {
-                    id: levelField
-                    width: parent.width
-                    options: Controller.settings.levels
-                    currentValue: Controller.settings.level
-                    onPicked: (value) => Controller.setLevel(value)
-                }
+                HoverHandler { cursorShape: Qt.PointingHandCursor }
+                TapHandler { onTapped: settings.restoreDefaults() }
             }
 
-            Column {
-                width: parent.width
-                spacing: 7
+            Text {
+                anchors.left: defaultsLabel.parent.right
+                anchors.leftMargin: 8
+                anchors.right: saveButton.left
+                anchors.rightMargin: 8
+                anchors.verticalCenter: parent.verticalCenter
+                text: settings.hasUnsavedChanges
+                      ? qsTranslate("SettingsPopup", "Unsaved changes")
+                      : settings.saveStatus
+                color: Tokens.faint
+                font.pixelSize: 11
+                horizontalAlignment: Text.AlignHCenter
+                elide: Text.ElideRight
+            }
+
+            Rectangle {
+                id: saveButton
+                anchors.right: parent.right
+                anchors.rightMargin: 20
+                y: 15
+                width: saveLabel.width + 28
+                height: 27
+                radius: Tokens.radiusPill
+                color: Tokens.ink
+                opacity: settings.hasUnsavedChanges ? 1 : 0.45
+
                 Text {
-                    text: qsTr("Explanation language")
-                    color: Tokens.muted
+                    id: saveLabel
+                    anchors.centerIn: parent
+                    text: qsTranslate("SettingsPopup", "Save")
+                    color: Tokens.on
                     font.pixelSize: 12
+                    font.weight: Font.Bold
                 }
-                Segment {
-                    width: parent.width
-                    height: 31
-                    labels: [qsTr("English"), qsTr("中文")]
-                    currentIndex: Controller.settings.explanationLang === "zh" ? 1 : 0
-                    onPicked: (index) => Controller.setExplanationLang(index === 1 ? "zh" : "en")
+                HoverHandler {
+                    cursorShape: settings.hasUnsavedChanges ? Qt.PointingHandCursor : Qt.ArrowCursor
                 }
-            }
-
-            Column {
-                width: parent.width
-                spacing: 7
-                Text {
-                    text: qsTr("Theme")
-                    color: Tokens.muted
-                    font.pixelSize: 12
-                }
-                Segment {
-                    width: parent.width
-                    height: 31
-                    labels: [qsTr("Light"), qsTr("Dark")]
-                    currentIndex: Controller.settings.theme === "dark" ? 1 : 0
-                    onPicked: (index) => Controller.setTheme(index === 1 ? "dark" : "light")
+                TapHandler {
+                    enabled: settings.hasUnsavedChanges
+                    onTapped: settings.saveSettings()
                 }
             }
+        }
+    }
 
-            Column {
-                width: parent.width
-                spacing: 7
-                Text {
-                    text: qsTr("API KEY")
-                    color: Tokens.muted
-                    font.pixelSize: 12
-                }
-                Rectangle {
-                    width: parent.width
-                    height: 34
-                    radius: Tokens.radiusField
-                    color: Tokens.panel2
-                    border.width: 1
-                    border.color: Tokens.line
-
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-
-                    TextInput {
-                        id: apiField
-                        anchors.fill: parent
-                        anchors.leftMargin: 11
-                        anchors.rightMargin: 11
-                        verticalAlignment: TextInput.AlignVCenter
-                        echoMode: TextInput.Password
-                        color: Tokens.text
-                        font.pixelSize: 13
-                        selectByMouse: true
-                        // The parent handler covers the two side margins; this one covers the
-                        // TextInput itself, so the whole field keeps one affordance.
-                        HoverHandler { cursorShape: Qt.PointingHandCursor }
-                        // The stored key is never read back, so the field starts empty and
-                        // shows the prototype's placeholder instead of a masked copy of it.
-                        Text {
-                            anchors.fill: parent
-                            verticalAlignment: Text.AlignVCenter
-                            visible: apiField.text.length === 0
-                            text: Controller.settings.hasApiKey ? "sk-" + "•".repeat(28) : "sk-********************************"
-                            color: Tokens.faint
-                            font: apiField.font
-                            elide: Text.ElideRight
-                        }
-                    }
-                }
-            }
-
-            Column {
-                width: parent.width
-                spacing: 7
-                Text {
-                    text: qsTr("Capture")
-                    color: Tokens.muted
-                    font.pixelSize: 12
-                }
-
-                Rectangle {
-                    width: parent.width
-                    implicitHeight: switches.implicitHeight + 8
-                    radius: Tokens.radiusGroup
-                    color: Tokens.panel2
-                    border.width: 1
-                    border.color: Tokens.line
-
-                    Column {
-                        id: switches
-                        x: 12
-                        y: 4
-                        width: parent.width - 24
-                        spacing: 0
-
-                        SwitchRow {
-                            width: parent.width
-                            label: qsTr("Selection")
-                            checked: Controller.settings.selectionCapture
-                            onToggled: (on) => Controller.setSelectionCapture(on)
-                        }
-                        SwitchRow {
-                            width: parent.width
-                            label: qsTr("OCR")
-                            checked: false
-                            interactive: false
-                        }
-                        SwitchRow {
-                            width: parent.width
-                            label: qsTr("Auto scan")
-                            checked: false
-                            interactive: false
-                        }
-                    }
-                }
-            }
-
-            Column {
-                width: parent.width
-                spacing: 7
-                Text {
-                    text: qsTr("Global hotkey")
-                    color: Tokens.muted
-                    font.pixelSize: 12
-                }
-                Rectangle {
-                    width: parent.width
-                    height: 34
-                    radius: Tokens.radiusField
-                    color: Tokens.panel2
-                    border.width: 1
-                    border.color: Tokens.line
-                    opacity: 0.45
-
-                    Text {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 11
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: qsTr("Toggle auto scan")
-                        color: Tokens.faint
-                        font.pixelSize: 13
-                    }
-                    Rectangle {
-                        anchors.right: parent.right
-                        anchors.rightMargin: 10
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: 30
-                        height: 21
-                        radius: 6
-                        color: Tokens.panel
-                        border.width: 1
-                        border.color: Tokens.line
-                        Text {
-                            anchors.centerIn: parent
-                            text: "F8"
-                            color: Tokens.muted
-                            font.pixelSize: 11
-                        }
-                    }
-                }
-            }
-
-            Column {
-                width: parent.width
-                spacing: 7
-                Text {
-                    text: qsTr("Startup")
-                    color: Tokens.muted
-                    font.pixelSize: 12
-                }
-                // The registry is the state, so the switch shows what the controller read back
-                // rather than what was asked for: a policy that forbids the Run key leaves it off.
-                SwitchRow {
-                    width: parent.width
-                    label: qsTr("Launch at sign-in")
-                    checked: Controller.settings.autostart
-                    onToggled: (on) => Controller.setAutostart(on)
-                }
-            }
-
-            Column {
-                width: parent.width
-                spacing: 7
-                Text {
-                    text: qsTr("Clipboard")
-                    color: Tokens.muted
-                    font.pixelSize: 12
-                }
-                Segment {
-                    width: parent.width
-                    height: 31
-                    labels: [qsTr("Raise to top"), qsTr("Give up silently")]
-                    currentIndex: Controller.settings.clipboardPolicy === "silent" ? 1 : 0
-                    onPicked: (index) => Controller.setClipboardPolicy(index === 1 ? "silent" : "topmost")
-                }
-            }
-
-            Row {
-                width: parent.width
-                spacing: 8
-                layoutDirection: Qt.RightToLeft
-
-                Rectangle {
-                    width: saveLabel.width + 26
-                    height: 27
-                    radius: Tokens.radiusPill
-                    color: Tokens.ink
-                    Text {
-                        id: saveLabel
-                        anchors.centerIn: parent
-                        text: qsTr("Save")
-                        color: Tokens.on
-                        font.pixelSize: 12
-                        font.weight: Font.Bold
-                    }
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                    TapHandler {
-                        onTapped: {
-                            if (apiField.text.length > 0)
-                                Controller.setApiKey(apiField.text);
-                            settings.visible = false;
-                        }
-                    }
-                }
-
-                Rectangle {
-                    width: resetLabel.width + 26
-                    height: 27
-                    radius: Tokens.radiusPill
-                    color: Tokens.panel2
-                    border.width: 1
-                    border.color: Tokens.line
-                    Text {
-                        id: resetLabel
-                        anchors.centerIn: parent
-                        text: qsTr("Defaults")
-                        color: Tokens.muted
-                        font.pixelSize: 12
-                        font.weight: Font.Bold
-                    }
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                    TapHandler {
-                        onTapped: {
-                            Controller.setLevel(2);
-                            Controller.setExplanationLang("en");
-                            Controller.setTheme("light");
-                            Controller.setSelectionCapture(true);
-                            Controller.setClipboardPolicy("topmost");
-                            Controller.setAutoScan(false);
-                        }
-                    }
-                }
-            }
+    Component {
+        id: catalogComponent
+        SettingsCatalog {
+            onCategoryRequested: (value) => settings.openCategory(value)
+        }
+    }
+    Component { id: generalComponent; SettingsGeneralPage {} }
+    Component { id: learningComponent; SettingsLearningPage {} }
+    Component {
+        id: captureComponent
+        SettingsCapturePage {
+            onChildRequested: (value) => settings.openRoute(value)
+        }
+    }
+    Component {
+        id: modelComponent
+        SettingsModelPage {
+            onChildRequested: (value) => settings.openRoute(value)
+        }
+    }
+    Component { id: extensionsComponent; SettingsExtensionsPage {} }
+    Component { id: clipboardComponent; SettingsClipboardPage {} }
+    Component {
+        id: connectionComponent
+        SettingsConnectionPage {
+            draftOwner: settings
+            onApiEdited: (value) => settings.apiDraft = value
         }
     }
 }

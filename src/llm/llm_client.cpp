@@ -32,6 +32,24 @@ void LlmClient::setExplanationLang(const QString& lang)
     lang_ = lang;
 }
 
+void LlmClient::setModel(const QString& model)
+{
+    LENS_TRACE("LlmClient::setModel: '{}' -> '{}'", config_.model.toStdString(), model.toStdString());
+    config_.model = model;
+}
+
+void LlmClient::setBaseUrl(const QUrl& baseUrl)
+{
+    LENS_TRACE("LlmClient::setBaseUrl: '{}' -> '{}'", config_.baseUrl.toString().toStdString(), baseUrl.toString().toStdString());
+    config_.baseUrl = baseUrl;
+}
+
+void LlmClient::setApiKey(const QString& apiKey)
+{
+    config_.apiKey = apiKey;
+    LENS_TRACE("LlmClient::setApiKey: key replaced (value hidden)");
+}
+
 void LlmClient::setChannel(Channel channel)
 {
     LENS_TRACE("LlmClient::setChannel: '{}' -> '{}'", channelKey(channel_), channelKey(channel));

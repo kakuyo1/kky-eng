@@ -13,7 +13,7 @@ target_include_directories(lens_core PUBLIC
 )
 
 # spdlog is PUBLIC: core/log.h is the logging entry point for every other module.
-target_link_libraries(lens_core PUBLIC spdlog::spdlog)
+target_link_libraries(lens_core PUBLIC spdlog::spdlog PRIVATE lens_util)
 
 # Calls below this level compile away. It belongs here rather than in log.h: spdlog's
 # common.h supplies its own info default as soon as it is included, so a header-side

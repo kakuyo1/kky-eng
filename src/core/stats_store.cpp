@@ -1,20 +1,12 @@
 #include "core/stats_store.h"
 #include "core/log.h"
+#include "util/text.h"
 
 #include <algorithm>
 #include <unordered_set>
 
 namespace lens::core {
 namespace {
-
-/// Length of the date part of a stored minute, "YYYY-MM-DD".
-constexpr std::size_t kDateLen = 10;
-
-/// @return The date part of a stored minute, or an empty string when it is too short to hold one.
-std::string dateOf(const std::string& minute)
-{
-    return minute.size() >= kDateLen ? minute.substr(0, kDateLen) : std::string();
-}
 
 /// @brief Move one word in or out of a day's known / new tally.
 ///
@@ -25,9 +17,9 @@ std::string dateOf(const std::string& minute)
 void tallyVerdict(DailyUsage& day, const std::string& verdict, int delta)
 {
     if (verdict == "known")
-        day.learned = std::max(0, day.learned + delta);
+        day.learned = util::clampedAdd(day.learned, delta);
     else if (verdict == "new")
-        day.fresh = std::max(0, day.fresh + delta);
+        day.fresh = util::clampedAdd(day.fresh, delta);
 }
 
 /// @brief Read one `daily` entry, tolerating anything malformed.
@@ -55,7 +47,7 @@ StatsStore::StatsStore(nlohmann::json& document)
                 continue;
             const std::string lemma  = entry.value("word", std::string());
             const std::string minute = entry.value("time", std::string());
-            if (lemma.empty() || dateOf(minute).empty())
+            if (lemma.empty() || util::datePart(minute).empty())
                 continue; // a record with no word or no usable time is not one we can show
             history_.push_back(HistoryEntry{lemma, minute, entry.value("verdict", std::string())});
         }
@@ -63,7 +55,7 @@ StatsStore::StatsStore(nlohmann::json& document)
 
     if (doc_.contains("daily") && doc_["daily"].is_object()) {
         for (auto it = doc_["daily"].begin(); it != doc_["daily"].end(); ++it) {
-            if (it.key().size() != kDateLen)
+            if (it.key().size() != 10)
                 continue;
             daily_[it.key()] = dailyFromJson(it.value());
         }
@@ -79,7 +71,7 @@ void StatsStore::recordPop(std::string lemma, std::string minute)
         LENS_DEBUG("stats history over {} entries; dropping the oldest", kMaxHistory);
         history_.resize(kMaxHistory);
     }
-    daily_[dateOf(history_.front().minute)].pops++;
+    daily_[util::datePart(history_.front().minute)].pops++;
     writeBack();
 }
 
@@ -95,7 +87,7 @@ void StatsStore::recordVerdict(const std::string& lemma, std::string minute, std
         // The pop may have aged out of the history window. The tally still moved, and with no
         // entry left to say which day the word was shown, it lands on the day of the mark.
         LENS_DEBUG("stats: no history entry for '{}'; only the daily tally moves", lemma);
-        tallyVerdict(daily_[dateOf(minute)], verdict, 1);
+        tallyVerdict(daily_[util::datePart(minute)], verdict, 1);
         writeBack();
         return;
     }
@@ -107,7 +99,7 @@ void StatsStore::recordVerdict(const std::string& lemma, std::string minute, std
     // many you settled this way" -- which is also the only day it can be taken back off. So a
     // re-marked word moves from one column to the other instead of landing in both, and the day
     // that counted it is the day that gives it up.
-    DailyUsage& day = daily_[dateOf(entry->minute)];
+    DailyUsage& day = daily_[util::datePart(entry->minute)];
     tallyVerdict(day, entry->verdict, -1);
     entry->verdict = verdict; // keep the pop's own minute; this is when it was shown
     tallyVerdict(day, verdict, 1);
@@ -116,7 +108,7 @@ void StatsStore::recordVerdict(const std::string& lemma, std::string minute, std
 
 void StatsStore::recordUsage(const std::string& minute, long long promptTokens, long long completionTokens)
 {
-    DailyUsage& day = daily_[dateOf(minute)];
+    DailyUsage& day = daily_[util::datePart(minute)];
     day.promptTokens += promptTokens;
     day.completionTokens += completionTokens;
     writeBack();

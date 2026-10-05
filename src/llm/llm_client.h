@@ -72,6 +72,15 @@ public:
     /// runtime from the settings popup.
     void setExplanationLang(const QString& lang);
 
+    /// @brief Replace the model used by subsequent requests.
+    void setModel(const QString& model);
+
+    /// @brief Replace the OpenAI-compatible endpoint used by subsequent requests.
+    void setBaseUrl(const QUrl& baseUrl);
+
+    /// @brief Replace the bearer token used by subsequent requests without logging it.
+    void setApiKey(const QString& apiKey);
+
     /// @brief Set which protocol the next request speaks.
     ///
     /// The channel is decided locally, before anything is sent, and selects the request
