@@ -115,6 +115,7 @@ QML is the exception. `scripts/quality/qml-lint.sh`, called by the hook and by C
 - `PRODUCT.md`: design decisions
 - `UI.md`: UI spec
 - `PHASE1.md`: phase 1 implementation contract (scope, module interfaces, prompt/schema)
+- `PHASE2.md`: phase 2 implementation contract (1.1.0 scope and per-feature acceptance)
 - `TEST.md`: framework, targets, corpus, profiling, run records
 - `API.md`: wire format, request body, response envelope, validation rules, error codes
 - `CODING_STANDARDS.md`: the judgement calls a review can make (C++ and QML)
