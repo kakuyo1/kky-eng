@@ -59,6 +59,36 @@ QByteArray extractJsonObject(const QString& content)
 
 } // namespace
 
+QString httpErrorFor(int status)
+{
+    switch (status) {
+        case 400:
+            return QCoreApplication::translate("lens::llm",
+                                               "The request was rejected as malformed (400).");
+        case 401:
+            return QCoreApplication::translate("lens::llm",
+                                               "The API key is missing or not accepted (401).");
+        case 402:
+            return QCoreApplication::translate("lens::llm",
+                                               "The account is out of credit (402).");
+        case 422:
+            return QCoreApplication::translate("lens::llm",
+                                               "The request parameters were rejected (422).");
+        case 429:
+            return QCoreApplication::translate(
+                "lens::llm", "Too many requests; the service is rate-limiting (429).");
+        case 500:
+            return QCoreApplication::translate("lens::llm",
+                                               "The explanation service failed (500).");
+        case 503:
+            return QCoreApplication::translate("lens::llm",
+                                               "The explanation service is overloaded (503).");
+        default:
+            return QCoreApplication::translate("lens::llm", "Unexpected HTTP status %1.")
+                .arg(status);
+    }
+}
+
 QString maskSensitive(const QString& text)
 {
     static const QRegularExpression url(R"(\bhttps?://\S+)");

@@ -26,10 +26,12 @@
 # lens_gtest_smoke needs a real model and an API key. Both stay human-run; see TEST.md section 2.
 # The C++ coverage step inherits that split and runs four of the targets, not five.
 #
-# The coverage jobs report and do not gate. The numbers move on their own between runs of an
-# unchanged tree -- one known-red case in lens_gtest_integration leaves lines covered or not
-# depending on how the timing falls, which is worth about a percentage point on the total -- so
-# a threshold would fail on the weather. TEST.md section 4 carries the scope of both scans.
+# The coverage jobs report and do not gate. The numbers still move between runs of an unchanged
+# tree -- the QML trace's event counts vary from run to run, and each scan is over whatever
+# targets a machine can run, which is not the same set here as on a development box -- so a
+# threshold would fail on the weather. TEST.md section 4 carries the scope of both scans.
+# (The one that used to swing the C++ total, a known-red case in lens_gtest_integration, was
+# fixed on 2026-10-05; that wobble is gone, but the two above are not.)
 
 name: CI
 

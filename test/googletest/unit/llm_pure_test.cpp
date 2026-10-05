@@ -30,6 +30,7 @@ using lens::llm::Config;
 using lens::llm::Usage;
 using lens::llm::Explanation;
 using lens::llm::buildRequestBody;
+using lens::llm::httpErrorFor;
 using lens::llm::maskSensitive;
 using lens::llm::parseExplanations;
 using lens::llm::parseUsage;
@@ -85,6 +86,38 @@ TEST(LlmPureMask, CollapsesEmailUrlAndLongDigits)
         SCOPED_TRACE(item.input);
         EXPECT_EQ(maskSensitive(QString::fromUtf8(item.input)), QString::fromUtf8(item.want));
     }
+}
+
+TEST(LlmPureHttpError, NamesEachStatusTheModelServiceCanAnswerWith)
+{
+    // Each entry pins a phrase only that arm of the switch carries, and the status number, so a
+    // wrong arm -- or one falling through to the default -- fails here rather than in a paid
+    // round trip. 402 in particular is DeepSeek's out-of-credit code, which is the one failure a
+    // reader has to act on rather than retry.
+    const struct {
+        int status;
+        const char* phrase;
+    } cases[] = {
+        {400, "malformed"},
+        {401, "API key"},
+        {402, "credit"},
+        {422, "parameters"},
+        {429, "rate-limiting"},
+        {500, "failed"},
+        {503, "overloaded"},
+    };
+
+    for (const auto& item : cases) {
+        SCOPED_TRACE(item.status);
+        const QString message = httpErrorFor(item.status);
+        EXPECT_TRUE(message.contains(item.phrase)) << message.toStdString();
+        EXPECT_TRUE(message.contains(QString::number(item.status))) << message.toStdString();
+    }
+
+    // A status with no arm of its own still names the number rather than collapsing to a
+    // generic line, so the reader can search for it.
+    EXPECT_TRUE(httpErrorFor(418).contains("418"));
+    EXPECT_TRUE(httpErrorFor(0).contains("0"));
 }
 
 TEST_F(LlmTest, RequestBodyKeepsTheDeepSeekContract)

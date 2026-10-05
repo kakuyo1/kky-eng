@@ -6,7 +6,10 @@
  * Three of the four groups run unattended. The gesture rule and the exclusion list are pure
  * assertions. The hook case drives the pointer with SendInput, which a low-level hook sees
  * exactly like real input, so it proves the hook and its deferred signal for real rather than
- * through a mock.
+ * through a mock. Its drag lands on a window a child process owns, because the hook ignores any
+ * press over a window of its own process (the rule that keeps a drag on one of the app's own
+ * surfaces from being read as a selection); the child is this same executable re-run in probe
+ * mode, see main().
  *
  * The last one cannot be automated: it needs a drag over another application, so it reports a
  * skip unless LENS_HOOK_SMOKE is set and then waits for a human. What it adds is what only a
@@ -28,6 +31,7 @@
 #include <iterator>
 #include <optional>
 #include <string>
+#include <string_view>
 
 #include <QCoreApplication>
 #include <QEventLoop>
@@ -59,9 +63,19 @@ constexpr int kSlop = 4;
 /// How long the human gets to make a selection once the hook is listening.
 constexpr int kHookWaitMs = 20'000;
 
+/// How long the synthesised drag gets to arrive before the case gives up on it.
+constexpr int kDragWaitMs = 2'000;
+
 /// How far the synthesised drag travels. Well past any plausible SM_CXDRAG, so the gesture
 /// rule cannot reject it for the wrong reason.
 constexpr int kDragPx = 40;
+
+/// The switch that turns this executable into the probe-window child instead of a test run.
+constexpr const char* kProbeWindowArg = "--lens-probe-window";
+
+/// How long to wait for the probe child to put its window up, and how often to look.
+constexpr int kProbeWindowWaitMs = 2000;
+constexpr int kProbePollIntervalMs = 20;
 
 /// @return A name for the status, so a failure message says something a reader can act on
 ///         instead of a number.
@@ -187,6 +201,69 @@ unsigned putClipboardTextAndFormat(const QString& text, const char* name, const 
     return format;
 }
 
+/// @brief Put text and a palette on the clipboard, in one session.
+///
+/// A palette's handle is a GDI object rather than a block of memory, so it is the format the
+/// snapshot is built to leave behind. A bitmap would do the same, but Windows also puts its
+/// memory siblings (CF_DIB, CF_DIBV5) on the clipboard, and the snapshot copies those; a palette
+/// has no such sibling, so its absence after a restore really does mean the skip happened.
+///
+/// Text rides along so the snapshot still has something it can copy, which is what separates "the
+/// handle format was skipped" from "the snapshot copied nothing".
+/// @return True when both formats went on.
+bool putClipboardTextAndPalette(const QString& text)
+{
+    const HDC screen = GetDC(nullptr);
+    if (screen == nullptr) return false;
+    const HPALETTE palette = CreateHalftonePalette(screen);
+    ReleaseDC(nullptr, screen);
+    if (palette == nullptr) return false;
+
+    if (!openClipboardRetrying()) {
+        DeleteObject(palette);
+        return false;
+    }
+
+    EmptyClipboard();
+
+    const std::wstring wide = text.toStdWString();
+
+    // Each handle's ownership passes to the clipboard on success and stays here on failure, so
+    // every failure below has to release what it still holds before it returns.
+    HGLOBAL memory = GlobalAlloc(GMEM_MOVEABLE, (wide.size() + 1) * sizeof(wchar_t));
+    if (memory == nullptr) {
+        DeleteObject(palette);
+        CloseClipboard();
+        return false;
+    }
+    if (void* target = GlobalLock(memory)) {
+        std::memcpy(target, wide.c_str(), (wide.size() + 1) * sizeof(wchar_t));
+        GlobalUnlock(memory);
+    } else {
+        // Handing an unlocked block to the clipboard would put garbage text on it, which is not
+        // the setup the case asked for.
+        GlobalFree(memory);
+        DeleteObject(palette);
+        CloseClipboard();
+        return false;
+    }
+    if (SetClipboardData(CF_UNICODETEXT, memory) == nullptr) {
+        GlobalFree(memory);
+        DeleteObject(palette);
+        CloseClipboard();
+        return false;
+    }
+
+    if (SetClipboardData(CF_PALETTE, palette) == nullptr) {
+        DeleteObject(palette);
+        CloseClipboard();
+        return false;
+    }
+
+    CloseClipboard();
+    return true;
+}
+
 /// @return The bytes of a private registered format, or nothing when it is not there.
 std::optional<std::string> readClipboardPrivateFormat(unsigned format)
 {
@@ -226,27 +303,114 @@ void sendDrag(POINT start, int dx)
     SendInput(static_cast<UINT>(std::size(events)), events, sizeof(INPUT));
 }
 
-/**
- * @brief A small topmost window for the synthesised drag to land on.
- *
- * A synthetic click has to go somewhere, and letting it find the reader's own window is how
- * a test deletes somebody's file. This one belongs to the test, so hitting it does nothing,
- * and WS_EX_NOACTIVATE keeps it from taking focus from whatever the reader was doing.
- *
- * The system's own STATIC class is used so no window class has to be registered, and the
- * caller destroys it.
- */
-HWND createProbeWindow()
+/// @brief The title prefix the probe-window child names its window with; the parent appends the
+///        child's pid so the two halves can find each other without a pipe.
+constexpr wchar_t kProbeTitlePrefix[] = L"Lens probe ";
+
+/// @brief Wait for the probe child to put its window up.
+/// @return The window, or nullptr when the child never made one.
+HWND waitForProbeWindow(DWORD pid)
 {
-    return CreateWindowExW(WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, L"STATIC", L"Lens probe", WS_POPUP | WS_VISIBLE, 80, 80, 220, 48, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+    const std::wstring title = kProbeTitlePrefix + std::to_wstring(pid);
+    for (int waited = 0; waited < kProbeWindowWaitMs; waited += kProbePollIntervalMs) {
+        if (HWND found = FindWindowW(nullptr, title.c_str())) return found;
+        Sleep(kProbePollIntervalMs);
+    }
+    return nullptr;
 }
 
-/// @brief Move the pointer back and get rid of the probe window.
-void dismissProbe(HWND probe, POINT original)
-{
-    SetCursorPos(original.x, original.y);
-    if (probe != nullptr) DestroyWindow(probe);
-}
+/**
+ * @brief The probe-window child, owned through a job object.
+ *
+ * The landing window has to belong to *another process*. The hook ignores any press over a window
+ * of its own process — that is the rule that keeps a drag on one of the app's own surfaces from
+ * being read as a selection — so a probe owned by the test would be dropped for the right reason
+ * and the case could only ever go red. A child of this executable, re-run in probe mode, is the
+ * smallest owner that is not the test.
+ *
+ * The child blocks in its own message loop and has no way out of its own, so the parent has to
+ * take it down. A job object with KILL_ON_JOB_CLOSE is what makes that unconditional: closing the
+ * handle when the case ends kills the child, and so does this process dying for any reason — a
+ * failed assertion, an exception, or a crash — which an explicit TerminateProcess on the way out
+ * could not cover.
+ */
+class ProbeChild {
+public:
+    ProbeChild() = default;
+    ~ProbeChild()
+    {
+        close();
+    }
+
+    ProbeChild(const ProbeChild&) = delete;
+    ProbeChild& operator=(const ProbeChild&) = delete;
+
+    /// @brief Start this executable in probe mode and put it in a kill-on-close job.
+    /// @return True when it started; pid() then names it.
+    bool start()
+    {
+        wchar_t executable[MAX_PATH] = {};
+        if (GetModuleFileNameW(nullptr, executable, MAX_PATH) == 0) return false;
+
+        job_ = CreateJobObjectW(nullptr, nullptr);
+        if (job_ == nullptr) return false;
+
+        JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits{};
+        limits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+        if (SetInformationJobObject(job_, JobObjectExtendedLimitInformation, &limits, sizeof(limits)) == 0) {
+            close();
+            return false;
+        }
+
+        const std::wstring argument(kProbeWindowArg, kProbeWindowArg + std::strlen(kProbeWindowArg));
+        std::wstring command = L"\"" + std::wstring(executable) + L"\" " + argument;
+        STARTUPINFOW startup{};
+        startup.cb = sizeof(startup);
+        PROCESS_INFORMATION child{};
+        if (CreateProcessW(nullptr, command.data(), nullptr, nullptr, FALSE, 0, nullptr, nullptr, &startup, &child) == 0) {
+            close();
+            return false;
+        }
+        CloseHandle(child.hThread);
+
+        // A child that did not make it into the job is one the job cannot reap, so it is stopped
+        // here rather than left to run.
+        if (AssignProcessToJobObject(job_, child.hProcess) == 0) {
+            TerminateProcess(child.hProcess, 0);
+            CloseHandle(child.hProcess);
+            close();
+            return false;
+        }
+        CloseHandle(child.hProcess);
+
+        pid_ = child.dwProcessId;
+        return true;
+    }
+
+    /// @brief Stop the child now rather than when the case ends.
+    void stop()
+    {
+        close();
+    }
+
+    DWORD pid() const
+    {
+        return pid_;
+    }
+
+private:
+    void close()
+    {
+        if (job_ != nullptr) {
+            CloseHandle(job_); // the kill-on-close limit takes the child down with the handle
+            job_ = nullptr;
+        }
+        pid_ = 0;
+    }
+
+    HANDLE job_ = nullptr;
+    DWORD pid_ = 0;
+};
 
 /**
  * @brief A window of ours that is allowed to take the foreground.
@@ -378,6 +542,45 @@ TEST(ClipboardSnapshot, PutsBackEveryFormatRatherThanJustTheText)
         << "a format other than the text was dropped, which is what a text-only save would do";
 }
 
+/// A format whose handle is a GDI object is skipped on purpose: copying its bytes and writing
+/// them back would put a broken bitmap on the clipboard. The text beside it still comes back,
+/// which is how the skip and the copy are told apart.
+TEST(ClipboardSnapshot, LeavesAHandleFormatBehindRatherThanCopyingItsBytes)
+{
+    ASSERT_TRUE(putClipboardTextAndPalette(QStringLiteral("lens-keep-me")));
+    ASSERT_TRUE(IsClipboardFormatAvailable(CF_PALETTE)) << "setup: the palette is not on the clipboard";
+
+    const lens::app::ClipboardSnapshot snapshot = lens::app::ClipboardSnapshot::take();
+    ASSERT_TRUE(snapshot.taken());
+
+    ASSERT_TRUE(putClipboardText(QStringLiteral("lens-intruder")));
+    EXPECT_TRUE(snapshot.restore());
+
+    EXPECT_EQ(readClipboardTextNow().value_or(QString()), QStringLiteral("lens-keep-me"))
+        << "the text was dropped along with the format that cannot be copied";
+    EXPECT_FALSE(IsClipboardFormatAvailable(CF_PALETTE))
+        << "a GDI handle was copied and written back as a byte blob";
+}
+
+/// A clipboard with nothing on it is still read successfully, and restoring that empty snapshot
+/// is a no-op rather than a wipe. Content put on *after* the take is what makes the no-op
+/// visible: a restore that emptied the clipboard and refilled it from nothing would remove it.
+/// This is the entries-empty branch, which the never-taken case above does not reach.
+TEST(ClipboardSnapshot, AnEmptySnapshotRestoresToANoOp)
+{
+    ASSERT_TRUE(openClipboardRetrying());
+    EmptyClipboard();
+    CloseClipboard();
+
+    const lens::app::ClipboardSnapshot snapshot = lens::app::ClipboardSnapshot::take();
+    ASSERT_TRUE(snapshot.taken());
+
+    ASSERT_TRUE(putClipboardText(QStringLiteral("lens-keep-me")));
+    EXPECT_TRUE(snapshot.restore());
+    EXPECT_EQ(readClipboardTextNow().value_or(QString()), QStringLiteral("lens-keep-me"))
+        << "restoring an empty snapshot emptied the clipboard";
+}
+
 /// Restoring a snapshot that was never taken must do nothing: it has no entries to fill an
 /// emptied clipboard with, so the guard is the difference between an untouched clipboard and
 /// a wiped one.
@@ -394,13 +597,20 @@ TEST(ClipboardSnapshot, ARestoreWithoutATakeLeavesTheClipboardAlone)
 /// Everything about the hook that can be checked without a hand on the mouse. Synthetic input
 /// reaches a low-level hook the same way real input does, so driving the pointer ourselves
 /// tests the gesture rule and the deferred signal for real rather than through a mock.
+///
+/// The drag lands on a window owned by a child process. It has to: the hook drops any press over
+/// a window of its own process — the rule that keeps a drag on one of the app's own surfaces from
+/// being read as a selection — so a landing window the test owns would be refused for the right
+/// reason and the case could only ever report "the hook reported nothing".
 TEST(SelectionHook, ReportsASynthesisedDragAtItsReleasePoint)
 {
-    const HWND probe = createProbeWindow();
-    ASSERT_TRUE(probe != nullptr) << "could not create the probe window, error " << GetLastError();
+    ProbeChild probe;
+    ASSERT_TRUE(probe.start()) << "could not start the probe window child, error " << GetLastError();
+    const HWND window = waitForProbeWindow(probe.pid());
+    ASSERT_TRUE(window != nullptr) << "the probe window child never put its window up";
 
     RECT bounds{};
-    const bool measured = GetWindowRect(probe, &bounds) != 0;
+    const bool measured = GetWindowRect(window, &bounds) != 0;
 
     POINT original{};
     GetCursorPos(&original);
@@ -415,7 +625,7 @@ TEST(SelectionHook, ReportsASynthesisedDragAtItsReleasePoint)
             anchor = point;
             loop.quit();
         });
-        QTimer::singleShot(2'000, &loop, &QEventLoop::quit);
+        QTimer::singleShot(kDragWaitMs, &loop, &QEventLoop::quit);
 
         // Sent before the loop runs: the callbacks land when the thread next pumps, which is
         // what loop.exec() does.
@@ -425,7 +635,8 @@ TEST(SelectionHook, ReportsASynthesisedDragAtItsReleasePoint)
 
     POINT landed{};
     GetCursorPos(&landed);
-    dismissProbe(probe, original);
+    SetCursorPos(original.x, original.y);
+    probe.stop();
 
     ASSERT_TRUE(measured) << "could not measure the probe window";
     ASSERT_TRUE(installed) << "the low-level mouse hook could not be installed";
@@ -522,8 +733,35 @@ TEST(SelectionGrab, CapturesTheSelectionAndPutsTheClipboardBack)
     EXPECT_EQ(*afterwards, sentinel) << "the reader's clipboard did not come back";
 }
 
+/// @brief Probe-window mode: put up the window a synthesised drag lands on, then pump until the
+///        parent kills this process.
+///
+/// Runs as a child of the test (see ReportsASynthesisedDragAtItsReleasePoint). The window is a
+/// plain STATIC one, so hitting it does nothing, and WS_EX_NOACTIVATE keeps the press from
+/// pulling focus off whatever the reader was doing. The title carries this pid so the parent can
+/// find the window without a pipe.
+int runProbeWindowHost()
+{
+    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
+    const std::wstring title = kProbeTitlePrefix + std::to_wstring(GetCurrentProcessId());
+    const HWND window = CreateWindowExW(WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE, L"STATIC", title.c_str(), WS_POPUP | WS_VISIBLE, 80, 80, 220, 48, nullptr, nullptr, GetModuleHandleW(nullptr), nullptr);
+    // Nothing to find and no way to be told to quit: exit rather than block forever, so a broken
+    // child does not outlive the parent that is waiting on its window.
+    if (window == nullptr) return 1;
+
+    MSG message;
+    while (GetMessageW(&message, nullptr, 0, 0) > 0) {
+        TranslateMessage(&message);
+        DispatchMessageW(&message);
+    }
+    return 0;
+}
+
 int main(int argc, char** argv)
 {
+    if (argc > 1 && std::string_view(argv[1]) == kProbeWindowArg) return runProbeWindowHost();
+
     ::testing::InitGoogleTest(&argc, argv);
 
     // The hook hands back the screen coordinates Windows reports to it, which are physical
