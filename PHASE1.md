@@ -111,7 +111,7 @@ Selection classifySelection(
 
 - **词表是模块内加载一次的只读状态**，不占 `filterWords` 参数位：契约里它本就是唯一权威判定，词根还原也要靠它挑词干。故新增 `loadWordlist`；未加载即调用 `filterWords` / `lemmatize` 抛 `std::logic_error`——这是初始化次序 bug，必须响亮而非静默丢弃全部候选。
 - **词根还原 = 候选生成 + 词表择一**，不是无脑剥后缀。不规则表命中即裁定；其余由后缀规则产出 “在词表内” 的词干，与原形并列，取词频序最小者。依据是实测：词表同时收录变形词与原形（running 555 / run 314，increasing 7246 / increase 3568，studied 3632 / study 1273），比词频序天然挑中原形；而 water / under / offer 这类词干不是词的原形会安全落回自身。不规则表必须直接返回而非参与比较——children（451）比 child（461）更靠前，按词频挑会挑回 children 自己。
-- **不规则表是数据，不是代码**（2026-10-02 改）：`data/irregulars.tsv` 由 `scripts/gen_irregulars.py` 从 WordNet 的四张屈折异常表（`verb/noun/adj/adv.exc`）生成，5761 条，加载走新增的 `loadIrregulars()`——与 `loadWordlist()` 并列，两者都必须先跑，缺一个即抛。此前是 `filter_core.cpp` 里手打的 74 条，覆盖不到 `criteria → criterion`、`cacti → cactus`、`abaci → abacus` 这类后缀规则根本推不出的形式。源表缺 `women → woman`、`people → person`（WordNet 把这两个复数当成独立词条），由生成脚本里一段带注释的补漏补齐。
+- **不规则表是数据，不是代码**（2026-10-02 改）：`data/irregulars.tsv` 由 `scripts/data/gen_irregulars.py` 从 WordNet 的四张屈折异常表（`verb/noun/adj/adv.exc`）生成，5761 条，加载走新增的 `loadIrregulars()`——与 `loadWordlist()` 并列，两者都必须先跑，缺一个即抛。此前是 `filter_core.cpp` 里手打的 74 条，覆盖不到 `criteria → criterion`、`cacti → cactus`、`abaci → abacus` 这类后缀规则根本推不出的形式。源表缺 `women → woman`、`people → person`（WordNet 把这两个复数当成独立词条），由生成脚本里一段带注释的补漏补齐。
 - **一词多 base 的归属**：表里极少数形式有多个原形（`better` → good / well），本地无从分辨义项，按词表词频择一；单 base 的形式仍命中即裁定。
 - **有意的近似**（`ponytail:`，样例集撞出误判再放宽）：`-er` 仅 ≥6 字母、`-est` 仅 ≥7 字母启用，故 nicer（5 字母）与 nicest（6 字母）不还原——**注意 biggest 是 7 字母，规则会触发并经叠辅音减一还原成 big**（早先此处写成 “biggest → big 不还原” 是错的，与代码不符，2026-10-02 更正）；`-ing` / `-ed` 仅 ≥5 字母启用，避开 seed → see 这类伪还原；`news` / `means` 列入 keepAsIs 例外表——它们不在异常表里，需要挡掉 `-s` 规则。
 - **分词**：按空白切段，削去首尾既非字母也非数字的字节，剩余内部只要还有非字母字节，整段判粘连串丢弃。数字留在 token 内而不是削掉——否则 version2 会被削成 version 反被弹出。
@@ -387,7 +387,7 @@ lens/
 ├── .clang-format
 ├── settings.local.json       # 开发机的密钥与设置，gitignored；首次运行拷进 %APPDATA%
 ├── installer/                # lens.iss（Inno Setup 安装包）与 CMake 生成的 version.iss
-├── scripts/build.bat         # 进 VS 环境后驱动 ninja（首配一次，之后纯增量）
+├── scripts/build/build.bat   # 进 VS 环境后驱动 ninja（首配一次，之后纯增量）
 ├── API.md                    # LLM 线上格式说明（请求 / 响应 / 校验 / 错误码）
 ├── TEST.md                   # 测试：框架 / 目标 / 样例集 / profiling / 记录
 ├── data/wordlist.txt         # 静态词表（top-100k，词频序，第 8 节）
@@ -407,7 +407,7 @@ lens/
 
 CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `lens_gtest_*` 独立于这条链，只在本机构建、不进发布包：`unit` 与 `smoke` 链接 `lens_core` + `lens_llm`，`perf` 只链接 `lens_core`（保持无 Qt），`integration` 链接 `lens_app` + `lens_core`。
 
-构建：首选 `ninja-qt6` preset（单配置，增量重编一个源文件约 6 秒），由 `scripts/build.bat` 先进 MSVC 环境再驱动，命令与并行度上限见 `AGENTS.md`。`vs-qt6` 保留给 IDE。
+构建：首选 `ninja-qt6` preset（单配置，增量重编一个源文件约 6 秒），由 `scripts/build/build.bat` 先进 MSVC 环境再驱动，命令与并行度上限见 `AGENTS.md`。`vs-qt6` 保留给 IDE。
 
 日志：全项目走 spdlog（`third_party/spdlog`，编译成静态库），模块只用 `src/core/log.h` 的 `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_ERROR` / `LENS_CRITICAL` 宏。`SPDLOG_ACTIVE_LEVEL` 由 CMake 挂在 `lens_core` 上（Debug = trace，Release = info），低于它的调用整条编译掉——不能写在 `log.h` 里，spdlog 自己的 `common.h` 一旦被包含就会抢先定义成 info。`lens::log::init()` 写 `logs/lens.log`（10 MB 一轮，留 3 个备份）并镜像到 stderr，级别可用 `LENS_LOG_LEVEL` 覆盖。Qt 自身的 qDebug / qWarning / qCritical 等由 `src/llm/qt_log.h` 的 `installQtMessageHandler()` 折进同一个 logger，源位置指向 Qt 调用点而非桥接处。密钥永不进日志（第 6 节）。
 
@@ -428,7 +428,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 
 ## 9 验证
 
-- FilterCore 单测：样例集离线断言（`lens_gtest_unit`，零网络，可进 CI）。**已通过**：样例集 3005 段 + 存储往返，覆盖档位词频阈值、词根还原（后缀规则与 WordNet 异常表）、只有表能覆盖的形式（`criteria → criterion` 一类）、垃圾内容（URL / 邮箱 / 文件名 / 带数字串 / 连字 / 全大写）、不在词表即丢、同段同词根去重、已知与已掌握只标注不删。样例集另有 `scripts/check-eval-corpus.py` 按规则独立校验，与实现无关。
+- FilterCore 单测：样例集离线断言（`lens_gtest_unit`，零网络，可进 CI）。**已通过**：样例集 3005 段 + 存储往返，覆盖档位词频阈值、词根还原（后缀规则与 WordNet 异常表）、只有表能覆盖的形式（`criteria → criterion` 一类）、垃圾内容（URL / 邮箱 / 文件名 / 带数字串 / 连字 / 全大写）、不在词表即丢、同段同词根去重、已知与已掌握只标注不删。样例集另有 `scripts/data/check-eval-corpus.py` 按规则独立校验，与实现无关。
 - 单层判定准确率：**已测量**（2026-10-04，三轮，`lens_gtest_unit` 回放样例集）：1001 段中 336 段未命中，命中率 66.43%，三轮同值。未命中全部落在 “已知 / 已掌握被当作删除条件” 这一条轴上（带 minFreqRank 的 173 段错 172，带 known 的 163 段错 163，两者都不带的 664 段全对）——没有一段是层级判定问题，故不引入多层级策略。报告：`docs/metrics/code-quality/selection-classification-accuracy-2026-10-04.md`。
 - LLM 纯函数接缝：脱敏 / 请求体 / 响应校验三项离线断言（`lens_gtest_unit`）。**已通过**：覆盖邮箱、URL、长数字掩码；`model` / `stream:false` / `response_format` / `thinking:disabled` / `max_tokens` / 提示词含 `json` 与格式示例 / 解释语言切末句；`finish_reason != stop`、外层非 JSON、缺 `results`、字段缺失、回显错词 / 漏词 / 多余词一律整体失败。断言经变异验证确实会红。
 - 迁移核对：**已通过**（2026-10-02）：手写 `CHECK` 转入 gtest 后为 11 例（样例集 1 + KnownStore 6 + 掩码 1 + LLM 纯函数 3），`lens_gtest_unit` 全绿。原 `main.cpp`（452 行）删除。
@@ -464,7 +464,7 @@ CMake 目标：`lens_core`（无 Qt）→ `lens_llm` → `lens_app`。四个 `le
 
 ### 工程基建（已完成，不占切片号）
 
-这一段不在原计划里，是几次按需请求累积出来的，单独记一笔以免来历不明：spdlog 与 `LENS_*` 日志宏（Qt 消息并入同一 logger）、Ninja 构建与 `scripts/build.bat`、全项目英文 Doxygen 注释、i18n 骨架（`i18n/*.ts`，英文为源语言）、LLM 线上协议数据化（`data/llm/` + `API.md`）、不规则屈折表数据化（`data/irregulars.tsv`）。
+这一段不在原计划里，是几次按需请求累积出来的，单独记一笔以免来历不明：spdlog 与 `LENS_*` 日志宏（Qt 消息并入同一 logger）、Ninja 构建与 `scripts/build/build.bat`、全项目英文 Doxygen 注释、i18n 骨架（`i18n/*.ts`，英文为源语言）、LLM 线上协议数据化（`data/llm/` + `API.md`）、不规则屈折表数据化（`data/irregulars.tsv`）。
 
 第二次追加（2026-10-02，同样不占切片号）：GoogleTest 进 `third_party` 并退役手写自检（§4.5）、`src/core/profile.{h,cpp}` 与 `LENS_ENABLE_PROFILE` 选项（§4.6）。两件都是基建，没有可独立验收的用户交付物，故按上一段的先例记在这里，不另起切片号。
 

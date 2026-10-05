@@ -43,12 +43,12 @@ endfunction()
 lens_path(LENS_SYSTEM_FONTS systemFonts)
 
 # A preset cannot read config/paths.json, so CMakePresets.json takes the Qt prefix from the
-# environment and scripts/build.bat exports it from the file. Saying so here beats Qt's own
+# environment and scripts/build/build.bat exports it from the file. Saying so here beats Qt's own
 # "package configuration file not found", which does not name the lever.
 if((NOT DEFINED CMAKE_PREFIX_PATH OR CMAKE_PREFIX_PATH STREQUAL "") AND NOT DEFINED ENV{QT_ROOT})
   message(FATAL_ERROR
     "Qt was not located. Set QT_ROOT to the Qt 6 prefix -- config/paths.json carries it as"
-    " qtRoot -- or configure with -DCMAKE_PREFIX_PATH=<prefix>. scripts/build.bat does this"
+    " qtRoot -- or configure with -DCMAKE_PREFIX_PATH=<prefix>. scripts/build/build.bat does this"
     " for you; see config/README.md.")
 endif()
 
@@ -123,7 +123,7 @@ configure_file(
 # sitting there from the previous run, and the size would be measuring a directory nothing
 # produces any more.
 #
-# Run it in the release tree: scripts\build-release.bat --target installer. The target is defined
+# Run it in the release tree: scripts\build\build-release.bat --target installer. The target is defined
 # in every tree, but installer/lens.iss names build-ninja-release as what it packs, so from
 # another tree it would deploy the payload here and then pack whatever is over there.
 #

@@ -42,9 +42,9 @@ QML 提前编译一处就占 39%，而成品只有 20 个 `.qml` 文件：每个
 
 QML 提前编译那 152 s 降到 27 s，是预编译头贡献的主体。
 
-3. **测试全部退出默认构建**：六个测试目标都带 `EXCLUDE_FROM_ALL`，`all` 从 140 个边缘降到 120，只剩主程序 `lens`。理由是它们跟着 `src/` 每次改动重编没有意义：只有 QML 或 `lens_app` / `lens_llm` 的接口变了才会失效。按名构建照旧（`./scripts/build.bat --target lens_gtest_unit`），CI 的构建步骤本来就逐个列名，不受影响；`scripts/coverage.sh` 遇到没构建的目标会跳过并提示。
+3. **测试全部退出默认构建**：六个测试目标都带 `EXCLUDE_FROM_ALL`，`all` 从 140 个边缘降到 120，只剩主程序 `lens`。理由是它们跟着 `src/` 每次改动重编没有意义：只有 QML 或 `lens_app` / `lens_llm` 的接口变了才会失效。按名构建照旧（`./scripts/build/build.bat --target lens_gtest_unit`），CI 的构建步骤本来就逐个列名，不受影响；`scripts/quality/coverage.sh` 遇到没构建的目标会跳过并提示。
 
-4. **另加一棵优化的构建树**，`scripts/build-release.bat` → `build-ninja-release`（RelWithDebInfo）。需要跑得快、看真实性能时用这棵，开发树保持 Debug。这是第二棵树而不是就地切换构建类型：换类型会重写全部编译选项，等于整树重编一次。选 RelWithDebInfo 而不是 Release，是因为 MSVC 的 Release 选项是 `/O2 /Ob2 /DNDEBUG`，不带 `/Zi`：没有 PDB，崩溃调用栈和 `scripts/coverage.sh` 就都没得读。
+4. **另加一棵优化的构建树**，`scripts/build/build-release.bat` → `build-ninja-release`（RelWithDebInfo）。需要跑得快、看真实性能时用这棵，开发树保持 Debug。这是第二棵树而不是就地切换构建类型：换类型会重写全部编译选项，等于整树重编一次。选 RelWithDebInfo 而不是 Release，是因为 MSVC 的 Release 选项是 `/O2 /Ob2 /DNDEBUG`，不带 `/Zi`：没有 PDB，崩溃调用栈和 `scripts/quality/coverage.sh` 就都没得读。
 
    附带的实测：Release 并不省构建时间。同一个 `--target lens`，Debug 墙钟 34.9 s、CPU 109 s；Release 墙钟 34.8 s、CPU 132 s。优化本身要花 CPU，Release 换来的是运行速度，不是编译速度。
 

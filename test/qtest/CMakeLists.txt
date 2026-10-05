@@ -3,7 +3,7 @@
 #
 # A case is a .qml file loaded from the source tree at run time, not a type in a QML module.
 # Nothing adds it to anyone's QML_FILES, so qmllint never reads it and the ratchet in
-# scripts/qml-lint.sh is untouched by a new case. It does still `import Lens`, though, which is
+# scripts/quality/qml-lint.sh is untouched by a new case. It does still `import Lens`, though, which is
 # why every target here links the plugin -- a static plugin is only imported when its init
 # object is linked in, and without it every component comes back as "not a type" rather than as
 # a failure. src/app/CMakeLists.txt and docs/adr/0004 carry the long version.
@@ -19,7 +19,7 @@
 # nothing on PATH but Qt's own DLLs. QT_QPA_PLATFORM=offscreen is the whole headless story;
 # see TEST.md section 2 for the command.
 # Like the gtest targets, these are out of the default build: `all` is the application alone, and
-# a suite is built by naming it (`scripts/build.bat --target lens_qtest_components`). They change
+# a suite is built by naming it (`scripts/build/build.bat --target lens_qtest_components`). They change
 # only when the QML or the two C++ types the surfaces talk to change, and building them every time
 # src/ is touched is work nobody asked for. CI names both.
 add_executable(lens_qtest_components EXCLUDE_FROM_ALL

@@ -56,7 +56,7 @@ C++ 行覆盖 66.0%（998/1511）；QML 执行覆盖 80.4%（589/733）。
 
 ### 3.2 哪五个目标在跑
 
-`scripts/coverage.sh` 依次覆盖能无人值守跑完的五个目标：
+`scripts/quality/coverage.sh` 依次覆盖能无人值守跑完的五个目标：
 
 | 目标 | 用例数 | 本轮结果 |
 | --- | ---: | --- |
@@ -119,7 +119,7 @@ QML 不在这条线里：`OpenCppCoverage` 只插桩机器码，QML 走的是完
 
 ## 5、QML 执行覆盖率
 
-Qt 没有 QML 的行覆盖率工具，这条路的取舍见 `TEST.md` §4 与 `scripts/qml-coverage.js` 的文件头，`src/app/qml/` 的规模与结构见 [`source-code-review-hotspots-2026-10-03.md`](source-code-review-hotspots-2026-10-03.md)。简单说：QML 里真正 “执行” 的是 JavaScript——属性绑定、signal handler、函数——而 profiler 恰好对每一次求值都记一条带文件与行号的事件，所以执行集有据可查。分母来自 `tree-sitter-qmljs` 的解析树：模块里每个非字面量的 `ui_property` 与 `ui_binding`，加上每个 `function_declaration`。
+Qt 没有 QML 的行覆盖率工具，这条路的取舍见 `TEST.md` §4 与 `scripts/quality/qml-coverage.js` 的文件头，`src/app/qml/` 的规模与结构见 [`source-code-review-hotspots-2026-10-03.md`](source-code-review-hotspots-2026-10-03.md)。简单说：QML 里真正 “执行” 的是 JavaScript——属性绑定、signal handler、函数——而 profiler 恰好对每一次求值都记一条带文件与行号的事件，所以执行集有据可查。分母来自 `tree-sitter-qmljs` 的解析树：模块里每个非字面量的 `ui_property` 与 `ui_binding`，加上每个 `function_declaration`。
 
 **589/733 = 80.4%**，由 `lens_qtest_components` 与 `lens_qtest_surfaces` 两个目标共同跑出来。
 
@@ -161,11 +161,11 @@ Qt 没有 QML 的行覆盖率工具，这条路的取舍见 `TEST.md` §4 与 `s
 先按 `AGENTS.md` 的 Build 一节构建，再：
 
 ```bash
-sh scripts/coverage.sh            # C++，写 test/records/coverage/
-sh scripts/qml-coverage.sh        # QML，写 test/records/qmlcov/
+sh scripts/quality/coverage.sh            # C++，写 test/records/coverage/
+sh scripts/quality/qml-coverage.sh        # QML，写 test/records/qmlcov/
 ```
 
-`coverage.sh` 默认跑五个能无人值守跑完的目标，也可以只点名几个：`sh scripts/coverage.sh test/records/coverage lens_gtest_unit`。CI 就是这么调的（`lens_gtest_integration` 要真鼠标和真剪贴板，runner 上没有）。最后那行汇总由 `scripts/coverage-summary.py` 算出——Cobertura 文件里，一个被多个测试二进制链进去的源文件会出现多份，根节点把这几份加在一起，直接读会偏低，这个脚本按文件对行号取并集。
+`coverage.sh` 默认跑五个能无人值守跑完的目标，也可以只点名几个：`sh scripts/quality/coverage.sh test/records/coverage lens_gtest_unit`。CI 就是这么调的（`lens_gtest_integration` 要真鼠标和真剪贴板，runner 上没有）。最后那行汇总由 `scripts/quality/coverage-summary.py` 算出——Cobertura 文件里，一个被多个测试二进制链进去的源文件会出现多份，根节点把这几份加在一起，直接读会偏低，这个脚本按文件对行号取并集。
 
 `qml-coverage.sh` 需要 `node_modules`（`npm ci`）与 Qt 的 `qmlprofiler`，两者都在 PATH 上时它会自己找到。两份原始数据就是上面所有数字的出处，报告是按它们转写的。
 

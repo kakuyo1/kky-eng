@@ -1255,7 +1255,7 @@
   },
   {
     "note": "a relative script path: dropped whole",
-    "text": "./scripts/build.bat",
+    "text": "./scripts/build/build.bat",
     "expect": [],
     "expectKind": "Sentence"
   },

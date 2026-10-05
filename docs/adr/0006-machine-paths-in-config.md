@@ -8,8 +8,8 @@
 - **决定**：分两类。
   - **机器相关的值**进 `config/paths.json`（提交，带本机的值，开箱可用）；`config/paths.local.json`
     （gitignore）逐键覆盖，是换机器时唯一要改的文件。读它的有四处：CMake 用 `string(JSON)`，PowerShell
-    用 `scripts/paths.ps1`，提交钩子经 PowerShell；`CMakePresets.json` 读不了文件，改用 `$env{QT_ROOT}`，
-    由 `scripts/build.bat` 从该文件导出。
+    用 `scripts/build/paths.ps1`，提交钩子经 PowerShell；`CMakePresets.json` 读不了文件，改用 `$env{QT_ROOT}`，
+    由 `scripts/build/build.bat` 从该文件导出。
   - **项目自己的路径不进去**，继续相对仓库根解析：CMake 侧 `CMAKE_SOURCE_DIR`（`LENS_DATA_DIR`、
     `LENS_QTEST_DIR` 已是这个模式），脚本侧 `git rev-parse --show-toplevel`。C++ 不读 JSON——路径在
     configure 期由 CMake 变成编译定义（`LENS_SYSTEM_FONTS`），运行期少一个失败点。
@@ -22,5 +22,5 @@
     命中（URL 与许可证文本），每个 svg 都带 `xmlns`。会立刻变成噪音的门禁会被关掉，比没有更糟。
   - 代价：`CMakePresets.json` 不再自带 Qt 路径，裸跑 `cmake --preset ninja-qt6` 得先有 `QT_ROOT`。顶层
     `CMakeLists.txt` 因此在找不到 Qt 时给出指名道姓的 `FATAL_ERROR`，而不是 Qt 自己那句
-    `package configuration file not found`。`scripts/build.bat` 是文档里的入口，它自己会导出。
+    `package configuration file not found`。`scripts/build/build.bat` 是文档里的入口，它自己会导出。
   - `config/paths.json` 是唯一允许写绝对路径的文件，这条豁免在第六项检查里是显式的、带注释的。

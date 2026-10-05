@@ -12,10 +12,10 @@ src/core/filter_core.h rather than calling the implementation, so a disagreement
 to read, not a check that failed. Every token of an excerpt must be accounted for: one that
 survives the hard filters and the static word list belongs in `expect`, and one that does not
 is fine as long as a named rule excludes it. `expectKind` is checked apart from `expect`: a
-single-token selection that yields a candidate is Word, and everything else -- any multi-token
-selection, or a lone token with no candidate -- is Sentence.
+single-token selection in the word list is Word, a lone token outside it is Entity, and any
+multi-token selection that is not a name-like phrase is Sentence.
 
-    python scripts/check-eval-corpus.py [test/eval_corpus.json]
+    python scripts/data/check-eval-corpus.py [test/eval_corpus.json]
 
 `expectLemmas` is not verified: the reduction rules produce it, and restating them here would
 be restating the implementation rather than a rule a reader can check.
@@ -27,7 +27,7 @@ import json
 import os
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 VOWELS = set("aeiouy")
 

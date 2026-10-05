@@ -5,7 +5,7 @@
 # build tree and no extra build flag: it instruments the Debug objects build-ninja already
 # produced. See TEST.md section 4 for the scope and for what this cannot see.
 #
-# Usage: scripts/coverage.sh [output-dir] [target...]
+# Usage: scripts/quality/coverage.sh [output-dir] [target...]
 #   output-dir defaults to test/records/coverage, which is gitignored.
 #   Naming one or more targets narrows the run. The default is every target that finishes
 #   unattended; CI names the four it can build and leaves lens_gtest_integration out, because
@@ -13,7 +13,7 @@
 
 set -eu
 
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 BUILD="$ROOT/build-ninja"
 
 ALL_TARGETS="lens_gtest_unit lens_gtest_perf lens_gtest_integration lens_qtest_components lens_qtest_surfaces"
@@ -34,7 +34,7 @@ COV='/c/Program Files/OpenCppCoverage/OpenCppCoverage.exe'
     echo "coverage: OpenCppCoverage is not installed; TEST.md section 4 has the one-line install" >&2
     exit 1
 }
-[ -d "$BUILD" ] || { echo "coverage: no build tree at $BUILD; run scripts/build.bat first" >&2; exit 1; }
+[ -d "$BUILD" ] || { echo "coverage: no build tree at $BUILD; run scripts/build/build.bat first" >&2; exit 1; }
 
 # Backslashes: OpenCppCoverage rejects a path with forward slashes in it, even on the arguments
 # that are not the program name.
@@ -55,7 +55,7 @@ for name in "$@"; do
     if [ -f "$BUILD/$(target_path "$name")" ]; then
         kept="$kept $name"
     else
-        echo "coverage: $name is not built, skipping; scripts/build.bat --target $name builds it" >&2
+        echo "coverage: $name is not built, skipping; scripts/build/build.bat --target $name builds it" >&2
     fi
 done
 # shellcheck disable=SC2086 # one name per word; the leading space is what makes this split
@@ -99,4 +99,4 @@ done
 # shellcheck disable=SC2086 # the argument list is meant to split
 "$COV" $merge --sources "$SOURCES" --quiet --export_type "cobertura:$(win "$OUT/coverage.xml")" >/dev/null
 
-python "$ROOT/scripts/coverage-summary.py" "$OUT/coverage.xml"
+python "$ROOT/scripts/quality/coverage-summary.py" "$OUT/coverage.xml"

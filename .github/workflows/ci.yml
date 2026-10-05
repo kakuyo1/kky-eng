@@ -94,10 +94,10 @@ jobs:
 
       # After the build, never before it: qmllint resolves the module's own types through the
       # build tree's copies of the .qml files, so a tree that has not been built is judged from
-      # files that are not there. scripts/qml-lint.sh owns the reasoning and the ratchet, and
+      # files that are not there. scripts/quality/qml-lint.sh owns the reasoning and the ratchet, and
       # expects a configured tree -- which the configure action has just made.
       - name: QML lint
-        run: bash scripts/qml-lint.sh
+        run: bash scripts/quality/qml-lint.sh
         shell: bash
 
       # QT_QPA_PLATFORM=offscreen is what makes these two headless -- they build real windows,
@@ -143,7 +143,7 @@ jobs:
       # lens_gtest_integration is left out even though the script's default includes it: it
       # drives the real mouse and the real clipboard.
       - name: Coverage (C++)
-        run: bash scripts/coverage.sh test/records/coverage lens_gtest_unit lens_gtest_perf lens_qtest_components lens_qtest_surfaces
+        run: bash scripts/quality/coverage.sh test/records/coverage lens_gtest_unit lens_gtest_perf lens_qtest_components lens_qtest_surfaces
         shell: bash
 
       # always(), because a red case is exactly when the report is worth reading. The file is the
@@ -190,7 +190,7 @@ jobs:
           npm ci
 
       - name: Coverage (QML)
-        run: bash scripts/qml-coverage.sh
+        run: bash scripts/quality/qml-coverage.sh
         shell: bash
 
       - name: Upload coverage

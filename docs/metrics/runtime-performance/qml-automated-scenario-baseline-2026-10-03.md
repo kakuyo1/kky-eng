@@ -12,7 +12,7 @@
 | Trace wall duration | 8.264 秒 |
 | 事件数 | 1434 |
 
-场景由 `scripts/qml-profile.ps1 -Scenario` 启动。应用内部按固定时间线执行 8 个步骤，最后调用 `Qt.quit()`，因此这份 trace 可以重复生成，不依赖桌面坐标和当前鼠标位置。
+场景由 `scripts/profiling/qml-profile.ps1 -Scenario` 启动。应用内部按固定时间线执行 8 个步骤，最后调用 `Qt.quit()`，因此这份 trace 可以重复生成，不依赖桌面坐标和当前鼠标位置。
 
 ## 2、事件类型汇总
 
@@ -77,7 +77,7 @@
 ## 5、复现命令
 
 ```powershell
-./scripts/qml-profile.ps1 `
+./scripts/profiling/qml-profile.ps1 `
   -BuildDir build-ninja-qml-profile `
   -Output test/records/qml-scenario-2026-10-03.qtd `
   -Scenario
@@ -86,7 +86,7 @@
 解析 trace：
 
 ```powershell
-python scripts/parse-qml-trace.py `
+python scripts/profiling/parse-qml-trace.py `
   --trace test/records/qml-scenario-2026-10-03.qtd `
   --output test/records/qml-scenario-2026-10-03.json
 ```

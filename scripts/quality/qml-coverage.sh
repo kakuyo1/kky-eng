@@ -6,14 +6,14 @@
 # is the number worth pairing with the C++ one. Qt has no QML line-coverage tool; TEST.md
 # section 4 says why, and what this counts instead.
 #
-# The same caveat as scripts/coverage.sh applies: it measures an existing build tree, and adds
+# The same caveat as scripts/quality/coverage.sh applies: it measures an existing build tree, and adds
 # nothing to it.
 #
-# Usage: scripts/qml-coverage.sh [output-dir]
+# Usage: scripts/quality/qml-coverage.sh [output-dir]
 
 set -eu
 
-ROOT=$(cd "$(dirname "$0")/.." && pwd)
+ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 BUILD="$ROOT/build-ninja"
 OUT=${1:-"$ROOT/test/records/qmlcov"}
 
@@ -26,7 +26,7 @@ command -v qmlprofiler >/dev/null 2>&1 || {
     echo "qml-coverage: qmlprofiler is not on PATH; see AGENTS.md for where Qt lives" >&2
     exit 1
 }
-[ -d "$BUILD" ] || { echo "qml-coverage: no build tree at $BUILD; run scripts/build.bat first" >&2; exit 1; }
+[ -d "$BUILD" ] || { echo "qml-coverage: no build tree at $BUILD; run scripts/build/build.bat first" >&2; exit 1; }
 
 mkdir -p "$OUT"
 export QT_QPA_PLATFORM=offscreen
@@ -48,4 +48,4 @@ for exe in test/qtest/lens_qtest_components.exe test/qtest/lens_qtest_surfaces.e
 done
 
 # shellcheck disable=SC2086 # the list is meant to split
-exec node "$ROOT/scripts/qml-coverage.js" $traces --json "$OUT/qml-coverage.json"
+exec node "$ROOT/scripts/quality/qml-coverage.js" $traces --json "$OUT/qml-coverage.json"

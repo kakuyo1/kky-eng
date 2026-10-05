@@ -2,7 +2,7 @@
   "name": "lens-metrics",
   "private": true,
   "scripts": {
-    "qml:ast-metrics": "node scripts/qml-ast-metrics.js"
+    "qml:ast-metrics": "node scripts/quality/qml-ast-metrics.js"
   },
   "devDependencies": {
     "tree-sitter": "0.21.1",

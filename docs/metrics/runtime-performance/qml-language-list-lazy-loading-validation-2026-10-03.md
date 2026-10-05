@@ -64,10 +64,10 @@ Trace 文件：
 ## 5、复现命令
 
 ```powershell
-./scripts/qml-profile.ps1 -BuildDir build-ninja-qml-profile `
+./scripts/profiling/qml-profile.ps1 -BuildDir build-ninja-qml-profile `
   -Output test/records/qml-startup-loader.qtd -Scenario startup
 
-./scripts/qml-profile.ps1 -BuildDir build-ninja-qml-profile `
+./scripts/profiling/qml-profile.ps1 -BuildDir build-ninja-qml-profile `
   -Output test/records/qml-tray-loader.qtd -Scenario tray
 ```
 

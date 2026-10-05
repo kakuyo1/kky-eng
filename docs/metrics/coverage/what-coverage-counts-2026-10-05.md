@@ -21,7 +21,7 @@ Qt 没有 QML 的行覆盖率工具，这是结构问题不是遗漏：`.qml` �
 profiler：每求值一次就记一条带文件与行号的事件。
 
 所以这条线的单位是**位置**，不是行，而且一个位置只记 “求值过没有”，不记 “两条分支都走到没有”。分母
-来自 `tree-sitter-qmljs` 建的解析树（`scripts/qml-coverage.js`）：模块里每个非字面量的 `ui_property`
+来自 `tree-sitter-qmljs` 建的解析树（`scripts/quality/qml-coverage.js`）：模块里每个非字面量的 `ui_property`
 与 `ui_binding`，加上每个 `function_declaration`；字面量的绑定两侧都不算——编译器把它折进对象的构造，
 引擎从不求值，算进分母就是一笔永远扣不掉的分。
 
@@ -43,8 +43,8 @@ profiler：每求值一次就记一条带文件与行号的事件。
 ## 复现
 
 ```bash
-sh scripts/coverage.sh      # C++，写 test/records/coverage/，需要 OpenCppCoverage 与新的 build-ninja
-sh scripts/qml-coverage.sh  # QML，写 test/records/qmlcov/，需要 node_modules 与 Qt 的 qmlprofiler
+sh scripts/quality/coverage.sh      # C++，写 test/records/coverage/，需要 OpenCppCoverage 与新的 build-ninja
+sh scripts/quality/qml-coverage.sh  # QML，写 test/records/qmlcov/，需要 node_modules 与 Qt 的 qmlprofiler
 ```
 
 两条都读**已经构建好**的树，都不新建树、不加编译标志。跑之前先确认 `build-ninja` 比源码新。

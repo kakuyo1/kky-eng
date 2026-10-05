@@ -14,9 +14,9 @@
 # pixels and never reaches full darkness.
 #
 # Examples:
-#   ./scripts/ui-capture.ps1 -Out $env:TEMP\a.png -Virtual
-#   ./scripts/ui-capture.ps1 -Out $env:TEMP\b.png -Crop 1180,180,560,880
-#   ./scripts/ui-capture.ps1 -Out $env:TEMP\c.png -Crop 1800,240,60,60 -Zoom 8 -Profile
+#   ./scripts/qa/ui-capture.ps1 -Out $env:TEMP\a.png -Virtual
+#   ./scripts/qa/ui-capture.ps1 -Out $env:TEMP\b.png -Crop 1180,180,560,880
+#   ./scripts/qa/ui-capture.ps1 -Out $env:TEMP\c.png -Crop 1800,240,60,60 -Zoom 8 -Profile
 param(
     [string]$Out = "$env:TEMP\lens-shot.png",
     # x,y,width,height in screen pixels. A string rather than an int array on purpose: an array

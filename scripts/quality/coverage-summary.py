@@ -7,7 +7,7 @@ line-rate sums those copies, so it counts a shared file two or three times over 
 This walks the tree once and unions the line numbers per file instead, which is also what makes
 two runs comparable.
 
-Usage: python scripts/coverage-summary.py test/records/coverage/coverage.xml
+Usage: python scripts/quality/coverage-summary.py test/records/coverage/coverage.xml
 """
 
 from __future__ import annotations

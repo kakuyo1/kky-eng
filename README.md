@@ -22,24 +22,24 @@ Lens 常驻系统托盘，没有主窗口。它把交互放在托盘菜单、选
 先确认 `config/paths.json` 中的 Qt 路径有效，然后在 Visual Studio 的 C++ 环境中运行：
 
 ```bat
-scripts\build.bat
+scripts\build\build.bat
 ```
 
 脚本首次运行时配置 `build-ninja`，之后执行增量构建。需要构建指定目标时，把 CMake 参数传给脚本：
 
 ```bat
-scripts\build.bat --target lens_gtest_unit
+scripts\build\build.bat --target lens_gtest_unit
 ```
 
 运行速度更接近交付版本的构建使用单独的 RelWithDebInfo 树：
 
 ```bat
-scripts\build-release.bat
+scripts\build\build-release.bat
 ```
 
 ## 运行
 
-开发构建完成后运行 `build-ninja\lens.exe`；需要使用优化构建时运行 `build-ninja-release\lens.exe`。
+开发构建完成后运行 `build-ninja\src\app\lens.exe`；需要使用优化构建时运行 `build-ninja-release\src\app\lens.exe`。
 
 首次运行会在 `%APPDATA%\Lens` 创建设置文件。API 配置由读者自行填写，应用不会把密钥写入安装目录、日志或错误消息。
 
@@ -48,10 +48,10 @@ scripts\build-release.bat
 测试按用途拆成不需要窗口的 GoogleTest 目标和需要 Qt Quick 场景的 QTest 目标。常用目标如下：
 
 ```bat
-scripts\build.bat --target lens_gtest_unit
-scripts\build.bat --target lens_gtest_perf
-scripts\build.bat --target lens_qtest_components
-scripts\build.bat --target lens_qtest_surfaces
+scripts\build\build.bat --target lens_gtest_unit
+scripts\build\build.bat --target lens_gtest_perf
+scripts\build\build.bat --target lens_qtest_components
+scripts\build\build.bat --target lens_qtest_surfaces
 ```
 
 构建完成后，可执行文件位于 `build-ninja\test\googletest\` 或 `build-ninja\test\qtest\`。`lens_gtest_integration` 需要真实鼠标和剪贴板，`lens_gtest_smoke` 需要 API key 并会调用真实模型，这两个目标按 `TEST.md` 的人工测试说明运行。
@@ -61,7 +61,7 @@ scripts\build.bat --target lens_qtest_surfaces
 安装包使用 Windeployqt 和 Inno Setup 生成。先构建发布树，再运行安装器目标：
 
 ```bat
-scripts\build-release.bat --target installer
+scripts\build\build-release.bat --target installer
 ```
 
 产物写入 `build-ninja-release\installer\`，文件名为 `Lens-<version>-setup.exe`。安装包会带上 Qt 运行时和 `data/`，不会带读者的设置文件。当前安装配置以 `installer\lens.iss` 为准。
@@ -76,3 +76,5 @@ scripts\build-release.bat --target installer
 - `docs/`、`PRODUCT.md`、`PHASE1.md`：设计、实现契约和 Qt Quick 说明。
 
 更多开发约定与验证命令见 [`AGENTS.md`](AGENTS.md)，测试的完整说明见 [`TEST.md`](TEST.md)。
+
+脚本目录与后续版本发布命令见 [`scripts/README.md`](scripts/README.md)。

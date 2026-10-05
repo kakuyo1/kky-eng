@@ -11,7 +11,7 @@ import "../testutil.js" as Util
  *
  * The last case is also the worked example of the silent (offscreen) snapshot: it renders the
  * fixture with TestCase.grabImage and writes a PNG when LENS_QA_SNAPSHOT_DIR is set. See
- * TEST.md section 5 and scripts/qml-snapshot.ps1.
+ * TEST.md section 5 and scripts/qa/qml-snapshot.ps1.
  */
 Item {
     id: root
@@ -87,7 +87,7 @@ Item {
 
         function test_captureChineseAndLatinTypography() {
             if (!lensQaSnapshotDir)
-                skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qml-snapshot.ps1) to save the offscreen snapshot");
+                skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshot");
 
             wait(100);
             verify(Util.saveSnapshot(testCase, capture, lensQaSnapshotDir, "typography"));

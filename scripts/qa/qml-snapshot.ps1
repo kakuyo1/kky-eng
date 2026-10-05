@@ -21,9 +21,9 @@
 # 2) and the real-surface tools above. TEST.md section 5 owns the write-up.
 #
 # Examples:
-#   ./scripts/qml-snapshot.ps1
-#   ./scripts/qml-snapshot.ps1 -Test test_captureChineseAndLatinTypography
-#   ./scripts/qml-snapshot.ps1 -Target lens_qtest_surfaces -Out test/records/snapshots/surfaces
+#   ./scripts/qa/qml-snapshot.ps1
+#   ./scripts/qa/qml-snapshot.ps1 -Test test_captureChineseAndLatinTypography
+#   ./scripts/qa/qml-snapshot.ps1 -Target lens_qtest_surfaces -Out test/records/snapshots/surfaces
 
 [CmdletBinding()]
 param(
@@ -75,7 +75,7 @@ function Get-QtBin([string]$root, [string]$build, [string]$requested) {
 }
 
 # Machine paths come from config/paths.json; config/README.md owns the rule.
-. "$PSScriptRoot\paths.ps1"
+. "$PSScriptRoot\..\build\paths.ps1"
 
 $root = Get-RepositoryRoot
 

@@ -3,7 +3,7 @@
 ;
 ;     cmake --build build-ninja-release --target installer
 ;
-; Run it in the release tree (scripts\build-release.bat): the payload below is named by tree, so
+; Run it in the release tree (scripts\build\build-release.bat): the payload below is named by tree, so
 ; from the debug tree the deploy would land there and this script would pack the release tree
 ; anyway. The number of the version lives in project() alone -- CMake generates the include below
 ; from it, so a release bumps one place.
@@ -21,7 +21,7 @@
 #include "version.iss"
 
 ; SourcePath is the directory of this script, with a trailing backslash. The release tree name
-; is scripts\build-release.bat's and is written here rather than passed in: this file is in the
+; is scripts\build\build-release.bat's and is written here rather than passed in: this file is in the
 ; repository, and the repository knows its own layout.
 #define PayloadDir SourcePath + "..\build-ninja-release\installer\payload"
 #define DataDir SourcePath + "..\data"

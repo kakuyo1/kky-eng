@@ -18,8 +18,8 @@ endfunction()
 
 # No suite here is in the default build: `all` is the application alone, because the tests change
 # far less often than src/ does and a developer rebuilding src/ should not pay for them. Every
-# target carries EXCLUDE_FROM_ALL and is built by naming it -- scripts/build.bat passes a target
-# through, so the command is `scripts/build.bat --target lens_gtest_unit`; CI names its own list,
+# target carries EXCLUDE_FROM_ALL and is built by naming it -- scripts/build/build.bat passes a target
+# through, so the command is `scripts/build/build.bat --target lens_gtest_unit`; CI names its own list,
 # and TEST.md section 2 says when each suite is worth running.
 
 # The offline suite: no network, no API key, safe for CI.

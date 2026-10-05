@@ -59,7 +59,7 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_QPA_PLATFORM=offscreen QT_FORCE_STDER
 - 链接 `lens_llm` 或 `lens_app` 的目标需要 Qt DLL 在 `PATH` 上（即 `unit` / `integration` /
   `smoke`）。`lens_gtest_perf` 只链 `lens_core`，保持无 Qt，什么都不需要。
 - 上表六个目标全部带 `EXCLUDE_FROM_ALL`：默认构建只有主程序 `lens`，测试按名构建，如
-  `scripts/build.bat --target lens_gtest_unit`。它们在改动 QML 或 `lens_app` / `lens_llm`
+  `scripts/build/build.bat --target lens_gtest_unit`。它们在改动 QML 或 `lens_app` / `lens_llm`
   的接口时才会失效，跟着每次改 `src/` 重编没有意义。CI 的构建步骤本来就把要跑的目标逐个列出。
 - 选区捕获：`lens_gtest_integration`，17 例。默认 16 例绿、1 例 skip——跳过的那条要人手拖鼠标。
   `SelectionGrab.DeclinesWhenTheForegroundWindowIsOurs` 取不到前台时也跳过，故偶尔是 15 绿 2 skip，两种都不是红。
@@ -109,7 +109,7 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_QPA_PLATFORM=offscreen QT_FORCE_STDER
 改 FilterCore 的行为先改样例集，`lens_gtest_unit` 红了再动 `src/`。样例集撞出误判就在那里加一段，
 不要先把断言放宽。
 
-`scripts/check-eval-corpus.py` 按 `PHASE1.md` §4.1 的规则独立校验样例集（不走实现）：Word / Sentence
+`scripts/data/check-eval-corpus.py` 按 `PHASE1.md` §4.1 的规则独立校验样例集（不走实现）：Word / Sentence
 段落中每个 token 要么进 `expect`，要么有一条具名规则把它排除；`expectKind` 另按选区形状核对——单 token
 在词表内为 Word、不在为 Entity（命名实体），多 token 名称短语（Title Case 或全大写缩写）为 Entity、其余为
 Sentence。改完样例集跑一次，它是期望值之外的那道独立核对。
@@ -160,12 +160,12 @@ PDB、在运行时插桩，所以**没有覆盖率专用树，也没有覆盖率
 的那批产物。这一点与上面那棵树相反——profiling 要优化过，覆盖率不要。
 
 ```
-sh scripts/coverage.sh                                    # 五个无人值守的目标
-sh scripts/coverage.sh test/records/coverage lens_gtest_unit   # 或者只点几个目标
+sh scripts/quality/coverage.sh                                    # 五个无人值守的目标
+sh scripts/quality/coverage.sh test/records/coverage lens_gtest_unit   # 或者只点几个目标
 ```
 
 每个目标一份，最后合并成 `test/records/coverage/coverage.xml`；该目录 gitignored。汇总那一行由
-`scripts/coverage-summary.py` 算出：Cobertura 里一个被多个二进制链进去的源文件会出现好几份，
+`scripts/quality/coverage-summary.py` 算出：Cobertura 里一个被多个二进制链进去的源文件会出现好几份，
 根节点的 `line-rate` 把它们加在一起，直接读会偏低。`lens_gtest_smoke` 要 key 且花钱，不在内；
 `lens_gtest_integration` 在默认列表里，但 CI 不点它（runner 没有真鼠标与真剪贴板）。
 
@@ -184,10 +184,10 @@ QML profiler：每求值一次就记一条带文件与行号的事件，这些�
 
 ```
 npm ci                    # tree-sitter，与 AST 度量共用同一个依赖
-sh scripts/qml-coverage.sh
+sh scripts/quality/qml-coverage.sh
 ```
 
-分母来自 `scripts/qml-coverage.js` 用 `tree-sitter-qmljs` 建的解析树：模块里每个非字面量的
+分母来自 `scripts/quality/qml-coverage.js` 用 `tree-sitter-qmljs` 建的解析树：模块里每个非字面量的
 `ui_property` 与 `ui_binding`，加上每个 `function_declaration`。字面量的绑定被排除在两侧之外
 ——编译器把它们折进对象的构造，引擎从不求值，profiler 也就永远报不出来；算进分母就是一笔永远
 扣不掉的分。结果写 `test/records/qmlcov/`。profiler 启动的是那**两个 QTest 目标**本身，所以这是
@@ -209,7 +209,7 @@ sh scripts/qml-coverage.sh
 
 表面没有主窗口，全部靠触发才出现，所以真机验证只能靠驱动与拍照。能脱离屏幕断言的那部分已经搬进
 `lens_qtest_surfaces`（§2）：摆放、关闭规则、面板上的数字、托盘菜单那几个派生值，都不再需要快门。
-剩下的仍是这里的事——卡片对没对齐、阴影糊不糊、图标画出来没有。`scripts/ui-*.ps1` 是三个这样的工具，
+剩下的仍是这里的事——卡片对没对齐、阴影糊不糊、图标画出来没有。`scripts/qa/ui-*.ps1` 是三个这样的工具，
 都是 PowerShell，都先把自己设成 per-monitor-v2 感知——不设的话截到的是 Windows 已经拉伸过的位图，
 糊与偏移都会被量成假的。
 

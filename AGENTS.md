@@ -24,7 +24,7 @@ lens/
 ├── docs              # QML.md (how QML works here) + adr/ (major trade-offs)
 ├── i18n              # .ts translations; English is the source language
 ├── installer         # lens.iss — the Inno Setup script; version.iss.in, filled from project()
-├── scripts           # build.bat — Ninja + MSVC wrapper; *.ps1 — driving, photographing and timing the real surfaces (TEST.md § 5); qml-lint.sh — the QML gate
+├── scripts           # build/、quality/、profiling/、qa/、data/、release/；目录入口见 scripts/README.md
 ├── third_party       # vendored: nlohmann/json, spdlog, googletest
 ├── icons
 ├── logs              # runtime logs, rotating, gitignored but for .gitkeep
@@ -39,9 +39,9 @@ lens/
 Toolchain (verified): cmake 4.0.1 · Ninja 1.12.1 · MSVC 19.44
 
 ```
-./scripts/build.bat                      # configure once, then incremental, into build-ninja
-./scripts/build.bat --target lens_gtest_unit     # a test target, when you want one
-./scripts/build-release.bat              # the same, into build-ninja-release (RelWithDebInfo)
+./scripts/build/build.bat                      # configure once, then incremental, into build-ninja
+./scripts/build/build.bat --target lens_gtest_unit     # a test target, when you want one
+./scripts/build/build-release.bat              # the same, into build-ninja-release (RelWithDebInfo)
 ```
 
 The default build is the application alone. Every test target carries `EXCLUDE_FROM_ALL` in `test/`,
@@ -50,12 +50,12 @@ by naming it. CI names its own list, the four it runs plus `lens_gtest_perf`, so
 unaffected. `TEST.md` section 2 says when each suite is worth running.
 
 `build-ninja` stays Debug, which is where the assertions, the TRACE log and the PDB
-`scripts/coverage.sh` reads come from. `build-ninja-release` is the tree to run the application
+`scripts/quality/coverage.sh` reads come from. `build-ninja-release` is the tree to run the application
 from, and it exists as a second tree rather than a build-type switch because switching rewrites
 every compile flag and rebuilds the lot. Both are driven by the same wrapper; the two environment
-variables `scripts/build-release.bat` sets are the whole difference.
+variables `scripts/build/build-release.bat` sets are the whole difference.
 
-The Qt prefix lives in `config/paths.json`, which `build.bat` exports as `QT_ROOT` before it drives
+The Qt prefix lives in `config/paths.json`, which `scripts/build/build.bat` exports as `QT_ROOT` before it drives
 the presets. `config/README.md` owns the rule: machine paths come from that file, project paths stay
 relative to the repository root, and nothing else writes either kind by hand.
 
@@ -107,7 +107,7 @@ Log through the `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_
 
 `.githooks/pre-commit` is the source of truth for the C++ and documentation checks: the tools, their fallback paths and the per-doc typography budgets all live there, and it checks only the files a commit touches, so a hand run is what covers the rest.
 
-QML is the exception. `scripts/qml-lint.sh`, called by the hook and by CI, owns its own argument list and its warning ratchet, because a .qml file only lints correctly beside its whole module.
+QML is the exception. `scripts/quality/qml-lint.sh`, called by the hook and by CI, owns its own argument list and its warning ratchet, because a .qml file only lints correctly beside its whole module.
 
 ## Reference Documents
 
@@ -121,5 +121,6 @@ QML is the exception. `scripts/qml-lint.sh`, called by the hook and by CI, owns 
 - `CODING_STANDARDS.md`: the judgement calls a review can make (C++ and QML)
 - `docs/QML.md`: QML facts, module layout, surfaces vs components, shadows, positioning, threading, fonts
 - `docs/adr/`: major trade-offs, one numbered file each; `README.md` has the numbering and template
+- `scripts/README.md`: script layout, verification entry points, and release commands
 - `ui-prototypes/v1-halo-*.html`: prototype, one file per surface
 - `TODO.md`: waiting for implement

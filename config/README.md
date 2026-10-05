@@ -11,9 +11,9 @@ CMake 侧是 `CMAKE_SOURCE_DIR`（`src/app/CMakeLists.txt`、`test/qtest/CMakeLi
 | 读的人 | 怎么读 |
 |---|---|
 | CMake | `CMakeLists.txt` 顶部 `string(JSON)`，结果作编译定义传下去，如 `LENS_SYSTEM_FONTS` |
-| PowerShell | `scripts/paths.ps1` 的 `Get-LensPaths`，三个脚本点源它 |
+| PowerShell | `scripts/build/paths.ps1` 的 `Get-LensPaths`，构建、质量和 profiling 脚本点源它 |
 | 提交钩子 | 经 PowerShell 读；钩子本来就只服务 Windows |
-| `CMakePresets.json` | 读不到 JSON，改用 `$env{QT_ROOT}`，由 `scripts/build.bat` 从本文件导出 |
+| `CMakePresets.json` | 读不到 JSON，改用 `$env{QT_ROOT}`，由 `scripts/build/build.bat` 从本文件导出 |
 
 C++ 不读这个文件：路径在 configure 期由 CMake 变成编译定义，运行期再去解析一份配置只会多一个失败点。
 

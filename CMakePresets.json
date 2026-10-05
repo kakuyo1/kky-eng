@@ -16,7 +16,7 @@
     {
       "name": "ninja-qt6-release",
       "displayName": "Ninja + Qt 6.9 (MSVC), optimised",
-      "description": "A second tree for running the application at real speed, leaving build-ninja to the Debug assertions and the TRACE log. RelWithDebInfo and not Release because MSVC's Release flags carry no /Zi: without a PDB the crash stacks and scripts/coverage.sh have nothing to read. Driven by scripts/build-release.bat.",
+      "description": "A second tree for running the application at real speed, leaving build-ninja to the Debug assertions and the TRACE log. RelWithDebInfo and not Release because MSVC's Release flags carry no /Zi: without a PDB the crash stacks and scripts/quality/coverage.sh have nothing to read. Driven by scripts/build/build-release.bat.",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build-ninja-release",
       "cacheVariables": {

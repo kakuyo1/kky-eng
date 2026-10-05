@@ -15,8 +15,8 @@
 # does not matter. Nothing is clicked.
 #
 # Examples:
-#   ./scripts/ui-mouse-stall.ps1
-#   ./scripts/ui-mouse-stall.ps1 -App build-ninja-perf/src/app/lens.exe -Seconds 30
+#   ./scripts/qa/mouse-stall-probe.ps1
+#   ./scripts/qa/mouse-stall-probe.ps1 -App build-ninja-perf/src/app/lens.exe -Seconds 30
 param(
     [string]$App = 'build-ninja/src/app/lens.exe',  # relative to the repository root, or absolute
     [string]$QtBin,                 # the app needs the Qt DLLs on PATH; default is config/paths.json
@@ -31,13 +31,13 @@ Add-Type -Namespace U -Name W -MemberDefinition @'
 
 $MOVE = 0x0001
 
-$root = Split-Path $PSScriptRoot -Parent
+$root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $exe = if ([IO.Path]::IsPathRooted($App)) { $App } else { Join-Path $root $App }
 if (-not (Test-Path $exe)) { throw "no executable at $exe" }
 
 # The Qt DLLs the app links against: -QtBin overrides, otherwise config/paths.json, which is the
 # one place a machine path is written (config/README.md).
-. "$PSScriptRoot\paths.ps1"
+. "$PSScriptRoot\..\build\paths.ps1"
 if ([string]::IsNullOrWhiteSpace($QtBin)) { $QtBin = (Get-LensPaths -Root $root).qtBin }
 if (Test-Path $QtBin) { $env:PATH = "$QtBin;$env:PATH" }
 

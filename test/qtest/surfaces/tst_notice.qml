@@ -80,7 +80,7 @@ Item {
 
         function test_captureTheNotice() {
             if (!lensQaSnapshotDir)
-                skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qml-snapshot.ps1) to save the snapshot");
+                skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the snapshot");
 
             // Every surface is a card that fades and lifts into place (ShadowCard.qml), so a
             // grab taken before that has finished photographs a half-transparent card. Waiting

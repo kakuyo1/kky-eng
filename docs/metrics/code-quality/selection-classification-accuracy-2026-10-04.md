@@ -43,7 +43,7 @@
 
 ## 4、样例集与来源
 
-样例集 1001 段，全部由 `scripts/check-eval-corpus.py` 按 `PHASE1.md` §4.1 与 `src/core/filter_core.h` 的规则校验过（质检 0 项）。按来源分：
+样例集 1001 段，全部由 `scripts/data/check-eval-corpus.py` 按 `PHASE1.md` §4.1 与 `src/core/filter_core.h` 的规则校验过（质检 0 项）。按来源分：
 
 | 来源 | 段数 | 期望值怎么来的 |
 | --- | ---: | --- |
@@ -61,10 +61,10 @@
 当前实现（判定已改）跑这份样例集，查的是残留误判，应为 0：
 
 ```
-./scripts/build.bat --target lens_gtest_unit
+./scripts/build/build.bat --target lens_gtest_unit
 PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
   ./build-ninja/test/googletest/lens_gtest_unit.exe --gtest_filter='*Replays*'
-python scripts/check-eval-corpus.py
+python scripts/data/check-eval-corpus.py
 ```
 
 每轮输出末尾一行 `corpus: 1001 entries, N mismatched`，N 就是上表里的未命中数。改动样例集或 `filterWords` 之后重跑同一条命令即可。
@@ -74,7 +74,7 @@ python scripts/check-eval-corpus.py
 ```
 git checkout main -- src/core/filter_core.h src/core/filter_core.cpp \
   src/app/app_controller.cpp test/googletest/unit/filter_core_test.cpp
-./scripts/build.bat --target lens_gtest_unit
+./scripts/build/build.bat --target lens_gtest_unit
 ./build-ninja/test/googletest/lens_gtest_unit.exe --gtest_filter='*Replays*'
 git checkout HEAD -- src/ test/
 ```
@@ -132,7 +132,7 @@ V3 后的实际输出为 `corpus: 1004 entries, 0 mismatched`，独立脚本输�
 | corpus mismatched | 0 | 0 |
 | 独立检查脚本问题数 | 0 | 0 |
 
-改后实际输出：`corpus: 1004 entries, 0 mismatched`；`python scripts/check-eval-corpus.py` 输出
+改后实际输出：`corpus: 1004 entries, 0 mismatched`；`python scripts/data/check-eval-corpus.py` 输出
 `corpus: 1004 entries, 0 problem(s)`；`lens_gtest_unit` 45 绿（覆盖
 `ClassifiesALoneLettersTokenAsTheWordChannel` 与 `AcceptsAWordResponseWithoutIPAForAnAcronym`）。
 旧编号与旧数字不改。
@@ -161,7 +161,7 @@ V3 后的实际输出为 `corpus: 1004 entries, 0 mismatched`，独立脚本输�
 | corpus mismatched | 0 | 0 |
 | 独立检查脚本问题数 | 0 | 0 |
 
-改后实际输出：`corpus: 1004 entries, 0 mismatched`；`python scripts/check-eval-corpus.py` 输出
+改后实际输出：`corpus: 1004 entries, 0 mismatched`；`python scripts/data/check-eval-corpus.py` 输出
 `corpus: 1004 entries, 0 problem(s)`；`lens_gtest_unit` 45 绿、`lens_qtest_surfaces` 52 绿。真实模型
 往返（句子翻译 / 解释）属人工 / 付费验收，未跑。
 
@@ -184,7 +184,7 @@ token，其余只能是 `of` / `the` / `and` / `for`），`QML API` / `the QML A
 | corpus mismatched | 0 | 0 |
 | 独立检查脚本问题数 | 0 | 0 |
 
-改后实际输出：`corpus: 1007 entries, 0 mismatched`；`python scripts/check-eval-corpus.py` 输出
+改后实际输出：`corpus: 1007 entries, 0 mismatched`；`python scripts/data/check-eval-corpus.py` 输出
 `corpus: 1007 entries, 0 problem(s)`；`lens_gtest_unit` 45 绿。
 
 ## 11 样例集扩到 3005 段（2026-10-04）

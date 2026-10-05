@@ -130,7 +130,7 @@ MI = 171 - 5.2 × ln（Halstead Volume） - 0.23 × CCN - 16.2 × ln（NLOC）
 
 ## 5、QML 指标
 
-QML 使用 [`scripts/qml-metrics.ps1`](../../../scripts/qml-metrics.ps1) 读取 CMake 生成的 QML response file（当前为 `lens_app.rsp`），只统计正式 `Lens` 模块中的文件。脚本同时解析 `qmllint --json`，因此不会把 response file 之外的临时 QML 文件纳入结果。
+QML 使用 [`scripts/profiling/qml-metrics.ps1`](../../../scripts/profiling/qml-metrics.ps1) 读取 CMake 生成的 QML response file（当前为 `lens_app.rsp`），只统计正式 `Lens` 模块中的文件。脚本同时解析 `qmllint --json`，因此不会把 response file 之外的临时 QML 文件纳入结果。
 
 现有 PowerShell 脚本中的对象、绑定和词法大括号深度是源码表面统计，不等同于 QML AST 指标。近似结构分数定义为：
 
@@ -180,7 +180,7 @@ QML 合计为 2692 行物理行，其中非空、非注释行约 1957 行，注�
 
 ### 5.2 AST 结构和 JavaScript 复杂度
 
-`scripts/qml-ast-metrics.js` 使用 `tree-sitter-qmljs 0.3.1` 对同一个 QML response file 清单进行 AST 分析。当前 18 个文件全部解析成功，没有 `ERROR` 或 `MISSING` 节点。
+`scripts/quality/qml-ast-metrics.js` 使用 `tree-sitter-qmljs 0.3.1` 对同一个 QML response file 清单进行 AST 分析。当前 18 个文件全部解析成功，没有 `ERROR` 或 `MISSING` 节点。
 
 | 指标 | 顶层 surface | `components` | 合计 |
 | --- | ---: | ---: | ---: |
@@ -225,7 +225,7 @@ cmake --build --preset ninja-qt6 --target lens
 启动 profiler：
 
 ```powershell
-./scripts/qml-profile.ps1 -BuildDir build-ninja -Output test/records/qml-startup.qtd -Interactive
+./scripts/profiling/qml-profile.ps1 -BuildDir build-ninja -Output test/records/qml-startup.qtd -Interactive
 ```
 
 使用 `-Interactive` 后，按 `r` 开始或停止记录，按 `f` 写出并清空当前 trace，按 `q` 结束目标进程。启动应用后应分别记录启动、托盘菜单、设置、气泡、统计、单词和拖动场景；每个场景至少执行 3 轮，再比较 JavaScript、binding、creating、compiling、scenegraph 和 painting 数据。
@@ -266,7 +266,7 @@ python -m lizard src -l cpp -Ehalstead -ENS -C 10 -L 50 -a 5
 执行 QML 度量：
 
 ```powershell
-./scripts/qml-metrics.ps1
+./scripts/profiling/qml-metrics.ps1
 ```
 
 执行 AST 结构度量：
@@ -279,7 +279,7 @@ npm run qml:ast-metrics
 也可以显式指定构建目录并把 JSON 写入已有目录：
 
 ```powershell
-./scripts/qml-metrics.ps1 -BuildDir build-ninja -Output docs/metrics/qml-metrics.json
+./scripts/profiling/qml-metrics.ps1 -BuildDir build-ninja -Output docs/metrics/qml-metrics.json
 ```
 
 参数含义：
@@ -298,9 +298,9 @@ AST 脚本同样自动选择生成的 `.rsp` 文件，依赖固定在 `package.j
 解析运行时 trace：
 
 ```powershell
-python scripts/parse-qml-trace.py `
+python scripts/profiling/parse-qml-trace.py `
   --trace test/records/qml-full-2026-10-03.qtd `
   --output test/records/qml-full-2026-10-03.json
 ```
 
-本次重新取数时读取了当前工作区的 `src` 修改；新增了 `scripts/qml-metrics.ps1`、`scripts/qml-ast-metrics.js` 和 `scripts/qml-profile.ps1`，没有回退或覆盖这些既有源码修改。AST 已对 18 个 QML 文件完成全量验证；运行时 profiler 尚未运行，因为现有构建未启用 `LENS_ENABLE_QML_DEBUG`。
+本次重新取数时读取了当前工作区的 `src` 修改；新增了 `scripts/profiling/qml-metrics.ps1`、`scripts/quality/qml-ast-metrics.js` 和 `scripts/profiling/qml-profile.ps1`，没有回退或覆盖这些既有源码修改。AST 已对 18 个 QML 文件完成全量验证；运行时 profiler 尚未运行，因为现有构建未启用 `LENS_ENABLE_QML_DEBUG`。

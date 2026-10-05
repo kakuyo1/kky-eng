@@ -128,7 +128,7 @@ Item {
 
         function test_captureTheBubble() {
             if (!lensQaSnapshotDir)
-                skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qml-snapshot.ps1) to save the offscreen snapshot");
+                skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshot");
 
             const bubble = opened();
             wait(100);

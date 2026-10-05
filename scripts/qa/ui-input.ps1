@@ -14,9 +14,9 @@
 # icon is, since it reports nothing while the taskbar is down.
 #
 # Examples:
-#   ./scripts/ui-input.ps1 -Action click -X 1456 -Y 355
-#   ./scripts/ui-input.ps1 -Action drag -X 1645 -Y 259 -Dx -180 -Dy -144
-#   ./scripts/ui-input.ps1 -Action reveal
+#   ./scripts/qa/ui-input.ps1 -Action click -X 1456 -Y 355
+#   ./scripts/qa/ui-input.ps1 -Action drag -X 1645 -Y 259 -Dx -180 -Dy -144
+#   ./scripts/qa/ui-input.ps1 -Action reveal
 param(
     [ValidateSet('move', 'click', 'drag', 'dragfast', 'reveal')] [string]$Action = 'move',
     [int]$X = 0,

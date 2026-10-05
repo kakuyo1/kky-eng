@@ -22,7 +22,7 @@ runs:
         arch: win64_msvc2022_64
         cache: true
 
-    # Ninja cannot find MSVC by itself -- the same reason scripts/build.bat enters the Visual
+    # Ninja cannot find MSVC by itself -- the same reason scripts/build/build.bat enters the Visual
     # Studio environment before driving CMake. The runner has VS 2022, so nothing installs.
     - uses: ilammy/msvc-dev-cmd@v1
 

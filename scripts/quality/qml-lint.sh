@@ -29,7 +29,7 @@
 # The count is a ratchet, like the typography budgets in that hook: lower it when you fix
 # warnings, never raise it to get a commit through.
 #
-# Usage: scripts/qml-lint.sh [--report]
+# Usage: scripts/quality/qml-lint.sh [--report]
 #   --report  print every warning even when the count is under the baseline
 
 set -u
@@ -38,11 +38,11 @@ BASELINE=0
 
 # Working-set ceiling for qmllint, in MB. A healthy run on this tree is 34 MB, so the ceiling is
 # not a budget for a heavy lint -- it exists because qmllint 6.9.0 can grow without bound on
-# some input (see scripts/qmllint-capped.ps1). Normal runs never come near it.
+# some input (see scripts/quality/qmllint-capped.ps1). Normal runs never come near it.
 QML_LINT_CAP_MB=${QML_LINT_CAP_MB:-1024}
 
 root=$(git rev-parse --show-toplevel 2>/dev/null)
-[ -n "$root" ] || root=$(cd "$(dirname "$0")/.." && pwd)
+[ -n "$root" ] || root=$(cd "$(dirname "$0")/../.." && pwd)
 cd "$root" || exit 0
 
 # Named for the target the module is backed by, which is lens_app and not the lens executable:

@@ -96,10 +96,10 @@
 3. 只打开统计页面并进入费用、单词页面，测 `StatRow`、`showStats` 和面板创建。
 4. 只做一次气泡显示和拖动，测 `Bubble` 的创建、绑定和 scenegraph。
 
-当前基线解析由 [`parse-qml-trace.py`](../../../scripts/parse-qml-trace.py) 完成：
+当前基线解析由 [`parse-qml-trace.py`](../../../scripts/profiling/parse-qml-trace.py) 完成：
 
 ```powershell
-python scripts/parse-qml-trace.py `
+python scripts/profiling/parse-qml-trace.py `
   --trace test/records/qml-full-2026-10-03.qtd `
   --output test/records/qml-full-2026-10-03.json
 ```

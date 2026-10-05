@@ -19,7 +19,7 @@
 // not whether every line of a multi-line expression ran. It is not comparable to the C++
 // numbers OpenCppCoverage produces, and the two are never averaged together.
 //
-// Usage: node scripts/qml-coverage.js --trace <trace.qtd> [--trace <more.qtd>...]
+// Usage: node scripts/quality/qml-coverage.js --trace <trace.qtd> [--trace <more.qtd>...]
 //          [--qml-root src/app/qml] [--json <file>]
 
 const fs = require("fs");

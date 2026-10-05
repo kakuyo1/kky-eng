@@ -88,8 +88,8 @@
 每补完一项，跑：
 
 ```bash
-sh scripts/coverage.sh            # C++，写 test/records/coverage/
-sh scripts/qml-coverage.sh        # QML，写 test/records/qmlcov/
+sh scripts/quality/coverage.sh            # C++，写 test/records/coverage/
+sh scripts/quality/qml-coverage.sh        # QML，写 test/records/qmlcov/
 ```
 
-两个脚本都会在最后打出一行汇总。**跑之前先确认构建树是新的**（第 2 节第 2 条），改过 `.qml` 或 `.cpp` 之后先 `scripts/build.bat`。
+两个脚本都会在最后打出一行汇总。**跑之前先确认构建树是新的**（第 2 节第 2 条），改过 `.qml` 或 `.cpp` 之后先 `scripts/build/build.bat`。

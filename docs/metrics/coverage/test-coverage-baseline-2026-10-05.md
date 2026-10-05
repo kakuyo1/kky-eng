@@ -41,7 +41,7 @@ C++ 行覆盖 **75.7%（1408/1860，26 个文件）**；QML 执行覆盖 **86.6%
 
 ### 3.1 五个目标
 
-`scripts/coverage.sh` 依次覆盖能无人值守跑完的五个目标。本轮用例数与结果：
+`scripts/quality/coverage.sh` 依次覆盖能无人值守跑完的五个目标。本轮用例数与结果：
 
 | 目标 | 用例数 | 结果 |
 | --- | ---: | --- |
@@ -186,8 +186,8 @@ C++ 行覆盖 **75.7%（1408/1860，26 个文件）**；QML 执行覆盖 **86.6%
 ## 6、复现命令
 
 ```bash
-sh scripts/coverage.sh            # C++，写 test/records/coverage/
-sh scripts/qml-coverage.sh        # QML，写 test/records/qmlcov/
+sh scripts/quality/coverage.sh            # C++，写 test/records/coverage/
+sh scripts/quality/qml-coverage.sh        # QML，写 test/records/qmlcov/
 ```
 
 `coverage.sh` 默认跑五个能无人值守跑完的目标，也可以只点名几个。CI 只跑其中四个（它没有真鼠标与真

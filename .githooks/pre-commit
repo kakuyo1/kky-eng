@@ -13,7 +13,7 @@
 #    strings, so a grep settles it; leaving it to memory is what this check replaces.
 # 4. QML. The odd one out: a .qml file only lints correctly beside its whole module, so this
 #    runs the full set instead of the staged subset, and it wants a configured build tree.
-#    scripts/qml-lint.sh owns the arguments, the count and the reasoning.
+#    scripts/quality/qml-lint.sh owns the arguments, the count and the reasoning.
 # 5. Absolute paths in our own sources. A machine path written into a file is a value that is
 #    wrong on the next machine, and this project had the same Qt prefix handwritten in four
 #    places. config/paths.json is the one file allowed to hold them; config/README.md owns the
@@ -41,7 +41,7 @@ set -u
 cd "$(git rev-parse --show-toplevel)" || exit 0
 
 # Per-doc error budgets. Ratchet: lower on cleanup, never raise to pass.
-BASELINES='AGENTS.md 19
+BASELINES='AGENTS.md 14
 API.md 0
 CLAUDE.md 0
 CODING_STANDARDS.md 0
@@ -49,7 +49,7 @@ GLOSSARY.md 0
 PHASE1.md 0
 PRODUCT.md 11
 TEST.md 0
-TODO.md 12
+TODO.md 0
 UI.md 27
 docs/QML.md 0
 docs/adr/README.md 0
@@ -59,7 +59,11 @@ docs/adr/0003-instructions-live-in-agents-md.md 0
 docs/adr/0004-qml-module-on-the-static-library.md 0
 docs/adr/0005-cjk-latin-shared-face.md 0
 docs/adr/0006-machine-paths-in-config.md 0
-config/README.md 0'
+config/README.md 0
+scripts/README.md 0
+docs/adr/0009-explicit-selection-and-channel-presets.md 0
+docs/adr/0010-model-ipa-without-speech.md 0
+docs/adr/0011-per-user-installer-and-release-version.md 0'
 
 staged=$(git diff --cached --name-only --diff-filter=ACM)
 
@@ -74,7 +78,7 @@ lens_path() {
     command -v powershell >/dev/null 2>&1 || return 0
     [ -f config/paths.json ] || return 0
     powershell -NoProfile -ExecutionPolicy Bypass -Command \
-        ". ./scripts/paths.ps1; \$p = Get-LensPaths -Root \$PWD; \$p.$1" 2>/dev/null | tr -d '\r'
+        ". ./scripts/build/paths.ps1; \$p = Get-LensPaths -Root \$PWD; \$p.$1" 2>/dev/null | tr -d '\r'
 }
 
 # The same for a list-valued key: one item per line.
@@ -82,7 +86,7 @@ lens_path_list() {
     command -v powershell >/dev/null 2>&1 || return 0
     [ -f config/paths.json ] || return 0
     powershell -NoProfile -ExecutionPolicy Bypass -Command \
-        ". ./scripts/paths.ps1; Get-LensPathList -Root \$PWD -Key $1" 2>/dev/null | tr -d '\r'
+        ". ./scripts/build/paths.ps1; Get-LensPathList -Root \$PWD -Key $1" 2>/dev/null | tr -d '\r'
 }
 
 check_typography() {
@@ -217,8 +221,8 @@ check_probes() {
 
 check_qml() {
     printf '%s\n' "$staged" | grep -q '^src/app/qml/' || return 0
-    [ -x scripts/qml-lint.sh ] || { echo "pre-commit: scripts/qml-lint.sh not found, skipping QML lint"; return 0; }
-    scripts/qml-lint.sh
+    [ -x scripts/quality/qml-lint.sh ] || { echo "pre-commit: scripts/quality/qml-lint.sh not found, skipping QML lint"; return 0; }
+    scripts/quality/qml-lint.sh
 }
 
 # A machine path written into a source file is a value that is wrong on the next machine. The one

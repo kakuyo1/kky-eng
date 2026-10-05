@@ -7,7 +7,7 @@
 # primary screen's own metrics look like there is no taskbar at all.
 #
 # Examples:
-#   ./scripts/ui-tray-rects.ps1
+#   ./scripts/qa/ui-tray-rects.ps1
 Add-Type -Namespace U -Name W -MemberDefinition @'
 [DllImport("user32.dll")] public static extern bool SetProcessDpiAwarenessContext(IntPtr ctx);
 [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern IntPtr FindWindow(string cls, string title);

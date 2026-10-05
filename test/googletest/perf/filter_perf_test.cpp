@@ -10,7 +10,7 @@
  *
  * Build with the instrumentation on to see where the time inside the pipeline goes:
  *
- *     ./scripts/build.bat -DLENS_ENABLE_PROFILE=ON
+ *     ./scripts/build/build.bat -DLENS_ENABLE_PROFILE=ON
  */
 
 #include <algorithm>

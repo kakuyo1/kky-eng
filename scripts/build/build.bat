@@ -5,13 +5,13 @@ REM Ninja cannot locate MSVC by itself, so this script enters the Visual Studio 
 REM first and only then drives CMake. Configure runs only when the build directory is
 REM missing; every later call is a pure incremental ninja build.
 REM
-REM Usage: scripts\build.bat [extra "cmake --build" arguments]
-REM        scripts\build.bat --target lens_gtest_unit
+REM Usage: scripts\build\build.bat [extra "cmake --build" arguments]
+REM        scripts\build\build.bat --target lens_gtest_unit
 
 setlocal
-cd /d "%~dp0.."
+cd /d "%~dp0..\.."
 
-REM Which tree to drive. The defaults are the development one; scripts\build-release.bat sets both
+REM Which tree to drive. The defaults are the development one; scripts\build\build-release.bat sets both
 REM to the optimised tree, which is what those variables exist for. A preset decides its own
 REM binaryDir, so LENS_BUILD_DIR only has to agree with it for the configure guard below.
 set "PRESET=ninja-qt6"
@@ -25,7 +25,7 @@ REM QT_ROOT and this exports it. config/README.md owns the rule, docs/adr/0006 t
 REM Through a temp file rather than "for /f", for the same reason the VSDIR lookup below avoids it:
 REM a command line carrying quotes or parens trips cmd's own parser. This one has both.
 set "QTFILE=%TEMP%\lens_qtroot.txt"
-powershell -NoProfile -ExecutionPolicy Bypass -Command ". .\scripts\paths.ps1; $p = Get-LensPaths -Root $PWD; $p.qtRoot" > "%QTFILE%" 2>nul
+powershell -NoProfile -ExecutionPolicy Bypass -Command ". .\scripts\build\paths.ps1; $p = Get-LensPaths -Root $PWD; $p.qtRoot" > "%QTFILE%" 2>nul
 set /p QT_ROOT=<"%QTFILE%"
 del "%QTFILE%" >nul 2>&1
 if not defined QT_ROOT (
@@ -91,7 +91,8 @@ where sh >nul 2>&1
 if errorlevel 1 (
   echo [build] sh is not on PATH, skipping the QML lint
 ) else (
-  sh scripts/qml-lint.sh
+  sh scripts/quality/qml-lint.sh
+  if errorlevel 1 exit /b 1
 )
 
 REM The tree is named in the line because two of them exist and a stale number is worse than

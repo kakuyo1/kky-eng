@@ -20,3 +20,8 @@ logs/*
 
 # Translations: the .ts files are the source, the .qm files are built from them
 i18n/*.qm
+
+# Per-branch checkouts the agent harness creates under .claude/. They are working copies of this
+# repository, so an unignored one shows up as an untracked tree and can be staged whole by a
+# `git add -A`; the branches they carry are the thing to keep, not the directories.
+.claude/worktrees/
