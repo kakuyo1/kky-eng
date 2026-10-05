@@ -61,10 +61,11 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_QPA_PLATFORM=offscreen QT_FORCE_STDER
 - 上表六个目标全部带 `EXCLUDE_FROM_ALL`：默认构建只有主程序 `lens`，测试按名构建，如
   `scripts/build.bat --target lens_gtest_unit`。它们在改动 QML 或 `lens_app` / `lens_llm`
   的接口时才会失效，跟着每次改 `src/` 重编没有意义。CI 的构建步骤本来就把要跑的目标逐个列出。
-- 选区捕获：`lens_gtest_integration`。默认 14 例绿、1 例 skip——跳过的那条要人手拖鼠标。
+- 选区捕获：`lens_gtest_integration`，17 例。默认 16 例绿、1 例 skip——跳过的那条要人手拖鼠标。
+  `SelectionGrab.DeclinesWhenTheForegroundWindowIsOurs` 取不到前台时也跳过，故偶尔是 15 绿 2 skip，两种都不是红。
   `LENS_HOOK_SMOKE=1` 放开它，`LENS_HOOK_SMOKE_TEXT` 指定要拖选的词（缺省 `ubiquitous`）。它先往剪贴板放一个哨兵串，再等人在**别的窗口**里拖选那个词，然后断言三件事：取到的文本相符、返回状态是
   `Captured`、哨兵串还在剪贴板上。剪贴板存还原本身另有 `ClipboardSnapshot.*` 三例自动覆盖，不依赖这一条——把它交给人工的那段时间里，它正是坏的。那三例直接操真实的剪贴板，而剪贴板是全机共享的：约 35 次运行里见过 3 次失败，都在别的进程刚写过剪贴板之后，按需复现不了，加重试也没挡住。所以那里单次失败先重跑一次再当信号看，成因仍未知，如实记着。提权窗口（任务管理器、管理员控制台）会被 UIPI 挡下注入，表现为超时而不是报错，别拿它试；终端类进程按名字排除，是故意的。
-- 那两例真机用例会合成鼠标事件，指针会被移动并复位；拖拽落点是一个测试自己创建的顶层小窗口，不会点到读者的界面。
+- 那两例真机用例会合成鼠标事件，指针会被移动并复位。合成拖拽的落点是一个顶层小窗口，它由一个**子进程**持有：钩子会挡掉落在本进程窗口上的按下（那条规则是 “不把自己的表面当选区”），所以落点窗口不能是本测试自己的。子进程就是测试可执行文件以 `--lens-probe-window` 再跑一遍，靠 job object 在用例结束时收掉。
 - 不接 ctest：`gtest_discover_tests` 会在构建期执行测试程序，等于要求构建环境也把 Qt DLL 摆在
   `PATH` 上，不值得这层耦合。QTest 侧同理，同样不接。
 - QTest 的用例是 `.qml`，从源码树直接读，不进任何模块的 `QML_FILES`，所以 qmllint 不看它们，那
