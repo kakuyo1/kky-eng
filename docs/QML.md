@@ -5,7 +5,7 @@
 
 ## 1 模块与目录
 
-`src/app/qml/` 根下是九个 `Window`（表面），`src/app/qml/components/` 下是十个可复用件
+`src/app/qml/` 根下是十个 `Window`（表面），`src/app/qml/components/` 下是十个可复用件
 （`Icon` / `ShadowCard` / `Tokens` / `MixedText` / `Segment` / `StatRow` / `MenuRow` /
 `DropdownField` / `Switch` / `SwitchRow`），`src/app/qml/theme/` 下是两套主题各一份色值表
 （`Light` / `Dark`）加一份动效表（`Motion`）。三组同属一个 QML 模块（`qt_add_qml_module` 的
@@ -20,6 +20,12 @@
 判据取 “是不是窗口” 而非 “被几处用到”：`Switch` / `MenuRow` / `DropdownField` 今天各只被一处使用，
 它们仍是组件，而按使用次数切会把同类东西拆到两边。十个搬走的文件里没有一处 `qsTr`（文案一律由表面
 传入），所以两份 `.ts` 一行未动。
+
+**单个 `.qml` 文件不得超过 32768 字符**（实测：32767 字符能解析，32768 就报 `Invalid argument`）。这条限制
+来自 CI 与 `docs/metrics/` 共用的那份 `tree-sitter`（`package.json` 里 pin 的 0.21.1），与文件内容无关；
+`scripts/quality/qml-coverage.js` 会在超限时直接点名文件与字符数，而不是抛那句无从下手的 `Invalid argument`。
+判据还是上面那条 “是不是窗口”——文件一旦逼近这个数，就是把里面的窗口拆出去的时候（`RemovalQuestion.qml`
+就是 2026-10-07 从 `WordsPopup.qml` 拆出来的：那个文件当时 34060 字符，CI 的 QML 覆盖率作业因此整条失败）。
 
 `qt_add_qml_module` 在 `src/app/CMakeLists.txt`：新增 QML 文件改 `QML_FILES` 即可，单例另需
 `set_source_files_properties`（本仓库只有 `Tokens` 一个，那一行必须先于 `qt_add_qml_module`，它在那儿

@@ -88,6 +88,16 @@ function coverableLines(file) {
     const source = fs.readFileSync(file, "utf8");
     const parser = new Parser();
     parser.setLanguage(Qml);
+
+    // The parser this project pins refuses an input of 32768 characters or more, and says so with
+    // a bare "Invalid argument" -- 32767 parse and 32768 do not, whatever the grammar, which reads
+    // as a buffer in the binding rather than a limit on the file. Named here, because that message
+    // sends you looking at the file's contents and the answer is that the file is too big.
+    // docs/QML.md section 1 carries the same fact for whoever is writing the QML.
+    if (source.length >= 32768)
+        throw new Error(`${file} is ${source.length} characters, and the QML parser takes fewer `
+                        + "than 32768: split the file before this scan can read it");
+
     const tree = parser.parse(source);
     const lines = new Set();
     const skippedLiteralLines = [];

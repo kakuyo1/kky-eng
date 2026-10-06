@@ -554,74 +554,74 @@
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="254"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="398"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="249"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="393"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="254"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="432"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="249"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="427"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="364"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="359"/>
         <source>%1×</source>
         <translation>%1×</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="154"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="149"/>
         <source>Words</source>
         <translation>Palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="244"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="239"/>
         <source>%1 words</source>
         <translation>%1 palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="254"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="249"/>
         <source>All</source>
         <translation>Todas</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="586"/>
+        <location filename="../src/app/qml/RemovalQuestion.qml" line="130"/>
         <source>Don&apos;t ask again</source>
         <translation>No volver a preguntar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="618"/>
+        <location filename="../src/app/qml/RemovalQuestion.qml" line="162"/>
         <source>Cancel</source>
         <translation>Cancelar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="649"/>
+        <location filename="../src/app/qml/RemovalQuestion.qml" line="193"/>
         <source>Remove</source>
         <translation>Eliminar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="684"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="505"/>
         <source>Export words</source>
         <translation>Exportar palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="687"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="508"/>
         <source>Text files (*.txt)</source>
         <translation>Archivos de texto (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="687"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="508"/>
         <source>All files (*)</source>
         <translation>Todos los archivos (*)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="564"/>
+        <location filename="../src/app/qml/RemovalQuestion.qml" line="108"/>
         <source>Remove word</source>
         <translation>Eliminar palabra</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="575"/>
+        <location filename="../src/app/qml/RemovalQuestion.qml" line="119"/>
         <source>Remove %1 from your word list and history?</source>
         <translation>¿Eliminar %1 de tu lista de palabras y del historial?</translation>
     </message>
