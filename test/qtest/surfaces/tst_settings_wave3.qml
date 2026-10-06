@@ -161,6 +161,11 @@ Item {
             verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-learning"));
             back(panel);
 
+            openCategory(panel, "General");
+            wait(settled);
+            verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-general"));
+            back(panel);
+
             openCategory(panel, "Capture & popups");
             wait(settled);
             verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-capture"));
@@ -174,6 +179,10 @@ Item {
             wait(20);
             main.showSettings();
             wait(settled);
+            openCategory(panel, "Daily budget");
+            wait(settled);
+            verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-budget"));
+            back(panel);
             openCategory(panel, "Model service");
             wait(settled);
             verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-model"));

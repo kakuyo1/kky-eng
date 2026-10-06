@@ -84,6 +84,70 @@ Item {
             wrapMode: Text.WordWrap
         }
 
+        // The bundled runtime is what the installer lays down; these two are for a reader who
+        // already keeps their own Tesseract and would rather point at it.
+        Column {
+            width: parent.width
+            spacing: 7
+            Text { text: qsTr("Tesseract executable"); color: Tokens.muted; font.pixelSize: 12 }
+            TextField {
+                id: tesseractField
+                objectName: "tesseractExecutable"
+                width: parent.width
+                text: Controller.settings.tesseractExecutable
+                font.pixelSize: 12
+                color: Tokens.text
+                selectByMouse: true
+                maximumLength: 260
+                Accessible.name: qsTr("Tesseract executable")
+                background: Rectangle {
+                    radius: Tokens.radiusField
+                    color: Tokens.panel2
+                    border.width: 1
+                    border.color: tesseractField.activeFocus ? Tokens.ink : Tokens.line
+                }
+                onEditingFinished: {
+                    Controller.setTesseractExecutable(text);
+                    text = Qt.binding(() => Controller.settings.tesseractExecutable);
+                }
+            }
+        }
+
+        Column {
+            width: parent.width
+            spacing: 7
+            Text { text: qsTr("Tesseract data folder"); color: Tokens.muted; font.pixelSize: 12 }
+            TextField {
+                id: tesseractDataField
+                objectName: "tesseractDataDirectory"
+                width: parent.width
+                text: Controller.settings.tesseractDataDirectory
+                font.pixelSize: 12
+                color: Tokens.text
+                selectByMouse: true
+                maximumLength: 260
+                Accessible.name: qsTr("Tesseract data folder")
+                background: Rectangle {
+                    radius: Tokens.radiusField
+                    color: Tokens.panel2
+                    border.width: 1
+                    border.color: tesseractDataField.activeFocus ? Tokens.ink : Tokens.line
+                }
+                onEditingFinished: {
+                    Controller.setTesseractDataDirectory(text);
+                    text = Qt.binding(() => Controller.settings.tesseractDataDirectory);
+                }
+            }
+        }
+
+        Text {
+            width: parent.width
+            text: qsTr("Leave both empty to use the bundled Tesseract.")
+            color: Tokens.faint
+            font.pixelSize: 11
+            wrapMode: Text.WordWrap
+        }
+
         Column {
             width: parent.width
             spacing: 7
@@ -143,12 +207,6 @@ Item {
                     text = Qt.binding(() => Controller.settings.scanWhitelist);
                 }
             }
-        }
-
-        SettingsLinkRow {
-            label: qsTr("Capture current screen")
-            note: Controller.settings.ocrAvailable && Controller.settings.ocrCapture ? qsTr("OCR") : qsTr("Enable OCR first")
-            onPicked: Controller.captureScreen()
         }
     }
 }

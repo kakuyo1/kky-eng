@@ -123,13 +123,13 @@ Item {
 
             const page = Util.ofType(panel, "SettingsGeneralPage");
             verify(page);
-            const segments = Util.findAll(page, function (o) {
-                return o.toString().indexOf("Segment_QMLTYPE") === 0;
+            const themes = Util.findAll(page, function (o) {
+                return o.objectName === "themeField";
             });
-            verify(segments.length > 0);
-            compare(segments[0].labels.length, 4);
-            compare(segments[0].labels[2], "Forest");
-            compare(segments[0].labels[3], "Custom");
+            verify(themes.length === 1, "the General page has no theme control");
+            compare(themes[0].options.length, 4);
+            compare(themes[0].options[2].label, "Forest");
+            compare(themes[0].options[3].label, "Custom");
         }
 
         function test_transientPlacementReadsBubbleSizeAfterContentChanges() {

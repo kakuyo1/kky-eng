@@ -52,6 +52,10 @@ public:
     Q_INVOKABLE void setMinimumWordLength(int length);
     Q_INVOKABLE void setDragSensitivity(QString sensitivity);
     Q_INVOKABLE bool setScanWhitelist(QString processes);
+    /// @brief Point OCR at the reader's own Tesseract and probe it again; empty means the bundled one.
+    Q_INVOKABLE void setTesseractExecutable(QString executable);
+    /// @brief Point OCR at the reader's own traineddata directory; empty means the one beside the executable.
+    Q_INVOKABLE void setTesseractDataDirectory(QString directory);
     Q_INVOKABLE void restoreDefaults();
     Q_INVOKABLE void probeOcr();
 
@@ -92,6 +96,8 @@ private:
         bool done = false;
     };
 
+    /// @brief Rebuild the OCR engine around the stored paths and probe the new one.
+    void rebuildOcr();
     void beginSelection(QPoint anchor);
     void classifyText(QString text, QPoint anchor);
     void scanTick();

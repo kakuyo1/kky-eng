@@ -192,6 +192,7 @@ set(LENS_ICONS
   ${CMAKE_SOURCE_DIR}/icons/ui-close.svg
   ${CMAKE_SOURCE_DIR}/icons/ui-copy.svg
   ${CMAKE_SOURCE_DIR}/icons/ui-explain.svg
+  ${CMAKE_SOURCE_DIR}/icons/ui-export.svg
   ${CMAKE_SOURCE_DIR}/icons/ui-language.svg
   ${CMAKE_SOURCE_DIR}/icons/ui-quit.svg
   ${CMAKE_SOURCE_DIR}/icons/ui-settings.svg
@@ -210,6 +211,8 @@ qt_add_translations(lens
   TS_FILES
     ${CMAKE_SOURCE_DIR}/i18n/lens_en_US.ts
     ${CMAKE_SOURCE_DIR}/i18n/lens_zh_CN.ts
+    ${CMAKE_SOURCE_DIR}/i18n/lens_es_ES.ts
+    ${CMAKE_SOURCE_DIR}/i18n/lens_ja_JP.ts
   RESOURCE_PREFIX "/i18n"
 )
 

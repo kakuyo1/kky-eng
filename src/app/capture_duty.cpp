@@ -32,10 +32,16 @@ std::size_t rankForLevel(int level)
     return kRanks[std::clamp(level, 0, kLast)];
 }
 
+/// @return The Tesseract the reader pointed at, or the bundled runtime when both are empty.
+capture::TesseractConfig storedTesseractConfig(const StorageDuty& storage)
+{
+    return {storage.documentString("tesseractExecutable", QString{}), storage.documentString("tesseractDataDirectory", QString{})};
+}
+
 }
 
 CaptureDuty::CaptureDuty(StorageDuty& storage, MouseSelectionHook& hook, QObject* parent)
-    : CaptureDuty(storage, hook, capture::makeTesseractOcr(), parent)
+    : CaptureDuty(storage, hook, capture::makeTesseractOcr(storedTesseractConfig(storage)), parent)
 {}
 
 CaptureDuty::CaptureDuty(StorageDuty& storage,
@@ -89,6 +95,8 @@ QVariantMap CaptureDuty::settings() const
             {"ocrAvailable", ocrState_ == capture::OcrStatus::Ready},
             {"minimumWordLength", valid ? capture::minimumWordLength(length) : 3},
             {"dragSensitivity", sensitivity},
+            {"tesseractExecutable", storage_.documentString("tesseractExecutable", QString{})},
+            {"tesseractDataDirectory", storage_.documentString("tesseractDataDirectory", QString{})},
             {"scanWhitelist", storage_.documentString("scanWhitelist", QStringLiteral("chrome.exe;msedge.exe;firefox.exe;AcroRd32.exe"))}};
 }
 
@@ -169,6 +177,37 @@ bool CaptureDuty::setScanWhitelist(QString processes)
     return true;
 }
 
+void CaptureDuty::setTesseractExecutable(QString executable)
+{
+    const QString value = executable.trimmed();
+    if (value == storage_.documentString("tesseractExecutable", QString{})) return;
+    storage_.writeDocument("tesseractExecutable", value);
+    rebuildOcr();
+}
+
+void CaptureDuty::setTesseractDataDirectory(QString directory)
+{
+    const QString value = directory.trimmed();
+    if (value == storage_.documentString("tesseractDataDirectory", QString{})) return;
+    storage_.writeDocument("tesseractDataDirectory", value);
+    rebuildOcr();
+}
+
+void CaptureDuty::rebuildOcr()
+{
+    ocr_ = capture::makeTesseractOcr(storedTesseractConfig(storage_));
+    // A probe in flight belongs to the engine that just went away, and its answer would land on
+    // the new one's state. Drop it the way the destructor does, then ask again.
+    if (job_) {
+        job_->cancelled->store(true, std::memory_order_relaxed);
+        job_.reset();
+        jobContext_.reset();
+        pollTimer_.stop();
+    }
+    probeOcr();
+    emit settingsChanged();
+}
+
 void CaptureDuty::restoreDefaults()
 {
     setAutoScan(false);
@@ -176,6 +215,8 @@ void CaptureDuty::restoreDefaults()
     setMinimumWordLength(3);
     setDragSensitivity(QStringLiteral("standard"));
     setScanWhitelist(QStringLiteral("chrome.exe;msedge.exe;firefox.exe;AcroRd32.exe"));
+    setTesseractExecutable(QString{});
+    setTesseractDataDirectory(QString{});
 }
 
 void CaptureDuty::setScanPaused(bool const paused)

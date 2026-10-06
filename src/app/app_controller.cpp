@@ -8,9 +8,7 @@
 #include <QCursor>
 #include <QDate>
 #include <QDateTime>
-#include <QGuiApplication>
 #include <QHash>
-#include <QScreen>
 #include <QSaveFile>
 #include <QSet>
 #include <QQmlEngine>
@@ -151,15 +149,19 @@ bool AppController::setScanWhitelist(QString processes)
     return capture_.setScanWhitelist(std::move(processes));
 }
 
+void AppController::setTesseractExecutable(QString executable)
+{
+    capture_.setTesseractExecutable(std::move(executable));
+}
+
+void AppController::setTesseractDataDirectory(QString directory)
+{
+    capture_.setTesseractDataDirectory(std::move(directory));
+}
+
 void AppController::restoreCaptureDefaults()
 {
     capture_.restoreDefaults();
-}
-
-bool AppController::captureScreen()
-{
-    auto* const screen = QGuiApplication::screenAt(QCursor::pos());
-    return screen != nullptr and capture_.captureRegion(screen->geometry());
 }
 
 void AppController::setLevel(int level)

@@ -61,10 +61,10 @@ bool LlmClient::setProvider(QString const& provider)
     auto const entry = serviceProvider(provider);
     if (entry.isEmpty()) return false;
     config_.requestOverrides = entry.value("requestOverrides").toObject();
-    if (provider != QLatin1String("custom")) {
+    // The endpoint and the wire quirks that come with it, and nothing else: the catalog names
+    // no model, so a provider change never rewrites the model the reader typed.
+    if (provider != QLatin1String("custom"))
         setBaseUrl(QUrl{entry.value("baseUrl").toString()});
-        setModel(entry.value("defaultModel").toString());
-    }
     return true;
 }
 

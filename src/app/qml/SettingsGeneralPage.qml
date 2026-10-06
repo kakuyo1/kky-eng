@@ -8,10 +8,12 @@ Item {
     property int themeChoice: Tokens.themeIndex(Controller.settings.theme)
     property var draftColors: ({})
     readonly property var contrast: Tokens.validateCustomTheme(draftColors)
-    readonly property var openChildRect: null
+    readonly property var openChildRect: themeField.openChildRect
     implicitHeight: content.implicitHeight
 
-    function closeChild() {}
+    function closeChild() {
+        themeField.closeList();
+    }
 
     function loadDraft() {
         page.draftColors = Tokens.colorsForTheme(Controller.settings.theme);
@@ -62,13 +64,20 @@ Item {
                 color: Tokens.muted
                 font.pixelSize: 12
             }
-            Segment {
+            // A dropdown rather than a segment: the Custom path is a mode with an editor of its
+            // own, so the row reads better as one closed choice than as four equal cells.
+            DropdownField {
+                id: themeField
+                objectName: "themeField"
                 width: parent.width
-                height: 31
-                labels: [qsTranslate("SettingsPopup", "Light"), qsTranslate("SettingsPopup", "Dark"),
-                         qsTranslate("SettingsPopup", "Forest"), qsTranslate("SettingsPopup", "Custom")]
-                currentIndex: page.themeChoice
-                onPicked: (index) => page.chooseTheme(index)
+                options: [
+                    {value: 0, label: qsTranslate("SettingsPopup", "Light"), group: "", note: ""},
+                    {value: 1, label: qsTranslate("SettingsPopup", "Dark"), group: "", note: ""},
+                    {value: 2, label: qsTranslate("SettingsPopup", "Forest"), group: "", note: ""},
+                    {value: 3, label: qsTranslate("SettingsPopup", "Custom"), group: "", note: ""}
+                ]
+                currentValue: page.themeChoice
+                onPicked: (value) => page.chooseTheme(value)
             }
         }
 
@@ -189,26 +198,9 @@ Item {
             }
         }
 
-        Column {
-            width: parent.width
-            spacing: 7
-            Text {
-                text: qsTranslate("SettingsPopup", "Interface language")
-                color: Tokens.muted
-                font.pixelSize: 12
-            }
-            Segment {
-                width: parent.width
-                height: 31
-                labels: [qsTranslate("SettingsPopup", "中文"), qsTranslate("SettingsPopup", "English")]
-                currentIndex: Controller.settings.uiLanguage === "en" ? 1 : 0
-                onPicked: (index) => Controller.setUiLanguage(index === 1 ? "en" : "zh")
-            }
-        }
-
         SwitchRow {
             width: parent.width
-            label: qsTranslate("SettingsPopup", "Launch at sign-in")
+            label: qsTranslate("SettingsPopup", "Launch at startup")
             checked: Controller.settings.autostart
             onToggled: (on) => Controller.setAutostart(on)
         }

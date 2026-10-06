@@ -63,10 +63,10 @@ Item {
             return rows[0];
         }
 
-        /// @return The two option rows of the unfolded language list.
+        /// @return The option rows of the unfolded language list.
         function languageOptions(menu) {
             return Util.findAll(menu, function (o) {
-                return o.modelData !== undefined && o.modelData.code !== undefined;
+                return o.modelData !== undefined && o.modelData.value !== undefined;
             });
         }
 
@@ -173,8 +173,10 @@ Item {
             tryCompare(menu, "listVisible", true);
 
             const options = languageOptions(menu);
-            compare(options.length, 2, "the language list should offer two languages");
-            const chinese = options.filter(function (o) { return o.modelData.code === "zh"; })[0];
+            compare(options.length, Controller.settings.languages.length,
+                    "the language list should offer every language the catalog carries");
+            verify(options.length > 2, "the catalog should carry more than the two written interfaces");
+            const chinese = options.filter(function (o) { return o.modelData.value === "zh"; })[0];
             verify(chinese, "the language list has no Chinese option");
 
             mouseClick(chinese, chinese.width / 2, chinese.height / 2);

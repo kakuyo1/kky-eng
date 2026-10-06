@@ -66,8 +66,9 @@ public:
     Q_INVOKABLE void setMinimumWordLength(int length);
     Q_INVOKABLE void setDragSensitivity(QString sensitivity);
     Q_INVOKABLE bool setScanWhitelist(QString processes);
+    Q_INVOKABLE void setTesseractExecutable(QString executable);
+    Q_INVOKABLE void setTesseractDataDirectory(QString directory);
     Q_INVOKABLE void restoreCaptureDefaults();
-    Q_INVOKABLE bool captureScreen();
     Q_INVOKABLE void setLevel(int level);
     Q_INVOKABLE void setExplanationLang(QString lang);
     Q_INVOKABLE void setMultiSense(bool on);

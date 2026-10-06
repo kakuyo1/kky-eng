@@ -7,6 +7,10 @@ Item {
     property real dailyBudget: Number(settings.dailyBudget || 0)
     signal budgetChanged(real amount)
 
+    /// The symbol the cost surfaces spend in, so the cap is read in the same money as the tally
+    /// it caps rather than as a bare number.
+    readonly property string currency: Controller.stats.currency
+
     readonly property var openChildRect: null
     implicitHeight: content.implicitHeight
 
@@ -39,10 +43,20 @@ Item {
                 border.width: 1
                 border.color: amountInput.activeFocus ? Tokens.ink : Tokens.line
 
+                Text {
+                    id: currencyMark
+                    anchors.left: parent.left
+                    anchors.leftMargin: 11
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.currency
+                    color: Tokens.muted
+                    font.pixelSize: 13
+                }
+
                 TextInput {
                     id: amountInput
                     anchors.fill: parent
-                    anchors.leftMargin: 11
+                    anchors.leftMargin: 11 + currencyMark.width + 4
                     anchors.rightMargin: 11
                     verticalAlignment: TextInput.AlignVCenter
                     text: root.dailyBudget > 0 ? root.dailyBudget.toFixed(2) : "0"

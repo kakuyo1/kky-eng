@@ -30,6 +30,10 @@ Window {
         : null
     // qmllint enable missing-property
 
+    /// The open child here is a dropdown, so a press anywhere else puts it down. The words panel's
+    /// removal question is the other kind and says so itself.
+    readonly property bool openChildIsModal: false
+
     width: cardWidth + 2 * shadowMargin
     height: cardHeight + 2 * shadowMargin
 
@@ -93,13 +97,14 @@ Window {
         Controller.setExplanationLang("en");
         Controller.setMultiSense(false);
         Controller.setTheme("light");
-        Controller.setUiLanguage("zh");
         Controller.setSelectionCapture(true);
         Controller.setClipboardPolicy("topmost");
         Controller.setPopupFrequency("standard");
         Controller.setProvider("DeepSeek");
         Controller.setModel("deepseek-flash");
         Controller.restoreCaptureDefaults();
+        // The interface language is not here on purpose: it belongs to the tray menu, and a
+        // panel is not the place that changes a setting the panel does not show.
         saveStatus = qsTranslate("SettingsPopup", "Defaults restored");
     }
 
@@ -151,7 +156,11 @@ Window {
                 TapHandler { onTapped: settings.navigateBack() }
             }
 
+            // The breadcrumb is chained off the title rather than pinned to fixed offsets: the
+            // title is 28 px of Chinese and 54 px of English at this size, so a separator at a
+            // hardcoded x leaves a hole behind one of them.
             Text {
+                id: titleText
                 x: settings.category !== "" ? 54 : 20
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTranslate("SettingsPopup", "Settings")
@@ -161,9 +170,10 @@ Window {
             }
 
             Text {
+                id: separator
                 visible: settings.category !== ""
-                anchors.left: parent.left
-                anchors.leftMargin: 120
+                anchors.left: titleText.right
+                anchors.leftMargin: 9
                 anchors.verticalCenter: parent.verticalCenter
                 text: "/"
                 color: Tokens.faint
@@ -172,8 +182,8 @@ Window {
 
             Text {
                 visible: settings.category !== ""
-                anchors.left: parent.left
-                anchors.leftMargin: 136
+                anchors.left: separator.right
+                anchors.leftMargin: 9
                 anchors.right: closeButton.left
                 anchors.rightMargin: 12
                 anchors.verticalCenter: parent.verticalCenter

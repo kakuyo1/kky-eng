@@ -19,12 +19,8 @@ Item {
         explanationLang: "es", multiSense: true,
         providers: [{value: "openai", label: "OpenAI", group: "International", note: ""}],
         provider: "openai", model: "gpt-4.1-mini",
-        models: [
-            {value: "gpt-4.1-mini", label: "gpt-4.1-mini", group: "", note: ""},
-            {value: "gpt-4.1-nano", label: "gpt-4.1-nano", group: "", note: ""}
-        ],
         modelPrice: "Input 0.4 / Output 1.6 USD per 1000000 tokens",
-        hasApiKey: false, url: "https://api.openai.com/v1", providerDefaultUrl: "https://api.openai.com/v1"
+        hasApiKey: false, url: "https://api.openai.com/v1"
     })
 
     Component { id: learning; SettingsLearningPage { width: 320; settings: root.settings } }
@@ -50,11 +46,16 @@ Item {
                 findChild(service, "providerField").picked("openai");
                 compare(Controller.settings.provider, "openai");
                 compare(Controller.settings.url, "https://api.openai.com/v1");
+                // The provider carries the address and nothing else: the model the reader had
+                // stands until they type another one.
+                compare(Controller.settings.model, previous.model);
                 const modelField = findChild(service, "modelField");
-                compare(modelField.options.length, 2);
-                modelField.picked("gpt-4.1-nano");
-                compare(Controller.settings.model, "gpt-4.1-nano");
-                compare(modelField.current.label, "gpt-4.1-nano");
+                verify(modelField);
+                modelField.forceActiveFocus();
+                modelField.text = "gpt-4.1-nano";
+                root.forceActiveFocus();
+                tryCompare(Controller.settings, "model", "gpt-4.1-nano");
+                compare(modelField.text, "gpt-4.1-nano");
                 const page = createTemporaryObject(learning, root, {settings: Qt.binding(function() { return Controller.settings; })});
                 verify(page);
                 findChild(page, "languageField").picked("ja");
@@ -85,9 +86,8 @@ Item {
             compare(providerField.options.length, 1);
             compare(providerField.current.label, "OpenAI");
             const modelField = findChild(service, "modelField");
-            verify(modelField);
-            compare(modelField.current.label, "gpt-4.1-mini");
-            compare(modelField.options.length, 2);
+            verify(modelField, "the model page has no model field");
+            compare(modelField.text, "gpt-4.1-mini");
         }
 
         function test_snapshotPageContents() {

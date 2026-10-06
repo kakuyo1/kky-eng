@@ -21,7 +21,7 @@ html[data-theme=dark]{
 html{-webkit-font-smoothing:antialiased}
 body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh;display:flex;padding:36px 20px}
 
-.words{width:320px;margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);padding:18px 20px 16px}
+.words{position:relative;width:320px;margin:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);padding:18px 20px 16px}
 .wd-h{display:flex;align-items:center;font-size:14px;font-weight:650}
 .wd-h .hdr-ico{margin-left:auto;display:flex;align-items:center;gap:6px}
 .wd-h svg{width:15px;height:15px;color:var(--faint)}
@@ -32,7 +32,6 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 .seg span.on{background:var(--ink);color:var(--on);font-weight:600}
 
 .wd-total{display:flex;align-items:center;margin-top:12px;font-size:11.5px;color:var(--faint)}
-.wd-total .export{margin-left:auto;padding:4px 10px;border:1px solid var(--line);border-radius:99px;background:var(--panel2);color:var(--muted);font-size:11px;font-weight:600}
 .wd-list-wrap{position:relative;margin-top:12px;padding-top:7px;border-top:1px solid var(--line2);max-height:320px}
 .wd-list{height:306px;overflow:hidden;padding-right:0}
 .wd-scroll{position:absolute;right:-12px;top:10px;width:6px;height:72px;border-radius:3px;background:var(--line)}
@@ -47,15 +46,34 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 .wd-pills{display:flex;gap:4px}
 .wd-tag{font-size:10.5px;padding:3px 7px;border:1px solid var(--line);border-radius:99px;background:var(--panel2);color:var(--muted);white-space:nowrap}
 .wd-tag.on{background:var(--ink);border-color:var(--ink);color:var(--on);font-weight:600}
+
+.wd-x{width:14px;height:14px;flex:none;cursor:pointer;background:currentColor;color:var(--faint);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6'%3E%3Cpath d='M5 5l14 14M19 5L5 19'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6'%3E%3Cpath d='M5 5l14 14M19 5L5 19'/%3E%3C/svg%3E") center/contain no-repeat}
+
+.wd-confirm{display:none;position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);width:max-content;max-width:460px;
+  padding:18px 20px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2)}
+.words.asking > .wd-confirm{display:block}
+.wd-ct{font-size:14px;font-weight:700}
+.wd-cq{font-size:13px;line-height:1.35;margin-top:12px}
+.wd-crow{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:12px;font-size:13px}
+.wd-sw{width:34px;height:20px;flex:none;border-radius:99px;background:var(--line);position:relative;cursor:pointer}
+.wd-sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--panel);transition:left .15s}
+.wd-sw.on{background:var(--ink)}
+.wd-sw.on::after{left:16px}
+.wd-ca{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.wd-ca span{padding:4.5px 14px;border:1px solid var(--line);border-radius:99px;background:var(--panel2);font-size:12px;font-weight:600;cursor:default}
+.wd-cancel{color:var(--muted)}
+.wd-remove{color:var(--text)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <div class="words">
-  <div class="wd-h">词汇<span class="hdr-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></span></div>
+  <div class="wd-h">词汇<span class="hdr-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5V13M8 9l4 4 4-4M4.5 15.5V18A2.5 2.5 0 0 0 7 20.5H17A2.5 2.5 0 0 0 19.5 18V15.5"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></span></div>
   <div class="seg" id="fseg"><span class="on">全部</span><span>已会</span><span>新词</span></div>
 
-  <div class="wd-total"><span>共 612 词</span><span class="export">导出</span></div>
+  <div class="wd-total"><span>共 612 词</span></div>
 
   <div class="wd-list-wrap">
     <div class="wd-list">
@@ -75,6 +93,13 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
       <div class="wd-item" data-verdict="known"><span class="wd-w">sycophant</span><span class="wd-side"><span class="wd-meta"><span>09-27 09:47</span><span>1×</span></span><span class="wd-pills"><span class="wd-tag on">已会</span><span class="wd-tag">新词</span></span></span></div>
     </div>
     <span class="wd-scroll" aria-hidden="true"></span>
+  </div>
+
+  <div class="wd-confirm" id="wdconf">
+    <div class="wd-ct">删除词汇</div>
+    <div class="wd-cq">把 <span id="wdword"></span> 从词汇与历史中删除？</div>
+    <div class="wd-crow"><span>不再询问</span><span class="wd-sw" id="wdsw"></span></div>
+    <div class="wd-ca"><span class="wd-cancel" id="wdcancel">取消</span><span class="wd-remove" id="wdremove">删除</span></div>
   </div>
 </div>
 <button class="themebtn" id="tb">黑夜</button>
@@ -97,6 +122,32 @@ fs.forEach(s => s.onclick = () => {
      it.style.display = (!verdict || verdict === it.dataset.verdict) ? '' : 'none';
    });
 });
+
+// The question the cross asks: a card of its own, centred over the panel and as tall as what it
+// holds -- a question drawn inside the panel would inherit the panel's height and strand itself
+// in empty space. It is modal: nothing outside it answers it, and the switch starts on, so the
+// run's first question is the only one.
+const conf = document.getElementById('wdconf');
+const card = conf.parentElement;
+const sw = document.getElementById('wdsw');
+sw.classList.add('on');
+// A class rather than the `hidden` attribute: half these rows set `display:flex`, and an author
+// `display` beats the attribute's `display:none`.
+function face(confirming) {
+  card.classList.toggle('asking', confirming);
+}
+document.querySelectorAll('.wd-item').forEach(it => {
+  const x = document.createElement('span');
+  x.className = 'wd-x';
+  it.appendChild(x);
+  x.onclick = () => {
+    document.getElementById('wdword').textContent = it.querySelector('.wd-w').textContent;
+    face(true);
+  };
+});
+sw.onclick = () => sw.classList.toggle('on');
+document.getElementById('wdcancel').onclick = () => face(false);
+document.getElementById('wdremove').onclick = () => face(false);
 </script>
 </body>
 </html>

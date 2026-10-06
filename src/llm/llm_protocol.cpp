@@ -181,9 +181,6 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
         auto const url = QUrl{requireString(provider, "baseUrl", dir / "catalog.json")};
         if (not url.isValid() or url.scheme() != QLatin1String("https") or url.host().isEmpty() or not url.userInfo().isEmpty() or url.hasQuery() or url.hasFragment())
             throw std::runtime_error("invalid provider base URL in catalog");
-        auto const model = requireString(provider, "defaultModel", dir / "catalog.json");
-        if (not provider.value("models").toArray().contains(model))
-            throw std::runtime_error("provider default model is absent from its model list");
     }
     if (not hasDefault) throw std::runtime_error("default provider is absent from catalog");
     try {

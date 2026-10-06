@@ -96,7 +96,7 @@ Item {
             const panel = settingsPanel(main);
             openCategory(panel, "General");
 
-            const row = switchRowLabelled(panel, "Launch at sign-in");
+            const row = switchRowLabelled(panel, "Launch at startup");
             verify(row, "the settings panel has no sign-in switch");
             compare(row.checked, Controller.settings.autostart,
                     "the switch is not showing the state read back from the registry");

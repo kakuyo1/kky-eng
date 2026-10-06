@@ -68,6 +68,28 @@ Item {
             tryCompare(field, "text", "chrome.exe;firefox.exe");
         }
 
+        /// The two paths are the reader's own Tesseract: they persist through the controller and
+        /// the engine is rebuilt around them, which the availability the switches read follows.
+        function test_tesseractPathsReachTheController() {
+            const page = make();
+            const executable = child(page, "tesseractExecutable");
+            executable.forceActiveFocus();
+            executable.text = "no-such-directory/tesseract.exe";
+            root.forceActiveFocus();
+            tryVerify(() => Controller.settings.tesseractExecutable === "no-such-directory/tesseract.exe");
+
+            const data = child(page, "tesseractDataDirectory");
+            data.forceActiveFocus();
+            data.text = "no-such-directory/tessdata";
+            root.forceActiveFocus();
+            tryVerify(() => Controller.settings.tesseractDataDirectory === "no-such-directory/tessdata");
+
+            // Nothing is at either path, so the probe that follows the change cannot succeed and
+            // the switches say so rather than offering a runtime that is not there.
+            tryVerify(() => Controller.settings.ocrStatus !== "checking", 15000);
+            compare(Controller.settings.ocrAvailable, false);
+        }
+
         function test_ocrControlsUseControllerAndAvailability() {
             const page = make();
             tryVerify(() => Controller.settings.ocrStatus !== "checking", 15000);

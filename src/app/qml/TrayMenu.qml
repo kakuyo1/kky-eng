@@ -31,14 +31,26 @@ Window {
 
     width: cardLeft + cardWidth + shadowMargin
     readonly property real bodyHeight: bodyLoader.implicitHeight
-    height: bodyHeight + 2 * padding + 2 * shadowMargin
+    /// The menu card's own height. The window is this while the language list is down, and the
+    /// list's own bounds when it reaches past it -- the list unfolds below the row it belongs to,
+    /// and the catalog decides how many rows it has.
+    readonly property real cardHeight: bodyHeight + 2 * padding
+    height: Math.max(cardHeight, languageList.y + languageList.height) + 2 * shadowMargin
 
     /// True while a selection is captured at all; the state line's dot and label read it.
     readonly property bool capturing: Controller.settings.selectionCapture
 
-    /// The interface language, and the name to show for it in the list.
+    /// The interface language, and the languages to offer. Both lists are the catalog's -- the
+    /// same four the explanation language is chosen from -- so a language added to it is one the
+    /// reader can pick here without a second table to keep in step.
     readonly property string language: Controller.settings.uiLanguage
-    readonly property string languageName: language === "zh" ? "中文" : "English"
+    readonly property var languages: Controller.settings.languages || []
+    readonly property string languageName: {
+        for (let i = 0; i < languages.length; ++i)
+            if (languages[i].value === language)
+                return languages[i].label;
+        return language;
+    }
 
     /// Whether the language list is unfolded.
     property bool listVisible: false
@@ -62,7 +74,9 @@ Window {
     readonly property int hitRight: menu.x + cardLeft + cardWidth
     readonly property rect hitRect: {
         const top = menu.y + shadowMargin;
-        const ownBottom = top + menu.height - 2 * shadowMargin;
+        // The card's own bottom, read from the card rather than from the window: the window is
+        // taller than the card while the language list hangs past it.
+        const ownBottom = top + menu.cardHeight;
         const listBottom = menu.y + languageList.y + languageList.height - shadowMargin;
         const bottom = listVisible ? Math.max(ownBottom, listBottom) : ownBottom;
         return Qt.rect(hitLeft, top, hitRight - hitLeft, bottom - top);
@@ -73,7 +87,7 @@ Window {
         x: menu.cardLeft - menu.shadowMargin
         y: 0
         width: menu.cardWidth + 2 * menu.shadowMargin
-        height: menu.height
+        height: menu.cardHeight + 2 * menu.shadowMargin
         radius: Tokens.radiusMenu
 
         Loader {
@@ -192,7 +206,7 @@ Window {
         x: menu.listLeft - menu.shadowMargin
         y: menu.shadowMargin + menu.padding + menu.languageRowOffset - 6
         width: menu.listWidth + 2 * menu.shadowMargin
-        height: menu.listVisible ? 2 * 28 + 10 + 2 * menu.shadowMargin : 0
+        height: menu.listVisible ? menu.languages.length * 28 + 10 + 2 * menu.shadowMargin : 0
         active: menu.listVisible
         visible: active
         sourceComponent: ShadowCard {
@@ -212,7 +226,7 @@ Window {
                 width: menu.listWidth - 10
 
                 Repeater {
-                    model: [{ code: "zh", name: "中文" }, { code: "en", name: "English" }]
+                    model: menu.languages
 
                     Rectangle {
                         id: option
@@ -221,15 +235,15 @@ Window {
                         width: listColumn.width
                         height: 28
                         radius: 8
-                        color: modelData.code === menu.language ? Tokens.ink
-                                                                : (rowHover.hovered ? Tokens.panel2 : "transparent")
+                        color: modelData.value === menu.language ? Tokens.ink
+                                                                 : (rowHover.hovered ? Tokens.panel2 : "transparent")
 
                         Text {
                             anchors.left: parent.left
                             anchors.leftMargin: 11
                             anchors.verticalCenter: parent.verticalCenter
-                            text: option.modelData.name
-                            color: option.modelData.code === menu.language ? Tokens.on : Tokens.text
+                            text: option.modelData.label
+                            color: option.modelData.value === menu.language ? Tokens.on : Tokens.text
                             font.pixelSize: 13
                         }
 
@@ -240,7 +254,7 @@ Window {
                         }
                         TapHandler {
                             onTapped: {
-                                Controller.setUiLanguage(option.modelData.code);
+                                Controller.setUiLanguage(option.modelData.value);
                                 menu.visible = false;
                             }
                         }

@@ -9,19 +9,52 @@
   "providers": [
     {
       "value": "DeepSeek", "label": "DeepSeek", "group": "Domestic", "note": "",
-      "baseUrl": "https://api.deepseek.com", "defaultModel": "deepseek-flash",
-      "models": ["deepseek-flash", "deepseek-v4-pro"],
+      "baseUrl": "https://api.deepseek.com",
       "requestOverrides": {"thinking": {"type": "disabled"}}
     },
     {
+      "value": "Moonshot", "label": "Moonshot (Kimi)", "group": "Domestic", "note": "",
+      "baseUrl": "https://api.moonshot.cn/v1",
+      "requestOverrides": {"thinking": null}
+    },
+    {
+      "value": "Zhipu", "label": "Zhipu (GLM)", "group": "Domestic", "note": "",
+      "baseUrl": "https://open.bigmodel.cn/api/paas/v4",
+      "requestOverrides": {"thinking": null}
+    },
+    {
+      "value": "Qwen", "label": "Alibaba Cloud (Qwen)", "group": "Domestic", "note": "",
+      "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "requestOverrides": {"thinking": null}
+    },
+    {
+      "value": "SiliconFlow", "label": "SiliconFlow", "group": "Domestic", "note": "",
+      "baseUrl": "https://api.siliconflow.cn/v1",
+      "requestOverrides": {"thinking": null}
+    },
+    {
       "value": "openai", "label": "OpenAI", "group": "International", "note": "",
-      "baseUrl": "https://api.openai.com/v1", "defaultModel": "gpt-4.1-mini",
-      "models": ["gpt-4.1-mini", "gpt-4.1-nano"],
+      "baseUrl": "https://api.openai.com/v1",
+      "requestOverrides": {"thinking": null}
+    },
+    {
+      "value": "Google", "label": "Google (Gemini)", "group": "International", "note": "",
+      "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "requestOverrides": {"thinking": null}
+    },
+    {
+      "value": "OpenRouter", "label": "OpenRouter", "group": "International", "note": "",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "requestOverrides": {"thinking": null}
+    },
+    {
+      "value": "Groq", "label": "Groq", "group": "International", "note": "",
+      "baseUrl": "https://api.groq.com/openai/v1",
       "requestOverrides": {"thinking": null}
     },
     {
       "value": "custom", "label": "Custom service", "group": "Other", "note": "",
-      "models": [], "requestOverrides": {"thinking": null}
+      "requestOverrides": {"thinking": null}
     }
   ]
 }

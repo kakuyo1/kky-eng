@@ -256,7 +256,7 @@ TEST_F(LlmTest, Phase2ChangingSettingsDuringResponseKeepsTheOriginalCacheContext
     EXPECT_FALSE(store.cacheGet("bank", {"ja", false}));
 }
 
-TEST_F(LlmTest, Phase2ProviderSelectionAppliesEndpointModelWireOptionsAndPrices)
+TEST_F(LlmTest, Phase2AProviderChoiceMovesTheEndpointAndItsWireOptionsOnly)
 {
     QtApplication qt;
     QTemporaryDir temporary;
@@ -269,26 +269,31 @@ TEST_F(LlmTest, Phase2ProviderSelectionAppliesEndpointModelWireOptionsAndPrices)
     app::ExplanationDuty duty{storage, client, cost};
     for (auto const* provider : {"DeepSeek", "openai"}) {
         ASSERT_TRUE(duty.setProvider(provider));
-        auto const defaults = llm::serviceProvider(provider);
-        EXPECT_EQ(client.model(), defaults.value("defaultModel").toString());
-        EXPECT_EQ(store.document().at("MODEL"), client.model().toStdString());
+        auto const entry = llm::serviceProvider(provider);
+        // The reader's model survives the choice: only the endpoint and its wire quirks move.
+        EXPECT_EQ(client.model(), "deepseek-flash");
+        EXPECT_FALSE(store.document().contains("MODEL"));
+        EXPECT_EQ(store.document().at("URL"), entry.value("baseUrl").toString().toStdString());
         duty.setSelection(selection());
         duty.dismissBubble();
         store.setExplanationLang("en");
         // A fresh lemma is not needed: clear the in-memory cache by using a different mode.
         store.document()["multiSense"] = provider == std::string{"DeepSeek"} ? "false" : "true";
         run(duty, client);
-        EXPECT_EQ(manager.endpoint, QUrl{defaults.value("baseUrl").toString() + "/chat/completions"});
+        EXPECT_EQ(manager.endpoint, QUrl{entry.value("baseUrl").toString() + "/chat/completions"});
         auto const body = QJsonDocument::fromJson(manager.posted).object();
         EXPECT_EQ(body.contains("thinking"), provider == std::string{"DeepSeek"});
-        EXPECT_GT(pricing.cost(client.model(), {1000, 1000}), 0.0);
-        EXPECT_FALSE(duty.settings().value("modelPrice").toString().isEmpty());
     }
-    EXPECT_FALSE(duty.setProvider("unknown"));
-    auto const previous = client.model();
-    EXPECT_TRUE(duty.setProvider("custom"));
-    EXPECT_EQ(client.model(), previous);
+    // The price shown is the typed model's, not the provider's.
+    ASSERT_TRUE(duty.setModel("gpt-4.1-mini"));
+    EXPECT_GT(pricing.cost(client.model(), {1000, 1000}), 0.0);
+    EXPECT_FALSE(duty.settings().value("modelPrice").toString().isEmpty());
+    ASSERT_TRUE(duty.setModel("unlisted-model"));
     EXPECT_EQ(pricing.cost("unlisted-custom", {1000, 1000}), 0.0);
+    EXPECT_TRUE(duty.settings().value("modelPrice").toString().contains("No listed price"));
+    EXPECT_FALSE(duty.setProvider("unknown"));
+    EXPECT_TRUE(duty.setProvider("custom"));
+    EXPECT_EQ(client.model(), "unlisted-model");
     auto const restored = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
     EXPECT_EQ(restored.document().at("PROVIDER"), "custom");
 }
@@ -377,9 +382,10 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     QObject::connect(&controller, &app::AppController::settingsChanged, [&] { ++settingsChanges; });
     auto const initial = controller.settings();
     EXPECT_EQ(initial.value("languages").toList().size(), 4);
-    EXPECT_EQ(initial.value("providers").toList().size(), 3);
+    EXPECT_EQ(initial.value("providers").toList().size(), 10);
     EXPECT_EQ(initial.value("provider").toString(), "DeepSeek");
-    EXPECT_EQ(initial.value("model").toString(), "deepseek-flash");
+    // The provider carries no model, so the one the client was built with stands.
+    EXPECT_EQ(initial.value("model").toString(), "test-model");
     EXPECT_FALSE(initial.contains("API-KEY"));
     EXPECT_FALSE(initial.contains("apiKey"));
 
@@ -396,7 +402,7 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     EXPECT_TRUE(request(client).contains("thinking"));
     controller.setProvider("custom");
     EXPECT_EQ(controller.settings().value("url").toString(), "https://api.deepseek.com");
-    EXPECT_EQ(store.document().at("MODEL"), "deepseek-flash");
+    EXPECT_FALSE(store.document().contains("MODEL"));
     EXPECT_EQ(store.document().at("URL"), "https://api.deepseek.com");
     EXPECT_FALSE(request(client).contains("thinking"));
     settingsChanges = 0;
@@ -404,10 +410,8 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     controller.setModel(" gpt-4.1-nano ");
     EXPECT_EQ(settingsChanges, 2);
     auto const chosen = controller.settings();
-    EXPECT_EQ(chosen.value("models").toList().size(), 2);
     EXPECT_EQ(chosen.value("model").toString(), "gpt-4.1-nano");
     EXPECT_EQ(chosen.value("url").toString(), "https://api.openai.com/v1");
-    EXPECT_EQ(chosen.value("providerDefaultUrl").toString(), "https://api.openai.com/v1");
     EXPECT_FALSE(chosen.value("modelPrice").toString().isEmpty());
     auto const body = request(client);
     EXPECT_EQ(body.value("model").toString(), "gpt-4.1-nano");

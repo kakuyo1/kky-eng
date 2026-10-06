@@ -99,11 +99,10 @@ Item {
             }
             Text {
                 width: parent.width
-                visible: (page.settings.providerDefaultUrl || "") !== ""
-                text: qsTranslate("SettingsPopup", "Provider default: %1").arg(page.settings.providerDefaultUrl || "")
+                text: qsTranslate("SettingsPopup", "This address is a common one for the provider and can go stale; check it against their documentation.")
                 color: Tokens.muted
                 font.pixelSize: 11
-                wrapMode: Text.Wrap
+                wrapMode: Text.WordWrap
             }
         }
     }

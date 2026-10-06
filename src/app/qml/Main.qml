@@ -307,11 +307,17 @@ Window {
     // qmllint enable missing-property
 
     function dismissOutside(point) {
-        const child = settingsPopup.visible ? settingsPopup.openChildRect : null;
-        if (child) {
-            if (contains(child, point))
+        // A panel with a surface of its own out claims the presses that land on that surface. One
+        // that is not modal -- the settings dropdown -- is put down by a press anywhere else, and
+        // the press is then read again below, where a press outside the panel closes the panel
+        // too. A modal one, the removal question, is a question: a press elsewhere is not an
+        // answer to it, and nothing here is read past it.
+        for (const panel of [settingsPopup, wordsPopup]) {
+            if (!panel.visible || !panel.openChildRect)
+                continue;
+            if (contains(panel.openChildRect, point) || panel.openChildIsModal)
                 return;
-            settingsPopup.closeChild();
+            panel.closeChild();
         }
 
         const surfaces = [bar, settingsPopup, statsPopup, wordsPopup, costPopup, trayMenu];

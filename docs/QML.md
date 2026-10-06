@@ -141,6 +141,17 @@
   任何单族都会缺字。
 - **标题行的图标贴右锚定，不用固定占位**：原先的 `Item { width: parent.width - 40 }` 是按英文标题估的，
   中文标题一变宽就把关闭按钮整个挤出卡片外（放大实测）。改成左锚标题、右锚图标行。
+- **不要在 JS 里遍历 `Controller.words`**：那是 `QVariantList`，逐行读 `row.word` / `row.when` 这类
+  QVariantMap 属性在本机实测**每行约 170 ms**——31 行量出 **5.3 秒**，字体测量本身只占几十毫秒
+  （`FontMetrics.advanceWidth` 单次 0–8 ms）。这段同步遍历跑在主线程上时，整个 UI 冻结：词汇弹窗
+  打不开、系统判无响应、用户结束进程后**既没有 WER 事件也没有 dump**，日志里也什么都不写，看着像崩溃。
+  需要全表信息时，优先让**已经在渲染的那几行自己算**（`WordsPopup` 每行把自己的自然宽度报给卡片，
+  模型读取只发生在本来就有的 delegate 里），而不是新写一个遍历。
+- **量文字宽度用 `FontMetrics`，不是 `TextMetrics`**：`TextMetrics` 靠先写 `text` 再读 `advanceWidth`，
+  而这两条都挂在同一个对象上——在绑定里写它自己会读的属性就是 “Binding loop detected”，改成命令式刷新
+  才不报警；`FontMetrics.advanceWidth(字符串)` 是方法调用，绑定照常成立。另一处踩坑：`TextMetrics` 也有
+  `text` 属性，`testutil.js` 的 `textsUnder()` 按 “有字符串型 `text`” 找 Text，会把探针一起收进去，
+  排序在前的探针顶掉真正的行。
 - **界面出现前仍有约 1.5 s，其中 `loadFromModule` 占 810–923 ms**：临时埋点（已删）测出这一段几乎全在
   `engine.loadFromModule("Lens", "Main")` 一个调用里——`QQmlApplicationEngine` 构造 20 ms、两个 context
   property 0 ms、装翻译器 0 ms。数据侧另算：`wordlist` 229 ms + `irregulars` 24 ms。钩子搬走之后这段

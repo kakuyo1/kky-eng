@@ -5,9 +5,14 @@
   "uiLanguage": "en",
   "selectionCapture": "false",
   "history": [
+    { "word": "counterrevolutionary", "time": "2026-01-02 09:20", "verdict": "known" },
     { "word": "ubiquitous", "time": "2026-01-02 09:14", "verdict": "known" },
     { "word": "run", "time": "2026-01-02 09:12", "verdict": "new" },
     { "word": "run", "time": "2026-01-02 09:10", "verdict": "" },
+    { "word": "ephemeral", "time": "2026-01-01 21:20", "verdict": "new" },
+    { "word": "juxtapose", "time": "2026-01-01 20:05", "verdict": "known" },
+    { "word": "ostensibly", "time": "2026-01-01 19:30", "verdict": "" },
+    { "word": "quintessential", "time": "2026-01-01 18:15", "verdict": "new" },
     { "word": "panel", "time": "2026-01-01 21:40", "verdict": "" }
   ],
   "daily": {

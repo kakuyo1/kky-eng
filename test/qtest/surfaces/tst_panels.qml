@@ -34,6 +34,7 @@ Item {
     }
 
     TestCase {
+        id: testCase
         name: "Panels"
         when: windowShown
 
@@ -123,6 +124,31 @@ Item {
             verify(words.length > 1, "the fixture needs more than one word for this to mean anything");
 
             compare(wordsShown(popup).sort(), words.slice().sort());
+        }
+
+        /// The card is sized to its widest row, so the columns beside the word have to fit under
+        /// the word rather than over it: a word rendered narrower than it measures is one the
+        /// reader sees cut short, which is the whole thing the width exists to prevent.
+        function test_theWidestWordIsRenderedWhole() {
+            const popup = make(wordsComponent);
+            popup.visible = true;
+
+            // The fixture carries a word long enough to outgrow the panel's base width, so a
+            // card that stayed at the base would fail the comparison below rather than pass it.
+            const widest = Controller.words.slice().sort(function (a, b) {
+                return b.word.length - a.word.length;
+            })[0].word;
+            verify(popup.cardWidth > popup.minCardWidth,
+                   "the widest word did not widen the card past its base");
+
+            const row = rowFor(popup, widest);
+            verify(row, "the row for " + widest + " is not on screen");
+
+            const word = Util.findAll(row, function (o) { return o.text === widest; })[0];
+            verify(word, "the row does not draw the word");
+            compare(word.implicitWidth <= word.width, true,
+                    "the word column is narrower than the word it draws");
+            compare(word.elide, Text.ElideRight);
         }
 
         /// @return Whether the list is showing exactly @p expected, once it has settled.
@@ -221,6 +247,255 @@ Item {
             // The Controller is shared by every case in the run, so put the word back where the
             // case found it rather than leaving the fixture settled the other way.
             Controller.mark(word, true);
+        }
+
+        /// @return The window the question is drawn in. It is a window of its own rather than a
+        ///         card inside the panel, so a case reaches it through an item that lands in it.
+        function questionWindow(popup) {
+            const heading = Util.textWith(Util.textsUnder(popup), [qsTr("Remove word")]);
+            verify(heading, "the question is not drawn");
+            return heading.Window.window;
+        }
+
+        /// The question, for the eye rather than for an assertion: a card is meant to be looked at
+        /// before it is believed, and a word long enough to outgrow the card's floor is what shows
+        /// whether the sentence still fits the card it is asked on.
+        function test_captureTheRemovalQuestion() {
+            if (!lensQaSnapshotDir)
+                skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the snapshot");
+
+            // Every surface is a card that fades and lifts into place, so a grab taken before
+            // that has finished photographs a half-transparent card.
+            const settled = Tokens.motion.pop + 80;
+            const was = Tokens.theme;
+
+            const popup = make(wordsComponent);
+            popup.visible = true;
+            wait(settled);
+
+            Tokens.theme = "light";
+            wait(settled);
+            verify(Util.saveSnapshot(testCase, popup.contentItem, lensQaSnapshotDir, "words-list-light"));
+
+            popup.requestRemoval("counterrevolutionary");
+            wait(settled);
+            verify(Util.saveSnapshot(testCase, questionWindow(popup).contentItem,
+                                     lensQaSnapshotDir, "words-removal-light"));
+
+            Tokens.theme = "dark";
+            wait(settled);
+            verify(Util.saveSnapshot(testCase, questionWindow(popup).contentItem,
+                                     lensQaSnapshotDir, "words-removal-dark"));
+
+            popup.closeChild();
+            popup.visible = false;
+            Tokens.theme = was;
+        }
+
+        /// The cross sits on the row's own line, beside the two clusters that share it. Left to
+        /// the Row it is laid in it takes the row's first pixel instead and reads high -- which is
+        /// exactly what it did, since a row's line is taller than the 14 px glyph.
+        function test_theRowCentresItsCrossOnItsLine() {
+            const popup = make(wordsComponent);
+            popup.visible = true;
+
+            const word = "run";
+            const row = rowFor(popup, word);
+            verify(row, "the row for " + word + " is not on screen");
+
+            const cross = crossFor(row);
+            verify(cross, "the row draws no delete glyph");
+            const pill = pillFor(row, "Known");
+
+            const crossMid = cross.mapToItem(row, 0, cross.height / 2).y;
+            const pillMid = pill.mapToItem(row, 0, pill.height / 2).y;
+            verify(Math.abs(crossMid - pillMid) <= 0.5,
+                   "the cross is " + (crossMid - pillMid).toFixed(1)
+                   + " px off the line its verdict pills are on");
+        }
+
+        /// @return The delete glyph at the end of @p row, or null when the row draws none.
+        function crossFor(row) {
+            return Util.findAll(row, function (o) {
+                return typeof o.source === "string" && o.source.indexOf("ui-close") >= 0;
+            })[0];
+        }
+
+        /// @return The pill carrying @p label on the confirmation face.
+        function pillWith(popup, label) {
+            const text = Util.textWith(Util.textsUnder(popup), [label]);
+            verify(text, "the confirmation draws no " + label + " pill");
+            return text.parent;
+        }
+
+        /// @brief Press the delete glyph on @p word's row, whichever answer that turns out to be.
+        function pressCross(popup, word) {
+            const row = rowFor(popup, word);
+            verify(row, "the row for " + word + " is not on screen");
+            const cross = crossFor(row);
+            verify(cross, "the row draws no delete glyph");
+            mouseClick(cross, cross.width / 2, cross.height / 2);
+        }
+
+        /// @brief Open the question on @p word through the row's own cross.
+        function askAbout(popup, word) {
+            pressCross(popup, word);
+            compare(popup.pendingRemoval, word, "the cross did not name the word it belongs to");
+        }
+
+        /// The confirmation the cross opens, and the answer that carries it out.
+        ///
+        /// The controller call was never in doubt, and nothing exercised it: that is how a native
+        /// message box went on being the one surface in this product drawn by Windows. What is
+        /// checked here is the path through the card instead -- the cross names the word, the
+        /// question is drawn for that word, the answer reaches Controller.removeWord, and the
+        /// list follows.
+        function test_theDeleteCrossAsksBeforeTheWordGoes() {
+            const popup = make(wordsComponent);
+            popup.visible = true;
+
+            // A word no other case in this file needs: this one is really removed, and the
+            // Controller is shared by every case in the run.
+            const word = "ubiquitous";
+            verify(Controller.words.some(function (e) { return e.word === word; }),
+                   "the fixture no longer carries " + word);
+
+            askAbout(popup, word);
+
+            const question = Util.textWith(Util.textsUnder(popup),
+                                           [qsTr("Remove %1 from your word list and history?").arg(word)]);
+            verify(question, "the card is not asking about " + word);
+            verify(question.parent.visible, "the question is on a face that is not drawn");
+
+            mouseClick(pillWith(popup, "Remove"), 5, 5);
+
+            compare(popup.pendingRemoval, "", "the card stayed on the question after its answer");
+            compare(Controller.words.some(function (e) { return e.word === word; }), false,
+                    "the answer did not reach Controller.removeWord");
+            compare(rowFor(popup, word), null, "the list still draws a word that is gone");
+        }
+
+        /// One removal a run is asked about, and the question opens with "do not ask again"
+        /// already on -- so the run's second deletion is a deletion, not a question. This is the
+        /// behaviour that was wrong on the real machine: the switch started off, and the reader
+        /// who did not touch it was asked on every removal.
+        function test_theAskedQuestionSilencesItselfByDefault() {
+            const popup = make(wordsComponent);
+            popup.visible = true;
+            verify(popup.askBeforeRemoving, "the panel should start out asking");
+
+            // Words no other case in this file needs: both are really removed.
+            const answered = "ostensibly";
+            const straightThrough = "juxtapose";
+
+            askAbout(popup, answered);
+            const question = questionWindow(popup);
+            compare(question.visible, true, "the question did not open");
+
+            const switcher = Util.ofType(popup, "Switch");
+            verify(switcher, "the question carries no switch");
+            compare(switcher.checked, true, "the question should be put with the switch already on");
+
+            mouseClick(pillWith(popup, "Remove"), 5, 5);
+
+            compare(popup.askBeforeRemoving, false, "the answer did not settle the asking");
+            compare(Controller.words.some(function (e) { return e.word === answered; }), false,
+                    "the answer did not reach Controller.removeWord");
+            compare(question.visible, false, "the question stayed up");
+
+            pressCross(popup, straightThrough);
+
+            compare(popup.pendingRemoval, "", "a cross asked the question it was told not to ask");
+            compare(question.visible, false, "the question opened with the asking switched off");
+            compare(Controller.words.some(function (e) { return e.word === straightThrough; }), false,
+                    "the silenced cross did not delete the word");
+        }
+
+        /// And the other answer the reader can give there: turn the switch off and answering the
+        /// question settles nothing about asking, so the next removal is asked about again.
+        function test_aQuestionThatIsLeftAskingComesBack() {
+            const popup = make(wordsComponent);
+            popup.visible = true;
+
+            const answered = "ephemeral";
+            const spared = "quintessential";
+
+            askAbout(popup, answered);
+            const switcher = Util.ofType(popup, "Switch");
+            verify(switcher, "the question carries no switch");
+            mouseClick(switcher, switcher.width / 2, switcher.height / 2);
+
+            mouseClick(pillWith(popup, "Remove"), 5, 5);
+
+            compare(popup.askBeforeRemoving, true, "the switch was off, so asking should stand");
+            compare(Controller.words.some(function (e) { return e.word === answered; }), false,
+                    "the answer did not reach Controller.removeWord");
+
+            askAbout(popup, spared);
+            const question = questionWindow(popup);
+            compare(question.visible, true, "the question did not come back");
+            compare(popup.askBeforeRemoving, true, "asking should stand, the switch having been off");
+            // The switch stays where the reader left it rather than being reset per question: the
+            // component writes its own `checked` when tapped, so a reset from elsewhere would have
+            // it showing one thing and the decision reading another.
+            compare(Util.ofType(popup, "Switch").checked, false,
+                    "the switch should still be off, where the reader left it");
+
+            mouseClick(pillWith(popup, "Cancel"), 5, 5);
+            compare(question.visible, false, "Cancel did not put the question down");
+            verify(Controller.words.some(function (e) { return e.word === spared; }),
+                   "putting the question down removed the word");
+        }
+
+        /// The question is modal: the list behind it is not an answer to it, so a press that
+        /// reaches it must not mark or delete anything. Measured rather than assumed, because the
+        /// platform the suite runs on does not enforce modality -- this is the guard that does.
+        function test_theListBehindTheQuestionTakesNoPress() {
+            const popup = make(wordsComponent);
+            popup.visible = true;
+
+            const word = "run";
+            const before = Controller.words.filter(function (e) { return e.word === word; })[0].verdict;
+
+            askAbout(popup, word);
+            const question = questionWindow(popup);
+
+            const row = rowFor(popup, word);
+            verify(row, "the row for " + word + " is not on screen");
+            const pill = pillFor(row, "Known");
+            mouseClick(pill, pill.width / 2, pill.height / 2);
+
+            compare(question.visible, true, "the press behind the question dismissed it");
+            compare(popup.pendingRemoval, word, "the press behind the question changed its subject");
+            compare(Controller.words.filter(function (e) { return e.word === word; })[0].verdict,
+                    before, "the list behind the question took a press");
+
+            popup.closeChild();
+        }
+
+        /// The other two ways out, both of which have to leave the word alone: the reader who
+        /// opened the question by mistake has to be able to put it down.
+        function test_theConfirmationCanBePutDownWithoutRemovingAnything() {
+            const popup = make(wordsComponent);
+            popup.visible = true;
+            const word = "counterrevolutionary";
+
+            askAbout(popup, word);
+            mouseClick(pillWith(popup, "Cancel"), 5, 5);
+
+            compare(popup.pendingRemoval, "", "the card stayed on the question");
+            verify(Controller.words.some(function (e) { return e.word === word; }),
+                   "putting the question down removed the word");
+
+            askAbout(popup, word);
+            // keyClick takes no item. It lands on whatever window has the focus, which under the
+            // offscreen platform is never the panel -- the reason the shortcut is
+            // application-wide rather than window-scoped, and the reason this still reaches it.
+            keyClick(Qt.Key_Escape);
+
+            compare(popup.pendingRemoval, "", "Escape did not put the question down");
+            verify(Controller.words.some(function (e) { return e.word === word; }),
+                   "Escape removed the word");
         }
 
         /// The export's text half is the controller's, and lens_gtest_unit pins its shape. What

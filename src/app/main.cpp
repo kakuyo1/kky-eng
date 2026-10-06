@@ -125,12 +125,20 @@ std::filesystem::path settingsPath(const std::filesystem::path& legacy)
 /// The two are not the same string: the setting holds "zh", while the file is named for the
 /// locale, lens_zh_CN.qm. Building the file name straight from the setting would look for
 /// lens_zh.qm, which does not exist.
+///
+/// One code per .ts under i18n/, which is also the list `data/llm/catalog.json` offers as
+/// interface languages: a language the catalog names and this function does not is a pick that
+/// silently leaves the interface in English.
 const char* translationFileFor(const QString& language)
 {
     if (language == QLatin1String("zh"))
         return "zh_CN";
     if (language == QLatin1String("en"))
         return "en_US";
+    if (language == QLatin1String("es"))
+        return "es_ES";
+    if (language == QLatin1String("ja"))
+        return "ja_JP";
     return nullptr;
 }
 

@@ -5,12 +5,11 @@ Item {
     property var settings: Controller.settings
 
     signal childRequested(string route)
-    readonly property var openChildRect: providerField.openChildRect || modelField.openChildRect
+    readonly property var openChildRect: providerField.openChildRect
     implicitHeight: content.implicitHeight
 
     function closeChild() {
         providerField.closeList();
-        modelField.closeList();
     }
 
     Column {
@@ -44,16 +43,21 @@ Item {
                 color: Tokens.muted
                 font.pixelSize: 12
             }
+
+            // Typed rather than picked: the catalog names no model, so the reader supplies the
+            // one their account carries and the address above is the only thing a provider
+            // choice moves.
             Rectangle {
-                visible: root.settings.provider === "custom"
                 width: parent.width
                 height: 35
                 radius: Tokens.radiusField
                 color: Tokens.panel2
                 border.width: 1
-                border.color: Tokens.line
+                border.color: modelInput.activeFocus ? Tokens.ink : Tokens.line
 
                 TextInput {
+                    id: modelInput
+                    objectName: "modelField"
                     anchors.fill: parent
                     anchors.leftMargin: 11
                     anchors.rightMargin: 11
@@ -62,18 +66,13 @@ Item {
                     color: Tokens.text
                     font.pixelSize: 13
                     selectByMouse: true
-                    onEditingFinished: Controller.setModel(text)
+                    onEditingFinished: {
+                        Controller.setModel(text);
+                        text = Qt.binding(() => root.settings.model);
+                    }
                 }
             }
-            DropdownField {
-                id: modelField
-                objectName: "modelField"
-                visible: root.settings.provider !== "custom"
-                width: parent.width
-                options: root.settings.models || []
-                currentValue: root.settings.model
-                onPicked: (value) => Controller.setModel(value)
-            }
+
             Text {
                 width: parent.width
                 text: root.settings.modelPrice || ""

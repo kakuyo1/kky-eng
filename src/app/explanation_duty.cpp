@@ -367,22 +367,14 @@ bool ExplanationDuty::setProvider(QString const& provider)
     auto& document       = storage_.knownStore().document();
     document["PROVIDER"] = provider.toStdString();
     document["URL"]      = llm_.baseUrl().toString().toStdString();
-    document["MODEL"]    = llm_.model().toStdString();
     storage_.save();
     return true;
 }
 
 QVariantMap ExplanationDuty::settings() const
 {
-    auto const& catalog = llm::serviceCatalog();
-    auto const provider = storage_.documentString("PROVIDER", catalog.value("defaultProvider").toString());
-    auto const entry    = llm::serviceProvider(provider);
-    auto const model    = llm_.model();
-    QVariantList models;
-    for (auto const& value : entry.value("models").toArray())
-        models.append(QVariantMap{{"value", value.toString()}, {"label", value.toString()}, {"group", QString{}}, {"note", QString{}}});
-    if (not entry.value("models").toArray().contains(model) and not model.isEmpty())
-        models.append(QVariantMap{{"value", model}, {"label", model}, {"group", QString{}}, {"note", QString{}}});
+    auto const& catalog  = llm::serviceCatalog();
+    auto const model     = llm_.model();
     auto const pricing   = catalog.value("pricing").toObject();
     auto const price     = pricing.value("models").toObject().value(model).toObject();
     auto const priceText = price.isEmpty() ? tr("No listed price; recorded cost is zero.")
@@ -397,7 +389,7 @@ QVariantMap ExplanationDuty::settings() const
         if (option.value("value").toString() == QLatin1String("custom")) option["label"] = QCoreApplication::translate("SettingsPopup", "Custom service");
         providers.append(option);
     }
-    return {{"languages", catalog.value("languages").toArray().toVariantList()}, {"providers", providers}, {"models", models}, {"modelPrice", priceText}, {"providerDefaultUrl", entry.value("baseUrl").toString()}};
+    return {{"languages", catalog.value("languages").toArray().toVariantList()}, {"providers", providers}, {"model", model}, {"modelPrice", priceText}};
 }
 
 bool ExplanationDuty::setModel(QString const& model)

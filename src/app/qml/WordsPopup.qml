@@ -5,13 +5,16 @@ import QtQuick.Dialogs
 import QtQuick.Window
 
 /**
- * Every word the bubble has shown (UI.md section 4.7), newest first, with a filter across the
+ * Every word the bubble has shown (UI.md section 4.8), newest first, with a filter across the
  * top. The controller hands over finished strings: the relative time labels depend on the
  * current date, which is not something a view should be working out.
  *
  * It is also where a word is settled: each row carries the bubble's own two verdict pills, so a
  * word the reader did not mark while the bubble was up (or the countdown took away) can be
  * marked here instead.
+ *
+ * The cross at the end of a row raises the removal question of the same section, which is a window
+ * of its own over this card rather than a face drawn in it -- see the Window below.
  */
 Window {
     id: words
@@ -21,14 +24,98 @@ Window {
     visible: false
 
     readonly property int shadowMargin: 26
-    readonly property int cardWidth: 320
+    readonly property int minCardWidth: 320
+    readonly property int maxCardWidth: 560
+
+    /// The card is as wide as its widest row and no wider: a word the reader never saw whole is
+    /// the one thing this panel exists to prevent, and a list of short words has no business
+    /// being a wide panel with a hole in it.
+    ///
+    /// The rows report the width rather than being walked for it. A JS loop over Controller.words
+    /// reads a QVariantMap per row, and on this machine that read costs ~170 ms -- 31 rows came
+    /// to 5.3 s of blocked main thread, which is a frozen window rather than a measurement. The
+    /// rows already lay their own text out, so the width is free at the point it is known.
+    ///
+    /// A running maximum, not a recomputed one: it only ever grows within a session, which keeps
+    /// the card from narrowing and widening under the reader as rows change, and the cap above
+    /// bounds it.
+    property real widestRow: 0
+
+    /// @brief Note one row's natural width. Called by each row as it lays out.
+    function noteRowWidth(width) {
+        if (width > widestRow)
+            widestRow = width;
+    }
+
+    readonly property int cardWidth: Math.min(maxCardWidth, Math.max(minCardWidth, Math.ceil(widestRow)))
 
     width: cardWidth + 2 * shadowMargin
+
+    /// The card is as tall as its list, and keeps that height while the question is up. It is
+    /// not re-sized to the question: `Main.placeBeside` puts the card's bottom edge on the tray
+    /// icon and nothing re-places a panel that changes size afterwards, so a card that shrank
+    /// when the confirmation opened would leave the icon it was opened from behind. The question
+    /// is centred in the height the list left instead, which reads as a card rather than as a
+    /// card that stopped drawing.
     height: column.implicitHeight + 34 + 2 * shadowMargin
 
     /// 0 = all, 1 = known, 2 = new.
     property int filter: 0
+
+    /// The word the question is asking about, "" when it is not up.
     property string pendingRemoval: ""
+
+    /// Whether a removal is put to the reader before it happens.
+    ///
+    /// Per run, not a setting: the reader asked for the question to be silenceable without the
+    /// answer outliving the session, so this is a property of this surface and nothing is written
+    /// to the settings document.
+    ///
+    /// One removal a run is asked about, and the question itself is where the reader says whether
+    /// to keep being asked -- it is put with "do not ask again" already on, so the run's second
+    /// deletion is a deletion and not a question. Only the reader clears this: answering Cancel
+    /// removes nothing and asks nothing about asking, so the next deletion is asked about again.
+    property bool askBeforeRemoving: true
+
+    /// A question left half-answered by a press elsewhere is not a state to come back to.
+    onVisibleChanged: if (!visible) closeChild()
+
+    /**
+     * @brief Settle a word the row's cross asked to delete.
+     * @param word Lemma that row was showing.
+     *
+     * With the question switched off this is the whole removal, which is what the reader chose.
+     */
+    function requestRemoval(word) {
+        if (!askBeforeRemoving) {
+            Controller.removeWord(word);
+            return;
+        }
+        pendingRemoval = word;
+        remover.visible = true;
+        remover.raise();
+        // The card is as tall as what it holds, and that is only settled once the engine has
+        // polished the window the question was just put in -- so it is placed afterwards, the way
+        // Main.qml places the bubble rather than trusting the height it was built with.
+        Qt.callLater(() => remover.placeOverCard());
+    }
+
+    /// @brief Put the question down without answering it.
+    function closeChild() {
+        remover.visible = false;
+    }
+
+    /// The question's card in screen coordinates, or null when it is not up. Main.qml's
+    /// outside-press rule reads it the way it reads the settings panel's open dropdown.
+    readonly property var openChildRect: remover.visible
+        ? Qt.rect(remover.x + remover.shadowMargin, remover.y + remover.shadowMargin,
+                  remover.width - 2 * remover.shadowMargin, remover.height - 2 * remover.shadowMargin)
+        : null
+
+    /// It is a question, not a dropdown: a press that lands elsewhere is not an answer to it, so
+    /// it neither puts the question down nor closes the panel under it. Cancel, Remove and Escape
+    /// are the ways out.
+    readonly property bool openChildIsModal: true
 
     /// The filter above, spelled the way exportWords() and saveWords() take it. The list and
     /// an export are the same rows seen twice, so an export follows whatever is on screen.
@@ -40,6 +127,11 @@ Window {
 
     ShadowCard {
         anchors.fill: parent
+
+        /// The list is not an answer to the question, so it takes no press while one is up. This
+        /// is what a press that reached past the modal window would otherwise act on: a row's
+        /// verdict pill, or its cross, deleting a second word out from under the first.
+        enabled: !remover.visible
 
         Column {
             id: column
@@ -105,6 +197,17 @@ Window {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 6
 
+                    // The export sits with the glyphs the reader already reads as "things this
+                    // window does", rather than on a line of its own under the total: it acts on
+                    // the list, and the list is what the card is.
+                    Icon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        source: "qrc:/icons/ui-export.svg"
+                        color: Tokens.faint
+                        HoverHandler { cursorShape: Qt.PointingHandCursor }
+                        TapHandler { onTapped: saver.open() }
+                    }
+
                     // Back to the statistics panel, which is where this one opens from. This
                     // panel replaces it rather than stacking on it, so the way up has to be
                     // visible.
@@ -125,12 +228,10 @@ Window {
                 }
             }
 
-            // The list's own line: how many words, and the way out to a file. The export sits
-            // here rather than in the title row's icon pair because it acts on the list -- and
-            // on the filter below it -- while those two glyphs are about the window.
+            // The list's own line: how many words the rows below are.
             Item {
                 width: parent.width
-                height: exportPill.height
+                height: count.implicitHeight
 
                 Text {
                     id: count
@@ -143,40 +244,6 @@ Window {
                     text: qsTr("%1 words").arg(Controller.words.length)
                     color: Tokens.faint
                     font.pixelSize: 12
-                }
-
-                Rectangle {
-                    id: exportPill
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: exportLabel.width + 18
-                    height: 20
-                    radius: Tokens.radiusPill
-                    color: Tokens.panel2
-                    border.width: 1
-                    border.color: Tokens.line
-                    scale: exportTap.pressed ? 0.97 : 1.0
-                    Behavior on scale {
-                        NumberAnimation {
-                            duration: Tokens.motion.press
-                            easing.type: Tokens.motion.easing
-                        }
-                    }
-
-                    Text {
-                        id: exportLabel
-                        anchors.centerIn: parent
-                        text: qsTr("Export")
-                        color: Tokens.muted
-                        font.pixelSize: 11
-                        font.weight: Font.Bold
-                    }
-
-                    HoverHandler { cursorShape: Qt.PointingHandCursor }
-                    TapHandler {
-                        id: exportTap
-                        onTapped: saver.open()
-                    }
                 }
             }
 
@@ -195,7 +262,7 @@ Window {
 
             Item {
                 width: parent.width
-                // UI.md 4.7 gives the list a *maximum* of 306px: a handful of words leaves a
+                // UI.md 4.8 gives the list a *maximum* of 306px: a handful of words leaves a
                 // panel sized to those words, not a panel with a hole under them.
                 height: Math.min(306, list.contentHeight)
 
@@ -212,6 +279,14 @@ Window {
                         required property var modelData
 
                         width: words.cardWidth - 40
+
+                        /// What this row needs to draw itself whole: the card's padding, the word
+                        /// at its unelided width, the gap, and the right-hand cluster. The card is
+                        /// sized to the widest of these, so the row hands it over rather than
+                        /// having its text measured from outside.
+                        readonly property real naturalWidth: 40 + wordText.implicitWidth + 9 + side.width
+                        onNaturalWidthChanged: words.noteRowWidth(naturalWidth)
+                        Component.onCompleted: words.noteRowWidth(naturalWidth)
 
                         /// Whether the filter above shows this word. It is the row's presence
                         /// rather than a switch, which is what the height below animates.
@@ -247,9 +322,11 @@ Window {
                         }
 
                         Text {
+                            id: wordText
                             anchors.left: parent.left
-                            // The word takes what the right-hand side leaves, so a long one
-                            // elides rather than pushing the verdict pills off the card.
+                            // The word takes what the right-hand side leaves. The card is sized
+                            // to the widest row, so this bites only past maxCardWidth: a word
+                            // longer than that elides rather than pushing the pills off the card.
                             anchors.right: side.left
                             anchors.rightMargin: 9
                             anchors.verticalCenter: parent.verticalCenter
@@ -366,24 +443,24 @@ Window {
                                 }
                             }
 
+                            // Centred on the row's own line like the two clusters beside it: left
+                            // to the Row it would sit on the row's first pixel and read high.
                             Icon {
+                                anchors.verticalCenter: parent.verticalCenter
                                 width: 14
                                 height: 14
                                 source: "qrc:/icons/ui-close.svg"
                                 color: Tokens.faint
                                 HoverHandler { cursorShape: Qt.PointingHandCursor }
                                 TapHandler {
-                                    onTapped: {
-                                        words.pendingRemoval = entry.modelData.word
-                                        remover.open()
-                                    }
+                                    onTapped: words.requestRemoval(entry.modelData.word)
                                 }
                             }
                         }
                     }
                 }
 
-                // The six-pixel scrollbar UI.md 4.7 asks for, drawn rather than imported so
+                // The six-pixel scrollbar UI.md 4.8 asks for, drawn rather than imported so
                 // the module needs no widget styling of its own. It sits in the card's right
                 // padding, clear of the rows: a bar against the list's edge draws its rounded
                 // end over the verdict pill on every row it passes.
@@ -400,6 +477,196 @@ Window {
                 }
             }
         }
+
+    }
+
+    /**
+     * The question the row's cross asks, as a window of its own over this panel.
+     *
+     * A window rather than the card's other face, which is what the reader asked for: a question
+     * drawn inside this card inherits the card's height, and that height is not this surface's to
+     * change -- Main.placeBeside puts the card's bottom edge on the tray icon and nothing re-places
+     * a panel that changes size afterwards, so a card that shrank for the question lifted away
+     * from the icon it was opened from. Placed by its own rule, the window is exactly as tall as
+     * what it holds and sits over the middle of the card that raised it.
+     *
+     * It is modal to this window, so a press that lands on the list behind it cannot reach a row:
+     * deleting one word while being asked about another is not a thing to allow.
+     *
+     * Neither answer pill is filled. The sentence is what carries the decision -- PRODUCT.md asks
+     * a removal to confirm before it happens, not to alarm the reader into it.
+     */
+    Window {
+        id: remover
+
+        flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+        color: "transparent"
+        visible: false
+
+        transientParent: words
+        modality: Qt.WindowModal
+
+        readonly property int shadowMargin: 26
+        readonly property int minCardWidth: 320
+        readonly property int maxCardWidth: 460
+
+        /// Whether this answer also settles the asking. On when the run's first question is put,
+        /// so one removal a run is asked about; the reader turns it off to be asked about the ones
+        /// after that, and it stays where the reader left it.
+        ///
+        /// Not reset per question on purpose: `components/Switch.qml` writes its `checked` itself
+        /// when it is tapped, so writing this from elsewhere leaves the switch showing one thing
+        /// and the decision reading another.
+        property bool dontAsk: true
+
+        /// As wide as the sentence needs and no wider, the way the panel is as wide as its widest
+        /// row: 320 px is the floor, and past 460 a long word or a long translation wraps rather
+        /// than widening the card off the screen.
+        readonly property int cardWidth: Math.min(maxCardWidth,
+                                                   Math.max(minCardWidth, Math.ceil(questionText.implicitWidth) + 40))
+        width: cardWidth + 2 * shadowMargin
+        height: questionColumn.implicitHeight + 36 + 2 * shadowMargin
+
+        /// @brief Centre the question on the card it is asking about.
+        function placeOverCard() {
+            remover.x = Math.round(words.x + (words.width - remover.width) / 2);
+            remover.y = Math.round(words.y + (words.height - remover.height) / 2);
+        }
+
+        onVisibleChanged: if (!visible) words.pendingRemoval = ""
+
+        /// Escape means "not this word", and is offered exactly while the question is up.
+        ///
+        /// Application-wide rather than the settings panel's default window scope, because the
+        /// offscreen platform the suite runs on never gives a window the active state and a
+        /// window-scoped Escape cannot be exercised there. The wider scope is not a wider net: Qt
+        /// consults a shortcut map only for keys some window of this application received, so
+        /// `enabled` is the whole guard.
+        Shortcut {
+            sequence: "Escape"
+            context: Qt.ApplicationShortcut
+            enabled: remover.visible
+            onActivated: remover.visible = false
+        }
+
+        ShadowCard {
+            anchors.fill: parent
+
+            Column {
+                id: questionColumn
+                x: 20
+                y: 18
+                width: remover.cardWidth - 40
+                spacing: 12
+
+                Text {
+                    width: parent.width
+                    text: qsTr("Remove word")
+                    color: Tokens.text
+                    font.pixelSize: 14
+                    font.weight: Font.Bold
+                }
+
+                // The word being removed is the sentence's own %1 rather than a field of its own:
+                // where it sits in that sentence is the translator's to place.
+                Text {
+                    id: questionText
+                    width: parent.width
+                    text: qsTr("Remove %1 from your word list and history?").arg(words.pendingRemoval)
+                    color: Tokens.text
+                    font.pixelSize: 13
+                    lineHeight: 1.35
+                    lineHeightMode: Text.ProportionalHeight
+                    wrapMode: Text.WordWrap
+                }
+
+                // The only control here that is not an answer to the removal: it decides whether
+                // this question is asked again, and it is read when the answer is Remove.
+                SwitchRow {
+                    label: qsTr("Don't ask again")
+                    checked: remover.dontAsk
+                    onToggled: (on) => remover.dontAsk = on
+                }
+
+                Item {
+                    width: parent.width
+                    height: buttons.height
+
+                    Row {
+                        id: buttons
+                        anchors.right: parent.right
+                        spacing: 8
+
+                        Rectangle {
+                            width: cancelLabel.width + 28
+                            height: 27
+                            radius: Tokens.radiusPill
+                            color: Tokens.panel2
+                            border.width: 1
+                            border.color: Tokens.line
+                            scale: cancelTap.pressed ? 0.97 : 1.0
+                            Behavior on scale {
+                                NumberAnimation {
+                                    duration: Tokens.motion.press
+                                    easing.type: Tokens.motion.easing
+                                }
+                            }
+
+                            Text {
+                                id: cancelLabel
+                                anchors.centerIn: parent
+                                text: qsTr("Cancel")
+                                color: Tokens.muted
+                                font.pixelSize: 12
+                                font.weight: Font.Bold
+                            }
+
+                            HoverHandler { cursorShape: Qt.PointingHandCursor }
+                            TapHandler {
+                                id: cancelTap
+                                onTapped: remover.visible = false
+                            }
+                        }
+
+                        Rectangle {
+                            width: removeLabel.width + 28
+                            height: 27
+                            radius: Tokens.radiusPill
+                            color: Tokens.panel2
+                            border.width: 1
+                            border.color: Tokens.line
+                            scale: removeTap.pressed ? 0.97 : 1.0
+                            Behavior on scale {
+                                NumberAnimation {
+                                    duration: Tokens.motion.press
+                                    easing.type: Tokens.motion.easing
+                                }
+                            }
+
+                            Text {
+                                id: removeLabel
+                                anchors.centerIn: parent
+                                text: qsTr("Remove")
+                                color: Tokens.text
+                                font.pixelSize: 12
+                                font.weight: Font.Bold
+                            }
+
+                            HoverHandler { cursorShape: Qt.PointingHandCursor }
+                            TapHandler {
+                                id: removeTap
+                                onTapped: {
+                                    if (remover.dontAsk)
+                                        words.askBeforeRemoving = false;
+                                    Controller.removeWord(words.pendingRemoval);
+                                    remover.visible = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // Declared in this file rather than in Main.qml: the file holds the words list, so the
@@ -407,6 +674,11 @@ Window {
     // name a file but cannot write one -- that half is Controller.saveWords(), which takes this
     // dialog's answer. A write that fails is logged there; this surface has nothing to report it
     // on yet.
+    //
+    // It is also still a native dialog, and that is deliberate for now: choosing a file is the
+    // system's business in a way that confirming a removal is not, and the two are not the same
+    // complaint. Drawing the confirmation above in the app's own language leaves this one the
+    // only native surface here, and it is the only one that is one on purpose.
     FileDialog {
         id: saver
         title: qsTr("Export words")
@@ -417,16 +689,5 @@ Window {
         // exports twice from two filters gets two files rather than one overwriting the other.
         currentFile: "words-" + words.scope + ".txt"
         onAccepted: Controller.saveWords(saver.selectedFile, words.scope)
-    }
-
-    MessageDialog {
-        id: remover
-        title: qsTr("Remove word")
-        text: qsTr("Remove %1 from your word list and history?").arg(words.pendingRemoval)
-        buttons: MessageDialog.Yes | MessageDialog.No
-        onAccepted: {
-            Controller.removeWord(words.pendingRemoval)
-            words.pendingRemoval = ""
-        }
     }
 }
