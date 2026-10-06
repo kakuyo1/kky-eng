@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Window
 import QtQuick.Effects
@@ -33,6 +35,8 @@ Window {
     property string ipa: "" ///< Pronunciation in slashes, beside the word (app_controller.h).
     property string english: ""
     property string chinese: ""
+    property string translation: ""
+    property var senses: []
     property string status: "" ///< "new", "known", or empty when there is no word verdict (entity / sentence).
 
     property bool hovering: false
@@ -82,6 +86,8 @@ Window {
         ipa = payload.ipa || "";
         english = payload.en || "";
         chinese = payload.zh || "";
+        translation = payload.translation || "";
+        senses = payload.senses ? payload.senses.slice(0, 3) : [];
         status = payload.status || "";
         remainingMs = dismissAfterMs;
 
@@ -345,11 +351,60 @@ Window {
                     }
                 }
 
+                Repeater {
+                    model: bubble.type === "word" ? bubble.senses : []
+
+                    delegate: Column {
+                        id: senseRow
+                        required property int index
+                        required property var modelData
+                        width: column.width
+                        spacing: 0
+
+                        Rectangle {
+                            objectName: "senseSeparator"
+                            visible: senseRow.index > 0
+                            width: parent.width
+                            height: 1
+                            color: Tokens.line2
+                        }
+
+                        Text {
+                            objectName: "senseEnglish"
+                            visible: text !== ""
+                            width: parent.width
+                            topPadding: 6
+                            bottomPadding: senseRow.modelData.text === "" ? 6 : 0
+                            text: senseRow.modelData.en || ""
+                            textFormat: Text.PlainText
+                            color: Tokens.muted
+                            font.pixelSize: 13
+                            lineHeight: 1.55
+                            wrapMode: Text.Wrap
+                        }
+
+                        Text {
+                            objectName: "senseTranslation"
+                            visible: text !== ""
+                            width: parent.width
+                            topPadding: 5
+                            bottomPadding: 6
+                            text: senseRow.modelData.text || ""
+                            textFormat: Text.PlainText
+                            color: Tokens.text
+                            font.pixelSize: 12
+                            lineHeight: 1.5
+                            wrapMode: Text.Wrap
+                        }
+                    }
+                }
+
                 Text {
-                    visible: bubble.english !== ""
+                    visible: bubble.senses.length === 0 && bubble.english !== ""
                     width: parent.width
                     topPadding: 6
                     text: bubble.english
+                    textFormat: Text.PlainText
                     color: Tokens.muted
                     font.pixelSize: 13
                     lineHeight: 1.55
@@ -357,10 +412,23 @@ Window {
                 }
 
                 Text {
-                    visible: bubble.chinese !== ""
+                    visible: bubble.senses.length === 0 && bubble.chinese !== ""
                     width: parent.width
                     topPadding: 5
                     text: bubble.chinese
+                    textFormat: Text.PlainText
+                    color: Tokens.text
+                    font.pixelSize: 12
+                    lineHeight: 1.5
+                    wrapMode: Text.Wrap
+                }
+
+                Text {
+                    visible: bubble.senses.length === 0 && bubble.translation !== ""
+                    width: parent.width
+                    topPadding: 5
+                    text: bubble.translation
+                    textFormat: Text.PlainText
                     color: Tokens.text
                     font.pixelSize: 12
                     lineHeight: 1.5

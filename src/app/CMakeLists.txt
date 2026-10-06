@@ -18,6 +18,7 @@ add_library(lens_app STATIC
   cost_duty.cpp
   explanation_duty.h
   explanation_duty.cpp
+  mouse_selection_hook.h
   mouse_selection_hook.cpp
   selection_text_grabber.cpp
   storage_duty.h
@@ -38,7 +39,7 @@ target_include_directories(lens_app PUBLIC ${CMAKE_SOURCE_DIR}/src)
 # linking the module: that now includes lens_gtest_integration, which used to need no QML.
 target_link_libraries(lens_app
   PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Quick lens_llm
-  PRIVATE lens_core lens_util
+  PRIVATE lens_core lens_util lens_capture
 )
 
 # user32 for the hook, SendInput and the clipboard. Not guarded by if(WIN32): this module
@@ -133,6 +134,7 @@ qt_add_qml_module(lens_app
     qml/SettingsCategoryRow.qml
     qml/SettingsLinkRow.qml
     qml/SettingsCatalog.qml
+    qml/SettingsBudgetPage.qml
     qml/SettingsGeneralPage.qml
     qml/SettingsLearningPage.qml
     qml/SettingsCapturePage.qml
@@ -146,6 +148,7 @@ qt_add_qml_module(lens_app
     qml/components/Tokens.qml
     qml/theme/Light.qml
     qml/theme/Dark.qml
+    qml/theme/Forest.qml
     qml/theme/Motion.qml
     qml/components/Icon.qml
     qml/components/ShadowCard.qml

@@ -2,27 +2,16 @@ import QtQuick
 
 Item {
     id: root
+    property var settings: Controller.settings
 
     signal childRequested(string route)
-    readonly property var openChildRect: providerField.openChildRect
+    readonly property var openChildRect: providerField.openChildRect || modelField.openChildRect
     implicitHeight: content.implicitHeight
 
     function closeChild() {
         providerField.closeList();
+        modelField.closeList();
     }
-
-    readonly property var providers: [
-        { value: "DeepSeek", label: "DeepSeek", group: qsTranslate("SettingsPopup", "Domestic"), note: "" },
-        { value: "qwen", label: qsTranslate("SettingsPopup", "Qwen"), group: qsTranslate("SettingsPopup", "Domestic"), note: "" },
-        { value: "glm", label: qsTranslate("SettingsPopup", "GLM"), group: qsTranslate("SettingsPopup", "Domestic"), note: "" },
-        { value: "kimi", label: "Kimi", group: qsTranslate("SettingsPopup", "Domestic"), note: "" },
-        { value: "doubao", label: qsTranslate("SettingsPopup", "Doubao"), group: qsTranslate("SettingsPopup", "Domestic"), note: "" },
-        { value: "openai", label: "OpenAI", group: qsTranslate("SettingsPopup", "International"), note: "" },
-        { value: "anthropic", label: "Anthropic", group: qsTranslate("SettingsPopup", "International"), note: "" },
-        { value: "gemini", label: "Google Gemini", group: qsTranslate("SettingsPopup", "International"), note: "" },
-        { value: "openrouter", label: "OpenRouter", group: qsTranslate("SettingsPopup", "Other"), note: "" },
-        { value: "custom", label: qsTranslate("SettingsPopup", "Custom service"), group: qsTranslate("SettingsPopup", "Other"), note: "" }
-    ]
 
     Column {
         id: content
@@ -39,9 +28,10 @@ Item {
             }
             DropdownField {
                 id: providerField
+                objectName: "providerField"
                 width: parent.width
-                options: root.providers
-                currentValue: Controller.settings.provider || "DeepSeek"
+                options: root.settings.providers || []
+                currentValue: root.settings.provider
                 onPicked: (value) => Controller.setProvider(value)
             }
         }
@@ -55,6 +45,7 @@ Item {
                 font.pixelSize: 12
             }
             Rectangle {
+                visible: root.settings.provider === "custom"
                 width: parent.width
                 height: 35
                 radius: Tokens.radiusField
@@ -67,18 +58,34 @@ Item {
                     anchors.leftMargin: 11
                     anchors.rightMargin: 11
                     verticalAlignment: TextInput.AlignVCenter
-                    text: Controller.settings.model
+                    text: root.settings.model
                     color: Tokens.text
                     font.pixelSize: 13
                     selectByMouse: true
                     onEditingFinished: Controller.setModel(text)
                 }
             }
+            DropdownField {
+                id: modelField
+                objectName: "modelField"
+                visible: root.settings.provider !== "custom"
+                width: parent.width
+                options: root.settings.models || []
+                currentValue: root.settings.model
+                onPicked: (value) => Controller.setModel(value)
+            }
+            Text {
+                width: parent.width
+                text: root.settings.modelPrice || ""
+                color: Tokens.muted
+                font.pixelSize: 11
+                wrapMode: Text.Wrap
+            }
         }
 
         SettingsLinkRow {
             label: qsTranslate("SettingsPopup", "API configuration")
-            note: Controller.settings.hasApiKey
+            note: root.settings.hasApiKey
                    ? qsTranslate("SettingsPopup", "Configured")
                    : qsTranslate("SettingsPopup", "Not configured")
             onPicked: root.childRequested("connection")

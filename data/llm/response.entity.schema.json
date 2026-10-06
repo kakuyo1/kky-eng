@@ -13,7 +13,8 @@
         "required": ["en", "zh"],
         "properties": {
           "en": { "type": "string", "description": "One-line English explanation." },
-          "zh": { "type": "string", "description": "One-line Chinese explanation." }
+          "zh": { "type": "string", "description": "One-line Chinese explanation." },
+          "translation": { "type": "string", "minLength": 1, "description": "Explanation in the requested additional language." }
         }
       }
     }

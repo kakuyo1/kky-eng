@@ -2,12 +2,14 @@ import QtQuick
 
 Item {
     id: root
+    property var settings: Controller.settings
 
-    readonly property var openChildRect: levelField.openChildRect
+    readonly property var openChildRect: levelField.openChildRect || languageField.openChildRect
     implicitHeight: content.implicitHeight
 
     function closeChild() {
         levelField.closeList();
+        languageField.closeList();
     }
 
     Column {
@@ -26,8 +28,8 @@ Item {
             DropdownField {
                 id: levelField
                 width: parent.width
-                options: Controller.settings.levels
-                currentValue: Controller.settings.level
+                options: root.settings.levels
+                currentValue: root.settings.level
                 onPicked: (value) => Controller.setLevel(value)
             }
         }
@@ -40,19 +42,20 @@ Item {
                 color: Tokens.muted
                 font.pixelSize: 12
             }
-            Segment {
+            DropdownField {
+                id: languageField
+                objectName: "languageField"
                 width: parent.width
-                height: 31
-                labels: [qsTranslate("SettingsPopup", "English"), qsTranslate("SettingsPopup", "中文")]
-                currentIndex: Controller.settings.explanationLang === "zh" ? 1 : 0
-                onPicked: (index) => Controller.setExplanationLang(index === 1 ? "zh" : "en")
+                options: root.settings.languages || []
+                currentValue: root.settings.explanationLang
+                onPicked: (value) => Controller.setExplanationLang(value)
             }
         }
 
         SwitchRow {
             width: parent.width
             label: qsTranslate("SettingsPopup", "Multiple senses")
-            checked: Controller.settings.multiSense
+            checked: root.settings.multiSense
             onToggled: (on) => Controller.setMultiSense(on)
         }
     }

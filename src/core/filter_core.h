@@ -103,6 +103,9 @@ struct Candidate {
  * @param minFreqRank  Difficulty cut-off: a lemma ranked at or above it is recorded as
  *                     CandidateState::Mastered. The level-to-rank mapping is not settled
  *                     yet; see TODO.md.
+ * @param minimumLength Minimum continuous-prose token length, clamped to 2..5. The explicit
+ *                      single-token path remains exempt from this floor.
+ * @param allowExplicitToken Whether a lone token may use the explicit-selection exemption.
  * @return Every surviving word, in order of first appearance, de-duplicated by lemma.
  *         An empty vector means the excerpt holds no word from the static list at all.
  * @throws std::logic_error If loadWordlist() or loadIrregulars() has not run yet.
@@ -110,7 +113,9 @@ struct Candidate {
 std::vector<Candidate> filterWords(
     std::string_view text,
     const std::unordered_set<std::string>& knownLemmas,
-    std::size_t minFreqRank);
+    std::size_t minFreqRank,
+    int minimumLength       = 3,
+    bool allowExplicitToken = true);
 
 /// @brief What a finished selection turned out to be, which decides the channel it takes.
 ///

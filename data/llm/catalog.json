@@ -1,0 +1,27 @@
+{
+  "defaultProvider": "DeepSeek",
+  "languages": [
+    {"value": "en", "label": "English", "group": "", "note": ""},
+    {"value": "zh", "label": "中文", "group": "", "note": ""},
+    {"value": "es", "label": "Español", "group": "", "note": ""},
+    {"value": "ja", "label": "日本語", "group": "", "note": ""}
+  ],
+  "providers": [
+    {
+      "value": "DeepSeek", "label": "DeepSeek", "group": "Domestic", "note": "",
+      "baseUrl": "https://api.deepseek.com", "defaultModel": "deepseek-flash",
+      "models": ["deepseek-flash", "deepseek-v4-pro"],
+      "requestOverrides": {"thinking": {"type": "disabled"}}
+    },
+    {
+      "value": "openai", "label": "OpenAI", "group": "International", "note": "",
+      "baseUrl": "https://api.openai.com/v1", "defaultModel": "gpt-4.1-mini",
+      "models": ["gpt-4.1-mini", "gpt-4.1-nano"],
+      "requestOverrides": {"thinking": null}
+    },
+    {
+      "value": "custom", "label": "Custom service", "group": "Other", "note": "",
+      "models": [], "requestOverrides": {"thinking": null}
+    }
+  ]
+}

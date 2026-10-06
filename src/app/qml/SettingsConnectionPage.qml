@@ -2,6 +2,7 @@ import QtQuick
 
 Item {
     id: page
+    property var settings: Controller.settings
 
     property var draftOwner
     readonly property string apiDraft: draftOwner ? draftOwner.apiDraft : ""
@@ -53,7 +54,7 @@ Item {
                     anchors.rightMargin: 11
                     verticalAlignment: Text.AlignVCenter
                     visible: apiInput.text.length === 0
-                    text: Controller.settings.hasApiKey
+                    text: page.settings.hasApiKey
                           ? "sk-" + "•".repeat(28)
                           : "sk-********************************"
                     color: Tokens.faint
@@ -89,12 +90,20 @@ Item {
                     anchors.leftMargin: 11
                     anchors.rightMargin: 11
                     verticalAlignment: TextInput.AlignVCenter
-                    text: Controller.settings.url
+                    text: page.settings.url
                     color: Tokens.text
                     font.pixelSize: 12
                     selectByMouse: true
                     onEditingFinished: Controller.setApiUrl(text)
                 }
+            }
+            Text {
+                width: parent.width
+                visible: (page.settings.providerDefaultUrl || "") !== ""
+                text: qsTranslate("SettingsPopup", "Provider default: %1").arg(page.settings.providerDefaultUrl || "")
+                color: Tokens.muted
+                font.pixelSize: 11
+                wrapMode: Text.Wrap
             }
         }
     }

@@ -1,0 +1,18 @@
+Lens OCR redistribution notice
+===============================
+
+This installer includes the Tesseract OCR command-line runtime and the English
+traineddata file under the ocr/ directory.
+
+Tesseract OCR
+-------------
+Tesseract OCR is distributed under the Apache License, Version 2.0. The
+complete license text is included beside this notice as LICENSE.
+
+Tesseract uses Leptonica for image loading. Leptonica is distributed under the
+BSD 2-Clause License. The Tesseract distribution used to build this installer
+also supplies the native dependency DLLs in this directory; their copyright
+and license notices remain those of their respective upstream projects.
+
+The Lens application invokes this bundled runtime from its installed ocr/
+directory and does not use a system PATH installation for release builds.

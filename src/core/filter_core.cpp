@@ -404,7 +404,9 @@ std::string lemmatize(std::string_view token)
 std::vector<Candidate> filterWords(
     std::string_view text,
     const std::unordered_set<std::string>& knownLemmas,
-    std::size_t minFreqRank)
+    std::size_t minFreqRank,
+    int minimumLength,
+    bool allowExplicitToken)
 {
     if (!g_irregularsLoaded)
         throw std::logic_error("lens::core::filterWords: loadIrregulars() must run first");
@@ -421,19 +423,21 @@ std::vector<Candidate> filterWords(
     // identifiers, and qml has no vowel either. In continuous prose those runs are still handled
     // by the ordinary gates; only a selection that is exactly this token qualifies (see
     // check-eval-corpus.py's lone-token rule and test/eval_corpus.json).
-    if (const std::string_view token = loneToken(text); !token.empty()) {
-        const std::string surface  = lower(token);
-        const std::string lemma    = lemmatize(surface); // RUNNING -> run; an acronym stands as-is
-        const CandidateState state = knownLemmas.count(lemma) != 0                    ? CandidateState::Known
-                                     : inTable(lemma) && rankOf(lemma) <= minFreqRank ? CandidateState::Mastered
-                                                                                      : CandidateState::New;
-        LENS_TRACE("filterWords: lone token '{}' -> surface='{}' lemma='{}' state={}",
-                   token,
-                   surface,
-                   lemma,
-                   static_cast<int>(state));
-        out.push_back({surface, lemma, state});
-        return out;
+    if (allowExplicitToken) {
+        if (const std::string_view token = loneToken(text); !token.empty()) {
+            const std::string surface  = lower(token);
+            const std::string lemma    = lemmatize(surface); // RUNNING -> run; an acronym stands as-is
+            const CandidateState state = knownLemmas.count(lemma) != 0                    ? CandidateState::Known
+                                         : inTable(lemma) && rankOf(lemma) <= minFreqRank ? CandidateState::Mastered
+                                                                                          : CandidateState::New;
+            LENS_TRACE("filterWords: lone token '{}' -> surface='{}' lemma='{}' state={}",
+                       token,
+                       surface,
+                       lemma,
+                       static_cast<int>(state));
+            out.push_back({surface, lemma, state});
+            return out;
+        }
     }
 
     const std::size_t size = text.size();
@@ -470,7 +474,7 @@ std::vector<Candidate> filterWords(
                 break;
             }
         if (glued) continue;
-        if (tok.size() < 3) continue;
+        if (tok.size() < static_cast<std::size_t>(std::clamp(minimumLength, 2, 5))) continue;
 
         bool allCaps = true;
         for (char c : tok)

@@ -31,6 +31,12 @@ struct HistoryEntry {
     std::string verdict; ///< Empty until marked, then "known" or "new".
 };
 
+/// @brief Token usage attributed to one model on one day.
+struct ModelUsage {
+    long long promptTokens     = 0;
+    long long completionTokens = 0;
+};
+
 /// @brief One day's tallies, for the statistics and cost popups.
 struct DailyUsage {
     int pops                   = 0;
@@ -38,7 +44,11 @@ struct DailyUsage {
     int fresh                  = 0;
     long long promptTokens     = 0;
     long long completionTokens = 0;
+    std::map<std::string, ModelUsage> models;
 };
+
+/// @brief Bucket name used when an old document has no model identity.
+inline constexpr const char* kLegacyUsageModel = "__legacy__";
 
 /// @brief Which rows a words export covers.
 /// @note The three values are the words popup's own filter (UI.md section 4.7), so what a
@@ -108,6 +118,26 @@ public:
     /// @brief Add one response's token usage to its day.
     void recordUsage(const std::string& minute, long long promptTokens, long long completionTokens);
 
+    /// @brief Add one response's token usage to its day and model bucket.
+    void recordUsage(const std::string& minute,
+                     long long promptTokens,
+                     long long completionTokens,
+                     std::string model);
+
+    /// @brief Remove all history rows for a lemma while preserving token usage and budget.
+    /// @return True when at least one history row was removed.
+    bool removeLemma(const std::string& lemma);
+
+    /// @return The daily budget in display currency; zero means no cap.
+    double dailyBudget() const
+    {
+        return dailyBudget_;
+    }
+
+    /// @brief Set the daily budget in display currency.
+    /// @return False when @p amount is not finite or is negative.
+    bool setDailyBudget(double amount);
+
     /// @return The history, newest first.
     const std::vector<HistoryEntry>& history() const
     {
@@ -127,6 +157,7 @@ private:
     nlohmann::json& doc_;
     std::vector<HistoryEntry> history_; ///< Newest first, same order as the document.
     std::map<std::string, DailyUsage> daily_;
+    double dailyBudget_ = 0.0;
 };
 
 }

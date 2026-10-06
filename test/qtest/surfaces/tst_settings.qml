@@ -40,6 +40,7 @@ Item {
         function cleanup() {
             Controller.setClipboardPolicy("topmost");
             Controller.setPopupFrequency("standard");
+            Controller.setDailyBudget(0);
         }
 
         function settingsPanel(main) {
@@ -129,6 +130,22 @@ Item {
             compare(Controller.settings.clipboardPolicy, "silent",
                     "the pick did not reach setClipboardPolicy");
             compare(segment.currentIndex, 1, "the segment did not follow the policy it wrote");
+        }
+
+        function test_theDailyBudgetIsReachableAndPersistsThroughTheController() {
+            const main = make();
+            main.showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "Daily budget");
+
+            const page = Util.ofType(panel, "SettingsBudgetPage");
+            verify(page, "the settings catalog has no daily budget page");
+            compare(page.dailyBudget, Controller.settings.dailyBudget);
+
+            Controller.setDailyBudget(1.25);
+            wait(20);
+            compare(Controller.settings.dailyBudget, 1.25);
+            compare(page.dailyBudget, 1.25);
         }
     }
 }

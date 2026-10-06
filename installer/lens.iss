@@ -68,3 +68,45 @@ Type: filesandordirs; Name: "{app}\logs"
 
 [Run]
 Filename: "{app}\lens.exe"; Description: "{cm:LaunchProgram,Lens}"; Flags: nowait postinstall skipifsilent
+
+[Code]
+const
+  LensBackground = $00EFEBE9;
+  LensPanel = $00FFFFFF;
+  LensText = $001F1A1A;
+  LensMuted = $006F6666;
+
+procedure StyleLabel(const ALabel: TNewStaticText; const ASize: Integer; const AColor: TColor);
+begin
+  ALabel.Font.Name := 'Segoe UI Variable';
+  ALabel.Font.Size := ASize;
+  ALabel.Font.Color := AColor;
+end;
+
+procedure InitializeWizard;
+begin
+  { Keep the wizard in the same restrained neutral visual language as Lens. }
+  WizardForm.Font.Name := 'Segoe UI Variable';
+  WizardForm.Font.Size := 9;
+  WizardForm.Font.Color := LensText;
+  WizardForm.Color := LensBackground;
+  WizardForm.MainPanel.Color := LensPanel;
+  WizardForm.InnerPage.Color := LensBackground;
+
+  StyleLabel(WizardForm.PageNameLabel, 14, LensText);
+  StyleLabel(WizardForm.PageDescriptionLabel, 9, LensMuted);
+  StyleLabel(WizardForm.WelcomeLabel1, 14, LensText);
+  StyleLabel(WizardForm.WelcomeLabel2, 9, LensMuted);
+  StyleLabel(WizardForm.FinishedHeadingLabel, 14, LensText);
+  StyleLabel(WizardForm.FinishedLabel, 9, LensMuted);
+  StyleLabel(WizardForm.StatusLabel, 9, LensText);
+  StyleLabel(WizardForm.FilenameLabel, 9, LensMuted);
+
+  WizardForm.NextButton.Font.Name := 'Segoe UI Variable';
+  WizardForm.NextButton.Font.Size := 9;
+  WizardForm.BackButton.Font.Name := 'Segoe UI Variable';
+  WizardForm.BackButton.Font.Size := 9;
+  WizardForm.CancelButton.Font.Name := 'Segoe UI Variable';
+  WizardForm.CancelButton.Font.Size := 9;
+
+end;

@@ -22,10 +22,18 @@ namespace lens::llm {
 
 /// @brief Connection settings, loaded from the reader's settings document.
 struct Config {
-    QUrl baseUrl;   ///< OpenAI-format base, e.g. https://api.deepseek.com (no /anthropic).
-    QString apiKey; ///< Bearer token. Never logged, never echoed in errors.
-    QString model;  ///< Model name, e.g. "deepseek-flash".
+    QUrl baseUrl;                 ///< OpenAI-format base, e.g. https://api.deepseek.com (no /anthropic).
+    QString apiKey;               ///< Bearer token. Never logged, never echoed in errors.
+    QString model;                ///< Model name, e.g. "deepseek-flash".
+    QJsonObject requestOverrides; ///< Provider-specific wire options; null removes a default.
 };
+
+/// @brief One frequency-ordered word sense; translation is in the requested output language.
+struct Sense {
+    QString en, zh, translation;
+};
+
+inline constexpr int kMaxSenses = 3;
 
 /// @brief One explanation as returned by the model.
 /// @note `title` is `word` on the word channel and the echoed sentence or entity otherwise.
@@ -33,6 +41,8 @@ struct Config {
 ///       fields (`title`, `en`, `zh`).
 struct Explanation {
     QString title, ipa, en, zh;
+    QString translation;
+    QVector<Sense> senses;
 };
 
 /// @brief Token counts the service reports for one call, for the cost surfaces.
@@ -42,6 +52,7 @@ struct Explanation {
 struct Usage {
     int promptTokens     = 0;
     int completionTokens = 0;
+    QString model; ///< Model captured for this request, even if settings changed in flight.
 };
 
 /**
@@ -65,7 +76,7 @@ public:
     /// @param parent  QObject parent.
     explicit LlmClient(Config config, QNetworkAccessManager* manager = nullptr, QObject* parent = nullptr);
 
-    /// @brief Set the explanation language, "en" or "zh".
+    /// @brief Set an explanation language from the loaded catalog.
     ///
     /// The language only switches the closing line of the system prompt. It is
     /// a setter rather than a Config field because the reader can change it at
@@ -81,6 +92,10 @@ public:
     /// @brief Replace the bearer token used by subsequent requests without logging it.
     void setApiKey(const QString& apiKey);
 
+    /// @brief Apply a catalog provider's endpoint, default model and wire options.
+    /// @return False for an unknown provider; custom retains the current endpoint and model.
+    bool setProvider(QString const& provider);
+
     /// @brief Set which protocol the next request speaks.
     ///
     /// The channel is decided locally, before anything is sent, and selects the request
@@ -95,6 +110,12 @@ public:
     QString model() const
     {
         return config_.model;
+    }
+
+    /// @return The endpoint used by subsequent requests, without exposing the bearer token.
+    QUrl baseUrl() const
+    {
+        return config_.baseUrl;
     }
 
 signals:

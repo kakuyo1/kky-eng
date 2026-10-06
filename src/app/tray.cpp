@@ -45,7 +45,7 @@ bool taskbarIsDark()
 } // namespace
 
 Tray::Tray(AppController& controller, QObject* parent)
-    : QObject(parent), controller_(controller), icon_(new QSystemTrayIcon(this))
+    : QObject(parent), controller_(controller), icon_(new QSystemTrayIcon(this)), budgetRefreshTimer_(this)
 {
     connect(icon_, &QSystemTrayIcon::activated, this, [this](QSystemTrayIcon::ActivationReason reason) {
         if (reason == QSystemTrayIcon::Trigger || reason == QSystemTrayIcon::Context) {
@@ -65,6 +65,12 @@ Tray::Tray(AppController& controller, QObject* parent)
     // The reader can switch Windows between light and dark while the app runs, and the icon
     // is drawn for one of the two.
     connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, this, [this] { refresh(); });
+
+    // No controller signal is guaranteed at midnight. Polling this shell-only state prevents
+    // yesterday's exhausted icon from lingering into a new local day.
+    budgetRefreshTimer_.setInterval(60 * 1000);
+    connect(&budgetRefreshTimer_, &QTimer::timeout, this, &Tray::refresh);
+    budgetRefreshTimer_.start();
 
     refresh();
 }
@@ -117,6 +123,8 @@ QRect Tray::geometry() const
 
 Tray::State Tray::state() const
 {
+    if (controller_.stats().value("budgetExhausted").toBool())
+        return State::Budget;
     if (!controller_.busyLabel().isEmpty())
         return State::Busy;
     return controller_.settings().value("selectionCapture").toBool() ? State::Auto : State::Off;
@@ -133,6 +141,9 @@ void Tray::refresh()
             break;
         case State::Off:
             icon_->setIcon(iconFor("off", taskbarIsDark()));
+            break;
+        case State::Budget:
+            icon_->setIcon(iconFor("budget", taskbarIsDark()));
             break;
     }
 

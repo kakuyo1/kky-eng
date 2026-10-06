@@ -3,6 +3,7 @@
 #include "util/text.h"
 
 #include <algorithm>
+#include <cmath>
 #include <unordered_set>
 
 namespace lens::core {
@@ -33,6 +34,16 @@ DailyUsage dailyFromJson(const nlohmann::json& j)
     day.fresh            = j.value("fresh", 0);
     day.promptTokens     = j.value("promptTokens", 0LL);
     day.completionTokens = j.value("completionTokens", 0LL);
+    if (j.contains("models") && j["models"].is_object()) {
+        for (auto it = j["models"].begin(); it != j["models"].end(); ++it) {
+            if (!it.value().is_object())
+                continue;
+            day.models[it.key()] = ModelUsage{it.value().value("promptTokens", 0LL),
+                                              it.value().value("completionTokens", 0LL)};
+        }
+    }
+    if (day.models.empty() && (day.promptTokens != 0 || day.completionTokens != 0))
+        day.models[kLegacyUsageModel] = ModelUsage{day.promptTokens, day.completionTokens};
     return day;
 }
 
@@ -41,6 +52,12 @@ DailyUsage dailyFromJson(const nlohmann::json& j)
 StatsStore::StatsStore(nlohmann::json& document)
     : doc_(document)
 {
+    if (doc_.contains("dailyBudget") && doc_["dailyBudget"].is_number()) {
+        const double amount = doc_["dailyBudget"].get<double>();
+        if (std::isfinite(amount) && amount >= 0.0)
+            dailyBudget_ = amount;
+    }
+
     if (doc_.contains("history") && doc_["history"].is_array()) {
         for (const nlohmann::json& entry : doc_["history"]) {
             if (!entry.is_object())
@@ -108,10 +125,56 @@ void StatsStore::recordVerdict(const std::string& lemma, std::string minute, std
 
 void StatsStore::recordUsage(const std::string& minute, long long promptTokens, long long completionTokens)
 {
+    recordUsage(minute, promptTokens, completionTokens, kLegacyUsageModel);
+}
+
+void StatsStore::recordUsage(const std::string& minute,
+                             long long promptTokens,
+                             long long completionTokens,
+                             std::string model)
+{
+    if (model.empty())
+        model = kLegacyUsageModel;
     DailyUsage& day = daily_[util::datePart(minute)];
     day.promptTokens += promptTokens;
     day.completionTokens += completionTokens;
+    auto& bucket = day.models[std::move(model)];
+    bucket.promptTokens += promptTokens;
+    bucket.completionTokens += completionTokens;
     writeBack();
+}
+
+bool StatsStore::setDailyBudget(double amount)
+{
+    if (!std::isfinite(amount) || amount < 0.0)
+        return false;
+    dailyBudget_ = amount;
+    writeBack();
+    return true;
+}
+
+bool StatsStore::removeLemma(const std::string& lemma)
+{
+    bool removed = false;
+    for (const auto& entry : history_) {
+        if (entry.lemma != lemma)
+            continue;
+        auto const day = daily_.find(util::datePart(entry.minute));
+        if (day != daily_.end()) {
+            day->second.pops = util::clampedAdd(day->second.pops, -1);
+            tallyVerdict(day->second, entry.verdict, -1);
+        }
+        removed = true;
+    }
+    if (!removed)
+        return false;
+
+    history_.erase(std::remove_if(history_.begin(), history_.end(), [&](const HistoryEntry& entry) {
+                       return entry.lemma == lemma;
+                   }),
+                   history_.end());
+    writeBack();
+    return true;
 }
 
 std::string exportLemmas(const std::vector<HistoryEntry>& history, ExportScope scope)
@@ -144,13 +207,18 @@ void StatsStore::writeBack()
 
     nlohmann::json daily = nlohmann::json::object();
     for (const auto& [date, day] : daily_) {
-        daily[date] = {{"pops", day.pops},
-                       {"learned", day.learned},
-                       {"fresh", day.fresh},
-                       {"promptTokens", day.promptTokens},
-                       {"completionTokens", day.completionTokens}};
+        daily[date]           = {{"pops", day.pops},
+                                 {"learned", day.learned},
+                                 {"fresh", day.fresh},
+                                 {"promptTokens", day.promptTokens},
+                                 {"completionTokens", day.completionTokens}};
+        daily[date]["models"] = nlohmann::json::object();
+        for (const auto& [model, usage] : day.models)
+            daily[date]["models"][model] = {{"promptTokens", usage.promptTokens},
+                                            {"completionTokens", usage.completionTokens}};
     }
-    doc_["daily"] = std::move(daily);
+    doc_["daily"]       = std::move(daily);
+    doc_["dailyBudget"] = dailyBudget_;
 }
 
 }

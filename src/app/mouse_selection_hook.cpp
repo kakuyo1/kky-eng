@@ -6,6 +6,8 @@
 #include "mouse_selection_hook.h"
 
 #include <cstdlib>
+#include <atomic>
+#include <cstdint>
 #include <condition_variable>
 #include <functional>
 #include <mutex>
@@ -13,6 +15,7 @@
 #include <thread>
 
 #include "core/log.h"
+#include "capture/capture_policy.h"
 
 // Last, after everything else: windows.h brings a few hundred macros with it (min and max
 // among them), and including it first would let them loose on the standard library.
@@ -27,10 +30,7 @@ namespace {
  * Windows hands it no user data, so it has nothing to reach an instance through.
  */
 struct GestureTracker {
-    // Read from the system once, in install(). A reader who changes Mouse Properties while
-    // the app runs keeps the old values until it restarts; ponytail: not worth a
-    // WM_SETTINGCHANGE handler for a number nobody retunes mid-session.
-    int dragSlopPx     = 4; ///< max(SM_CXDRAG, SM_CYDRAG).
+    std::atomic<int> dragSlopPx{4};
     int downX          = 0;
     int downY          = 0;
     bool overOwnWindow = false; ///< The press landed on a surface of this process.
@@ -52,7 +52,7 @@ struct GestureTracker {
         if (overOwnWindow) return std::nullopt;
 
         const Gesture gesture{downX, downY, x, y};
-        if (!isSelectionGesture(gesture, dragSlopPx)) return std::nullopt;
+        if (!isSelectionGesture(gesture, dragSlopPx.load(std::memory_order_relaxed))) return std::nullopt;
         return QPoint(x, y);
     }
 };
@@ -187,9 +187,20 @@ void hookThreadMain()
 
 bool isSelectionGesture(const Gesture& gesture, int dragSlopPx)
 {
-    const int dx = std::abs(gesture.upX - gesture.downX);
-    const int dy = std::abs(gesture.upY - gesture.downY);
-    return dx >= dragSlopPx || dy >= dragSlopPx;
+    const auto dx = std::int64_t{gesture.upX} - gesture.downX;
+    const auto dy = std::int64_t{gesture.upY} - gesture.downY;
+    return capture::exceedsDragThreshold(dx, dy, dragSlopPx);
+}
+
+void MouseSelectionHook::setDragThreshold(int const pixels)
+{
+    if (pixels == 2 or pixels == 4 or pixels == 8)
+        g_tracker.dragSlopPx.store(pixels, std::memory_order_relaxed);
+}
+
+int MouseSelectionHook::dragThreshold() const
+{
+    return g_tracker.dragSlopPx.load(std::memory_order_relaxed);
 }
 
 MouseSelectionHook::MouseSelectionHook(QObject* parent)
@@ -214,12 +225,7 @@ bool MouseSelectionHook::install()
 {
     if (installed_) return true;
 
-    // Read on this thread, before the hook starts: the tracker is touched only by the callback
-    // afterwards, and starting the thread is what publishes these values to it.
-    const int dragX      = GetSystemMetrics(SM_CXDRAG);
-    const int dragY      = GetSystemMetrics(SM_CYDRAG);
-    g_tracker.dragSlopPx = dragX > dragY ? dragX : dragY;
-    g_owner              = this;
+    g_owner = this;
     {
         std::unique_lock<std::mutex> lock(g_startMutex);
         g_startDone  = false;
@@ -235,7 +241,7 @@ bool MouseSelectionHook::install()
     }
 
     installed_ = true;
-    LENS_INFO("MouseSelectionHook::install: listening on its own thread (drag slop {} px; click-to-select disabled)", g_tracker.dragSlopPx);
+    LENS_INFO("MouseSelectionHook::install: listening on its own thread (drag slop {} px; click-to-select disabled)", dragThreshold());
     return true;
 }
 

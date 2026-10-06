@@ -180,6 +180,33 @@ TEST_F(StatsStoreTest, SaveKeepsBothStoresKeys)
     EXPECT_EQ(stats.history()[0].lemma, "resilience");
 }
 
+TEST_F(StatsStoreTest, RemovingWordClearsMarksCachesAndHistoryButKeepsUsage)
+{
+    auto store = KnownStore::load(path);
+    store.mark("apple", true);
+    store.cachePut("apple", {"/a/", "apple", "苹果"}, {"en", false});
+    store.cachePut("apple", {"/a/", "apple", "苹果", {}, {{"apple", "苹果", {}}}}, {"zh", true});
+
+    StatsStore stats(store.document());
+    stats.recordPop("apple", "2026-10-03 09:00");
+    stats.recordVerdict("apple", "2026-10-03 09:01", "known");
+    stats.recordUsage("2026-10-03 09:02", 1200, 300, "deepseek-flash");
+    ASSERT_TRUE(store.removeLemma("apple"));
+    ASSERT_TRUE(stats.removeLemma("apple"));
+    store.save();
+
+    auto reloaded = KnownStore::load(path);
+    StatsStore reloadedStats(reloaded.document());
+    EXPECT_FALSE(reloaded.isKnown("apple"));
+    EXPECT_FALSE(reloaded.cacheGet("apple", {"en", false}));
+    EXPECT_FALSE(reloaded.cacheGet("apple", {"zh", true}));
+    EXPECT_TRUE(reloadedStats.history().empty());
+    ASSERT_EQ(reloadedStats.daily().at("2026-10-03").promptTokens, 1200);
+    EXPECT_EQ(reloadedStats.daily().at("2026-10-03").completionTokens, 300);
+    EXPECT_EQ(reloadedStats.daily().at("2026-10-03").pops, 0);
+    EXPECT_EQ(reloadedStats.daily().at("2026-10-03").learned, 0);
+}
+
 TEST_F(StatsStoreTest, DropsTheOldestEntriesPastTheCap)
 {
     // Seed the document rather than recording two thousand pops: each record rewrites the
