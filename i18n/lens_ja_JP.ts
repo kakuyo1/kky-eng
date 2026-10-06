@@ -102,50 +102,45 @@
         <translation>OCR ランタイムが利用できません</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="92"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="102"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="96"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="100"/>
         <source>Tesseract executable</source>
         <translation>Tesseract の実行ファイル</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="119"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="129"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="110"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="114"/>
         <source>Tesseract data folder</source>
         <translation>Tesseract のデータフォルダー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="145"/>
-        <source>Leave both empty to use the bundled Tesseract.</source>
-        <translation>両方とも空欄にすると同梱の Tesseract を使います。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="154"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="125"/>
         <source>Minimum word length</source>
         <translation>最小語長</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="173"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="144"/>
         <source>Drag threshold</source>
         <translation>ドラッグのしきい値</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="178"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
         <source>Sensitive</source>
         <translation>敏感</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="178"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
         <source>Standard</source>
         <translation>標準</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="178"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
         <source>Reluctant</source>
         <translation>鈍め</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="188"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="198"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="159"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="169"/>
         <source>Scan whitelist</source>
         <translation>スキャン対象プロセス</translation>
     </message>

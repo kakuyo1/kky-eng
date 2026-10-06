@@ -149,14 +149,14 @@ bool AppController::setScanWhitelist(QString processes)
     return capture_.setScanWhitelist(std::move(processes));
 }
 
-void AppController::setTesseractExecutable(QString executable)
+void AppController::setTesseractExecutable(QUrl executable)
 {
-    capture_.setTesseractExecutable(std::move(executable));
+    capture_.setTesseractExecutable(executable.toLocalFile());
 }
 
-void AppController::setTesseractDataDirectory(QString directory)
+void AppController::setTesseractDataDirectory(QUrl directory)
 {
-    capture_.setTesseractDataDirectory(std::move(directory));
+    capture_.setTesseractDataDirectory(directory.toLocalFile());
 }
 
 void AppController::restoreCaptureDefaults()

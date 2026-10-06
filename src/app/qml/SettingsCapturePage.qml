@@ -85,31 +85,23 @@ Item {
         }
 
         // The bundled runtime is what the installer lays down; these two are for a reader who
-        // already keeps their own Tesseract and would rather point at it.
+        // already keeps their own Tesseract and would rather point at it. Each is chosen rather
+        // than typed -- the path is picked in the system's own dialog and shown here, and the
+        // folder glyph at its right end is what says so. An unchosen one draws what it will
+        // resolve to, in the faint colour a placeholder uses, so the reader can see where OCR
+        // looks before deciding to move it. `Defaults` in the footer is the way back to that.
         Column {
             width: parent.width
             spacing: 7
             Text { text: qsTr("Tesseract executable"); color: Tokens.muted; font.pixelSize: 12 }
-            TextField {
+            PathField {
                 id: tesseractField
-                objectName: "tesseractExecutable"
                 width: parent.width
-                text: Controller.settings.tesseractExecutable
-                font.pixelSize: 12
-                color: Tokens.text
-                selectByMouse: true
-                maximumLength: 260
-                Accessible.name: qsTr("Tesseract executable")
-                background: Rectangle {
-                    radius: Tokens.radiusField
-                    color: Tokens.panel2
-                    border.width: 1
-                    border.color: tesseractField.activeFocus ? Tokens.ink : Tokens.line
-                }
-                onEditingFinished: {
-                    Controller.setTesseractExecutable(text);
-                    text = Qt.binding(() => Controller.settings.tesseractExecutable);
-                }
+                objectName: "tesseractExecutable"
+                label: qsTr("Tesseract executable")
+                path: Controller.settings.tesseractExecutable
+                fallback: Controller.settings.resolvedTesseractExecutable
+                onChosen: (picked) => Controller.setTesseractExecutable(picked)
             }
         }
 
@@ -117,35 +109,16 @@ Item {
             width: parent.width
             spacing: 7
             Text { text: qsTr("Tesseract data folder"); color: Tokens.muted; font.pixelSize: 12 }
-            TextField {
+            PathField {
                 id: tesseractDataField
-                objectName: "tesseractDataDirectory"
                 width: parent.width
-                text: Controller.settings.tesseractDataDirectory
-                font.pixelSize: 12
-                color: Tokens.text
-                selectByMouse: true
-                maximumLength: 260
-                Accessible.name: qsTr("Tesseract data folder")
-                background: Rectangle {
-                    radius: Tokens.radiusField
-                    color: Tokens.panel2
-                    border.width: 1
-                    border.color: tesseractDataField.activeFocus ? Tokens.ink : Tokens.line
-                }
-                onEditingFinished: {
-                    Controller.setTesseractDataDirectory(text);
-                    text = Qt.binding(() => Controller.settings.tesseractDataDirectory);
-                }
+                objectName: "tesseractDataDirectory"
+                label: qsTr("Tesseract data folder")
+                path: Controller.settings.tesseractDataDirectory
+                fallback: Controller.settings.resolvedTesseractDataDirectory
+                folder: true
+                onChosen: (picked) => Controller.setTesseractDataDirectory(picked)
             }
-        }
-
-        Text {
-            width: parent.width
-            text: qsTr("Leave both empty to use the bundled Tesseract.")
-            color: Tokens.faint
-            font.pixelSize: 11
-            wrapMode: Text.WordWrap
         }
 
         Column {

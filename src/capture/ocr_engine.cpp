@@ -21,20 +21,8 @@ constexpr qsizetype kMaxError  = 64 * 1024;
 
 struct TesseractOcr final : OcrEngine {
     explicit TesseractOcr(TesseractConfig const& config_)
-        : config{config_}
-    {
-        config.timeoutMs = std::clamp(config.timeoutMs, 100, 30000);
-        if (config.executable.isEmpty()) {
-            auto const bundled = QDir{QCoreApplication::applicationDirPath()}.filePath(QStringLiteral("ocr/tesseract.exe"));
-            config.executable  = QFileInfo::exists(bundled) ? bundled : QString{};
-#ifdef LENS_OCR_DEV_PATH_FALLBACK
-            if (config.executable.isEmpty())
-                config.executable = QStandardPaths::findExecutable(QStringLiteral("tesseract"));
-#endif
-        }
-        if (config.dataDirectory.isEmpty() and not config.executable.isEmpty())
-            config.dataDirectory = QFileInfo{config.executable}.dir().filePath(QStringLiteral("tessdata"));
-    }
+        : config{resolveTesseract(config_)}
+    {}
 
     OcrStatus resourceStatus() const
     {
@@ -143,6 +131,22 @@ struct TesseractOcr final : OcrEngine {
     TesseractConfig config;
 };
 
+}
+
+TesseractConfig resolveTesseract(TesseractConfig config)
+{
+    config.timeoutMs = std::clamp(config.timeoutMs, 100, 30000);
+    if (config.executable.isEmpty()) {
+        auto const bundled = QDir{QCoreApplication::applicationDirPath()}.filePath(QStringLiteral("ocr/tesseract.exe"));
+        config.executable  = QFileInfo::exists(bundled) ? bundled : QString{};
+#ifdef LENS_OCR_DEV_PATH_FALLBACK
+        if (config.executable.isEmpty())
+            config.executable = QStandardPaths::findExecutable(QStringLiteral("tesseract"));
+#endif
+    }
+    if (config.dataDirectory.isEmpty() and not config.executable.isEmpty())
+        config.dataDirectory = QFileInfo{config.executable}.dir().filePath(QStringLiteral("tessdata"));
+    return config;
 }
 
 std::unique_ptr<OcrEngine> makeTesseractOcr(TesseractConfig const& config)

@@ -40,6 +40,19 @@ struct OcrEngine {
     virtual OcrResult recognize(QImage const& image, std::shared_ptr<std::atomic_bool> cancel = {}) const = 0;
 };
 
+/**
+ * @brief Fill in what an empty TesseractConfig resolves to.
+ *
+ * The engine does this to its own copy when it is built. It is public so that a surface can show
+ * the reader the paths that will actually be used: an empty setting means the bundled runtime,
+ * and the reader has to be able to see which runtime that is before deciding to point elsewhere.
+ *
+ * @param config Executable and data directory as configured; either may be empty.
+ * @return The same config with the bundled fallbacks filled in. Both may still be empty when there
+ *         is no bundled runtime to resolve to.
+ */
+TesseractConfig resolveTesseract(TesseractConfig config);
+
 std::unique_ptr<OcrEngine> makeTesseractOcr(TesseractConfig const& config = {});
 /// @return Cheap deterministic hash of grayscale pixels, excluding padding and image metadata.
 std::uint64_t pixelFingerprint(QImage const& image);

@@ -102,50 +102,45 @@
         <translation>El entorno de OCR no está disponible</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="92"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="102"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="96"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="100"/>
         <source>Tesseract executable</source>
         <translation>Ejecutable de Tesseract</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="119"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="129"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="110"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="114"/>
         <source>Tesseract data folder</source>
         <translation>Carpeta de datos de Tesseract</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="145"/>
-        <source>Leave both empty to use the bundled Tesseract.</source>
-        <translation>Deja ambos campos vacíos para usar el Tesseract incluido.</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="154"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="125"/>
         <source>Minimum word length</source>
         <translation>Longitud mínima de palabra</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="173"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="144"/>
         <source>Drag threshold</source>
         <translation>Umbral de arrastre</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="178"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
         <source>Sensitive</source>
         <translation>Sensible</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="178"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
         <source>Standard</source>
         <translation>Estándar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="178"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
         <source>Reluctant</source>
         <translation>Reacio</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="188"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="198"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="159"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="169"/>
         <source>Scan whitelist</source>
         <translation>Lista blanca de escaneo</translation>
     </message>

@@ -159,6 +159,7 @@ qt_add_qml_module(lens_app
     qml/components/StatRow.qml
     qml/components/DropdownField.qml
     qml/components/MenuRow.qml
+    qml/components/PathField.qml
     qml/components/MixedText.qml
 )
 
@@ -194,6 +195,7 @@ set(LENS_ICONS
   ${CMAKE_SOURCE_DIR}/icons/ui-copy.svg
   ${CMAKE_SOURCE_DIR}/icons/ui-explain.svg
   ${CMAKE_SOURCE_DIR}/icons/ui-export.svg
+  ${CMAKE_SOURCE_DIR}/icons/ui-folder.svg
   ${CMAKE_SOURCE_DIR}/icons/ui-language.svg
   ${CMAKE_SOURCE_DIR}/icons/ui-quit.svg
   ${CMAKE_SOURCE_DIR}/icons/ui-settings.svg

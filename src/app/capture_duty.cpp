@@ -97,6 +97,11 @@ QVariantMap CaptureDuty::settings() const
             {"dragSensitivity", sensitivity},
             {"tesseractExecutable", storage_.documentString("tesseractExecutable", QString{})},
             {"tesseractDataDirectory", storage_.documentString("tesseractDataDirectory", QString{})},
+            // What an empty setting resolves to, for the surface that shows the reader where OCR
+            // will look. Resolved through the engine's own function so the answer on screen cannot
+            // drift from the path the process is actually started with.
+            {"resolvedTesseractExecutable", capture::resolveTesseract(storedTesseractConfig(storage_)).executable},
+            {"resolvedTesseractDataDirectory", capture::resolveTesseract(storedTesseractConfig(storage_)).dataDirectory},
             {"scanWhitelist", storage_.documentString("scanWhitelist", QStringLiteral("chrome.exe;msedge.exe;firefox.exe;AcroRd32.exe"))}};
 }
 

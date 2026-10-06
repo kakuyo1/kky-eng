@@ -102,50 +102,45 @@
         <translation>OCR 运行时不可用</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="92"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="102"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="96"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="100"/>
         <source>Tesseract executable</source>
         <translation>Tesseract 可执行文件</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="119"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="129"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="110"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="114"/>
         <source>Tesseract data folder</source>
         <translation>Tesseract 数据目录</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="145"/>
-        <source>Leave both empty to use the bundled Tesseract.</source>
-        <translation>两项都留空则使用随包附带的 Tesseract。</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="154"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="125"/>
         <source>Minimum word length</source>
         <translation>最小词长</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="173"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="144"/>
         <source>Drag threshold</source>
         <translation>拖拽阈值</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="178"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
         <source>Sensitive</source>
         <translation>灵敏</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="178"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
         <source>Standard</source>
         <translation>标准</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="178"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
         <source>Reluctant</source>
         <translation>迟钝</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="188"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="198"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="159"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="169"/>
         <source>Scan whitelist</source>
         <translation>扫描白名单</translation>
     </message>
