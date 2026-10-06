@@ -15,7 +15,7 @@ QtObject {
     readonly property color line2: "#e6e9ee"
     readonly property color text: "#1a1a1f"
     readonly property color muted: "#66666f"
-    readonly property color faint: "#9d9da8"
+    readonly property color faint: "#73737d"
     readonly property color ok: "#2f9e6e"
     readonly property color okBg: "#e6f4ee"
     readonly property color okText: "#1d7a52"

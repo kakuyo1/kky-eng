@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include <nlohmann/json.hpp>
 
@@ -21,14 +22,23 @@
 
 namespace lens::core {
 
-/// @brief A cached explanation for one lemma, in one explanation language.
-/// @note `ipa` is required, not optional: a bubble drawn from the cache shows the word and its
-///       pronunciation, and an entry without one would be a bubble missing a field that the
-///       model always sends. An entry that has no `ipa` is therefore not a cache entry at all,
-///       which is how a document written before the field existed heals itself (see
-///       KnownStore::load).
+/// @brief One cached sense, with an optional additional-language translation.
+struct CachedSense {
+    std::string en, zh, translation;
+};
+
+/// @brief Language and sense mode captured when an explanation request began.
+struct CacheContext {
+    std::string language;
+    bool multipleSenses = false;
+};
+
+/// @brief A word's first definition and its ordered senses, in one cache context.
+/// @note Persisted IPA must be present but may be empty; older entries without it miss.
 struct WordCache {
     std::string ipa, en, zh;
+    std::string translation;
+    std::vector<CachedSense> senses;
 };
 
 /**
@@ -67,7 +77,7 @@ public:
     /// @throws std::out_of_range If the level is outside 0..7.
     void setLevel(int);
 
-    /// @return Explanation language: "en" or "zh".
+    /// @return Explanation language code from the service catalog.
     std::string explanationLang() const;
     void setExplanationLang(std::string);
 
@@ -75,6 +85,14 @@ public:
     /// @return The cached entry, or std::nullopt when nothing is cached.
     std::optional<WordCache> cacheGet(const std::string& lemma) const;
     void cachePut(const std::string& lemma, WordCache);
+
+    /// @brief Look up or store an entry with the context captured when the request began.
+    std::optional<WordCache> cacheGet(std::string const& lemma, CacheContext const& context) const;
+    void cachePut(std::string const& lemma, WordCache entry, CacheContext const& context);
+
+    /// @brief Remove a lemma's mark and every cached explanation context.
+    /// @return True when a mark or cache entry was removed.
+    bool removeLemma(std::string const& lemma);
 
     /**
      * @brief The document this store owns, for the section objects that persist beside it.
@@ -109,7 +127,7 @@ private:
     std::unordered_map<std::string, bool> marks_;
     /// Derived view of marks_ holding only the true entries; feeds filterWords.
     std::unordered_set<std::string> known_;
-    /// Keyed by explanation language + lemma so switching language never mixes meanings.
+    /// Keyed by explanation language + sense mode + lemma.
     std::unordered_map<std::string, WordCache> cache_;
     int level_        = 2;    ///< CET-4, the default difficulty level.
     std::string lang_ = "en"; ///< English by default.

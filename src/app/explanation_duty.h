@@ -1,8 +1,14 @@
 #pragma once
 
 #include <QObject>
+#include <QPoint>
+#include <QSet>
 #include <QString>
+#include <QVariantList>
 #include <QVariantMap>
+#include <QVector>
+
+#include <optional>
 
 #include "capture_duty.h"
 #include "llm/llm_client.h"
@@ -14,40 +20,29 @@
 
 namespace lens::app {
 
+class CostDuty;
+
 class ExplanationDuty final : public QObject {
     Q_OBJECT
 public:
-    /**
-     * @brief Wire explanation behavior to the shared storage boundary and LLM client.
-     * @param storage Storage boundary for cache, marks, history and persistence.
-     * @param llm Asynchronous explanation client.
-     * @param parent QObject owner.
-     */
-    ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, QObject* parent = nullptr);
-
-    /// @brief Replace the selection whose action bar is currently visible.
+    ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, CostDuty& cost, QObject* parent = nullptr);
     void setSelection(PendingSelection selection);
-
-    /// @brief Route an action-bar answer through copy, cache or the model.
+    /// @brief Admit locally filtered scan candidates; cached words are consumed locally first.
+    void enqueueScanCandidates(QVariantList candidates, QPoint anchor);
+    /// @brief Retry queued scan work after a budget rollover or a raised cap.
+    void resumeQueued();
+    /// @brief Invalidate queued or in-flight results for a word deleted locally.
+    void invalidateWord(QString const& lemma);
     void runSelectionAction(QString action, QString text);
-
-    /// @brief Record the verdict for the current word bubble.
     void mark(QString lemma, bool learned);
-
-    /// @brief Remove the current explanation surface.
     void dismissBubble();
-
-    /// @brief Remove the current notice surface.
     void dismissNotice();
-
-    /// @return The current explanation payload, or an empty map.
     QVariantMap bubble() const;
-
-    /// @return The current notice payload, or an empty map.
     QVariantMap notice() const;
-
-    /// @return What the tray and QML surfaces show while a request is active.
     QString busyLabel() const;
+    QVariantMap settings() const;
+    bool setProvider(QString const& provider);
+    bool setModel(QString const& model);
 
 signals:
     void bubbleChanged();
@@ -56,25 +51,33 @@ signals:
     void statsChanged();
 
 private:
-    void explain(const PendingSelection& pending);
-    void requestExplanations(const QStringList& words);
-    void showBubble(const QString& title,
-                    const QString& type,
-                    const QString& ipa,
-                    const QString& en,
-                    const QString& zh,
-                    const QPoint& anchor);
-    void showNotice(const QString& title, const QString& body, const QString& kind);
-    QString noticeTitle(const PendingSelection& pending) const;
+    void explain(PendingSelection const& pending);
+    void requestExplanations(QVector<PendingSelection> batch, core::CacheContext context, bool fromScan);
+    void startNext();
+    void showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context);
+    void showNotice(QString const& title, QString const& body, QString const& kind);
+    QString noticeTitle(PendingSelection const& pending) const;
     void clearBubble();
     void clearNotice();
 
     StorageDuty& storage_;
     llm::LlmClient& llm_;
+    CostDuty& cost_;
     PendingSelection pending_;
     QVariantMap bubble_;
     QVariantMap notice_;
     QString busyLabel_;
+    QVector<PendingSelection> requestedBatch_;
+    core::CacheContext requestedContext_;
+    QVector<PendingSelection> scanQueue_;
+    std::optional<PendingSelection> queuedManual_;
+    QPoint scanAnchor_;
+    bool requestedFromScan_       = false;
+    bool inFlight_                = false;
+    bool handlingResponse_        = false;
+    unsigned selectionGeneration_ = 0;
+    unsigned requestedGeneration_ = 0;
+    QSet<QString> invalidatedWords_;
 };
 
 }

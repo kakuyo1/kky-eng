@@ -1,13 +1,14 @@
 import QtQuick
+import QtQuick.Controls.Basic
 
 Item {
     id: root
 
     signal childRequested(string route)
-    readonly property var openChildRect: null
+    readonly property var openChildRect: lengthField.openChildRect
     implicitHeight: content.implicitHeight
 
-    function closeChild() {}
+    function closeChild() { lengthField.closeList(); }
 
     Column {
         id: content
@@ -38,53 +39,28 @@ Item {
                     spacing: 0
 
                     SwitchRow {
+                        objectName: "selectionCapture"
                         width: parent.width
                         label: qsTranslate("SettingsPopup", "Selection")
                         checked: Controller.settings.selectionCapture
                         onToggled: (on) => Controller.setSelectionCapture(on)
                     }
                     SwitchRow {
+                        objectName: "ocrCapture"
                         width: parent.width
                         label: qsTranslate("SettingsPopup", "OCR")
-                        checked: false
-                        interactive: false
+                        checked: Controller.settings.ocrCapture
+                        interactive: Controller.settings.ocrAvailable
+                        onToggled: (on) => Controller.setOcrCapture(on)
                     }
                     SwitchRow {
+                        objectName: "autoScan"
                         width: parent.width
                         label: qsTranslate("SettingsPopup", "Auto scan")
-                        checked: false
-                        interactive: false
+                        checked: Controller.settings.autoScan
+                        interactive: Controller.settings.ocrAvailable
+                        onToggled: (on) => Controller.setAutoScan(on)
                     }
-                }
-            }
-        }
-
-        Item {
-            width: parent.width
-            height: 35
-            opacity: 0.5
-
-            Text {
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                text: qsTranslate("SettingsPopup", "Toggle auto scan")
-                color: Tokens.faint
-                font.pixelSize: 13
-            }
-            Rectangle {
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                width: 30
-                height: 21
-                radius: 6
-                color: Tokens.panel
-                border.width: 1
-                border.color: Tokens.line
-                Text {
-                    anchors.centerIn: parent
-                    text: "F8"
-                    color: Tokens.muted
-                    font.pixelSize: 11
                 }
             }
         }
@@ -95,6 +71,84 @@ Item {
                   ? qsTranslate("SettingsPopup", "Give up silently")
                   : qsTranslate("SettingsPopup", "Raise to top")
             onPicked: root.childRequested("clipboard")
+        }
+
+        Text {
+            width: parent.width
+            visible: !Controller.settings.ocrAvailable
+            text: Controller.settings.ocrStatus === "checking" ? qsTr("Checking OCR")
+                  : Controller.settings.ocrStatus === "english-data-missing" ? qsTr("English OCR data is missing")
+                  : qsTr("OCR runtime is unavailable")
+            color: Tokens.muted
+            font.pixelSize: 12
+            wrapMode: Text.WordWrap
+        }
+
+        Column {
+            width: parent.width
+            spacing: 7
+            Text { text: qsTr("Minimum word length"); color: Tokens.muted; font.pixelSize: 12 }
+            DropdownField {
+                id: lengthField
+                objectName: "minimumWordLength"
+                width: parent.width
+                options: [
+                    {value: 2, label: "2", group: "", note: ""},
+                    {value: 3, label: "3", group: "", note: ""},
+                    {value: 4, label: "4", group: "", note: ""},
+                    {value: 5, label: "5", group: "", note: ""}
+                ]
+                currentValue: Controller.settings.minimumWordLength
+                onPicked: (value) => Controller.setMinimumWordLength(value)
+            }
+        }
+
+        Column {
+            width: parent.width
+            spacing: 7
+            Text { text: qsTr("Drag threshold"); color: Tokens.muted; font.pixelSize: 12 }
+            Segment {
+                objectName: "dragSensitivity"
+                width: parent.width
+                height: 31
+                labels: [qsTr("Sensitive"), qsTr("Standard"), qsTr("Reluctant")]
+                currentIndex: Controller.settings.dragSensitivity === "sensitive" ? 0
+                              : Controller.settings.dragSensitivity === "reluctant" ? 2 : 1
+                onPicked: (index) => Controller.setDragSensitivity(["sensitive", "standard", "reluctant"][index])
+            }
+        }
+
+        Column {
+            width: parent.width
+            spacing: 7
+            Text { text: qsTr("Scan whitelist"); color: Tokens.muted; font.pixelSize: 12 }
+            TextField {
+                id: whitelistField
+                objectName: "scanWhitelist"
+                width: parent.width
+                text: Controller.settings.scanWhitelist
+                font.pixelSize: 13
+                color: Tokens.text
+                selectByMouse: true
+                maximumLength: 4096
+                Accessible.name: qsTr("Scan whitelist")
+                background: Rectangle {
+                    radius: Tokens.radiusField
+                    color: Tokens.panel2
+                    border.width: 1
+                    border.color: whitelistField.activeFocus ? Tokens.ink : Tokens.line
+                }
+                onEditingFinished: {
+                    Controller.setScanWhitelist(text);
+                    text = Qt.binding(() => Controller.settings.scanWhitelist);
+                }
+            }
+        }
+
+        SettingsLinkRow {
+            label: qsTr("Capture current screen")
+            note: Controller.settings.ocrAvailable && Controller.settings.ocrCapture ? qsTr("OCR") : qsTr("Enable OCR first")
+            onPicked: Controller.captureScreen()
         }
     }
 }

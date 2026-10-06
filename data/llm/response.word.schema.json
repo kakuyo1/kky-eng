@@ -10,12 +10,28 @@
       "description": "One entry per requested word, echoed in any order.",
       "items": {
         "type": "object",
-        "required": ["word", "en", "zh"],
+        "required": ["word"],
+        "anyOf": [{"required": ["en", "zh"]}, {"required": ["senses"]}],
         "properties": {
-          "word": { "type": "string", "description": "The input word, spelled exactly as requested." },
+          "word": { "type": "string", "minLength": 1, "description": "The input word, spelled exactly as requested." },
           "ipa": { "type": "string", "description": "IPA pronunciation, in slashes." },
-          "en": { "type": "string", "description": "One-line English definition." },
-          "zh": { "type": "string", "description": "One-line Chinese definition." }
+          "en": { "type": "string", "minLength": 1, "description": "One-line English definition." },
+          "zh": { "type": "string", "minLength": 1, "description": "One-line Chinese definition." },
+          "translation": { "type": "string", "minLength": 1 },
+          "senses": {
+            "type": "array",
+            "minItems": 1,
+            "description": "Distinct senses in descending frequency order; Lens retains at most three.",
+            "items": {
+              "type": "object",
+              "required": ["en", "zh"],
+              "properties": {
+                "en": { "type": "string", "minLength": 1 },
+                "zh": { "type": "string", "minLength": 1 },
+                "translation": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
         }
       }
     }

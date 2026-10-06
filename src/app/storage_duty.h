@@ -34,11 +34,15 @@ public:
     /// @return A string document value, or @p fallback when it is absent or not a string.
     QString documentString(const char* key, const QString& fallback) const;
 
-    /// @brief Write one string document value and persist the whole document.
+    /// @brief Write one document value, preserving its scalar type, and persist the document.
     void writeDocument(const char* key, const QVariant& value);
 
     /// @brief Persist the current document, including statistics changes.
     void save() const;
+
+    /// @brief Remove a lemma from marks, explanation cache, and history in one save.
+    /// @return True when any local word state existed.
+    bool removeWord(QString const& lemma);
 
     /// @return The vocabulary level options shown by the settings surface.
     static QVariantList levelOptions();

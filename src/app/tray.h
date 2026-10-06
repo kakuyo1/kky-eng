@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QRect>
 #include <QString>
+#include <QTimer>
 #include <QtQml/qqmlregistration.h>
 
 class QSystemTrayIcon;
@@ -26,9 +27,8 @@ class AppController;
 /**
  * @brief Keeps the tray icon in step with the controller, and says when it was clicked.
  *
- * @note The fourth icon state, an exhausted daily budget, is not reachable in phase 1: the
- *       budget itself is a placeholder, so nothing sets it and the
- *       branch is not written. Its art is in icons/ for when the budget lands.
+ * @note The exhausted budget state is derived from the same CostDuty projection that gates
+ *       network dispatch. This class only reports it in the shell.
  */
 class Tray : public QObject {
     Q_OBJECT
@@ -70,11 +70,12 @@ private:
     /// @brief What main() handed to provide(); see AppController::provide().
     static Tray* instance_;
 
-    /// @brief What the icon is saying. See the class note about the missing fourth state.
+    /// @brief What the icon is saying.
     enum class State {
-        Auto, ///< Selection capture is on and nothing is in flight.
-        Busy, ///< An explanation is being fetched.
-        Off,  ///< Selection capture is off.
+        Auto,   ///< Selection capture is on and nothing is in flight.
+        Busy,   ///< An explanation is being fetched.
+        Off,    ///< Selection capture is off.
+        Budget, ///< Today's budget has been reached.
     };
 
     /// @brief Recompute the state, the icon and the tooltip.
@@ -85,6 +86,7 @@ private:
 
     AppController& controller_;
     QSystemTrayIcon* icon_ = nullptr;
+    QTimer budgetRefreshTimer_;
     /// The last non-empty rectangle the shell reported; see the note on geometry().
     mutable QRect lastGeometry_;
 };

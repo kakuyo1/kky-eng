@@ -19,6 +19,12 @@ html[data-theme=dark]{
   --ink:#e9e9ee; --on:#16161a;
   --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
 }
+html[data-theme=forest]{
+  --bg:#0c1715; --panel:#152522; --panel2:#1f3430; --line:#35554b; --line2:#27413b;
+  --text:#e8f2ee; --muted:#b8cec5; --faint:#9bb9ad;
+  --ink:#e6f2ec; --on:#10201b;
+  --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
+}
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-font-smoothing:antialiased}
 body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh;display:grid;place-items:center;padding:36px 20px;font-size:13px;line-height:1.5}
@@ -117,18 +123,21 @@ const categories = [
   { id: "general", name: "通用", summary: "主题、界面语言、开机自启" },
   { id: "learning", name: "阅读学习", summary: "词汇档位、解释语言、多义解释" },
   { id: "capture", name: "取词与弹窗", summary: "触发通道、剪贴板、弹出频率" },
-  { id: "model", name: "模型服务", summary: "模型选择、API 配置" },
+  { id: "model", name: "模型服务", summary: "服务商、模型、API 配置" },
+  { id: "budget", name: "每日预算", summary: "限制单个本地日的模型花费" },
   { id: "extensions", name: "扩展", summary: "桌面宠物" }
 ];
 const titles = { clipboard: "弹窗与剪贴板", connection: "API 配置" };
 const defaults = { theme: "light", uiLang: "zh", level: "CET-4", language: "en", startup: false, selection: true,
   policy: "topmost", frequency: "standard", drag: "standard", minLen: "3", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
-  multi: false, pet: false };
+  dailyBudget: "0", customBg: "#e9ebef", customPanel: "#ffffff", customText: "#1a1a1f", customMuted: "#66666f", customFaint: "#9d9da8", customOk: "#2f9e6e",
+  ocr: false, scan: false, multi: false, pet: false };
 const app = document.getElementById("app"), view = document.getElementById("view");
 const titleEl = document.getElementById("title"), crumbEl = document.getElementById("crumb");
 const backBtn = document.getElementById("back"), statusEl = document.getElementById("status");
 const saveBtn = document.getElementById("save"), defaultsBtn = document.getElementById("defaults");
-let values = { ...defaults, theme: new URLSearchParams(location.search).get("theme") === "dark" ? "dark" : "light" };
+const requestedTheme = new URLSearchParams(location.search).get("theme");
+let values = { ...defaults, theme: ["light", "dark", "forest", "custom"].includes(requestedTheme) ? requestedTheme : "light" };
 let saved = { ...values };
 let category = null, route = null, status = "";
 const esc = v => String(v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -147,10 +156,13 @@ const dropdown = (label, key, opts) => {
 };
 const inp = (label, key, ph, type = "text") => `<div class="field"><label class="flabel" for="${key}">${label}</label><input id="${key}" class="input" type="${type}" data-input="${key}" value="${esc(values[key])}" placeholder="${ph}" autocomplete="off" spellcheck="false"></div>`;
 const link = (id, label, val = "") => `<button type="button" class="link-row" data-route="${id}"><span>${label}</span><span class="chevm">${esc(val)}<span aria-hidden="true">›</span></span></button>`;
+const customColors = () => values.theme === "custom" ? `<div class="field"><span class="flabel">自定义语义颜色</span>${[
+  ["customBg", "背景"], ["customPanel", "面板"], ["customText", "正文文字"], ["customMuted", "次要文字"], ["customFaint", "弱文字"], ["customOk", "强调色"]
+].map(([key, label]) => inp(label, key, "#000000")).join("")}<p class="fhelp">正文、次要和弱文字必须通过 WCAG AA。</p></div>` : "";
 
 function page(id) {
   switch (id) {
-    case "general": return seg("主题", "theme", [["light", "白天"], ["dark", "黑夜"]]) +
+    case "general": return seg("主题", "theme", [["light", "白天"], ["dark", "黑夜"], ["forest", "Forest"], ["custom", "Custom"]]) + customColors() +
       seg("界面语言", "uiLang", [["zh", "中文"], ["en", "English"]]) + sw("开机自启", "startup");
     case "learning": return dropdown("词汇档位", "level", [
         { value: "B1–B2", label: "B1–B2", group: "CEFR" },
@@ -161,10 +173,9 @@ function page(id) {
         { value: "TEM-8", label: "TEM-8", group: "National exams" },
         { value: "IELTS", label: "IELTS", group: "Study-abroad exams" },
         { value: "TOEFL", label: "TOEFL", group: "Study-abroad exams" }
-      ]) + seg("解释语言", "language", [["en", "English"], ["zh", "中文"]]) +
+      ]) + seg("解释语言", "language", [["en", "English"], ["zh", "中文"], ["es", "Español"], ["ja", "日本語"]]) +
       sw("多义解释", "multi");
-    case "capture": return `<div class="field"><div class="group-title">触发通道</div><div class="swgroup">${sw("选区取词", "selection")}${sw("OCR", "ocr", true)}${sw("自动扫描", "scan", true)}</div></div>` +
-      `<div class="kbdrow off"><span>开关自动扫描</span><kbd>F8</kbd></div>` +
+    case "capture": return `<div class="field"><div class="group-title">触发通道</div><div class="swgroup">${sw("选区取词", "selection")}${sw("OCR", "ocr")}${sw("自动扫描", "scan")}</div></div>` +
       seg("拖拽阈值", "drag", [["sensitive", "灵敏"], ["standard", "标准"], ["sluggish", "迟钝"]]) +
       dropdown("最小词长", "minLen", [
         { value: "2", label: "2 字母", group: "" },
@@ -175,16 +186,16 @@ function page(id) {
       `<button type="button" class="link-row" data-route="clipboard"><span>弹窗与剪贴板</span><span class="chevm">${values.policy === "silent" ? "静默放弃" : "强制置顶"}<span aria-hidden="true">›</span></span></button>`;
     case "model": return dropdown("服务商", "provider", [
         { value: "DeepSeek", label: "DeepSeek", group: "国内" },
-        { value: "qwen", label: "通义千问", group: "国内" },
-        { value: "glm", label: "智谱 GLM", group: "国内" },
-        { value: "kimi", label: "Kimi", group: "国内" },
-        { value: "doubao", label: "豆包", group: "国内" },
         { value: "openai", label: "OpenAI", group: "国际" },
-        { value: "anthropic", label: "Anthropic", group: "国际" },
-        { value: "gemini", label: "Google Gemini", group: "国际" },
-        { value: "openrouter", label: "OpenRouter", group: "其他" },
-        { value: "custom", label: "自定义服务", group: "其他" }
-      ]) + inp("模型", "model", "输入模型名称") + link("connection", "API 配置", values.api ? "已填写" : "未填写");
+        { value: "custom", label: "Custom", group: "其他" }
+      ]) + (values.provider === "custom" ? inp("模型", "model", "输入模型名称") : dropdown("模型", "model", values.provider === "openai" ? [
+        { value: "gpt-4.1-mini", label: "gpt-4.1-mini", group: "" },
+        { value: "gpt-4.1-nano", label: "gpt-4.1-nano", group: "" }
+      ] : [
+        { value: "deepseek-flash", label: "deepseek-flash", group: "" },
+        { value: "deepseek-v4-pro", label: "deepseek-v4-pro", group: "" }
+      ])) + link("connection", "API 配置", values.api ? "已填写" : "未填写");
+    case "budget": return inp("每日预算", "dailyBudget", "0", "number") + '<p class="fhelp">设为 0 可暂停上限。</p>';
     case "extensions": return sw("桌面宠物", "pet", true);
     default: return "";
   }
@@ -204,7 +215,19 @@ function body() {
     `<button type="button" class="cat" data-category="${c.id}"><span><span class="cat-t">${c.name}</span><span class="cat-s">${c.summary}</span></span><span class="chev" aria-hidden="true">›</span></button>`).join("")}</nav>`;
   return page(category);
 }
-function applyTheme() { document.documentElement.dataset.theme = values.theme; }
+function applyTheme() {
+  document.documentElement.dataset.theme = values.theme === "forest" ? "forest" : values.theme;
+  for (const prop of ["--bg", "--panel", "--text", "--muted", "--faint", "--ink", "--on"]) document.documentElement.style.removeProperty(prop);
+  if (values.theme === "custom") {
+    document.documentElement.style.setProperty("--bg", values.customBg);
+    document.documentElement.style.setProperty("--panel", values.customPanel);
+    document.documentElement.style.setProperty("--text", values.customText);
+    document.documentElement.style.setProperty("--muted", values.customMuted);
+    document.documentElement.style.setProperty("--faint", values.customFaint);
+    document.documentElement.style.setProperty("--ink", values.customOk);
+    document.documentElement.style.setProperty("--on", values.customPanel);
+  }
+}
 function updateFoot() {
   statusEl.textContent = dirty() ? "尚未保存" : status;
   saveBtn.disabled = !dirty();
@@ -237,7 +260,7 @@ view.addEventListener("click", e => {
   }
   if (b.dataset.toggle) { const k = b.dataset.toggle; values[k] = !values[k]; status = ""; render(); return; }
 });
-view.addEventListener("input", e => { if (e.target.dataset.input) { values[e.target.dataset.input] = e.target.value; status = ""; updateFoot(); } });
+view.addEventListener("input", e => { if (e.target.dataset.input) { values[e.target.dataset.input] = e.target.value; status = ""; applyTheme(); updateFoot(); } });
 view.addEventListener("change", e => { if (e.target.dataset.input) { values[e.target.dataset.input] = e.target.value; status = ""; updateFoot(); } });
 document.addEventListener("click", e => {
   if (e.target.closest(".dd")) return;

@@ -28,6 +28,7 @@ Window {
 
     /// 0 = all, 1 = known, 2 = new.
     property int filter: 0
+    property string pendingRemoval: ""
 
     /// The filter above, spelled the way exportWords() and saveWords() take it. The list and
     /// an export are the same rows seen twice, so an export follows whatever is on screen.
@@ -364,6 +365,20 @@ Window {
                                     }
                                 }
                             }
+
+                            Icon {
+                                width: 14
+                                height: 14
+                                source: "qrc:/icons/ui-close.svg"
+                                color: Tokens.faint
+                                HoverHandler { cursorShape: Qt.PointingHandCursor }
+                                TapHandler {
+                                    onTapped: {
+                                        words.pendingRemoval = entry.modelData.word
+                                        remover.open()
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -402,5 +417,16 @@ Window {
         // exports twice from two filters gets two files rather than one overwriting the other.
         currentFile: "words-" + words.scope + ".txt"
         onAccepted: Controller.saveWords(saver.selectedFile, words.scope)
+    }
+
+    MessageDialog {
+        id: remover
+        title: qsTr("Remove word")
+        text: qsTr("Remove %1 from your word list and history?").arg(words.pendingRemoval)
+        buttons: MessageDialog.Yes | MessageDialog.No
+        onAccepted: {
+            Controller.removeWord(words.pendingRemoval)
+            words.pendingRemoval = ""
+        }
     }
 }

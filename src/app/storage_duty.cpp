@@ -46,13 +46,34 @@ QString StorageDuty::documentString(const char* key, const QString& fallback) co
 
 void StorageDuty::writeDocument(const char* key, const QVariant& value)
 {
-    store_.document()[key] = value.toString().toStdString();
+    const int type = value.typeId();
+    if (type == QMetaType::Bool)
+        store_.document()[key] = value.toBool();
+    else if (type == QMetaType::Int || type == QMetaType::LongLong || type == QMetaType::UInt || type == QMetaType::ULongLong)
+        store_.document()[key] = value.toLongLong();
+    else if (type == QMetaType::Double || type == QMetaType::Float)
+        store_.document()[key] = value.toDouble();
+    else
+        store_.document()[key] = value.toString().toStdString();
     store_.save();
 }
 
 void StorageDuty::save() const
 {
     store_.save();
+}
+
+bool StorageDuty::removeWord(QString const& lemma)
+{
+    const auto value = lemma.trimmed().toStdString();
+    if (value.empty())
+        return false;
+    const bool marksRemoved   = store_.removeLemma(value);
+    const bool historyRemoved = stats_.removeLemma(value);
+    const bool removed        = marksRemoved || historyRemoved;
+    if (removed)
+        store_.save();
+    return removed;
 }
 
 QVariantList StorageDuty::levelOptions()

@@ -57,6 +57,37 @@ QByteArray extractJsonObject(const QString& content)
     return text.toUtf8();
 }
 
+/// @brief Validate the schema vocabulary used by the shipped response contracts.
+bool matchesSchema(QJsonValue const& value, QJsonObject const& schema)
+{
+    auto const alternatives = schema.value("anyOf").toArray();
+    if (not alternatives.isEmpty()) {
+        bool matched = false;
+        for (auto const& branch : alternatives)
+            matched = matched or matchesSchema(value, branch.toObject());
+        if (not matched) return false;
+    }
+    auto const type = schema.value("type").toString();
+    if (type == QLatin1String("string"))
+        return value.isString() and value.toString().trimmed().size() >= schema.value("minLength").toInt();
+    if (type == QLatin1String("array")) {
+        if (not value.isArray() or value.toArray().size() < schema.value("minItems").toInt()) return false;
+        for (auto const& item : value.toArray())
+            if (not matchesSchema(item, schema.value("items").toObject())) return false;
+    }
+    if (type == QLatin1String("object") or schema.contains("required")) {
+        if (not value.isObject()) return false;
+        auto const object = value.toObject();
+        for (auto const& field : schema.value("required").toArray())
+            if (not object.contains(field.toString())) return false;
+        auto const properties = schema.value("properties").toObject();
+        for (auto it = properties.begin(); it != properties.end(); ++it)
+            if (object.contains(it.key()) and not matchesSchema(object.value(it.key()), it.value().toObject()))
+                return false;
+    }
+    return true;
+}
+
 } // namespace
 
 QString httpErrorFor(int status)
@@ -119,7 +150,7 @@ QByteArray buildRequestBody(const Config& config,
     for (const auto& input : inputs)
         masked << maskSensitive(input);
 
-    const QJsonObject body{
+    QJsonObject body{
         {"model", config.model},
         {"messages",
          QJsonArray{
@@ -132,6 +163,20 @@ QByteArray buildRequestBody(const Config& config,
         {"max_tokens", tmpl.maxTokens},
         {"stream", tmpl.stream},
     };
+    auto overrides = config.requestOverrides;
+    if (overrides.isEmpty()) {
+        for (auto const& value : serviceCatalog().value("providers").toArray()) {
+            auto const provider = value.toObject();
+            if (provider.value("baseUrl").toString() == config.baseUrl.toString())
+                overrides = provider.value("requestOverrides").toObject();
+        }
+    }
+    for (auto it = overrides.begin(); it != overrides.end(); ++it) {
+        if (it.value().isNull())
+            body.remove(it.key());
+        else
+            body.insert(it.key(), it.value());
+    }
 
     LENS_TRACE("buildRequestBody: {} item(s) for channel '{}', preset '{}', model='{}', lang='{}'", inputs.size(), channelKey(channel), preset.toStdString(), config.model.toStdString(), explanationLang.toStdString());
     return QJsonDocument(body).toJson(QJsonDocument::Compact);
@@ -139,7 +184,9 @@ QByteArray buildRequestBody(const Config& config,
 
 std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
                                                               const QByteArray& responseBody,
-                                                              const QStringList& expectedInputs)
+                                                              const QStringList& expectedInputs,
+                                                              QString const& explanationLang,
+                                                              bool const multipleSenses)
 {
     using Result = std::variant<QVector<Explanation>, QString>;
 
@@ -184,9 +231,8 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
             "lens::llm", "The model's answer has no results array."));
 
     // Presence is gated on the response schema, so adding a required field is a data edit.
-    const QStringList& requiredFields = requiredResultFields(channel);
-    const bool isWord                 = channel == Channel::Word;
-    const QString titleField          = isWord ? QStringLiteral("word") : QStringLiteral("title");
+    const bool isWord        = channel == Channel::Word;
+    const QString titleField = isWord ? QStringLiteral("word") : QStringLiteral("title");
 
     QVector<Explanation> parsed;
     for (const auto& item : resultsValue.toArray()) {
@@ -195,21 +241,35 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
                 "lens::llm", "One of the results entries is not an object."));
         const auto obj = item.toObject();
 
-        for (const auto& field : requiredFields)
-            if (!obj.value(field).isString())
-                return reject(QCoreApplication::translate("lens::llm",
-                                                          "A results entry is missing the field "
-                                                          "\"%1\".")
-                                  .arg(field));
+        if (not matchesSchema(item, resultSchema(channel)))
+            return reject(QCoreApplication::translate("lens::llm", "A results entry does not match the response schema."));
 
         Explanation e{obj.value(titleField).toString(),
                       obj.value(QStringLiteral("ipa")).toString(),
                       obj.value(QStringLiteral("en")).toString(),
                       obj.value(QStringLiteral("zh")).toString()};
+        e.translation = obj.value("translation").toString();
+        if (isWord and obj.contains("senses")) {
+            auto const senses = obj.value("senses").toArray();
+            for (auto const& value : senses) {
+                auto const sense = value.toObject();
+                if (explanationLang != QLatin1String("en") and explanationLang != QLatin1String("zh") and sense.value("translation").toString().trimmed().isEmpty())
+                    return reject(QCoreApplication::translate("lens::llm", "The requested explanation language is missing."));
+                if (e.senses.size() < (multipleSenses ? kMaxSenses : 1))
+                    e.senses.push_back({sense.value("en").toString(), sense.value("zh").toString(), sense.value("translation").toString()});
+            }
+            e.en          = e.senses.front().en;
+            e.zh          = e.senses.front().zh;
+            e.translation = e.senses.front().translation;
+        } else if (isWord) {
+            e.senses.push_back({e.en, e.zh, e.translation});
+        }
+        if (explanationLang != QLatin1String("en") and explanationLang != QLatin1String("zh") and e.translation.trimmed().isEmpty())
+            return reject(QCoreApplication::translate("lens::llm", "The requested explanation language is missing."));
         // Presence is the schema's business; emptiness is not. Both language definitions are
         // required by every channel. A word must also name itself (its IPA stays optional: an
         // acronym has none); the entity and sentence channels carry no echoed title.
-        if (e.en.isEmpty() || e.zh.isEmpty() || (isWord && e.title.isEmpty()))
+        if (e.en.trimmed().isEmpty() || e.zh.trimmed().isEmpty() || (isWord && e.title.trimmed().isEmpty()))
             return reject(QCoreApplication::translate("lens::llm",
                                                       "A results entry has an empty field "
                                                       "(title=%1).")
@@ -237,6 +297,8 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
                 e.en += part.en;
                 if (!e.zh.isEmpty()) e.zh += QLatin1Char('\n');
                 e.zh += part.zh;
+                if (not e.translation.isEmpty()) e.translation += QLatin1Char('\n');
+                e.translation += part.translation;
             }
             e.title = expectedInputs.front();
             ordered.push_back(e);

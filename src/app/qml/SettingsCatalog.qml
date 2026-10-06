@@ -35,6 +35,11 @@ Item {
             onPicked: root.categoryRequested("model")
         }
         SettingsCategoryRow {
+            title: qsTranslate("SettingsPopup", "Daily budget")
+            summary: qsTranslate("SettingsPopup", "Limit model spending for one local day")
+            onPicked: root.categoryRequested("budget")
+        }
+        SettingsCategoryRow {
             title: qsTranslate("SettingsPopup", "Extensions")
             summary: qsTranslate("SettingsPopup", "Desktop companion")
             onPicked: root.categoryRequested("extensions")

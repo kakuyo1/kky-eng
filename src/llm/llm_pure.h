@@ -90,7 +90,9 @@ QByteArray buildRequestBody(const Config& config,
  */
 std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
                                                               const QByteArray& responseBody,
-                                                              const QStringList& expectedInputs);
+                                                              const QStringList& expectedInputs,
+                                                              QString const& explanationLang = QStringLiteral("en"),
+                                                              bool multipleSenses            = false);
 
 /**
  * @brief Read the token counts out of a response envelope.

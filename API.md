@@ -1,7 +1,9 @@
 # LLM 协议
 > 本文件描述 Lens 与释义模型之间的线上格式。**实际生效的定义在 `data/llm/` 目录**，代码只组装与校验，不内联任何提示词或字段名。
 
-服务：DeepSeek（OpenAI 兼容，BYOK）。端点 `POST {baseUrl}/chat/completions`，请求头 `Content-Type: application/json` 与 `Authorization: Bearer <API-KEY>`。`baseUrl = https://api.deepseek.com`；配置文件原值 `https://api.deepseek.com/anthropic` 是 Anthropic 格式的 base，对本调用不适用，已改。模型取 `settings.local.json` 的 `MODEL`（缺省 `deepseek-flash`）：`deepseek-flash` 即 DeepSeek-V4.1-Flash（支持 JSON Output），同代另有 `deepseek-v4-pro`；旧名 `deepseek-v4-flash` 仍被接受但模型已停服，请求实际由 V4.1-Flash 承接并按其价计费。
+服务商、模型与端点由 `data/llm/catalog.json` 驱动，默认是 DeepSeek；各服务商使用 OpenAI 兼容的 `POST {baseUrl}/chat/completions`，请求头为 `Content-Type: application/json` 与 `Authorization: Bearer <API-KEY>`。当前目录包含 DeepSeek（`deepseek-flash`、`deepseek-v4-pro`）、OpenAI（`gpt-4.1-mini`、`gpt-4.1-nano`）和 Custom；Custom 允许在设置中填写模型与 HTTPS 服务地址。价目独立放在 `data/llm/pricing.json`。
+
+API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装目录、OCR payload 或日志；安装包只承载程序、静态数据与 `ocr/` 下的 Tesseract runtime 和英文 traineddata。
 
 ## 1 通道
 
@@ -17,7 +19,7 @@
 
 ## 2 请求体
 
-组装后的请求体。除 `model` 来自 `settings.local.json` 的 `MODEL`，其余字段与默认值都来自该通道的 `request.<通道>.json`：
+组装后的请求体。`model` 来自当前服务商目录或 Custom 设置，其余字段与默认值都来自该通道的 `request.<通道>.json`：
 
 ```json
 {
@@ -33,7 +35,7 @@
 }
 ```
 
-- `messages[0]` 是系统提示词，取自所选通道与预设的 `systemPrompt.template`；末句由 `{outputLanguage}` 占位符按解释语言替换（`outputLanguage.en` / `outputLanguage.zh`）。提示词本身是英文。
+- `messages[0]` 是系统提示词，取自所选通道与预设的 `systemPrompt.template`；末句由 `{outputLanguage}` 占位符按解释语言替换（`outputLanguage.en` / `.zh` / `.es` / `.ja`）。提示词本身是英文。
 - `messages[1]` 是待查内容，**一行一个**。单词只发词根，实体只发实体名，句子只发选中的句子；发送前做脱敏兜底（邮箱 / 长数字 / URL 掩码成 `<email>` / `<num>` / `<url>`）。
 - `thinking` 必须显式设成 `disabled`：DeepSeek 默认开启思考模式（effort=high），开着会白付 reasoning token 且更慢。思考模式下 `temperature` 无效；`top_p` 仅思考模式生效（有效区间 0.95–1.0），非思考模式固定 1.0。
 - `max_tokens` 必须显式设（非思考模式缺省 8K）：JSON 被截断时接口不报错，只把 `finish_reason` 置为 `length`。
@@ -72,7 +74,7 @@
 }
 ```
 
-字段含义以 `data/llm/response.word.schema.json` 为准，那里同时是**校验的唯一真源**——代码从 schema 的 `properties.results.items.required` 读出必填字段名，所以往 schema 里加一个字段，校验立刻跟着变，不会与本文档漂移。
+字段含义以 `data/llm/response.word.schema.json` 为准，那里同时是**校验的唯一真源**——代码从 schema 的 `properties.results.items.required` 读出必填字段名，所以往 schema 里加一个字段，校验立刻跟着变，不会与本文档漂移。单词响应可以使用 `senses` 数组返回多义结果；Lens 按频率顺序最多保留 3 条，关闭多义开关时只保留第一条。
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
@@ -80,6 +82,8 @@
 | `ipa` | string | 音标，两侧带斜杠；可选，缩写（如 `qml`）没有音标时可以缺席或为空 |
 | `en` | string | 一行英文释义 |
 | `zh` | string | 一行中文释义 |
+| `translation` | string | `es` / `ja` 解释语言下的目标语言释义；对应语言时非空 |
+| `senses` | array | 多义结果，按频率降序；每项含 `en`、`zh`，并在 `es` / `ja` 下含 `translation`，最多保留 3 项 |
 
 ## 3.1 响应体：实体
 
@@ -125,7 +129,7 @@
 2. `finish_reason` 必须是 `stop`——`length`（截断）、`content_filter`、`insufficient_system_resource`、`aborted` 一律判失败；
 3. `message.content` 能解析成 JSON 对象，且带 `results` 数组（容忍 Markdown ``` 围栏或前后闲话：提取首个 `{` 到末个 `}`）；
 4. `results` 每一项是对象，且**具备所选 schema 要求的全部字段**；
-5. `en` / `zh` 非空；单词通道额外要求 `word` 非空，`ipa` 可空（孤立缩写的单词没有音标）；
+5. `en` / `zh` 非空；解释语言为 `es` / `ja` 时 `translation` 也必须非空；单词通道额外要求 `word` 非空，`ipa` 可空（孤立缩写的单词没有音标）；多义数组按 schema 校验，应用最多保留 3 项；
 6. 单词通道回显的词与请求**逐一对应**：不多、不少、不重、不拼错；实体 / 句子不回显，按请求顺序取结果（`title` 由 App 盖上），模型把一段拆成多条时按顺序**合并**（各条 `en` / `zh` 以换行拼接）。返回顺序不作要求，代码按请求顺序回填。
 
 失败原因会经 Qt 翻译（`tr()` / `QCoreApplication::translate()`）后交给 `LlmClient::failed(QString)`，译文见 `i18n/lens_zh_CN.ts`。
@@ -146,7 +150,7 @@
 
 ## 6 金额与价目
 
-金额不由线上格式给出，本地按 `data/llm/pricing.json` 算（`llm_pricing.{h,cpp}`）。**价目是数据**：按模型名给输入 / 输出单价（每百万 token）与币种，改价是改数据，不重编译；价目缺失或模型不在表内时金额记 0 并记警告，不影响解释。
+金额不由线上格式给出，本地按 `data/llm/pricing.json` 算（`llm_pricing.{h,cpp}`）。**价目是数据**：按模型名给输入 / 输出单价（每百万 token）与币种，改价是改数据，不重编译；价目缺失或模型不在表内时金额记 0 并记警告，不影响解释。模型目录与价目分离，Custom 或未列价模型仍可请求。
 
 **牌价与展示币种分开**（2026-10-03）：表里 0.15 / 0.6 是厂商的**美元**牌价，界面显示人民币。做法是 `display` 块写明目标币种与一个乘数（`multiplier`）及其取值日期（`asOf`），**牌价原样不动**——把 `currency` 直接改成 `CNY` 等于宣称厂商按人民币报价，那是说错。换算只在 `Pricing::cost()` 里发生一次，`currency()` 返回展示币种，故统计、花费、托盘提示三处无需各自知道还有另一种币。乘数是数据，会过期：启动时把乘数与日期一起记进日志，看到 ¥ 想问 “哪来的” 时不必翻文件。`display` 块缺失时展示币种回落到厂商币种。
 
@@ -155,6 +159,7 @@
 - `data/llm/request.word.json`、`request.entity.json`、`request.sentence.json` — 请求模板、预设、系统提示词与输出语言行
 - `data/llm/response.word.schema.json`、`response.entity.schema.json`、`response.sentence.schema.json` — 响应 schema（校验真源）
 - `data/llm/pricing.json` — 价目数据，算金额用（§6）
+- `data/llm/catalog.json` — 服务商、模型、默认模型、base URL、解释语言与请求覆盖项
 - `src/llm/llm_protocol.{h,cpp}` — 加载与访问上述协议文件
 - `src/llm/llm_pricing.{h,cpp}` — 加载价目、把 `Usage` 折成金额
 - `src/llm/llm_pure.{h,cpp}` — 组装请求体、校验响应、读 `usage`，均无网络

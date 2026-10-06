@@ -38,6 +38,7 @@ Window {
         if (value === "learning") return qsTranslate("SettingsPopup", "Reading & learning");
         if (value === "capture") return qsTranslate("SettingsPopup", "Capture & popups");
         if (value === "model") return qsTranslate("SettingsPopup", "Model service");
+        if (value === "budget") return qsTranslate("SettingsPopup", "Daily budget");
         if (value === "extensions") return qsTranslate("SettingsPopup", "Extensions");
         return "";
     }
@@ -98,7 +99,7 @@ Window {
         Controller.setPopupFrequency("standard");
         Controller.setProvider("DeepSeek");
         Controller.setModel("deepseek-flash");
-        Controller.setAutoScan(false);
+        Controller.restoreCaptureDefaults();
         saveStatus = qsTranslate("SettingsPopup", "Defaults restored");
     }
 
@@ -223,11 +224,12 @@ Window {
                 sourceComponent: settings.route === "clipboard" ? clipboardComponent
                                  : settings.route === "connection" ? connectionComponent
                                  : settings.category === "" ? catalogComponent
-                                 : settings.category === "general" ? generalComponent
-                                 : settings.category === "learning" ? learningComponent
-                                 : settings.category === "capture" ? captureComponent
-                                 : settings.category === "model" ? modelComponent
-                                 : extensionsComponent
+                                  : settings.category === "general" ? generalComponent
+                                  : settings.category === "learning" ? learningComponent
+                                  : settings.category === "capture" ? captureComponent
+                                  : settings.category === "model" ? modelComponent
+                                  : settings.category === "budget" ? budgetComponent
+                                  : extensionsComponent
             }
         }
 
@@ -330,6 +332,12 @@ Window {
         id: modelComponent
         SettingsModelPage {
             onChildRequested: (value) => settings.openRoute(value)
+        }
+    }
+    Component {
+        id: budgetComponent
+        SettingsBudgetPage {
+            onBudgetChanged: (amount) => Controller.setDailyBudget(amount)
         }
     }
     Component { id: extensionsComponent; SettingsExtensionsPage {} }

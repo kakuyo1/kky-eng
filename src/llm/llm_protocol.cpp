@@ -5,6 +5,7 @@
 #include <QByteArray>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QUrl>
 
 #include <array>
 #include <fstream>
@@ -23,10 +24,12 @@ constexpr std::size_t kChannelCount = static_cast<std::size_t>(Channel::Count);
 struct LoadedProtocol {
     RequestTemplate request;
     QStringList requiredFields;
+    QJsonObject schema;
     bool loaded = false;
 };
 
 std::array<LoadedProtocol, kChannelCount> g_protocols;
+QJsonObject g_catalog;
 
 /// @brief Read a file as raw bytes.
 /// @note std::ifstream rather than QFile: it takes the path natively, so a non-ASCII
@@ -67,6 +70,7 @@ void requireNonEmpty(const QJsonObject& value, const char* key, const std::files
 
 LoadedProtocol& slotFor(Channel channel)
 {
+    channelKey(channel);
     return g_protocols[static_cast<std::size_t>(channel)];
 }
 
@@ -77,8 +81,11 @@ PromptTemplate loadPrompt(const QJsonObject& preset, const std::filesystem::path
     PromptTemplate loaded;
     loaded.systemPromptTemplate = requireString(prompt, "template", file);
     const QJsonObject lines     = prompt.value("outputLanguage").toObject();
-    for (auto it = lines.begin(); it != lines.end(); ++it)
+    for (auto it = lines.begin(); it != lines.end(); ++it) {
+        if (not it.value().isString() or it.value().toString().trimmed().isEmpty())
+            throw std::runtime_error("empty output language in " + file.string());
         loaded.outputLanguageLine.insert(it.key(), it.value().toString());
+    }
 
     if (!loaded.systemPromptTemplate.contains(QLatin1String(kOutputLanguagePlaceholder)))
         throw std::runtime_error(std::string("prompt template has no ") + kOutputLanguagePlaceholder +
@@ -128,10 +135,11 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
     }
     if (request.prompts.isEmpty())
         throw std::runtime_error("no prompt presets in " + requestFile.string());
+    if (root.contains("multiplePrompt"))
+        request.prompts.insert(QStringLiteral("multiple"), loadPrompt(root.value("multiplePrompt").toObject(), requestFile));
     if (request.maxTokens <= 0)
         throw std::runtime_error("'maxTokens' must be positive in " + requestFile.string());
     requireNonEmpty(request.responseFormat, "responseFormat", requestFile);
-    requireNonEmpty(request.thinking, "thinking", requestFile);
 
     const QJsonObject schema = readJsonObject(schemaFile);
     const QJsonObject items  = schema.value(QStringLiteral("properties"))
@@ -148,10 +156,47 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
     if (required.isEmpty())
         throw std::runtime_error("no 'properties.results.items.required' in " + schemaFile.string());
 
+    auto catalog         = readJsonObject(dir / "catalog.json");
+    auto const providers = catalog.value("providers").toArray();
+    auto const languages = catalog.value("languages").toArray();
+    if (providers.isEmpty() or languages.isEmpty())
+        throw std::runtime_error("empty provider or language catalog");
+    auto const defaultProvider = requireString(catalog, "defaultProvider", dir / "catalog.json");
+    bool hasDefault            = false;
+    for (auto const& value : languages) {
+        auto const language = value.toObject();
+        auto const code     = requireString(language, "value", dir / "catalog.json");
+        requireString(language, "label", dir / "catalog.json");
+        for (auto const& prompt : request.prompts)
+            if (not prompt.outputLanguageLine.contains(code))
+                throw std::runtime_error("catalog language missing from prompt: " + code.toStdString());
+    }
+    for (auto const& value : providers) {
+        auto const provider = value.toObject();
+        auto const name     = requireString(provider, "value", dir / "catalog.json");
+        hasDefault          = hasDefault or name == defaultProvider;
+        requireString(provider, "label", dir / "catalog.json");
+        requireString(provider, "group", dir / "catalog.json");
+        if (name == QLatin1String("custom")) continue;
+        auto const url = QUrl{requireString(provider, "baseUrl", dir / "catalog.json")};
+        if (not url.isValid() or url.scheme() != QLatin1String("https") or url.host().isEmpty() or not url.userInfo().isEmpty() or url.hasQuery() or url.hasFragment())
+            throw std::runtime_error("invalid provider base URL in catalog");
+        auto const model = requireString(provider, "defaultModel", dir / "catalog.json");
+        if (not provider.value("models").toArray().contains(model))
+            throw std::runtime_error("provider default model is absent from its model list");
+    }
+    if (not hasDefault) throw std::runtime_error("default provider is absent from catalog");
+    try {
+        catalog.insert("pricing", readJsonObject(dir / "pricing.json"));
+    } catch (std::runtime_error const&) {
+        LENS_WARN("catalog: price list unavailable; model selection has no listed prices");
+    }
     LoadedProtocol& slot = slotFor(channel);
     slot.request         = std::move(request);
     slot.requiredFields  = std::move(required);
+    slot.schema          = items;
     slot.loaded          = true;
+    g_catalog            = std::move(catalog);
 
     LENS_INFO("llm protocol loaded for channel '{}': {} preset(s), {} required result field(s), max_tokens={}", key, slot.request.prompts.size(), slot.requiredFields.size(), slot.request.maxTokens);
 }
@@ -182,6 +227,27 @@ const QStringList& requiredResultFields(Channel channel)
         throw std::logic_error(std::string("lens::llm::requiredResultFields: channel '") +
                                channelKey(channel) + "' has not been loaded");
     return slot.requiredFields;
+}
+
+QJsonObject const& resultSchema(Channel const channel)
+{
+    requestTemplate(channel);
+    return slotFor(channel).schema;
+}
+
+QJsonObject const& serviceCatalog()
+{
+    if (g_catalog.isEmpty()) throw std::logic_error("LLM catalog has not been loaded");
+    return g_catalog;
+}
+
+QJsonObject serviceProvider(QString const& provider)
+{
+    for (auto const& value : serviceCatalog().value("providers").toArray()) {
+        auto const entry = value.toObject();
+        if (entry.value("value").toString() == provider) return entry;
+    }
+    return {};
 }
 
 }

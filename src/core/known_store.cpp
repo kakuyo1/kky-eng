@@ -13,9 +13,54 @@ constexpr int kMaxLevel = 7;
 /// Separator between language and lemma in a cache key. Cannot occur inside either.
 constexpr char kSep = '\x1f';
 
-std::string cacheKey(const std::string& lang, const std::string& lemma)
+std::string cacheKey(CacheContext const& context, std::string const& lemma)
 {
-    return lang + kSep + lemma;
+    return context.language + kSep + (context.multipleSenses ? "multiple" : "single") + kSep + lemma;
+}
+
+std::optional<WordCache> readCache(nlohmann::json const& entry, std::string const& language)
+{
+    if (not entry.is_object() or not entry.contains("ipa") or not entry["ipa"].is_string()) return std::nullopt;
+    for (auto const* field : {"en", "zh"})
+        if (not entry.contains(field) or not entry[field].is_string() or entry[field].get<std::string>().empty())
+            return std::nullopt;
+    WordCache result{entry["ipa"].get<std::string>(), entry["en"].get<std::string>(), entry["zh"].get<std::string>()};
+    if (entry.contains("translation")) {
+        if (not entry["translation"].is_string()) return std::nullopt;
+        result.translation = entry["translation"].get<std::string>();
+    }
+    if (language != "en" and language != "zh" and result.translation.empty()) return std::nullopt;
+    if (entry.contains("senses")) {
+        if (not entry["senses"].is_array() or entry["senses"].empty()) return std::nullopt;
+        for (auto const& sense : entry["senses"]) {
+            if (not sense.is_object()) return std::nullopt;
+            for (auto const* field : {"en", "zh"})
+                if (not sense.contains(field) or not sense[field].is_string() or sense[field].get<std::string>().empty())
+                    return std::nullopt;
+            auto const translation = sense.find("translation");
+            if (translation != sense.end() and not translation->is_string()) return std::nullopt;
+            auto const text = translation == sense.end() ? std::string{} : translation->get<std::string>();
+            if (language != "en" and language != "zh" and text.empty()) return std::nullopt;
+            if (result.senses.size() < 3)
+                result.senses.push_back({sense["en"].get<std::string>(), sense["zh"].get<std::string>(), text});
+        }
+        result.en          = result.senses.front().en;
+        result.zh          = result.senses.front().zh;
+        result.translation = result.senses.front().translation;
+    }
+    return result;
+}
+
+nlohmann::json writeCache(WordCache const& entry)
+{
+    nlohmann::json value{{"ipa", entry.ipa}, {"en", entry.en}, {"zh", entry.zh}};
+    if (not entry.translation.empty()) value["translation"] = entry.translation;
+    if (not entry.senses.empty()) {
+        value["senses"] = nlohmann::json::array();
+        for (auto const& sense : entry.senses)
+            value["senses"].push_back({{"en", sense.en}, {"zh", sense.zh}, {"translation", sense.translation}});
+    }
+    return value;
 }
 
 } // namespace
@@ -75,16 +120,13 @@ KnownStore KnownStore::load(std::filesystem::path path)
             for (auto entry = lang.value().begin(); entry != lang.value().end(); ++entry) {
                 const nlohmann::json& e = entry.value();
                 if (!e.is_object()) continue;
-                // An entry written before the ipa field existed has no "ipa" key, so it is
-                // dropped rather than loaded: reading it would put a bubble with no
-                // pronunciation on screen forever. Dropping it here is the whole migration --
-                // the next lookup of that word is a miss, asks the model, writes a complete
-                // entry back, and takes the unreadable one out of the file on the next save.
-                // An empty ipa, though, is a legitimate entry now (an acronym has none), so
-                // only the missing key disqualifies it.
-                if (!e.contains("ipa")) continue;
-                store.cache_[cacheKey(lang.key(), entry.key())] =
-                    WordCache{e.value("ipa", std::string()), e.value("en", std::string()), e.value("zh", std::string())};
+                // Legacy flat entries remain single-sense entries. Multiple mode never falls
+                // back to them; it has its own nested entry under the same lemma.
+                if (auto cached = readCache(e, lang.key()))
+                    store.cache_[cacheKey({lang.key(), false}, entry.key())] = std::move(*cached);
+                if (e.contains("multiple"))
+                    if (auto cached = readCache(e["multiple"], lang.key()); cached and not cached->senses.empty())
+                        store.cache_[cacheKey({lang.key(), true}, entry.key())] = std::move(*cached);
             }
         }
     }
@@ -141,7 +183,12 @@ void KnownStore::setExplanationLang(std::string lang)
 
 std::optional<WordCache> KnownStore::cacheGet(const std::string& lemma) const
 {
-    const auto it = cache_.find(cacheKey(lang_, lemma));
+    return cacheGet(lemma, {lang_, false});
+}
+
+std::optional<WordCache> KnownStore::cacheGet(std::string const& lemma, CacheContext const& context) const
+{
+    const auto it = cache_.find(cacheKey(context, lemma));
     if (it == cache_.end()) {
         LENS_TRACE("KnownStore::cacheGet: miss for '{}' ({})", lemma, lang_);
         return std::nullopt;
@@ -152,8 +199,34 @@ std::optional<WordCache> KnownStore::cacheGet(const std::string& lemma) const
 
 void KnownStore::cachePut(const std::string& lemma, WordCache entry)
 {
+    cachePut(lemma, std::move(entry), {lang_, false});
+}
+
+void KnownStore::cachePut(std::string const& lemma, WordCache entry, CacheContext const& context)
+{
     LENS_TRACE("KnownStore::cachePut: '{}' ({})", lemma, lang_);
-    cache_[cacheKey(lang_, lemma)] = std::move(entry);
+    if (entry.senses.size() > (context.multipleSenses ? 3u : 1u))
+        entry.senses.resize(context.multipleSenses ? 3u : 1u);
+    cache_[cacheKey(context, lemma)] = std::move(entry);
+}
+
+bool KnownStore::removeLemma(std::string const& lemma)
+{
+    bool removed = marks_.erase(lemma) != 0;
+    removed      = known_.erase(lemma) != 0 || removed;
+
+    for (auto it = cache_.begin(); it != cache_.end();) {
+        const auto separator = it->first.rfind(kSep);
+        if (separator != std::string::npos && it->first.substr(separator + 1) == lemma) {
+            it      = cache_.erase(it);
+            removed = true;
+        } else {
+            ++it;
+        }
+    }
+    if (removed)
+        LENS_INFO("removed local word state for '{}'", lemma);
+    return removed;
 }
 
 void KnownStore::save() const
@@ -171,8 +244,14 @@ void KnownStore::save() const
 
     nlohmann::json cache = nlohmann::json::object();
     for (const auto& [key, entry] : cache_) {
-        const std::size_t sep                          = key.find(kSep);
-        cache[key.substr(0, sep)][key.substr(sep + 1)] = {{"ipa", entry.ipa}, {"en", entry.en}, {"zh", entry.zh}};
+        auto const languageEnd = key.find(kSep);
+        auto const modeEnd     = key.find(kSep, languageEnd + 1);
+        auto& word             = cache[key.substr(0, languageEnd)][key.substr(modeEnd + 1)];
+        if (not word.is_object()) word = nlohmann::json::object();
+        if (key.substr(languageEnd + 1, modeEnd - languageEnd - 1) == "multiple")
+            word["multiple"] = writeCache(entry);
+        else
+            word.update(writeCache(entry));
     }
     doc["cache"] = std::move(cache);
 

@@ -30,10 +30,13 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/llm_pure_test.cpp
   unit/llm_mock_transport_test.cpp
   unit/llm_pricing_test.cpp
+  unit/cost_duty_test.cpp
+  unit/phase2_explanation_test.cpp
   unit/log_test.cpp
   unit/util_test.cpp
+  unit/capture_test.cpp
 )
-target_link_libraries(lens_gtest_unit PRIVATE lens_core lens_llm lens_util GTest::gtest_main)
+target_link_libraries(lens_gtest_unit PRIVATE lens_app lens_core lens_llm lens_util GTest::gtest_main)
 lens_gtest_configure(lens_gtest_unit)
 
 # Prints throughput and the profile breakdown; see the file header. Its only assertion is

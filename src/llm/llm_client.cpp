@@ -56,6 +56,18 @@ void LlmClient::setChannel(Channel channel)
     channel_ = channel;
 }
 
+bool LlmClient::setProvider(QString const& provider)
+{
+    auto const entry = serviceProvider(provider);
+    if (entry.isEmpty()) return false;
+    config_.requestOverrides = entry.value("requestOverrides").toObject();
+    if (provider != QLatin1String("custom")) {
+        setBaseUrl(QUrl{entry.value("baseUrl").toString()});
+        setModel(entry.value("defaultModel").toString());
+    }
+    return true;
+}
+
 void LlmClient::setPreset(const QString& preset)
 {
     LENS_TRACE("LlmClient::setPreset: '{}' -> '{}'", preset_.toStdString(), preset.toStdString());
@@ -91,12 +103,14 @@ void LlmClient::explainWords(QStringList words)
 
     const Channel channel = channel_;
     const QString preset  = preset_;
+    auto const language   = lang_;
+    auto const model      = config_.model;
     LENS_INFO("explaining {} item(s) on channel '{}' preset '{}' with '{}'", words.size(), channelKey(channel), preset.toStdString(), config_.model.toStdString());
     LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kTimeoutMs);
 
     QNetworkReply* reply =
         manager_->post(request, buildRequestBody(config_, channel, words, lang_, preset));
-    connect(reply, &QNetworkReply::finished, this, [this, reply, words, channel] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, words, channel, language, preset, model] {
         reply->deleteLater();
 
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
@@ -119,13 +133,15 @@ void LlmClient::explainWords(QStringList words)
         }
 
         const QByteArray body = reply->readAll();
-        const auto parsed     = parseExplanations(channel, body, words);
+        const auto parsed     = parseExplanations(channel, body, words, language, preset == QLatin1String("multiple"));
         if (const auto* message = std::get_if<QString>(&parsed)) {
             emit failed(*message);
             return;
         }
         LENS_INFO("received {} explanation(s)", words.size());
-        emit batchFinished(std::get<QVector<Explanation>>(parsed), parseUsage(body));
+        auto usage  = parseUsage(body);
+        usage.model = model;
+        emit batchFinished(std::get<QVector<Explanation>>(parsed), usage);
     });
 }
 

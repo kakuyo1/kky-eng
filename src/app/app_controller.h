@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QPoint>
+#include <QTimer>
 #include <QString>
 #include <QUrl>
 #include <QVariantList>
@@ -61,6 +62,12 @@ public:
     Q_INVOKABLE void runSelectionAction(QString action, QString text);
     Q_INVOKABLE void mark(QString lemma, bool learned);
     Q_INVOKABLE void setAutoScan(bool on);
+    Q_INVOKABLE void setOcrCapture(bool on);
+    Q_INVOKABLE void setMinimumWordLength(int length);
+    Q_INVOKABLE void setDragSensitivity(QString sensitivity);
+    Q_INVOKABLE bool setScanWhitelist(QString processes);
+    Q_INVOKABLE void restoreCaptureDefaults();
+    Q_INVOKABLE bool captureScreen();
     Q_INVOKABLE void setLevel(int level);
     Q_INVOKABLE void setExplanationLang(QString lang);
     Q_INVOKABLE void setMultiSense(bool on);
@@ -79,6 +86,8 @@ public:
     Q_INVOKABLE void dismissNotice();
     Q_INVOKABLE QString exportWords(QString scope);
     Q_INVOKABLE bool saveWords(QUrl path, QString scope);
+    Q_INVOKABLE bool removeWord(QString lemma);
+    Q_INVOKABLE bool setDailyBudget(double amount);
 
     QVariantMap bubble() const;
     QVariantMap notice() const;
@@ -88,6 +97,7 @@ public:
     QVariantMap cost() const;
     QString modeLabel() const;
     QString busyLabel() const;
+    double dailyBudget() const;
 
     Q_PROPERTY(QVariantMap bubble READ bubble NOTIFY bubbleChanged)
     Q_PROPERTY(QVariantMap notice READ notice NOTIFY noticeChanged)
@@ -97,6 +107,7 @@ public:
     Q_PROPERTY(QVariantMap cost READ cost NOTIFY statsChanged)
     Q_PROPERTY(QString modeLabel READ modeLabel NOTIFY settingsChanged)
     Q_PROPERTY(QString busyLabel READ busyLabel NOTIFY busyChanged)
+    Q_PROPERTY(double dailyBudget READ dailyBudget NOTIFY dailyBudgetChanged)
 
 signals:
     void selectionBarRequested(QVariantMap payload);
@@ -107,16 +118,22 @@ signals:
     void statsChanged();
     void busyChanged();
     void uiLanguageChanged(QString lang);
+    void dailyBudgetChanged();
 
 private:
+    /// @brief Restore provider wire options and persisted connection choices without touching credentials.
+    void restoreModelService();
+    /// @brief Reconcile budget and in-flight request gates with the capture duty.
+    void refreshCaptureGates();
+
     static AppController* instance_;
 
     StorageDuty storage_;
+    CostDuty cost_;
     CaptureDuty capture_;
     ExplanationDuty explanation_;
-    CostDuty cost_;
     llm::LlmClient& llm_;
-    bool autoScan_ = false;
+    QTimer gateTimer_;
 };
 
 }

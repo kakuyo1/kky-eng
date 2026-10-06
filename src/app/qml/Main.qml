@@ -23,6 +23,11 @@ Window {
     color: "transparent"
     flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowDoesNotAcceptFocus | Qt.WindowTransparentForInput
 
+    readonly property int screenMargin: 8
+    property var placements: []
+    property string screenLayoutSignature: ""
+    property int selectionBarGeneration: 0
+
     /// The colour table follows the stored theme, whichever surface is showing.
     Binding {
         target: Tokens
@@ -42,62 +47,173 @@ Window {
                        Screen.virtualY + Screen.height - 48, 56, 48);
     }
 
-    /// @return The screen a point falls on, or this window's own when it falls on none.
+    /// @return The screen a DIP point falls on, or the nearest screen when it falls between monitors.
     function screenFor(point) {
-        // QtQml's type information carries no `screens` member on Qt.application, though the
-        // real object has one, so the loop below is the one statement that has to be exempt
-        // from the member check.
+        let nearest = screen;
+        let nearestDistance = Number.MAX_VALUE;
         // qmllint disable missing-property
-        for (const s of Qt.application.screens)
+        for (const s of Qt.application.screens) {
             if (point.x >= s.virtualX && point.x < s.virtualX + s.width
                 && point.y >= s.virtualY && point.y < s.virtualY + s.height)
                 return s;
+            const dx = point.x < s.virtualX ? s.virtualX - point.x
+                                             : Math.max(0, point.x - (s.virtualX + s.width));
+            const dy = point.y < s.virtualY ? s.virtualY - point.y
+                                             : Math.max(0, point.y - (s.virtualY + s.height));
+            const distance = dx * dx + dy * dy;
+            if (distance < nearestDistance) {
+                nearest = s;
+                nearestDistance = distance;
+            }
+        }
         // qmllint enable missing-property
-        return screen;
+        return nearest;
     }
 
-    /// @return Where a window of this size goes to sit beside the icon, whole.
-    ///
-    /// The card's bottom-right corner starts at the icon's centre: a flyout on a bottom-edge
-    /// taskbar opens up and to the left of the icon that opened it. The 26 is the shadow margin
-    /// every surface carries, so it is the card rather than the transparent window around it
-    /// that meets the icon; the clamp is what keeps the card on screen, since the panel is
-    /// wider than the icon's distance from the edge.
-    function placeBeside(anchor, width, height) {
-        const target = root.screenFor(anchor);
-        const margin = 8;
+    /// @return The screen containing a native-pixel point, using each screen's own scale factor.
+    function screenForPhysical(point) {
+        let nearest = screen;
+        let nearestDistance = Number.MAX_VALUE;
+        // qmllint disable missing-property
+        for (const s of Qt.application.screens) {
+            const ratio = s.devicePixelRatio || 1;
+            const left = s.virtualX * ratio;
+            const top = s.virtualY * ratio;
+            const right = left + s.width * ratio;
+            const bottom = top + s.height * ratio;
+            if (point.x >= left && point.x < right && point.y >= top && point.y < bottom)
+                return s;
+            const dx = point.x < left ? left - point.x : Math.max(0, point.x - right);
+            const dy = point.y < top ? top - point.y : Math.max(0, point.y - bottom);
+            const distance = dx * dx + dy * dy;
+            if (distance < nearestDistance) {
+                nearest = s;
+                nearestDistance = distance;
+            }
+        }
+        // qmllint enable missing-property
+        return nearest;
+    }
+
+    function anchorPoint(anchor) {
+        return anchor.width === undefined
+                ? anchor
+                : Qt.point(anchor.x + anchor.width / 2, anchor.y + anchor.height / 2);
+    }
+
+    function rememberPlacement(surface, anchor, kind) {
+        for (const placement of placements) {
+            if (placement.surface === surface) {
+                placement.anchor = anchor;
+                placement.kind = kind;
+                return placement;
+            }
+        }
+        const placement = {surface: surface, anchor: anchor, kind: kind};
+        placements.push(placement);
+        return placement;
+    }
+
+    /// @return A native-size surface bounded to the monitor without changing its content scale.
+    function layoutFor(target, width, height) {
+        const availableWidth = Math.max(1, target.width - 2 * screenMargin);
+        const availableHeight = Math.max(1, target.height - 2 * screenMargin);
+        return {
+            width: Math.min(Math.max(1, width), availableWidth),
+            height: Math.min(Math.max(1, height), availableHeight)
+        };
+    }
+
+    function clamp(value, low, high) {
+        const upper = Math.max(low, high);
+        return Math.max(low, Math.min(value, upper));
+    }
+
+    /// @return Where a window of this size goes to sit beside the icon, whole when possible.
+    function placeBeside(anchor, width, height, target, shadowMargin) {
+        target = target || root.screenFor(root.anchorPoint(anchor));
+        shadowMargin = shadowMargin === undefined ? 26 : shadowMargin;
+        const margin = root.screenMargin;
         const left = target.virtualX + margin;
         const top = target.virtualY + margin;
         const right = target.virtualX + target.width - margin;
         const bottom = target.virtualY + target.height - margin;
 
-        const x = Math.max(left, Math.min(anchor.x + anchor.width / 2 - width + 26, right - width));
-        let y = anchor.y + anchor.height / 2 - height + 26;
+        const x = root.clamp(anchor.x + anchor.width / 2 - width + shadowMargin,
+                             left, right - width);
+        let y = anchor.y + anchor.height / 2 - height + shadowMargin;
         if (y < top)
             y = anchor.y + anchor.height + 8;
-        return Qt.point(Math.round(x), Math.max(top, Math.min(y, bottom - height)));
+        return Qt.point(Math.round(x), Math.round(root.clamp(y, top, bottom - height)));
     }
 
     /// @brief Put a surface up beside the tray icon, on whichever screen that is.
     function placePanel(panel, anchor) {
-        const at = root.placeBeside(anchor, panel.width, panel.height);
+        root.rememberPlacement(panel, anchor, "panel");
+        const target = root.screenFor(root.anchorPoint(anchor));
+        const layout = root.layoutFor(target, panel.width, panel.height);
+        const at = root.placeBeside(anchor, layout.width, layout.height, target, panel.shadowMargin);
         panel.x = at.x;
         panel.y = at.y;
         panel.visible = true;
         // `visible` alone is not enough. Every surface carries WindowStaysOnTopHint, but a
         // click on the tray icon activates the taskbar -- which is topmost too and re-raises
-        // itself -- so a panel shown into that moment can land under it, with the bottom of
-        // the card hidden behind the taskbar it was opened from. Raising is the second half
-        // of showing a surface, here and in Bubble.show() / SelectionBar.openAt().
+        // itself -- so a panel shown into that moment can land under it.
         panel.raise();
+    }
+
+    // qmllint disable missing-property
+    function placeTransient(surface, anchor, gap) {
+        root.rememberPlacement(surface, anchor, "transient");
+        const target = root.screenFor(root.anchorPoint(anchor));
+        // Read the dimensions at placement time. Bubble's implicit height changes when its
+        // senses, translation, or hover actions settle; caching its first size breaks that path.
+        const layout = root.layoutFor(target, surface.width, surface.height);
+        const left = target.virtualX + screenMargin;
+        const top = target.virtualY + screenMargin;
+        const right = target.virtualX + target.width - screenMargin;
+        const bottom = target.virtualY + target.height - screenMargin;
+        const shadow = surface.shadowMargin;
+        const x = root.clamp(anchor.x - shadow, left, right - layout.width);
+        const above = anchor.y - gap - layout.height + shadow;
+        const below = anchor.y + gap - shadow;
+        const y = root.clamp(above >= top ? above : below, top, bottom - layout.height);
+        surface.x = Math.round(x);
+        surface.y = Math.round(y);
+        surface.raise();
+    }
+    // qmllint enable missing-property
+
+    function repositionVisible() {
+        for (const placement of placements) {
+            if (!placement.surface.visible)
+                continue;
+            if (placement.kind === "panel")
+                root.placePanel(placement.surface, placement.anchor);
+            else if (!placement.surface.dragging)
+                root.placeTransient(placement.surface, placement.anchor, placement.surface.gap);
+        }
+    }
+
+    function currentScreenLayoutSignature() {
+        let signature = "";
+        // qmllint disable missing-property
+        for (const s of Qt.application.screens)
+            signature += `${s.virtualX},${s.virtualY},${s.width},${s.height},${s.devicePixelRatio || 1};`;
+        // qmllint enable missing-property
+        return signature;
+    }
+
+    function checkScreenLayout() {
+        const signature = root.currentScreenLayoutSignature();
+        if (signature !== root.screenLayoutSignature) {
+            root.screenLayoutSignature = signature;
+            root.repositionVisible();
+        }
     }
 
     /**
      * Take down every panel but the one being opened.
-     *
-     * The bubble and the action bar are not panels: they arrive on their own when a selection
-     * is made, and shutting them because the reader opened a menu would close what they were
-     * looking at.
      */
     function hidePanels(except) {
         const panels = [trayMenu, settingsPopup, statsPopup, wordsPopup, costPopup];
@@ -106,22 +222,16 @@ Window {
                 panel.visible = false;
     }
 
-    /// Bring the statistics panel up on its own. It is the one of its three the tray menu opens;
-    /// the other two are reached from it and go back through the arrow in their own corner.
     function showStats() {
         root.hidePanels(statsPopup);
         root.placePanel(statsPopup, root.trayAnchor());
     }
 
-    /// And the settings panel, the same way: the menu is one entry point, and picking from it
-    /// should leave one thing on screen rather than stack another beside what is already there.
     function showSettings() {
         root.hidePanels(settingsPopup);
         root.placePanel(settingsPopup, root.trayAnchor());
     }
 
-    /// The two the statistics panel drills down into, placed the same way so that following the
-    /// arrow to one and back to the other does not move the card.
     function showCost() {
         root.hidePanels(costPopup);
         root.placePanel(costPopup, root.trayAnchor());
@@ -139,9 +249,15 @@ Window {
         root.placePanel(trayMenu, root.trayAnchor());
     }
 
+    Timer {
+        interval: 250
+        repeat: true
+        running: true
+        onTriggered: root.checkScreenLayout()
+    }
+
     // Debug-only automation called by main.cpp when QT_QML_DEBUG and the profiling scenario
-    // environment flag are both enabled. The sequence uses the same surface entry points as
-    // the reader, but avoids a tray-coordinate dependency in repeatable profiler runs.
+    // environment flag are both enabled.
     function profileScenario(step) {
         if (step === 0) {
             root.showTrayMenu();
@@ -168,44 +284,29 @@ Window {
 
     /**
      * Turn a position the mouse hook reported into one a window can be placed at.
-     *
-     * The hook reads real screen pixels; windows are placed in device-independent pixels. At
-     * this machine's 125% they differ by that factor, and taking one for the other throws
-     * every surface a quarter-screen off what it belongs to.
-     *
-     * The copy is what makes the division stick. `Controller.bubble` and its siblings are
-     * QVariantMaps, and the JS object QML hands back for one takes the assignment and keeps
-     * the old value -- measured on the real window, `payload.x = payload.x / ratio` left the
-     * bubble reading the raw physical x, so this function spent its whole life as a no-op and
-     * every surface sat at 1.25x of where it was meant to be. A freshly built object has no
-     * such trouble. Fields other than x and y ride along untouched.
+     * The hook reads native screen pixels; windows and QScreen geometry use DIPs.
      */
     function toDip(payload) {
-        const ratio = Screen.devicePixelRatio || 1;
+        const target = root.screenForPhysical(Qt.point(payload.x, payload.y));
+        const ratio = target.devicePixelRatio || 1;
         const out = {};
         for (const key in payload)
             out[key] = payload[key];
-        out.x = payload.x / ratio;
-        out.y = payload.y / ratio;
+        // Convert relative to the selected screen so negative virtual coordinates remain on the
+        // same screen and mixed-DPI monitors do not use the root screen's scale factor.
+        out.x = target.virtualX + (payload.x - target.virtualX * ratio) / ratio;
+        out.y = target.virtualY + (payload.y - target.virtualY * ratio) / ratio;
         return out;
     }
 
-    /**
-     * Close every surface the press missed: UI.md's "click outside closes", for the action bar
-     * and the four panels (the tray menu is a native QMenu and Windows closes it itself).
-     *
-     * The card, not the window, is the surface: the 26px around it is shadow margin, and a
-     * click there reads as a click outside.
-     */
-    function contains(rect: var, point: var): bool {
+    // qmllint disable missing-property
+    function contains(rect, point) {
         return point.x >= rect.x && point.x <= rect.x + rect.width
             && point.y >= rect.y && point.y <= rect.y + rect.height;
     }
+    // qmllint enable missing-property
 
     function dismissOutside(point) {
-        // A window a surface opened -- today, the settings panel's level list -- takes the
-        // press first: inside it, nothing closes; outside it, it goes, and the press is then
-        // judged against the surfaces like any other.
         const child = settingsPopup.visible ? settingsPopup.openChildRect : null;
         if (child) {
             if (contains(child, point))
@@ -218,8 +319,6 @@ Window {
             if (!surface.visible)
                 continue;
             const margin = surface.shadowMargin;
-            // A surface may name the region that counts as a press on it: the tray menu's card
-            // is not its whole surface, because the language list unfolds beside it.
             const card = surface.hitRect !== undefined
                        ? surface.hitRect
                        : Qt.rect(surface.x + margin, surface.y + margin,
@@ -229,28 +328,14 @@ Window {
         }
     }
 
-    SelectionBar {
-        id: bar
-    }
+    SelectionBar { id: bar }
+    Bubble { id: bubble }
+    Notice { id: notice }
 
-
-
-    Bubble {
-        id: bubble
-    }
-
-    Notice {
-        id: notice
-    }
-
-    SettingsPopup {
-        id: settingsPopup
-    }
+    SettingsPopup { id: settingsPopup }
 
     StatsPopup {
         id: statsPopup
-        // One of the three at a time: the two below replace the panel they are opened from,
-        // and each carries a back arrow that brings it back.
         onCostRequested: root.showCost()
         onWordsRequested: root.showWords()
     }
@@ -267,8 +352,6 @@ Window {
 
     TrayMenu {
         id: trayMenu
-        // The menu asks; the placement is here, because here is where every surface's
-        // placement lives.
         onStatsRequested: root.showStats()
         onSettingsRequested: root.showSettings()
     }
@@ -277,16 +360,28 @@ Window {
         target: Controller
 
         function onSelectionBarRequested(payload) {
+            const at = root.toDip(payload);
+            const generation = ++root.selectionBarGeneration;
             bar.selectionText = payload.text;
-            bar.openAt(root.toDip(payload));
+            bar.openAt(at);
+            bar.visible = false;
+            Qt.callLater(() => {
+                if (generation !== root.selectionBarGeneration)
+                    return;
+                root.placeTransient(bar, at, bar.gap);
+                bar.visible = true;
+            });
         }
 
         function onBubbleChanged() {
             const payload = Controller.bubble;
-            if (payload && Object.keys(payload).length > 0)
-                bubble.show(root.toDip(payload));
-            else
+            if (payload && Object.keys(payload).length > 0) {
+                const at = root.toDip(payload);
+                bubble.show(at);
+                Qt.callLater(() => root.placeTransient(bubble, at, bubble.gap));
+            } else {
                 bubble.visible = false;
+            }
         }
 
         function onNoticeChanged() {
@@ -298,16 +393,14 @@ Window {
         }
 
         function onPointerPressed(at) {
+            ++root.selectionBarGeneration;
             root.dismissOutside(root.toDip(at));
         }
     }
 
     Connections {
         target: Tray
-
         function onMenuRequested() {
-            // Opening the menu is one of the reader's own gestures, so it takes the screen the
-            // same way picking a row from it does.
             root.showTrayMenu();
         }
     }

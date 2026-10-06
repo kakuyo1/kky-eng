@@ -4,6 +4,8 @@
   "unit": 1000000,
   "models": {
     "deepseek-flash": { "input": 0.15, "output": 0.6 },
-    "deepseek-v4-pro": { "input": 0.66, "output": 1.98 }
+    "deepseek-v4-pro": { "input": 0.66, "output": 1.98 },
+    "gpt-4.1-mini": { "input": 0.4, "output": 1.6 },
+    "gpt-4.1-nano": { "input": 0.1, "output": 0.4 }
   }
 }

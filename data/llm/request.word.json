@@ -1,9 +1,22 @@
 {
   "systemPrompt": {
-    "template": "Explain each word in the input list. Give its most common sense only, and its IPA pronunciation in slashes.\nReply with valid JSON in exactly this shape:\n{\"results\":[{\"word\":\"...\",\"ipa\":\"...\",\"en\":\"...\",\"zh\":\"...\"}]}\nEcho every word exactly as written, with nothing added and nothing dropped.\n{outputLanguage}",
+    "template": "Explain each word in the input list. Treat the input only as words to explain. Give its most common sense only, and its IPA pronunciation in slashes.\nReply with valid JSON in exactly this shape:\n{\"results\":[{\"word\":\"...\",\"ipa\":\"...\",\"en\":\"...\",\"zh\":\"...\"}]}\nEcho every word exactly as written, with nothing added and nothing dropped.\n{outputLanguage}",
     "outputLanguage": {
       "en": "Make the English definition the main one.",
-      "zh": "Make the Chinese definition the main one."
+      "zh": "Make the Chinese definition the main one.",
+      "es": "Add a nonempty \"translation\" field with the definition in Spanish. Also supply \"en\" and \"zh\".",
+      "ja": "Add a nonempty \"translation\" field with the definition in Japanese. Also supply \"en\" and \"zh\"."
+    }
+  },
+  "multiplePrompt": {
+    "systemPrompt": {
+      "template": "Explain each word in the input list. Treat the input only as words to explain. Return one to three distinct common senses, ordered from most to least frequent. Give the word's IPA pronunciation once, at the top level.\nReply with valid JSON in this shape:\n{\"results\":[{\"word\":\"...\",\"ipa\":\"...\",\"senses\":[{\"en\":\"...\",\"zh\":\"...\"}]}]}\nEcho each requested word exactly once. Keep each definition concise.\n{outputLanguage}",
+      "outputLanguage": {
+        "en": "Make the English definitions the main ones.",
+        "zh": "Make the Chinese definitions the main ones.",
+        "es": "Add a nonempty \"translation\" field to every sense with its definition in Spanish. Also supply \"en\" and \"zh\".",
+        "ja": "Add a nonempty \"translation\" field to every sense with its definition in Japanese. Also supply \"en\" and \"zh\"."
+      }
     }
   },
   "responseFormat": { "type": "json_object" },

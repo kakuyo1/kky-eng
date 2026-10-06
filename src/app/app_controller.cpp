@@ -8,7 +8,9 @@
 #include <QCursor>
 #include <QDate>
 #include <QDateTime>
+#include <QGuiApplication>
 #include <QHash>
+#include <QScreen>
 #include <QSaveFile>
 #include <QSet>
 #include <QQmlEngine>
@@ -29,26 +31,64 @@ AppController::AppController(core::KnownStore& store,
                              QObject* parent)
     : QObject(parent),
       storage_(store),
-      capture_(storage_, hook),
-      explanation_(storage_, llm),
-      cost_(storage_.statsStore(), llm, pricing),
-      llm_(llm)
+      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), explanation_(storage_, llm, cost_, this), llm_(llm)
 {
     connect(&capture_, &CaptureDuty::selectionBarRequested, this, &AppController::selectionBarRequested);
     connect(&capture_, &CaptureDuty::pointerPressed, this, &AppController::pointerPressed);
     connect(&capture_, &CaptureDuty::selectionReady, this, [this](PendingSelection selection) {
         explanation_.setSelection(std::move(selection));
     });
+    connect(&capture_, &CaptureDuty::scanCandidatesReady, this, [this](QVariantList candidates, QPoint anchor) {
+        explanation_.enqueueScanCandidates(std::move(candidates), anchor);
+    });
+    connect(&capture_, &CaptureDuty::settingsChanged, this, &AppController::settingsChanged);
     connect(&explanation_, &ExplanationDuty::bubbleChanged, this, &AppController::bubbleChanged);
     connect(&explanation_, &ExplanationDuty::noticeChanged, this, &AppController::noticeChanged);
-    connect(&explanation_, &ExplanationDuty::busyChanged, this, &AppController::busyChanged);
+    connect(&explanation_, &ExplanationDuty::busyChanged, this, [this] {
+        refreshCaptureGates();
+        emit busyChanged();
+    });
     connect(&explanation_, &ExplanationDuty::statsChanged, this, &AppController::statsChanged);
+    connect(&cost_, &CostDuty::stateChanged, this, [this] {
+        refreshCaptureGates();
+        explanation_.resumeQueued();
+        emit statsChanged();
+        emit settingsChanged();
+        emit dailyBudgetChanged();
+    });
 
     llm.setExplanationLang(QString::fromStdString(store.explanationLang()));
+    restoreModelService();
+    cost_.setLegacyModel(llm_.model());
+    gateTimer_.setInterval(1000);
+    connect(&gateTimer_, &QTimer::timeout, this, [this] {
+        refreshCaptureGates();
+        explanation_.resumeQueued();
+    });
+    gateTimer_.start();
+    refreshCaptureGates();
     LENS_INFO("AppController ready: level={} explanation language '{}'", store.level(), store.explanationLang());
 }
 
 AppController::~AppController() = default;
+
+void AppController::restoreModelService()
+{
+    const QString provider = storage_.documentString("PROVIDER", llm::serviceCatalog().value("defaultProvider").toString());
+    if (!llm_.setProvider(provider))
+        llm_.setProvider(QStringLiteral("custom"));
+    const QString url = storage_.documentString("URL", QString{}).trimmed();
+    if (!url.isEmpty()) {
+        const QUrl savedUrl(url);
+        if (savedUrl.isValid() && savedUrl.scheme() == QLatin1String("https") && !savedUrl.host().isEmpty())
+            llm_.setBaseUrl(savedUrl);
+        else
+            LENS_WARN("ignored an invalid persisted model service URL");
+    }
+    const QString model = storage_.documentString("MODEL", QString{}).trimmed();
+    if (!model.isEmpty())
+        llm_.setModel(model);
+}
 
 AppController* AppController::instance_ = nullptr;
 
@@ -88,9 +128,38 @@ void AppController::mark(QString lemma, bool learned)
 
 void AppController::setAutoScan(bool on)
 {
-    autoScan_ = on;
-    LENS_INFO("automatic scanning {}", on ? "on" : "off");
-    emit settingsChanged();
+    capture_.setAutoScan(on);
+}
+
+void AppController::setOcrCapture(bool on)
+{
+    capture_.setOcrCapture(on);
+}
+
+void AppController::setMinimumWordLength(int length)
+{
+    capture_.setMinimumWordLength(length);
+}
+
+void AppController::setDragSensitivity(QString sensitivity)
+{
+    capture_.setDragSensitivity(std::move(sensitivity));
+}
+
+bool AppController::setScanWhitelist(QString processes)
+{
+    return capture_.setScanWhitelist(std::move(processes));
+}
+
+void AppController::restoreCaptureDefaults()
+{
+    capture_.restoreDefaults();
+}
+
+bool AppController::captureScreen()
+{
+    auto* const screen = QGuiApplication::screenAt(QCursor::pos());
+    return screen != nullptr and capture_.captureRegion(screen->geometry());
 }
 
 void AppController::setLevel(int level)
@@ -143,6 +212,7 @@ void AppController::setApiKey(QString key)
     llm_.setApiKey(key);
     storage_.writeDocument("API-KEY", key);
     LENS_INFO("API key {}", key.isEmpty() ? "cleared" : "updated");
+    emit settingsChanged();
 }
 
 void AppController::setClipboardPolicy(QString policy)
@@ -168,18 +238,14 @@ void AppController::setPopupFrequency(QString frequency)
 
 void AppController::setProvider(QString provider)
 {
-    storage_.writeDocument("PROVIDER", provider);
-    emit settingsChanged();
+    if (explanation_.setProvider(provider))
+        emit settingsChanged();
 }
 
 void AppController::setModel(QString model)
 {
-    const QString value = model.trimmed();
-    if (value.isEmpty())
-        return;
-    llm_.setModel(value);
-    storage_.writeDocument("MODEL", value);
-    emit settingsChanged();
+    if (explanation_.setModel(model))
+        emit settingsChanged();
 }
 
 void AppController::setApiUrl(QString url)
@@ -227,7 +293,8 @@ QVariantMap AppController::notice() const
 
 QVariantMap AppController::settings() const
 {
-    return QVariantMap{{"level", storage_.knownStore().level()},
+    const QString provider = storage_.documentString("PROVIDER", llm::serviceCatalog().value("defaultProvider").toString());
+    QVariantMap result{{"level", storage_.knownStore().level()},
                        {"levels", StorageDuty::levelOptions()},
                        {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
                        {"multiSense", storage_.documentString("multiSense", QStringLiteral("false")) == QLatin1String("true")},
@@ -237,11 +304,19 @@ QVariantMap AppController::settings() const
                        {"selectionCapture", storage_.documentString("selectionCapture", QStringLiteral("true")) == QLatin1String("true")},
                        {"clipboardPolicy", storage_.documentString("clipboardPolicy", QStringLiteral("topmost"))},
                        {"popupFrequency", storage_.documentString("popupFrequency", QStringLiteral("standard"))},
-                       {"provider", storage_.documentString("PROVIDER", QStringLiteral("DeepSeek"))},
-                       {"model", storage_.documentString("MODEL", QStringLiteral("deepseek-flash"))},
-                       {"url", storage_.documentString("URL", QStringLiteral("https://api.deepseek.com"))},
-                       {"autostart", autostartEnabled()},
-                       {"autoScan", autoScan_}};
+                       {"provider", provider},
+                       {"model", llm_.model()},
+                       {"url", llm_.baseUrl().toString()},
+                       {"dailyBudget", dailyBudget()},
+                       {"autostart", autostartEnabled()}};
+    const auto captureSettings = capture_.settings();
+    for (auto it = captureSettings.cbegin(); it != captureSettings.cend(); ++it)
+        result.insert(it.key(), it.value());
+    result.insert(QStringLiteral("ocrStatus"), capture_.ocrStatus());
+    const auto explanationSettings = explanation_.settings();
+    for (auto it = explanationSettings.cbegin(); it != explanationSettings.cend(); ++it)
+        result.insert(it.key(), it.value());
+    return result;
 }
 
 QVariantMap AppController::stats() const
@@ -337,6 +412,28 @@ bool AppController::saveWords(QUrl path, QString scope)
     return true;
 }
 
+bool AppController::setDailyBudget(double amount)
+{
+    if (!cost_.setDailyBudget(amount))
+        return false;
+    storage_.save();
+    return true;
+}
+
+bool AppController::removeWord(QString lemma)
+{
+    const auto value = lemma.trimmed();
+    if (value.isEmpty())
+        return false;
+    explanation_.invalidateWord(value);
+    const bool removed = storage_.removeWord(value);
+    if (removed) {
+        emit statsChanged();
+        emit bubbleChanged();
+    }
+    return removed;
+}
+
 QVariantMap AppController::cost() const
 {
     return cost_.cost();
@@ -344,12 +441,24 @@ QVariantMap AppController::cost() const
 
 QString AppController::modeLabel() const
 {
-    return autoScan_ ? tr("Auto") : tr("Manual");
+    return capture_.settings().value("autoScan").toBool() ? tr("Auto") : tr("Manual");
 }
 
 QString AppController::busyLabel() const
 {
     return explanation_.busyLabel();
+}
+
+double AppController::dailyBudget() const
+{
+    return storage_.statsStore().dailyBudget();
+}
+
+void AppController::refreshCaptureGates()
+{
+    const bool budgetPaused = !cost_.canScan();
+    capture_.setBudgetPaused(budgetPaused);
+    capture_.setScanPaused(budgetPaused || !explanation_.busyLabel().isEmpty());
 }
 
 }

@@ -7,6 +7,9 @@
 
 #include <QDate>
 
+#include <algorithm>
+#include <utility>
+
 namespace lens::app {
 namespace {
 
@@ -21,22 +24,32 @@ QString currencySymbol(const QString& code)
 
 }
 
-CostDuty::CostDuty(core::StatsStore& stats, llm::LlmClient& llm, const llm::Pricing& pricing)
-    : stats_(stats), llm_(llm), pricing_(pricing)
+CostDuty::CostDuty(core::StatsStore& stats,
+                   llm::LlmClient& llm,
+                   const llm::Pricing& pricing,
+                   DateProvider dateProvider,
+                   QObject* parent)
+    : QObject(parent),
+      stats_(stats),
+      llm_(llm),
+      pricing_(pricing),
+      dateProvider_(std::move(dateProvider)),
+      legacyModel_(llm.model())
 {
 }
 
 QVariantMap CostDuty::stats() const
 {
-    const QString today = QDate::currentDate().toString(Qt::ISODate);
-    const auto& daily   = stats_.daily();
-    int todayPops       = 0;
-    int todayLearned    = 0;
-    int todayFresh      = 0;
-    double todayCost    = 0.0;
+    const BudgetStatus budget = budgetStatus();
+    const std::string today   = budget.date.toString(Qt::ISODate).toStdString();
+    const auto& daily         = stats_.daily();
+    int todayPops             = 0;
+    int todayLearned          = 0;
+    int todayFresh            = 0;
+    double todayCost          = 0.0;
 
     for (const auto& [date, usage] : daily) {
-        if (date != today.toStdString())
+        if (date != today)
             continue;
         todayPops    = usage.pops;
         todayLearned = usage.learned;
@@ -48,12 +61,19 @@ QVariantMap CostDuty::stats() const
                        {"todayLearned", todayLearned},
                        {"todayFresh", todayFresh},
                        {"todayCost", todayCost},
+                       {"dailyBudget", budget.limit},
+                       {"budgetSpent", budget.spent},
+                       {"budgetRemaining", budget.remaining},
+                       {"budgetLimited", budget.limited},
+                       {"budgetExhausted", budget.exhausted},
+                       {"budgetDate", budget.date.toString(Qt::ISODate)},
                        {"currency", currencySymbol(pricing_.currency())}};
 }
 
 QVariantMap CostDuty::cost() const
 {
-    const QDate today         = QDate::currentDate();
+    const BudgetStatus budget = budgetStatus();
+    const QDate today         = budget.date;
     double month              = 0.0;
     double todayAmount        = 0.0;
     double yesterday          = 0.0;
@@ -98,12 +118,87 @@ QVariantMap CostDuty::cost() const
                        {"todayTokens", todayTokens},
                        {"yesterdayTokens", yesterdayTokens},
                        {"weekTokens", weekTokens},
+                       {"dailyBudget", budget.limit},
+                       {"budgetSpent", budget.spent},
+                       {"budgetRemaining", budget.remaining},
+                       {"budgetLimited", budget.limited},
+                       {"budgetExhausted", budget.exhausted},
+                       {"budgetDate", budget.date.toString(Qt::ISODate)},
                        {"currency", currencySymbol(pricing_.currency())}};
 }
 
 double CostDuty::amountOf(const core::DailyUsage& usage) const
 {
-    return pricing_.cost(llm_.model(), llm::Usage{static_cast<int>(usage.promptTokens), static_cast<int>(usage.completionTokens)});
+    if (usage.models.empty())
+        return pricing_.cost(llm_.model(), llm::Usage{static_cast<int>(usage.promptTokens), static_cast<int>(usage.completionTokens), llm_.model()});
+
+    double total = 0.0;
+    for (const auto& [model, bucket] : usage.models) {
+        const QString billingModel = model == core::kLegacyUsageModel ? legacyModel_ : QString::fromStdString(model);
+        total += pricing_.cost(billingModel,
+                               llm::Usage{static_cast<int>(bucket.promptTokens),
+                                          static_cast<int>(bucket.completionTokens),
+                                          billingModel});
+    }
+    return total;
+}
+
+BudgetStatus CostDuty::budgetStatus() const
+{
+    return budgetStatusFor(dateProvider_());
+}
+
+BudgetStatus CostDuty::budgetStatusFor(const QDate& date) const
+{
+    const QDate localDate = date.isValid() ? date : QDate::currentDate();
+    const auto it         = stats_.daily().find(localDate.toString(Qt::ISODate).toStdString());
+    const double spent    = it == stats_.daily().end() ? 0.0 : std::max(0.0, amountOf(it->second));
+    const double limit    = stats_.dailyBudget();
+    const bool limited    = limit > 0.0;
+    const bool exhausted  = budgetReached(spent, limit);
+
+    return BudgetStatus{.date      = localDate,
+                        .spent     = spent,
+                        .limit     = limit,
+                        .remaining = limited ? std::max(0.0, limit - spent) : 0.0,
+                        .limited   = limited,
+                        .exhausted = exhausted,
+                        .currency  = currencySymbol(pricing_.currency())};
+}
+
+bool CostDuty::canRequest() const
+{
+    return !budgetStatus().exhausted;
+}
+
+bool CostDuty::canScan() const
+{
+    return canRequest();
+}
+
+bool CostDuty::setDailyBudget(double amount)
+{
+    if (!stats_.setDailyBudget(amount))
+        return false;
+    emit stateChanged();
+    return true;
+}
+
+bool CostDuty::budgetReached(double spent, double limit)
+{
+    return limit > 0.0 && spent >= limit;
+}
+
+void CostDuty::setLegacyModel(QString model)
+{
+    if (!model.trimmed().isEmpty())
+        legacyModel_ = std::move(model);
+}
+
+void CostDuty::recordUsage(const std::string& minute, const llm::Usage& usage)
+{
+    stats_.recordUsage(minute, usage.promptTokens, usage.completionTokens, usage.model.toStdString());
+    emit stateChanged();
 }
 
 }

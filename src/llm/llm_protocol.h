@@ -85,4 +85,13 @@ const PromptTemplate& promptTemplate(Channel channel, const QString& preset = QS
 /// @throws std::logic_error If that channel has not been loaded.
 const QStringList& requiredResultFields(Channel channel);
 
+/// @return Loaded schema for validating both legacy entries and nested senses.
+QJsonObject const& resultSchema(Channel channel);
+
+/// @return Provider and language choices loaded alongside the protocol.
+QJsonObject const& serviceCatalog();
+
+/// @return Provider defaults, or an empty object for an unknown provider.
+QJsonObject serviceProvider(QString const& provider);
+
 }

@@ -73,6 +73,10 @@ option(LENS_ENABLE_PROFILE "Compile lens_core profile instrumentation in" OFF)
 # changes the executable's instrumentation and is only useful for a dedicated measurement tree.
 option(LENS_ENABLE_QML_DEBUG "Compile the lens executable with QML debugging enabled" OFF)
 
+# Shipped builds resolve OCR only from the application bundle. A developer may opt in to a PATH
+# lookup for a local Tesseract installation, but that fallback is never enabled by default.
+option(LENS_OCR_DEV_PATH_FALLBACK "Allow OCR to use a developer PATH installation" OFF)
+
 # Vendored dependencies. spdlog builds its own static library; see third_party/spdlog.
 add_subdirectory(third_party/spdlog)
 
@@ -83,6 +87,7 @@ add_subdirectory(third_party/googletest)
 
 add_subdirectory(src/util)
 add_subdirectory(src/core)
+add_subdirectory(src/capture)
 add_subdirectory(src/llm)
 add_subdirectory(src/app)
 
@@ -116,9 +121,10 @@ configure_file(
   @ONLY
 )
 
-# Two steps, driven by naming the target: windeployqt writes the Qt runtime into
-# installer/payload beside the executable, then Inno Setup (installer/lens.iss) packs that
-# payload and data/ into one installer under the build tree's installer/.
+# Three steps, driven by naming the target: windeployqt writes the Qt runtime into
+# installer/payload beside the executable, the OCR staging script adds the configured Tesseract
+# runtime under payload/ocr, then Inno Setup (installer/lens.iss) packs that payload and data/ into
+# one installer under the build tree's installer/.
 #
 # The payload is wiped first. A dependency dropped from the deploy options would otherwise go on
 # sitting there from the previous run, and the size would be measuring a directory nothing
@@ -128,9 +134,10 @@ configure_file(
 # in every tree, but installer/lens.iss names build-ninja-release as what it packs, so from
 # another tree it would deploy the payload here and then pack whatever is over there.
 #
-# Two machine paths, both from config/paths.json; config/README.md owns the rule.
+# Three machine paths, all from config/paths.json; config/README.md owns the rule.
 lens_path(LENS_QT_BIN qtBin)
 lens_path(LENS_INNO_SETUP innoSetup)
+lens_path(LENS_TESSERACT_ROOT tesseractRoot)
 
 set(LENS_PAYLOAD_DIR "${CMAKE_BINARY_DIR}/installer/payload")
 
@@ -145,8 +152,15 @@ add_custom_target(installer
           --skip-plugin-types qmltooling
           "$<TARGET_FILE:lens>"
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:lens>" "${LENS_PAYLOAD_DIR}"
+  COMMAND ${CMAKE_COMMAND}
+          "-DLENS_OCR_SOURCE_DIR=${LENS_TESSERACT_ROOT}"
+          "-DLENS_OCR_STAGE_DIR=${LENS_PAYLOAD_DIR}/ocr"
+          "-DLENS_OCR_NOTICE_FILE=${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES.txt"
+          -P "${CMAKE_SOURCE_DIR}/installer/stage_ocr.cmake"
   COMMAND "${LENS_INNO_SETUP}" "/I${CMAKE_BINARY_DIR}/installer" "${CMAKE_SOURCE_DIR}/installer/lens.iss"
   DEPENDS lens
+          "${CMAKE_SOURCE_DIR}/installer/stage_ocr.cmake"
+          "${CMAKE_SOURCE_DIR}/installer/THIRD_PARTY_NOTICES.txt"
   WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
   COMMENT "Packaging Lens: windeployqt, then Inno Setup"
   VERBATIM
