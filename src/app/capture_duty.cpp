@@ -8,6 +8,7 @@
 #include <QGuiApplication>
 #include <QRegularExpression>
 #include <QScreen>
+#include <QtGui/qscreen_platform.h>
 
 #include <algorithm>
 #include <iterator>
@@ -22,6 +23,19 @@
 
 namespace lens::app {
 namespace {
+
+/// @return The monitor behind a QScreen, in the same terms `capture::monitorAt` speaks.
+///
+/// A screen is looked up by the monitor it is rather than by the name it is called: Qt names a
+/// screen by the monitor's friendly name and Win32 by its device name, and a comparison between
+/// the two is always false -- which cost the screenshot path every capture and would have cost the
+/// scanner every frame.
+quintptr monitorOf(QScreen const* screen)
+{
+    if (auto* const native = screen->nativeInterface<QNativeInterface::QWindowsScreen>())
+        return reinterpret_cast<quintptr>(native->handle());
+    return 0;
+}
 
 constexpr int kMaxSelectionChars = 1000;
 
@@ -282,27 +296,37 @@ void CaptureDuty::launchOcr(QImage image, QPoint const anchor, QString context)
     pollTimer_.start();
 }
 
+QString CaptureDuty::captureRefusalReason() const
+{
+    if (budgetPaused_) return QStringLiteral("budget-paused");
+    if (jobContext_ and jobContext_->probe) return QStringLiteral("checking");
+    if (job_) return QStringLiteral("busy");
+    if (not settings().value("ocrCapture").toBool()) return QStringLiteral("screenshot-off");
+    if (ocrState_ != capture::OcrStatus::Ready) return ocrStatus();
+    return {};
+}
+
 bool CaptureDuty::captureScreenshot(QImage image, QPoint const anchor)
 {
-    if (budgetPaused_ or job_ or not settings().value("ocrCapture").toBool() or ocrState_ != capture::OcrStatus::Ready)
-        return false;
+    if (not captureRefusalReason().isEmpty()) return false;
     launchOcr(std::move(image), anchor, {});
     return true;
 }
 
-bool CaptureDuty::captureRegion(QRect const region)
+QString CaptureDuty::captureRegion(QRect const region)
 {
-    if (budgetPaused_ or job_ or not settings().value("ocrCapture").toBool() or ocrState_ != capture::OcrStatus::Ready)
-        return false;
+    if (const QString reason = captureRefusalReason(); not reason.isEmpty()) return reason;
     auto* const screen = QGuiApplication::screenAt(region.center());
-    if (screen == nullptr or region.isEmpty() or not screen->geometry().contains(region)) return false;
-    if (region.width() * screen->devicePixelRatio() > 8192 or region.height() * screen->devicePixelRatio() > 8192) return false;
-    auto const nativeOrigin = capture::physicalScreenOrigin(screen->name());
-    if (not nativeOrigin) return false;
+    if (screen == nullptr or region.isEmpty() or not screen->geometry().contains(region)) return QStringLiteral("outside-screen");
+    if (region.width() * screen->devicePixelRatio() > 8192 or region.height() * screen->devicePixelRatio() > 8192) return QStringLiteral("too-large");
+    auto const nativeOrigin = capture::physicalScreenOrigin(monitorOf(screen));
+    if (not nativeOrigin) return QStringLiteral("outside-screen");
     auto const local  = region.translated(-screen->geometry().topLeft());
     auto const image  = screen->grabWindow(0, local.x(), local.y(), local.width(), local.height()).toImage();
     auto const anchor = *nativeOrigin + local.topLeft() * screen->devicePixelRatio();
-    return captureScreenshot(image, anchor);
+    // The gate was read a moment ago; a job that started since is the only way this refuses now,
+    // and it is the same answer the next press will get.
+    return captureScreenshot(image, anchor) ? QString{} : QStringLiteral("busy");
 }
 
 void CaptureDuty::scanTick()
@@ -327,7 +351,7 @@ void CaptureDuty::scanTick()
     if (job_) return;
     QScreen* screen = nullptr;
     for (auto* const candidate : QGuiApplication::screens())
-        if (candidate->name() == foreground->screenName) {
+        if (monitorOf(candidate) == foreground->monitor) {
             screen = candidate;
             break;
         }
@@ -379,6 +403,12 @@ void CaptureDuty::pollOcr()
         }
     }
     if (result.status != capture::OcrStatus::Ready) {
+        if (context.context.isEmpty()) {
+            LENS_INFO("OCR of the framed region produced no text (status {})", ocrStatus().toStdString());
+            emit ocrFailed(ocrStatus());
+            emit screenshotFailed(ocrStatus());
+            return;
+        }
         scan_->reset();
         if (result.status != capture::OcrStatus::EmptyText and result.status != capture::OcrStatus::InvalidImage) {
             ocrState_ = result.status;
@@ -391,7 +421,9 @@ void CaptureDuty::pollOcr()
         return;
     }
     if (context.context.isEmpty()) {
-        classifyText(result.text, context.anchor);
+        // Only the screenshot path reaches here with no scan context: a selection brings its own
+        // text rather than going through OCR at all.
+        classifyText(result.text, context.anchor, true);
         return;
     }
     auto const unsupported = capture::unsupportedEntityCount(result.text.toStdString());
@@ -444,7 +476,7 @@ void CaptureDuty::beginSelection(QPoint const anchor)
     classifyText(captured.text, anchor);
 }
 
-void CaptureDuty::classifyText(QString text, QPoint const anchor)
+void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const fromScreenshot)
 {
     if (text.size() > kMaxSelectionChars) text = text.left(kMaxSelectionChars) + QStringLiteral("…");
     const core::Selection selection = core::classifySelection(text.toStdString(), storage_.knownStore().known(), minFreqRank());
@@ -470,6 +502,13 @@ void CaptureDuty::classifyText(QString text, QPoint const anchor)
         }
     }
     emit selectionReady(pending);
+    if (fromScreenshot) {
+        // The reader framed this region themselves, so they have already said what they want done
+        // with it: translate. The bar would ask again -- and OCR exists for text that cannot be
+        // selected, which is exactly the text whose reader wants the meaning rather than a menu.
+        emit selectionActionRequested(QStringLiteral("translate"), pending.text);
+        return;
+    }
     emit selectionBarRequested(QVariantMap{{"x", anchor.x()}, {"y", anchor.y()}, {"kind", pending.kind}, {"text", pending.text}});
 }
 

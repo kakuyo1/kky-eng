@@ -12,13 +12,18 @@
 
 namespace lens::capture {
 
-std::optional<QPoint> physicalScreenOrigin(QString const& screenName)
+quintptr monitorAt(QPoint const physical)
 {
-    auto const device = screenName.toStdWString();
-    DEVMODEW mode{};
-    mode.dmSize = sizeof(mode);
-    if (not EnumDisplaySettingsW(device.c_str(), ENUM_CURRENT_SETTINGS, &mode)) return std::nullopt;
-    return QPoint{mode.dmPosition.x, mode.dmPosition.y};
+    return reinterpret_cast<quintptr>(MonitorFromPoint(POINT{physical.x(), physical.y()}, MONITOR_DEFAULTTONULL));
+}
+
+std::optional<QPoint> physicalScreenOrigin(quintptr const monitor)
+{
+    if (monitor == 0) return std::nullopt;
+    MONITORINFO info{};
+    info.cbSize = sizeof(info);
+    if (not GetMonitorInfoW(reinterpret_cast<HMONITOR>(monitor), &info)) return std::nullopt;
+    return QPoint{info.rcMonitor.left, info.rcMonitor.top};
 }
 
 std::optional<ForegroundWindow> foregroundWindow()
@@ -34,15 +39,14 @@ std::optional<ForegroundWindow> foregroundWindow()
     auto const height = std::int64_t{rect.bottom} - rect.top;
     if (width <= 0 or height <= 0 or width > 8192 or height > 8192 or width * height > 32 * 1024 * 1024)
         return std::nullopt;
+    const HMONITOR monitor = MonitorFromWindow(window, MONITOR_DEFAULTTONULL);
+    if (monitor == nullptr) return std::nullopt;
     ForegroundWindow result{.window     = reinterpret_cast<quintptr>(window),
                             .context    = QStringLiteral("%1:%2").arg(pid).arg(reinterpret_cast<quintptr>(window)),
+                            .monitor    = reinterpret_cast<quintptr>(monitor),
                             .ownProcess = pid == GetCurrentProcessId(),
                             .anchor     = QPoint{rect.left, rect.top}};
     if (result.ownProcess) return result;
-    MONITORINFOEXW monitor{};
-    monitor.cbSize = sizeof(monitor);
-    if (not GetMonitorInfoW(MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST), &monitor)) return std::nullopt;
-    result.screenName  = QString::fromWCharArray(monitor.szDevice);
     auto const process = std::unique_ptr<void, decltype(&CloseHandle)>{
         OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid), &CloseHandle};
     if (not process) return std::nullopt;

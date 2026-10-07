@@ -336,7 +336,26 @@ Window {
 
     SelectionBar { id: bar }
     Bubble { id: bubble }
-    Notice { id: notice }
+
+    Notice {
+        id: notice
+        // The one action a notice can carry: the word it is about is the controller's, and so is
+        // what asking for it costs.
+        onActionTriggered: Controller.explainLemma(notice.noticeLemma)
+    }
+
+    /// The capture mask, raised by the global trigger key and by nothing else. What it gives back is
+    /// a rectangle for the capture duty; that it is also a surface is why it is here and not in the
+    /// settings panel that owns the key.
+    Mask {
+        id: mask
+        // The one place the mask and the capture duty meet: the rectangle comes back in desktop
+        // coordinates and goes straight to the only thing that can take a shot of it. Nothing else
+        // in the mask knows a controller exists, and the controller never learns a mask does --
+        // which is why this wire had no test over it, and was missing until the reader pressed the
+        // key and framed a region and nothing whatsoever happened.
+        onRegionChosen: (region) => Controller.captureRegion(region)
+    }
 
     SettingsPopup { id: settingsPopup }
 
@@ -388,6 +407,10 @@ Window {
             } else {
                 bubble.visible = false;
             }
+        }
+
+        function onCaptureMaskRequested() {
+            mask.open();
         }
 
         function onNoticeChanged() {

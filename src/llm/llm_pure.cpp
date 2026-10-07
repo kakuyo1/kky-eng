@@ -351,6 +351,54 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
     return ordered;
 }
 
+namespace {
+
+/// @brief Whether an id names something a chat completion can be sent to.
+///
+/// `/models` answers with the whole catalogue, not with the chat models in it: embeddings, speech,
+/// image and video models sit in the same array, and a service that resells other people's models
+/// (OpenRouter) answers with several hundred of them. The app can use exactly one kind, so the
+/// rest are dropped before the list ever reaches the reader.
+///
+/// Where the service says so itself -- `architecture.output_modalities`, which OpenRouter fills in
+/// -- that answer is used. Everywhere else the id is the only thing there is, which is why the
+/// markers below are read as substrings: `tts-1` and `gpt-4o-mini-tts` are the same category and
+/// share no prefix. They are all words that name a modality no chat request reaches, so a chat
+/// model carrying one would be a surprise, not a rule being bent.
+bool speaksChat(const QJsonObject& entry)
+{
+    const auto modalities = entry.value("architecture").toObject().value("output_modalities");
+    if (modalities.isArray() and not modalities.toArray().contains(QStringLiteral("text")))
+        return false;
+
+    static const char* const kNotChat[]{"embed", "rerank", "moderation", "whisper", "tts", "audio", "speech", "transcri", "dall-e", "dalle", "image", "video", "sora"};
+    const QString id = entry.value("id").toString().toLower();
+    for (const char* marker : kNotChat)
+        if (id.contains(QLatin1String(marker))) return false;
+    return true;
+}
+
+} // namespace
+
+QStringList parseModelIds(const QByteArray& body)
+{
+    const auto data = QJsonDocument::fromJson(body).object().value("data");
+    if (not data.isArray()) {
+        LENS_WARN("the model list did not arrive in the shape this reads; keeping the one we have");
+        return {};
+    }
+    QStringList ids;
+    for (const auto& entry : data.toArray()) {
+        const auto object = entry.toObject();
+        const auto id     = object.value("id").toString().trimmed();
+        if (id.isEmpty() or ids.contains(id)) continue;
+        if (not speaksChat(object)) continue;
+        ids.append(id);
+    }
+    LENS_INFO("the service lists {} model(s) this app can use", ids.size());
+    return ids;
+}
+
 Usage parseUsage(const QByteArray& responseBody)
 {
     const auto envelope = QJsonDocument::fromJson(responseBody).object();

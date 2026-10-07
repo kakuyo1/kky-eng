@@ -5,6 +5,7 @@
 
 #include "app_controller.h"
 
+#include <QCoreApplication>
 #include <QCursor>
 #include <QDate>
 #include <QDateTime>
@@ -21,17 +22,37 @@
 #include "notice.h"
 
 namespace lens::app {
+namespace {
+
+/// @return The trigger key the reader chose, or the default one when nothing usable is stored.
+QKeySequence storedHotkey(StorageDuty const& storage)
+{
+    const QString text = storage.documentString("ocrHotkey", QString{}).trimmed();
+    if (text.isEmpty()) return GlobalHotkey::defaultKeys();
+    const QKeySequence parsed = QKeySequence::fromString(text, QKeySequence::PortableText);
+    if (parsed.isEmpty() or not GlobalHotkey::isUsable(parsed)) {
+        LENS_WARN("ignored the stored trigger key '{}'", text.toStdString());
+        return GlobalHotkey::defaultKeys();
+    }
+    return parsed;
+}
+
+}
 
 AppController::AppController(core::KnownStore& store,
                              llm::LlmClient& llm,
                              MouseSelectionHook& hook,
+                             GlobalHotkey& hotkey,
                              const llm::Pricing& pricing,
                              QObject* parent)
     : QObject(parent),
       storage_(store),
-      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), explanation_(storage_, llm, cost_, this), llm_(llm)
+      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), explanation_(storage_, llm, cost_, this), llm_(llm), hotkey_(hotkey)
 {
     connect(&capture_, &CaptureDuty::selectionBarRequested, this, &AppController::selectionBarRequested);
+    connect(&capture_, &CaptureDuty::selectionActionRequested, this, [this](QString action, QString text) {
+        explanation_.runSelectionAction(std::move(action), std::move(text));
+    });
     connect(&capture_, &CaptureDuty::pointerPressed, this, &AppController::pointerPressed);
     connect(&capture_, &CaptureDuty::selectionReady, this, [this](PendingSelection selection) {
         explanation_.setSelection(std::move(selection));
@@ -39,9 +60,12 @@ AppController::AppController(core::KnownStore& store,
     connect(&capture_, &CaptureDuty::scanCandidatesReady, this, [this](QVariantList candidates, QPoint anchor) {
         explanation_.enqueueScanCandidates(std::move(candidates), anchor);
     });
+    connect(&capture_, &CaptureDuty::screenshotFailed, this, &AppController::reportCaptureRefusal);
     connect(&capture_, &CaptureDuty::settingsChanged, this, &AppController::settingsChanged);
     connect(&explanation_, &ExplanationDuty::bubbleChanged, this, &AppController::bubbleChanged);
     connect(&explanation_, &ExplanationDuty::noticeChanged, this, &AppController::noticeChanged);
+    connect(&explanation_, &ExplanationDuty::settingsChanged, this, &AppController::settingsChanged);
+    connect(&explanation_, &ExplanationDuty::modelsChanged, this, &AppController::modelsChanged);
     connect(&explanation_, &ExplanationDuty::busyChanged, this, [this] {
         refreshCaptureGates();
         emit busyChanged();
@@ -55,6 +79,8 @@ AppController::AppController(core::KnownStore& store,
         emit dailyBudgetChanged();
     });
 
+    connect(&hotkey_, &GlobalHotkey::pressed, this, &AppController::onTriggerHotkey);
+    hotkey_.setKeys(storedHotkey(storage_));
     llm.setExplanationLang(QString::fromStdString(store.explanationLang()));
     restoreModelService();
     cost_.setLegacyModel(llm_.model());
@@ -86,6 +112,10 @@ void AppController::restoreModelService()
     const QString model = storage_.documentString("MODEL", QString{}).trimmed();
     if (!model.isEmpty())
         llm_.setModel(model);
+    // The service's own list of models, asked for once per run: it costs nothing, the ids a
+    // service carries change under the app, and a model it no longer lists is the 400 that names
+    // nothing (docs/adr/0017).
+    explanation_.refreshModels();
 }
 
 AppController* AppController::instance_ = nullptr;
@@ -162,6 +192,73 @@ void AppController::setTesseractDataDirectory(QUrl directory)
 void AppController::restoreCaptureDefaults()
 {
     capture_.restoreDefaults();
+    // The trigger key is one of the capture settings, so the way back from every one of them is
+    // the way back from this one too.
+    const QKeyCombination fallback = GlobalHotkey::defaultKeys()[0];
+    setOcrHotkey(fallback.key(), fallback.keyboardModifiers());
+}
+
+QString AppController::setOcrHotkey(int key, int modifiers)
+{
+    const QKeySequence sequence{QKeyCombination{Qt::KeyboardModifiers(modifiers), Qt::Key(key)}};
+    if (not GlobalHotkey::isUsable(sequence)) return QStringLiteral("unusable");
+    if (not hotkey_.setKeys(sequence)) return QStringLiteral("taken");
+    const QString text = sequence.toString(QKeySequence::PortableText);
+    storage_.writeDocument("ocrHotkey", text);
+    LENS_INFO("OCR trigger key set to '{}'", text.toStdString());
+    emit settingsChanged();
+    return {};
+}
+
+QString AppController::captureRegion(QRect region)
+{
+    const QString refusal = capture_.captureRegion(region);
+    if (not refusal.isEmpty()) reportCaptureRefusal(refusal);
+    return refusal;
+}
+
+bool AppController::installHotkey()
+{
+    const bool registered = hotkey_.install();
+    if (not registered)
+        LENS_WARN("the OCR trigger key is not in force; the capture mask cannot be raised from the keyboard");
+    emit settingsChanged();
+    return registered;
+}
+
+void AppController::onTriggerHotkey()
+{
+    const QString refusal = capture_.captureRefusalReason();
+    // The one line that says the key arrived. Without it a hotkey that never reached the process
+    // and a mask that never came up read the same in the log: nothing at all.
+    LENS_INFO("OCR trigger key pressed; capture can {}start", refusal.isEmpty() ? "" : "not ");
+    if (not refusal.isEmpty()) {
+        reportCaptureRefusal(refusal);
+        return;
+    }
+    // Pressing the key again while the mask is up is not a second capture: the mask is already
+    // taking the pointer, and raising it again changes nothing.
+    emit captureMaskRequested();
+}
+
+void AppController::reportCaptureRefusal(QString const& reason)
+{
+    // The runtime's own states are worded where the settings page words them, so a reader who is
+    // told why from here reads the same sentence they read beside the switch. Every context is
+    // written out at its call: lupdate reads literal arguments only, and a context in a variable
+    // extracts nothing.
+    const QString body = reason == QLatin1String("screenshot-off")  ? tr("Screenshot capture is off.")
+                         : reason == QLatin1String("budget-paused") ? tr("Today's budget is used up.")
+                         : reason == QLatin1String("busy")          ? tr("A recognition is already running.")
+                         : reason == QLatin1String("outside-screen") or reason == QLatin1String("too-large")
+                             ? tr("That region cannot be captured.")
+                         : reason == QLatin1String("empty-text")           ? tr("No text was found in that region.")
+                         : reason == QLatin1String("invalid-image")        ? tr("That region could not be read.")
+                         : reason == QLatin1String("checking")             ? QCoreApplication::translate("SettingsPopup", "Checking OCR")
+                         : reason == QLatin1String("english-data-missing") ? QCoreApplication::translate("SettingsPopup", "English OCR data is missing")
+                                                                           : QCoreApplication::translate("SettingsPopup", "OCR runtime is unavailable");
+    LENS_INFO("OCR capture was not started ({})", reason.toStdString());
+    explanation_.showNotice(QCoreApplication::translate("SettingsPopup", "OCR"), body, QString::fromLatin1(kNoticeError));
 }
 
 void AppController::setLevel(int level)
@@ -214,6 +311,9 @@ void AppController::setApiKey(QString key)
     llm_.setApiKey(key);
     storage_.writeDocument("API-KEY", key);
     LENS_INFO("API key {}", key.isEmpty() ? "cleared" : "updated");
+    // The list a service names cannot be asked for without a key, so the moment one arrives is
+    // the moment to ask: before it, the model field has nothing to offer and says so (greyed).
+    explanation_.refreshModels();
     emit settingsChanged();
 }
 
@@ -240,8 +340,9 @@ void AppController::setPopupFrequency(QString frequency)
 
 void AppController::setProvider(QString provider)
 {
-    if (explanation_.setProvider(provider))
-        emit settingsChanged();
+    // No emit here: the duty announces the change itself, and it is the one that also hears the
+    // model list arriving later.
+    explanation_.setProvider(std::move(provider));
 }
 
 void AppController::setModel(QString model)
@@ -259,6 +360,9 @@ void AppController::setApiUrl(QString url)
     }
     llm_.setBaseUrl(parsed);
     storage_.writeDocument("URL", parsed.toString());
+    // A different address is a different service to ask, and the list in hand belongs to the old
+    // one: the answer is free and the field is showing the wrong models until it comes back.
+    explanation_.refreshModels();
     emit settingsChanged();
 }
 
@@ -281,6 +385,27 @@ void AppController::dismissBubble()
 void AppController::dismissNotice()
 {
     explanation_.dismissNotice();
+}
+
+void AppController::reviewWord(QString lemma, int x, int y)
+{
+    explanation_.reviewWord(std::move(lemma), QPoint(x, y));
+}
+
+void AppController::dismissReview()
+{
+    explanation_.dismissReview();
+}
+
+void AppController::explainLemma(QString lemma)
+{
+    // The one path a word list can spend money through, and it is a button the reader pressed
+    // rather than the hover that put the button there.
+    if (not cost_.canRequest()) {
+        explanation_.showNotice(lemma, tr("Today's budget is used up."), QString::fromLatin1(kNoticeError));
+        return;
+    }
+    explanation_.explainLemma(std::move(lemma));
 }
 
 QVariantMap AppController::bubble() const
@@ -306,6 +431,8 @@ QVariantMap AppController::settings() const
                        {"selectionCapture", storage_.documentString("selectionCapture", QStringLiteral("true")) == QLatin1String("true")},
                        {"clipboardPolicy", storage_.documentString("clipboardPolicy", QStringLiteral("topmost"))},
                        {"popupFrequency", storage_.documentString("popupFrequency", QStringLiteral("standard"))},
+                       {"ocrHotkey", hotkey_.keys().toString(QKeySequence::PortableText)},
+                       {"ocrHotkeyConflicted", hotkey_.conflicted()},
                        {"provider", provider},
                        {"model", llm_.model()},
                        {"url", llm_.baseUrl().toString()},
@@ -319,6 +446,11 @@ QVariantMap AppController::settings() const
     for (auto it = explanationSettings.cbegin(); it != explanationSettings.cend(); ++it)
         result.insert(it.key(), it.value());
     return result;
+}
+
+QVariantList AppController::models() const
+{
+    return explanation_.models();
 }
 
 QVariantMap AppController::stats() const

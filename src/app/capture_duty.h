@@ -66,12 +66,28 @@ public:
     /// @return False when OCR is disabled, unavailable, busy, or budget-paused.
     bool captureScreenshot(QImage image, QPoint anchor);
     /// @brief Capture a reader-selected logical region wholly inside one screen.
-    Q_INVOKABLE bool captureRegion(QRect region);
+    /// @param region The dragged rectangle, in the device-independent desktop coordinates
+    ///               QScreen geometry uses.
+    /// @return Empty once the capture is under way; otherwise the reason it is not, which is what
+    ///         the surface that asked reports to the reader. A trigger that does nothing at all is
+    ///         the one outcome that cannot be told from a broken one.
+    Q_INVOKABLE QString captureRegion(QRect region);
+
+    /// @brief Why a capture cannot start this moment, before any pixels are read.
+    /// @return Empty when it can, else one of: "screenshot-off" (the OCR capture switch is off),
+    ///         "budget-paused", "busy" (a recognition is in flight), "checking" (the runtime is
+    ///         still being probed), or the OCR status from ocrStatus() when the runtime is no good.
+    /// @note The one gate both the screenshot and the region path go through, so a reader who is
+    ///       told why hears the same reason whichever of the two asked.
+    QString captureRefusalReason() const;
     /// @brief Handle a completed selection gesture.
     void onSelectionReleased(QPoint anchor);
 
 signals:
     void selectionBarRequested(QVariantMap payload);
+    /// @brief Text that arrived with its action already chosen -- the screenshot path, which asks
+    ///        for the translation itself rather than for the bar.
+    void selectionActionRequested(QString action, QString text);
     void selectionReady(PendingSelection selection);
     void pointerPressed(QPoint at);
     void settingsChanged();
@@ -81,6 +97,12 @@ signals:
     void scanEntitiesUnsupported(int count);
     /// @brief Fixed OCR status without paths, stderr, or captured text.
     void ocrFailed(QString status);
+    /// @brief A framed region produced no text, or an image OCR could not read.
+    ///
+    /// Separate from ocrFailed(), which is the diagnostic hook both paths share: a scan that
+    /// hiccups is not worth a card, while a reader who framed a region by hand and got nothing
+    /// back has to be told, or the gesture reads as a broken program.
+    void screenshotFailed(QString status);
 
 private:
     struct OcrJob {
@@ -99,7 +121,12 @@ private:
     /// @brief Rebuild the OCR engine around the stored paths and probe the new one.
     void rebuildOcr();
     void beginSelection(QPoint anchor);
-    void classifyText(QString text, QPoint anchor);
+    /// @param fromScreenshot True when the text came out of a framed region rather than a
+    ///        selection. A screenshot is the reader saying "translate this": they framed it with a
+    ///        gesture of their own, so the action bar's second question would be one they have
+    ///        already answered. A selection keeps the bar -- there the gesture is only "show me
+    ///        what this says", and the bar is where they say what to do with it.
+    void classifyText(QString text, QPoint anchor, bool fromScreenshot = false);
     void scanTick();
     void pollOcr();
     void launchOcr(QImage image, QPoint anchor, QString context);

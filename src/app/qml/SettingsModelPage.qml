@@ -5,12 +5,22 @@ Item {
     property var settings: Controller.settings
 
     signal childRequested(string route)
-    readonly property var openChildRect: providerField.openChildRect
+
+    /// Two dropdowns can be open, and only one at a time: whichever opened last is the one that
+    /// took the press. Both are closed by the same call, and the panel asks for whichever is down.
+    readonly property var openChildRect: providerField.openChildRect || modelField.openChildRect
     implicitHeight: content.implicitHeight
 
     function closeChild() {
         providerField.closeList();
+        modelField.closeList();
     }
+
+    /// The models this provider carries: what the service answered last time, else the catalog's
+    /// own seed, else nothing at all. Its own controller property rather than a key of `settings`
+    /// -- see ExplanationDuty::models(). Taken as a property, not read off the singleton, so a
+    /// case can hand the page a list of its own.
+    property var modelOptions: Controller.models || []
 
     Column {
         id: content
@@ -44,33 +54,21 @@ Item {
                 font.pixelSize: 12
             }
 
-            // Typed rather than picked: the catalog names no model, so the reader supplies the
-            // one their account carries and the address above is the only thing a provider
-            // choice moves.
-            Rectangle {
+            /// One field, always the same shape: the value is the reader's to type, and the
+            /// chevron opens the list the service gave -- which is a convenience, not the whole
+            /// answer. A model the service would never list (a new one, a private deployment) has
+            /// to stay reachable, and a custom endpoint names no models at all; a field that
+            /// changed shape between the two read as a setting that had not taken (docs/adr/0017).
+            ///
+            DropdownField {
+                id: modelField
+                objectName: "modelField"
                 width: parent.width
-                height: 35
-                radius: Tokens.radiusField
-                color: Tokens.panel2
-                border.width: 1
-                border.color: modelInput.activeFocus ? Tokens.ink : Tokens.line
-
-                TextInput {
-                    id: modelInput
-                    objectName: "modelField"
-                    anchors.fill: parent
-                    anchors.leftMargin: 11
-                    anchors.rightMargin: 11
-                    verticalAlignment: TextInput.AlignVCenter
-                    text: root.settings.model
-                    color: Tokens.text
-                    font.pixelSize: 13
-                    selectByMouse: true
-                    onEditingFinished: {
-                        Controller.setModel(text);
-                        text = Qt.binding(() => root.settings.model);
-                    }
-                }
+                editable: true
+                options: root.modelOptions
+                currentValue: root.settings.model
+                onPicked: (value) => Controller.setModel(value)
+                onEdited: (text) => Controller.setModel(text)
             }
 
             Text {

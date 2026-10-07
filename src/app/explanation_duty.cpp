@@ -102,6 +102,8 @@ ExplanationDuty::ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, Cost
         startNext();
     });
 
+    connect(&llm_, &llm::LlmClient::modelsFetched, this, &ExplanationDuty::noteModelsFetched);
+
     connect(&llm_, &llm::LlmClient::failed, this, [this](QString const& message) {
         if (not inFlight_) return;
         inFlight_ = false;
@@ -195,6 +197,44 @@ void ExplanationDuty::runSelectionAction(QString action, QString text)
     explain(pending_);
 }
 
+void ExplanationDuty::reviewWord(QString lemma, QPoint const anchor)
+{
+    const QString value = lemma.trimmed();
+    if (value.isEmpty()) return;
+    reviewAnchor_ = anchor;
+    const core::CacheContext context{storage_.knownStore().explanationLang(),
+                                     storage_.documentString("multiSense", QStringLiteral("false")) == QLatin1String("true")};
+    if (const auto cached = storage_.knownStore().cacheGet(value.toStdString(), context)) {
+        PendingSelection pending{.anchor = anchor, .kind = QStringLiteral("word"), .surface = value, .lemma = value};
+        showBubble(fromCache(*cached, value), pending, context, false);
+        reviewRaised_ = true;
+        return;
+    }
+    // The one thing on this path that reaches the model, and it is a button rather than the hover
+    // itself: a pointer crossing the list must not spend the reader's money. The two strings are
+    // spelled in the controller's context, where this file's other reader-facing ones already are;
+    // the context is written out at each call because lupdate reads literal arguments only.
+    showNotice(value,
+               QCoreApplication::translate("lens::app::AppController", "No explanation is stored for this word in the current language."),
+               QString::fromLatin1(kNoticeInfo),
+               QCoreApplication::translate("lens::app::AppController", "Explain now"),
+               value);
+}
+
+void ExplanationDuty::dismissReview()
+{
+    if (not reviewRaised_) return;
+    clearBubble();
+}
+
+void ExplanationDuty::explainLemma(QString lemma)
+{
+    const QString value = lemma.trimmed();
+    if (value.isEmpty()) return;
+    PendingSelection pending{.anchor = reviewAnchor_, .kind = QStringLiteral("word"), .surface = value, .lemma = value};
+    explain(pending);
+}
+
 void ExplanationDuty::explain(PendingSelection const& pending)
 {
     if (inFlight_) {
@@ -266,7 +306,7 @@ void ExplanationDuty::startNext()
                         true);
 }
 
-void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context)
+void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool const countsDown)
 {
     auto const selected = [&](QString const& en, QString const& zh, QString const& translation) {
         return context.language == "en" ? en : context.language == "zh" ? zh
@@ -277,6 +317,7 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
                         {"en", context.language == "en" ? explanation.en : QString{}},
                         {"zh", context.language == "zh" ? explanation.zh : QString{}},
                         {"translation", context.language != "en" && context.language != "zh" ? explanation.translation : QString{}},
+                        {"countsDown", countsDown},
                         {"x", selection.anchor.x()},
                         {"y", selection.anchor.y()}};
     if (selection.kind == QLatin1String("word")) {
@@ -293,14 +334,18 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
         payload.insert(QStringLiteral("status"), storage_.knownStore().isKnown(explanation.title.toStdString()) ? QStringLiteral("known") : QStringLiteral("new"));
     }
     bubble_ = payload;
+    // Whatever raised this bubble, the one the pointer's row put up is no longer standing: a scan
+    // bubble must not be taken down by the pointer leaving a word the reader has moved on from.
+    // The held exit goes with it -- this bubble is the reading now.
+    reviewRaised_ = false;
     clearNotice();
     emit bubbleChanged();
 }
 
-void ExplanationDuty::showNotice(QString const& title, QString const& body, QString const& kind)
+void ExplanationDuty::showNotice(QString const& title, QString const& body, QString const& kind, QString const& action, QString const& lemma)
 {
     clearBubble();
-    notice_ = noticePayload(title, body, kind);
+    notice_ = noticePayload(title, body, kind, action, lemma);
     emit noticeChanged();
 }
 
@@ -319,6 +364,9 @@ void ExplanationDuty::clearNotice()
 
 void ExplanationDuty::clearBubble()
 {
+    // Every way a bubble goes -- the countdown, the cross, a deletion, a notice replacing it --
+    // leaves nothing for the pointer to be holding afterwards.
+    reviewRaised_ = false;
     if (bubble_.isEmpty()) return;
     bubble_.clear();
     emit bubbleChanged();
@@ -367,8 +415,93 @@ bool ExplanationDuty::setProvider(QString const& provider)
     auto& document       = storage_.knownStore().document();
     document["PROVIDER"] = provider.toStdString();
     document["URL"]      = llm_.baseUrl().toString().toStdString();
+
+    // The model follows the service (docs/adr/0017). A name from another service is the 400 that
+    // says "malformed" and nothing else, and the reader changed the service, not the model. A
+    // model that this service does list is left alone: switching back and forth between two
+    // services must not lose a choice that was still valid.
+    listingFor_             = provider;
+    const QStringList known = modelsFor(provider);
+    if (not known.isEmpty() and not known.contains(llm_.model())) {
+        LENS_INFO("model follows the provider: '{}' -> '{}'", llm_.model().toStdString(), known.front().toStdString());
+        llm_.setModel(known.front());
+        document["MODEL"] = known.front().toStdString();
+    }
+    rebuildModels();
     storage_.save();
+    emit settingsChanged();
+    llm_.fetchModels();
     return true;
+}
+
+QStringList ExplanationDuty::modelsFor(QString const& provider) const
+{
+    // What the service itself answered last time wins: the catalog's list is a seed for a machine
+    // that has never reached it, and the ids a service carries change under the app.
+    const nlohmann::json& document = storage_.knownStore().document();
+    if (document.contains("MODELS") and document["MODELS"].is_object()) {
+        const auto& served = document["MODELS"];
+        const auto found   = served.find(provider.toStdString());
+        if (found != served.end() and found->is_array()) {
+            QStringList ids;
+            for (const auto& id : *found)
+                if (id.is_string()) ids.append(QString::fromStdString(id.get<std::string>()));
+            if (not ids.isEmpty()) return ids;
+        }
+    }
+    QStringList seeded;
+    for (const auto& id : llm::serviceProvider(provider).value("models").toArray())
+        if (id.isString() and not id.toString().isEmpty()) seeded.append(id.toString());
+    return seeded;
+}
+
+QString ExplanationDuty::currentProvider() const
+{
+    return storage_.documentString("PROVIDER", llm::serviceCatalog().value("defaultProvider").toString());
+}
+
+void ExplanationDuty::rebuildModels()
+{
+    QVariantList rebuilt;
+    for (const QString& id : modelsFor(currentProvider()))
+        rebuilt.append(QVariantMap{{"value", id}, {"label", id}, {"group", ""}, {"note", ""}});
+    if (rebuilt == models_) return;
+    models_ = std::move(rebuilt);
+    emit modelsChanged();
+}
+
+void ExplanationDuty::refreshModels()
+{
+    listingFor_ = currentProvider();
+    rebuildModels();
+    llm_.fetchModels();
+}
+
+void ExplanationDuty::noteModelsFetched(QStringList models)
+{
+    if (models.isEmpty()) return;
+    // The service that answered, not the one in force now: the request names no service, and the
+    // reader may well have switched while it was in flight.
+    const QString provider = listingFor_.isEmpty() ? currentProvider() : listingFor_;
+    listingFor_.clear();
+    LENS_INFO("the service lists {} model(s) for '{}'; they replace the catalog's", models.size(), provider.toStdString());
+    nlohmann::json ids = nlohmann::json::array();
+    for (const QString& id : models)
+        ids.push_back(id.toStdString());
+    storage_.knownStore().document()["MODELS"][provider.toStdString()] = std::move(ids);
+
+    // A model the service does not list is the one that answers 400 and says only "malformed": the
+    // service's own answer is the authority on what it carries, so the model in force is corrected
+    // to one it does list. It is only corrected here -- never to a name from a list of another
+    // service, and never when the reader has moved to a different one meanwhile.
+    if (provider == currentProvider() and not models.contains(llm_.model())) {
+        LENS_INFO("'{}' is not one of them; the model becomes '{}'", llm_.model().toStdString(), models.front().toStdString());
+        llm_.setModel(models.front());
+        storage_.knownStore().document()["MODEL"] = models.front().toStdString();
+    }
+    rebuildModels();
+    storage_.save();
+    emit settingsChanged();
 }
 
 QVariantMap ExplanationDuty::settings() const
@@ -389,7 +522,19 @@ QVariantMap ExplanationDuty::settings() const
         if (option.value("value").toString() == QLatin1String("custom")) option["label"] = QCoreApplication::translate("SettingsPopup", "Custom service");
         providers.append(option);
     }
-    return {{"languages", catalog.value("languages").toArray().toVariantList()}, {"providers", providers}, {"model", model}, {"modelPrice", priceText}};
+    // The model list is deliberately not in here. It is the one long thing the settings page
+    // reads -- hundreds of ids from a service that resells models -- and this map is rebuilt for
+    // each of the page's ~40 bindings on every change, so carrying it meant rebuilding hundreds of
+    // maps dozens of times per change. It has its own property and its own cache (models()).
+    return {{"languages", catalog.value("languages").toArray().toVariantList()},
+            {"providers", providers},
+            {"model", model},
+            {"modelPrice", priceText}};
+}
+
+QVariantList ExplanationDuty::models() const
+{
+    return models_;
 }
 
 bool ExplanationDuty::setModel(QString const& model)

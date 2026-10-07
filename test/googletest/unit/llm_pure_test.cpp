@@ -70,6 +70,57 @@ const QString kGoodResult =
 
 } // namespace
 
+/// The service's own list of models, in the order it gave them, and nothing invented for a body
+/// that is not that list: a partial list of models would hide the one the reader wanted.
+TEST(ParseModelIds, ReadsTheServicesOwnListAndNothingElse)
+{
+    const auto ids = lens::llm::parseModelIds(QByteArrayLiteral(
+        R"({"object":"list","data":[{"id":"deepseek-flash"},{"id":"deepseek-v4-pro"},{"id":"deepseek-flash"}]})"));
+
+    ASSERT_EQ(ids.size(), 2);
+    EXPECT_EQ(ids.at(0), QStringLiteral("deepseek-flash"));
+    EXPECT_EQ(ids.at(1), QStringLiteral("deepseek-v4-pro"));
+    EXPECT_TRUE(lens::llm::parseModelIds(QByteArrayLiteral(R"({"data":"nope"})")).isEmpty());
+    EXPECT_TRUE(lens::llm::parseModelIds(QByteArrayLiteral("not json at all")).isEmpty());
+}
+
+/// What a `/models` answer carries besides the chat models: the app can send a completion to one
+/// kind of them, so the rest never reach the reader's list.
+TEST(ParseModelIds, KeepsOnlyModelsAChatRequestCanReach)
+{
+    const auto ids = lens::llm::parseModelIds(QByteArrayLiteral(R"({"data":[
+        {"id":"gpt-4.1-mini"},
+        {"id":"text-embedding-3-small"},
+        {"id":"whisper-1"},
+        {"id":"gpt-4o-mini-tts"},
+        {"id":"gpt-4o-audio-preview"},
+        {"id":"dall-e-3"},
+        {"id":"gpt-image-1"},
+        {"id":"sora-2"},
+        {"id":"omni-moderation-latest"},
+        {"id":"bge-reranker-v2-m3"},
+        {"id":"llama-3-8b-instruct"}
+    ]})"));
+
+    ASSERT_EQ(ids.size(), 2);
+    EXPECT_EQ(ids.at(0), QStringLiteral("gpt-4.1-mini"));
+    EXPECT_EQ(ids.at(1), QStringLiteral("llama-3-8b-instruct"));
+}
+
+/// A service that states the output modality itself is taken at its word, which the id could not
+/// have said: an image model is not obliged to carry the word "image" in its name.
+TEST(ParseModelIds, FollowsTheServicesOwnModalityWhenItStatesOne)
+{
+    const auto ids = lens::llm::parseModelIds(QByteArrayLiteral(R"({"data":[
+        {"id":"google/gemini-2.5-flash","architecture":{"output_modalities":["text"]}},
+        {"id":"stability/sdxl-turbo","architecture":{"output_modalities":["image"]}},
+        {"id":"acme/speech-maker","architecture":{"output_modalities":["audio"]}}
+    ]})"));
+
+    ASSERT_EQ(ids.size(), 1);
+    EXPECT_EQ(ids.at(0), QStringLiteral("google/gemini-2.5-flash"));
+}
+
 TEST(LlmPureMask, CollapsesEmailUrlAndLongDigits)
 {
     const struct {

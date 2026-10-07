@@ -27,11 +27,13 @@ inline constexpr const char* kNoticeError = "error";
  * @param title  What the notice is about -- normally the selection it answers.
  * @param body   Reader-facing reason, already translated.
  * @param kind   kNoticeInfo or kNoticeError.
- * @return {title, body, kind}. An empty map is not a notice: it means there is none.
+ * @param action Label for the one thing the reader can do about it, empty when there is none.
+ * @param lemma  The word that action would explain, when the notice is about a word.
+ * @return {title, body, kind, action, lemma}. An empty map is not a notice: it means there is none.
  */
-inline QVariantMap noticePayload(const QString& title, const QString& body, const QString& kind)
+inline QVariantMap noticePayload(const QString& title, const QString& body, const QString& kind, const QString& action = {}, const QString& lemma = {})
 {
-    return QVariantMap{{"title", title}, {"body", body}, {"kind", kind}};
+    return QVariantMap{{"title", title}, {"body", body}, {"kind", kind}, {"action", action}, {"lemma", lemma}};
 }
 
 }

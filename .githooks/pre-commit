@@ -67,6 +67,9 @@ docs/adr/0011-per-user-installer-and-release-version.md 0
 docs/adr/0012-user-data-stays-in-profile.md 0
 docs/adr/0013-app-duty-boundaries.md 0
 docs/adr/0014-tesseract-for-ocr.md 0
+docs/adr/0015-provider-moves-the-address-only.md 0
+docs/adr/0016-ocr-trigger-key-and-mask.md 0
+docs/adr/0017-model-follows-the-provider.md 0
 ui-prototypes/README.md 0'
 
 staged=$(git diff --cached --name-only --diff-filter=ACM)

@@ -4,24 +4,24 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="305"/>
-        <location filename="../src/app/qml/Bubble.qml" line="491"/>
+        <location filename="../src/app/qml/Bubble.qml" line="312"/>
+        <location filename="../src/app/qml/Bubble.qml" line="498"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="305"/>
-        <location filename="../src/app/qml/Bubble.qml" line="518"/>
+        <location filename="../src/app/qml/Bubble.qml" line="312"/>
+        <location filename="../src/app/qml/Bubble.qml" line="525"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="305"/>
+        <location filename="../src/app/qml/Bubble.qml" line="312"/>
         <source>Sentence</source>
         <translation>句子</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="537"/>
+        <location filename="../src/app/qml/Bubble.qml" line="547"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒后自动消失</translation>
     </message>
@@ -67,6 +67,32 @@
     </message>
 </context>
 <context>
+    <name>HotkeyField</name>
+    <message>
+        <location filename="../src/app/qml/components/HotkeyField.qml" line="56"/>
+        <source>Press the combination</source>
+        <translation>按下组合键</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/components/HotkeyField.qml" line="56"/>
+        <source>Trigger key</source>
+        <translation>触发键</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/components/HotkeyField.qml" line="112"/>
+        <source>Unavailable: it needs Ctrl or Alt, and no other program may hold it</source>
+        <translation>不可用：需含 Ctrl 或 Alt，且不能与其他程序冲突</translation>
+    </message>
+</context>
+<context>
+    <name>Mask</name>
+    <message>
+        <location filename="../src/app/qml/Mask.qml" line="142"/>
+        <source>Drag to frame the text to read · Esc cancels</source>
+        <translation>拖动框选要取词的区域 · Esc 取消</translation>
+    </message>
+</context>
+<context>
     <name>SelectionBar</name>
     <message>
         <location filename="../src/app/qml/SelectionBar.qml" line="135"/>
@@ -87,60 +113,60 @@
 <context>
     <name>SettingsCapturePage</name>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="79"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="99"/>
         <source>Checking OCR</source>
         <translation>正在检查 OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="80"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="100"/>
         <source>English OCR data is missing</source>
         <translation>缺少英文 OCR 数据</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="81"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="101"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR 运行时不可用</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="96"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="100"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="116"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="121"/>
         <source>Tesseract executable</source>
         <translation>Tesseract 可执行文件</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="110"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="114"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="131"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="136"/>
         <source>Tesseract data folder</source>
         <translation>Tesseract 数据目录</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="125"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="147"/>
         <source>Minimum word length</source>
         <translation>最小词长</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="144"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="166"/>
         <source>Drag threshold</source>
         <translation>拖拽阈值</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="171"/>
         <source>Sensitive</source>
         <translation>灵敏</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="171"/>
         <source>Standard</source>
         <translation>标准</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="171"/>
         <source>Reluctant</source>
         <translation>迟钝</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="159"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="169"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="181"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="191"/>
         <source>Scan whitelist</source>
         <translation>扫描白名单</translation>
     </message>
@@ -268,13 +294,13 @@
         <translation>开机自启</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="72"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="92"/>
         <location filename="../src/app/qml/SettingsClipboardPage.qml" line="25"/>
         <source>Raise to top</source>
         <translation>强制置顶</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="71"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="91"/>
         <location filename="../src/app/qml/SettingsClipboardPage.qml" line="25"/>
         <source>Give up silently</source>
         <translation>静默放弃</translation>
@@ -296,6 +322,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="51"/>
+        <location filename="../src/app/app_controller.cpp" line="259"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -305,7 +332,12 @@
         <translation>自动扫描</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="69"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="73"/>
+        <source>OCR trigger key</source>
+        <translation>OCR 触发热键</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="89"/>
         <location filename="../src/app/qml/SettingsPopup.qml" line="51"/>
         <source>Popup &amp; clipboard</source>
         <translation>弹窗与剪贴板</translation>
@@ -429,50 +461,65 @@
         <translation>这里的地址是服务商常用的地址，可能已失效；请以服务商文档为准。</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="24"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="32"/>
         <source>Provider</source>
         <translation>服务商</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="42"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="50"/>
         <source>Model</source>
         <translation>模型</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="86"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="115"/>
         <location filename="../src/app/qml/SettingsPopup.qml" line="52"/>
         <source>API configuration</source>
         <translation>API 配置</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="88"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="117"/>
         <source>Configured</source>
         <translation>已配置</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="89"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="118"/>
         <source>Not configured</source>
         <translation>未配置</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="386"/>
+        <location filename="../src/app/explanation_duty.cpp" line="484"/>
         <source>Domestic</source>
         <translation>国内</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="387"/>
+        <location filename="../src/app/explanation_duty.cpp" line="485"/>
         <source>International</source>
         <translation>国际</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="388"/>
+        <location filename="../src/app/explanation_duty.cpp" line="486"/>
         <source>Other</source>
         <translation>其他</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="389"/>
+        <location filename="../src/app/explanation_duty.cpp" line="487"/>
         <source>Custom service</source>
         <translation>自定义服务</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="255"/>
+        <source>Checking OCR</source>
+        <translation>正在检查 OCR</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="256"/>
+        <source>English OCR data is missing</source>
+        <translation>缺少英文 OCR 数据</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="257"/>
+        <source>OCR runtime is unavailable</source>
+        <translation>OCR 运行时不可用</translation>
     </message>
 </context>
 <context>
@@ -549,34 +596,34 @@
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="149"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="153"/>
         <source>Words</source>
         <translation>词汇</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="239"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="243"/>
         <source>%1 words</source>
         <translation>共 %1 词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="249"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="253"/>
         <source>All</source>
         <translation>全部</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="249"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="393"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="253"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="441"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="249"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="427"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="253"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="475"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="359"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="407"/>
         <source>%1×</source>
         <translation>%1×</translation>
     </message>
@@ -596,17 +643,17 @@
         <translation>移除</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="505"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="553"/>
         <source>Export words</source>
         <translation>导出词汇</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="508"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="556"/>
         <source>Text files (*.txt)</source>
         <translation>文本文件 (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="508"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="556"/>
         <source>All files (*)</source>
         <translation>所有文件 (*)</translation>
     </message>
@@ -644,42 +691,83 @@
         <translation>出国考试</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="241"/>
+        <location filename="../src/app/explanation_duty.cpp" line="218"/>
+        <source>No explanation is stored for this word in the current language.</source>
+        <translation>当前解释语言下没有已存的释义。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/explanation_duty.cpp" line="220"/>
+        <source>Explain now</source>
+        <translation>现在解释</translation>
+    </message>
+    <message>
+        <location filename="../src/app/explanation_duty.cpp" line="281"/>
         <source>Explaining…</source>
         <translation>正在解释…</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="309"/>
+        <location filename="../src/app/explanation_duty.cpp" line="354"/>
         <source>Request failed</source>
         <translation>请求失败</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="351"/>
+        <location filename="../src/app/app_controller.cpp" line="248"/>
+        <source>Screenshot capture is off.</source>
+        <translation>截图取词未开启。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="249"/>
+        <location filename="../src/app/app_controller.cpp" line="397"/>
+        <source>Today&apos;s budget is used up.</source>
+        <translation>今日预算已用尽。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="250"/>
+        <source>A recognition is already running.</source>
+        <translation>正在识别，请稍候。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="252"/>
+        <source>That region cannot be captured.</source>
+        <translation>所选区域无法取词（须在同一块屏幕内且不过大）。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="253"/>
+        <source>No text was found in that region.</source>
+        <translation>所选区域里没有找到文字。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="254"/>
+        <source>That region could not be read.</source>
+        <translation>所选区域无法识别。</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="470"/>
         <source>Today %1</source>
         <translation>今天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="353"/>
+        <location filename="../src/app/app_controller.cpp" line="472"/>
         <source>Yesterday %1</source>
         <translation>昨天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="360"/>
+        <location filename="../src/app/app_controller.cpp" line="479"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="362"/>
+        <location filename="../src/app/app_controller.cpp" line="481"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="446"/>
+        <location filename="../src/app/app_controller.cpp" line="565"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="446"/>
+        <location filename="../src/app/app_controller.cpp" line="565"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>
@@ -687,12 +775,12 @@
 <context>
     <name>lens::app::ExplanationDuty</name>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="380"/>
+        <location filename="../src/app/explanation_duty.cpp" line="478"/>
         <source>No listed price; recorded cost is zero.</source>
         <translation>未列出价格；记录的花费为 0。</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="381"/>
+        <location filename="../src/app/explanation_duty.cpp" line="479"/>
         <source>Input %1 / Output %2 %3 per %4 tokens</source>
         <translation>输入 %1 / 输出 %2 %3 / 每 %4 个 token</translation>
     </message>
@@ -818,18 +906,18 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="81"/>
+        <location filename="../src/llm/llm_client.cpp" line="114"/>
         <source>There is nothing to look up.</source>
         <translation>没有待查内容。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="89"/>
+        <location filename="../src/llm/llm_client.cpp" line="122"/>
         <source>The API key is missing.</source>
         <translation>未配置 API 密钥。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="121"/>
-        <location filename="../src/llm/llm_client.cpp" line="126"/>
+        <location filename="../src/llm/llm_client.cpp" line="154"/>
+        <location filename="../src/llm/llm_client.cpp" line="159"/>
         <source>The request could not reach the service: %1</source>
         <translation>请求未能送达服务：%1</translation>
     </message>

@@ -18,6 +18,8 @@ add_library(lens_app STATIC
   cost_duty.cpp
   explanation_duty.h
   explanation_duty.cpp
+  global_hotkey.h
+  global_hotkey.cpp
   mouse_selection_hook.h
   mouse_selection_hook.cpp
   selection_text_grabber.cpp
@@ -130,6 +132,7 @@ qt_add_qml_module(lens_app
     qml/SelectionBar.qml
     qml/Bubble.qml
     qml/Notice.qml
+    qml/Mask.qml
     qml/SettingsPopup.qml
     qml/SettingsCategoryRow.qml
     qml/SettingsLinkRow.qml
@@ -161,6 +164,7 @@ qt_add_qml_module(lens_app
     qml/components/MenuRow.qml
     qml/components/PathField.qml
     qml/components/MixedText.qml
+    qml/components/HotkeyField.qml
 )
 
 # The icon art, addressed as :/icons/<name>.svg. BASE strips the source directory so the names

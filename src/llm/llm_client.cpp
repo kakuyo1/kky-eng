@@ -74,6 +74,39 @@ void LlmClient::setPreset(const QString& preset)
     preset_ = preset;
 }
 
+void LlmClient::fetchModels()
+{
+    if (config_.apiKey.isEmpty()) {
+        LENS_INFO("no API key yet; the model list stays the one already known");
+        return;
+    }
+    QUrl url     = config_.baseUrl;
+    QString path = url.path();
+    while (path.endsWith(QLatin1Char('/')))
+        path.chop(1);
+    url.setPath(path + QStringLiteral("/models"));
+
+    QNetworkRequest request(url);
+    request.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
+    request.setTransferTimeout(kTimeoutMs);
+    LENS_TRACE("GET {} (key hidden)", url.toString().toStdString());
+
+    QNetworkReply* reply = manager_->get(request);
+    connect(reply, &QNetworkReply::finished, this, [this, reply] {
+        reply->deleteLater();
+        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if (reply->error() != QNetworkReply::NoError or (status != 0 and status != 200)) {
+            // Not a failure the reader has to act on: the list is a convenience, and the one
+            // already known still works.
+            LENS_WARN("the model list was not fetched: HTTP {} ({})", status, reply->errorString().toStdString());
+            return;
+        }
+        const QStringList ids = parseModelIds(reply->readAll());
+        if (ids.isEmpty()) return;
+        emit modelsFetched(ids);
+    });
+}
+
 void LlmClient::explainWords(QStringList words)
 {
     if (words.isEmpty()) {

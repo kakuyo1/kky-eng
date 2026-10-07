@@ -49,6 +49,12 @@ Window {
     /// the number has to stand still with it. `show()` refills it from `dismissAfterMs`.
     property int remainingMs: 0
 
+    /// Whether the countdown runs at all. A bubble the word list raises belongs to the row under
+    /// the pointer and is taken down when the pointer leaves it, so a clock counting under it would
+    /// be a second, disagreeing answer to the same question -- and nothing to draw, since there is
+    /// no count for the reader to read.
+    property bool countsDown: true
+
     property var pendingPayload: null
     property bool pendingWasVisible: false
     property int showGeneration: 0
@@ -89,6 +95,7 @@ Window {
         translation = payload.translation || "";
         senses = payload.senses ? payload.senses.slice(0, 3) : [];
         status = payload.status || "";
+        countsDown = payload.countsDown !== false;
         remainingMs = dismissAfterMs;
 
         // A new window must not paint its first frame before Text has settled the card height:
@@ -128,7 +135,7 @@ Window {
     /// The countdown stands still while the reader is holding the bubble, under the pointer or
     /// in the middle of a drag, and picks up the time that is left when they let go of it.
     function updateCountdown() {
-        if (hovering || dragging)
+        if (hovering || dragging || !countsDown)
             countdown.stop();
         else if (visible)
             countdown.start();
@@ -530,6 +537,9 @@ Window {
                 }
 
                 Text {
+                    // A bubble with no countdown has no seconds to count, and the line's absence is
+                    // what says it will wait.
+                    visible: bubble.countsDown
                     width: parent.width
                     topPadding: 9
                     // The remaining seconds, not the setting that seeded them: the count stands

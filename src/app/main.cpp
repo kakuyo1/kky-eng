@@ -28,6 +28,7 @@
 #include "core/filter_core.h"
 #include "core/known_store.h"
 #include "core/log.h"
+#include "global_hotkey.h"
 #include "llm/llm_client.h"
 #include "llm/llm_pricing.h"
 #include "llm/llm_protocol.h"
@@ -36,6 +37,7 @@
 #include "tray.h"
 
 using lens::app::AppController;
+using lens::app::GlobalHotkey;
 using lens::app::MouseSelectionHook;
 using lens::app::Tray;
 using lens::core::KnownStore;
@@ -258,8 +260,9 @@ int main(int argc, char* argv[])
                                                model.isEmpty() ? QStringLiteral("deepseek-flash") : model});
 
     MouseSelectionHook hook;
+    GlobalHotkey hotkey;
 
-    AppController controller(store, llm, hook, pricing);
+    AppController controller(store, llm, hook, hotkey, pricing);
 
     Tray tray(controller);
     if (!tray.show())
@@ -305,6 +308,12 @@ int main(int argc, char* argv[])
     // surfaces read comes from it.
     if (!hook.install())
         return 1;
+
+    // After the surfaces, and for a different reason than the hook's: a global key is the machine's
+    // while it is held, and the reader does not need it in the first second of startup. A
+    // combination another program already owns leaves the trigger missing and says so in the
+    // settings -- the program carries on either way.
+    controller.installHotkey();
 
 #if defined(QT_QML_DEBUG)
     const QByteArray profileScenario = qgetenv("LENS_QML_PROFILE_SCENARIO");

@@ -81,6 +81,12 @@ button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .dd-item[aria-selected=true] .dd-note{color:rgba(255,255,255,.62)}
 html[data-theme=dark] .dd-item[aria-selected=true] .dd-note{color:rgba(0,0,0,.5)}
 .dd-sep{height:1px;background:var(--line2);margin:5px 8px}
+.mf{position:relative}
+.mf-in{width:100%;height:35px;padding:0 38px 0 11px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);color:var(--text);font-family:var(--f);font-size:13px}
+.mf-in:focus{outline:none;border-color:var(--ink)}
+.mf-go{position:absolute;right:3px;top:3px;width:30px;height:29px;display:flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:transparent;color:var(--faint)}
+.mf-go:hover{color:var(--text)}
+.mf-go svg{width:14px;height:14px}
 .swrow{display:flex;align-items:center;gap:12px;min-height:44px}
 .swrow .swlabel{flex:1}
 .switch{flex:none;width:34px;height:20px;border:0;border-radius:99px;background:var(--line);position:relative;padding:0}
@@ -93,8 +99,11 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 .off .switch{opacity:.45}
 .group-title{font-size:11px;color:var(--muted);margin-bottom:7px}
 .swgroup{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:2px 12px}
-.kbdrow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;font-size:12.5px}
-.kbdrow kbd{font-family:var(--f);font-size:11px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:2px 8px;color:var(--muted)}
+.kbdrow{display:flex;align-items:center;justify-content:space-between;gap:8px;height:35px;padding:0 11px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);font-size:13px;cursor:pointer}
+.kbdrow .keys{display:flex;gap:4px}
+.kbdrow kbd{font-family:var(--f);font-size:11px;min-width:18px;height:19px;display:inline-flex;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:0 6px;color:var(--text)}
+.kbdrow.rec{border-color:var(--ink);color:var(--muted)}
+.kbdrow.rec .keys{display:none}
 .link-row{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:8px 0;border:0;border-top:1px solid var(--line2);background:transparent;text-align:left;font-size:12.5px}
 .link-row:hover{color:var(--ink)}
 .link-row .chevm{margin-left:auto;display:flex;align-items:center;gap:8px;color:var(--faint);font-size:11px}
@@ -137,7 +146,7 @@ const categories = [
 const titles = { clipboard: "弹窗与剪贴板", connection: "API 配置" };
 const defaults = { theme: "light", uiLang: "zh", level: "CET-4", language: "en", startup: false, selection: true,
   policy: "topmost", frequency: "standard", drag: "standard", minLen: "3", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
-  tesseractExe: "", tesseractData: "",
+  tesseractExe: "", tesseractData: "", triggerKey: "Ctrl+Alt+S",
   dailyBudget: "0", customBg: "#e9ebef", customPanel: "#ffffff", customText: "#1a1a1f", customMuted: "#66666f", customFaint: "#9d9da8", customOk: "#2f9e6e",
   ocr: false, scan: false, multi: false, pet: false };
 const app = document.getElementById("app"), view = document.getElementById("view");
@@ -147,7 +156,7 @@ const saveBtn = document.getElementById("save"), defaultsBtn = document.getEleme
 const requestedTheme = new URLSearchParams(location.search).get("theme");
 let values = { ...defaults, theme: ["light", "dark", "forest", "custom"].includes(requestedTheme) ? requestedTheme : "light" };
 let saved = { ...values };
-let category = null, route = null, status = "";
+let category = null, route = null, status = "", recording = null;
 const esc = v => String(v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const dirty = () => JSON.stringify(values) !== JSON.stringify(saved);
 const seg = (label, key, opts) => `<div class="field"><span class="flabel">${label}</span><div class="seg">${opts.map(([v, t]) =>
@@ -163,11 +172,26 @@ const dropdown = (label, key, opts) => {
   return `<div class="field"><span class="flabel">${label}</span><div class="dd"><button type="button" class="dd-btn" aria-haspopup="listbox" aria-expanded="false"><span>${cur.label}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button><div class="dd-list" role="listbox">${items}</div></div></div>`;
 };
 const inp = (label, key, ph, type = "text") => `<div class="field"><label class="flabel" for="${key}">${label}</label><input id="${key}" class="input" type="${type}" data-input="${key}" value="${esc(values[key])}" placeholder="${ph}" autocomplete="off" spellcheck="false"></div>`;
+/// The model: one box the reader types in, with the chevron at its right end opening the list the
+/// service itself answered with. Only the chevron is a button -- the rest of the box is the cursor,
+/// which is what keeps a model no service ever listed reachable by hand.
+const modelField = (label, key, opts) => {
+  const items = opts.map(o => `<button type="button" class="dd-item" role="option" data-key="${key}" data-value="${esc(o.value)}" aria-selected="${values[key] === o.value}"><span>${o.label}</span></button>`).join("");
+  return `<div class="field"><label class="flabel" for="${key}">${label}</label><div class="dd mf">`
+       + `<input id="${key}" class="mf-in" data-input="${key}" value="${esc(values[key])}" placeholder="输入模型名称" autocomplete="off" spellcheck="false">`
+       + '<button type="button" class="mf-go" aria-haspopup="listbox" aria-expanded="false" aria-label="选择模型"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>'
+       + `<div class="dd-list" role="listbox">${items}</div></div></div>`;
+};
 /// A money field: the symbol is the display currency the rest of the surfaces spend in.
 const money = (label, key, ph) => `<div class="field"><label class="flabel" for="${key}">${label}</label><div class="money"><span aria-hidden="true">¥</span><input id="${key}" class="input" type="number" data-input="${key}" value="${esc(values[key])}" placeholder="${ph}" autocomplete="off" spellcheck="false"></div></div>`;
 const link = (id, label, val = "") => `<button type="button" class="link-row" data-route="${id}"><span>${label}</span><span class="chevm">${esc(val)}<span aria-hidden="true">›</span></span></button>`;
 /// A path the reader picks rather than types: the folder glyph is what says so, and a path nobody
 /// has picked yet draws where the program would look instead, in the placeholder colour.
+/// The trigger key: one capsule per key rather than one string, because a combination is read key
+/// by key. While it is recording the row says what it is waiting for and the capsules go away.
+const keyRow = (label, key) => `<div class="field"><div class="kbdrow${recording === key ? " rec" : ""}" role="button" tabindex="0" data-record="${key}">`
+  + `<span>${recording === key ? "按下组合键" : label}</span>`
+  + `<span class="keys">${values[key].split("+").map(k => `<kbd>${esc(k)}</kbd>`).join("")}</span></div></div>`;
 const pathField = (label, key, fallback) => {
   const chosen = values[key] || "";
   return `<div class="field"><span class="flabel">${label}</span><div class="pf" role="button" tabindex="0">`
@@ -199,6 +223,7 @@ function page(id) {
       ]) + seg("解释语言", "language", [["en", "English"], ["zh", "中文"], ["es", "Español"], ["ja", "日本語"]]) +
       sw("多义解释", "multi");
     case "capture": return `<div class="field"><div class="group-title">触发通道</div><div class="swgroup">${sw("选区取词", "selection")}${sw("OCR", "ocr")}${sw("自动扫描", "scan")}</div></div>` +
+      keyRow("OCR 触发热键", "triggerKey") +
       pathField("Tesseract 可执行文件", "tesseractExe", "程序目录\\ocr\\tesseract.exe") +
       pathField("Tesseract 数据目录", "tesseractData", "程序目录\\ocr\\tessdata") +
       seg("拖拽阈值", "drag", [["sensitive", "灵敏"], ["standard", "标准"], ["sluggish", "迟钝"]]) +
@@ -220,7 +245,10 @@ function page(id) {
         { value: "OpenRouter", label: "OpenRouter", group: "国际" },
         { value: "Groq", label: "Groq", group: "国际" },
         { value: "custom", label: "Custom", group: "其他" }
-      ]) + inp("模型", "model", "输入模型名称") + link("connection", "API 配置", values.api ? "已填写" : "未填写");
+      ]) + modelField("模型", "model", [
+        { value: "deepseek-flash", label: "deepseek-flash" },
+        { value: "deepseek-v4-pro", label: "deepseek-v4-pro" }
+      ]) + link("connection", "API 配置", values.api ? "已填写" : "未填写");
     case "budget": return money("每日预算", "dailyBudget", "0") + '<p class="fhelp">设为 0 可暂停上限。</p>';
     case "extensions": return sw("桌面宠物", "pet", true);
     default: return "";
@@ -276,14 +304,18 @@ document.querySelector(".close").onclick = () => render();
 document.getElementById("save").onclick = () => { saved = { ...values }; status = "已保存"; updateFoot(); };
 defaultsBtn.onclick = () => { values = { ...defaults, api: values.api, url: values.url, provider: values.provider, model: values.model, startup: values.startup }; status = ""; render(); };
 view.addEventListener("click", e => {
+  const row = e.target.closest("[data-record]");
+  if (row) { recording = row.dataset.record; render(); return; }
   const b = e.target.closest("button"); if (!b) return;
-  if (b.classList.contains("dd-btn")) { const dd = b.closest(".dd"); const open = dd.classList.toggle("open"); b.setAttribute("aria-expanded", String(open)); return; }
+  if (b.classList.contains("dd-btn") || b.classList.contains("mf-go")) { const dd = b.closest(".dd"); const open = dd.classList.toggle("open"); b.setAttribute("aria-expanded", String(open)); return; }
   if (b.dataset.category) { category = b.dataset.category; route = null; render(true); return; }
   if (b.dataset.route) { route = b.dataset.route; render(true); return; }
   if (b.dataset.key) {
     values[b.dataset.key] = b.dataset.value; status = ""; render();
     const el = view.querySelector(`[data-key="${b.dataset.key}"][data-value="${b.dataset.value}"]`);
-    if (el) (el.classList.contains("dd-item") ? el.closest(".dd").querySelector(".dd-btn") : el).focus();
+    if (el) (el.classList.contains("dd-item")
+      ? (el.closest(".dd").querySelector(".dd-btn") || el.closest(".dd").querySelector(".mf-in"))
+      : el).focus();
     return;
   }
   if (b.dataset.toggle) { const k = b.dataset.toggle; values[k] = !values[k]; status = ""; render(); return; }
@@ -292,9 +324,31 @@ view.addEventListener("input", e => { if (e.target.dataset.input) { values[e.tar
 view.addEventListener("change", e => { if (e.target.dataset.input) { values[e.target.dataset.input] = e.target.value; status = ""; updateFoot(); } });
 document.addEventListener("click", e => {
   if (e.target.closest(".dd")) return;
-  view.querySelectorAll(".dd.open").forEach(d => { d.classList.remove("open"); d.querySelector(".dd-btn").setAttribute("aria-expanded", "false"); });
+  view.querySelectorAll(".dd.open").forEach(d => {
+    d.classList.remove("open");
+    (d.querySelector(".dd-btn") || d.querySelector(".mf-go")).setAttribute("aria-expanded", "false");
+  });
 });
 document.addEventListener("keydown", e => {
+  // A combination needs Ctrl or Alt; a bare key would be taken from every other program on the
+  // machine. A modifier on its own is not a combination yet -- the reader is on their way to the
+  // key that follows it. Escape gives up the recording.
+  if (recording) {
+    e.preventDefault();
+    if (e.key === "Escape") { recording = null; render(); return; }
+    if (["Control", "Alt", "Shift", "Meta"].includes(e.key)) return;
+    const held = [];
+    if (e.ctrlKey) held.push("Ctrl");
+    if (e.altKey) held.push("Alt");
+    if (e.shiftKey) held.push("Shift");
+    if (e.metaKey) held.push("Win");
+    if (!held.includes("Ctrl") && !held.includes("Alt")) return;
+    values[recording] = [...held, e.key.length === 1 ? e.key.toUpperCase() : e.key].join("+");
+    recording = null;
+    status = "";
+    render();
+    return;
+  }
   if (e.key !== "Escape") return;
   const open = view.querySelector(".dd.open");
   if (open) { open.classList.remove("open"); const btn = open.querySelector(".dd-btn"); btn.setAttribute("aria-expanded", "false"); btn.focus(); return; }

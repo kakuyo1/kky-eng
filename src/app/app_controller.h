@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QPoint>
+#include <QRect>
 #include <QTimer>
 #include <QString>
 #include <QUrl>
@@ -12,6 +13,7 @@
 #include "capture_duty.h"
 #include "cost_duty.h"
 #include "explanation_duty.h"
+#include "global_hotkey.h"
 #include "llm/llm_client.h"
 #include "llm/llm_pricing.h"
 #include "mouse_selection_hook.h"
@@ -39,12 +41,14 @@ public:
      * @param store Settings and word marks, owned by main().
      * @param llm Explanation client, owned by main().
      * @param hook Desktop selection hook, owned by main().
+     * @param hotkey System-wide capture trigger, owned by main().
      * @param pricing Loaded model price list, owned by main().
      * @param parent QObject parent.
      */
     AppController(core::KnownStore& store,
                   llm::LlmClient& llm,
                   MouseSelectionHook& hook,
+                  GlobalHotkey& hotkey,
                   const llm::Pricing& pricing,
                   QObject* parent = nullptr);
     ~AppController() override;
@@ -54,6 +58,16 @@ public:
 
     /// @brief Factory used by the QML singleton registration.
     static AppController* create(QQmlEngine* engine, QJSEngine* scriptEngine);
+
+    /**
+     * @brief Take the trigger key the reader chose, or the default, on the shell's registry.
+     * @return True when the shell holds it. False costs the trigger, not the program, and the
+     *         settings page says so.
+     * @note Separate from the constructor, and called by main() after the surfaces are up, for the
+     *       same reason the mouse hook's install() is: this touches the desktop, and a run that
+     *       builds surfaces -- the test tree -- must not take a key away from the machine it runs on.
+     */
+    bool installHotkey();
 
     /// @brief Compatibility entry point for a completed selection gesture.
     void onSelectionReleased(QPoint anchor);
@@ -87,6 +101,26 @@ public:
     Q_INVOKABLE void bubbleHoverChanged(bool hovering);
     Q_INVOKABLE void dismissBubble();
     Q_INVOKABLE void dismissNotice();
+    /**
+     * @brief Record the trigger combination the reader pressed in the settings field.
+     * @param key       Qt key code of the key that was not a modifier.
+     * @param modifiers The modifiers held when it went down.
+     * @return Empty once it is stored and the shell has taken it; otherwise why it was refused, for
+     *         the field to say so -- "unusable" (no Ctrl or Alt, so it would take a bare key from
+     *         every other program) or "taken" (another program already holds it). A refused choice
+     *         leaves the combination that was in force working.
+     */
+    Q_INVOKABLE QString setOcrHotkey(int key, int modifiers);
+    /// @brief Show the explanation already stored for a word the reader pointed at, if there is one.
+    /// @param x,y Where the row is, in the physical pixels the mouse hook reports.
+    Q_INVOKABLE void reviewWord(QString lemma, int x, int y);
+    /// @brief Take down a bubble the word list raised; a bubble from anywhere else is left alone.
+    Q_INVOKABLE void dismissReview();
+    /// @brief Ask the model about a lemma the reader asked for by name, anchored where it was read.
+    Q_INVOKABLE void explainLemma(QString lemma);
+    /// @brief Capture a region the reader dragged on the mask.
+    /// @return Empty once the capture is under way; otherwise the reason, which is also reported.
+    Q_INVOKABLE QString captureRegion(QRect region);
     Q_INVOKABLE QString exportWords(QString scope);
     Q_INVOKABLE bool saveWords(QUrl path, QString scope);
     Q_INVOKABLE bool removeWord(QString lemma);
@@ -95,6 +129,9 @@ public:
     QVariantMap bubble() const;
     QVariantMap notice() const;
     QVariantMap settings() const;
+    /// @brief The models the provider in force carries. Its own property, not a key of settings():
+    ///        see ExplanationDuty::models() for why the list is kept out of that map.
+    QVariantList models() const;
     QVariantMap stats() const;
     QVariantList words() const;
     QVariantMap cost() const;
@@ -105,6 +142,7 @@ public:
     Q_PROPERTY(QVariantMap bubble READ bubble NOTIFY bubbleChanged)
     Q_PROPERTY(QVariantMap notice READ notice NOTIFY noticeChanged)
     Q_PROPERTY(QVariantMap settings READ settings NOTIFY settingsChanged)
+    Q_PROPERTY(QVariantList models READ models NOTIFY modelsChanged)
     Q_PROPERTY(QVariantMap stats READ stats NOTIFY statsChanged)
     Q_PROPERTY(QVariantList words READ words NOTIFY statsChanged)
     Q_PROPERTY(QVariantMap cost READ cost NOTIFY statsChanged)
@@ -115,9 +153,13 @@ public:
 signals:
     void selectionBarRequested(QVariantMap payload);
     void pointerPressed(QPoint at);
+    /// @brief The trigger key was pressed and OCR can run: put the capture mask up.
+    void captureMaskRequested();
     void bubbleChanged();
     void noticeChanged();
     void settingsChanged();
+    /// @brief The provider in force carries a different list of models than it did.
+    void modelsChanged();
     void statsChanged();
     void busyChanged();
     void uiLanguageChanged(QString lang);
@@ -128,6 +170,10 @@ private:
     void restoreModelService();
     /// @brief Reconcile budget and in-flight request gates with the capture duty.
     void refreshCaptureGates();
+    /// @brief The trigger key went down: raise the mask, or say why it cannot be raised.
+    void onTriggerHotkey();
+    /// @brief Report a capture that will not start, in the reader's words rather than a code.
+    void reportCaptureRefusal(QString const& reason);
 
     static AppController* instance_;
 
@@ -136,6 +182,7 @@ private:
     CaptureDuty capture_;
     ExplanationDuty explanation_;
     llm::LlmClient& llm_;
+    GlobalHotkey& hotkey_;
     QTimer gateTimer_;
 };
 

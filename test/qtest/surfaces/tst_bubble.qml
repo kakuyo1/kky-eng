@@ -134,5 +134,31 @@ Item {
             wait(100);
             verify(Util.saveSnapshot(testCase, surfaceOf(bubble), lensQaSnapshotDir, "bubble"));
         }
+
+        /// The bubble the word list raises carries no countdown, and the line that would have
+        /// carried it goes with it: a card with a gap where the seconds were reads as a card that
+        /// stopped drawing. The pair of snapshots is what shows that, since the difference is the
+        /// absence of a line rather than a value a case can compare.
+        function test_captureTheBubbleWithoutItsCountdown() {
+            if (!lensQaSnapshotDir)
+                skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the offscreen snapshot");
+
+            const bubble = createTemporaryObject(bubbleComponent, root);
+            verify(bubble);
+            bubble.show({
+                title: "serendipity",
+                type: "word",
+                ipa: "/ˌserənˈdɪpəti/",
+                zh: "机缘巧合",
+                status: "new",
+                countsDown: false,
+                x: 200,
+                y: 240
+            });
+            wait(100);
+
+            compare(metaOf(bubble).visible, false, "a bubble with no countdown still drew its clock");
+            verify(Util.saveSnapshot(testCase, surfaceOf(bubble), lensQaSnapshotDir, "bubble-review"));
+        }
     }
 }

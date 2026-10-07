@@ -77,8 +77,12 @@ Window {
     /// removes nothing and asks nothing about asking, so the next deletion is asked about again.
     property bool askBeforeRemoving: true
 
-    /// A question left half-answered by a press elsewhere is not a state to come back to.
-    onVisibleChanged: if (!visible) closeChild()
+    /// A question left half-answered by a press elsewhere is not a state to come back to, and
+    /// neither is a review bubble: the pointer left the panel, whatever it is doing now.
+    onVisibleChanged: if (!visible) {
+        closeChild();
+        Controller.dismissReview();
+    }
 
     /**
      * @brief Settle a word the row's cross asked to delete.
@@ -316,6 +320,32 @@ Window {
                             }
                         }
 
+                        Timer {
+                            id: reviewDwell
+                            interval: 400
+                            onTriggered: {
+                                // 40 px above the word, and the number is not taste: the bubble's
+                                // window carries `Bubble.shadowMargin` (26) of transparent shadow
+                                // around its card and stands 10 px off its anchor, so anchoring at
+                                // the word would leave the window's own edge back across the word it
+                                // belongs to -- which un-hovers it, which takes the bubble down,
+                                // which puts the word back under the pointer, and round again. What
+                                // is watched is the word, so it is the word that has to stay clear.
+                                const at = wordText.mapToGlobal(0, -40);
+                                // The screen's scale on the way out because Main.qml anchors every
+                                // surface from the physical pixels the mouse hook reports; it comes
+                                // back exactly at this point, whatever the monitor's native origin.
+                                const ratio = Screen.devicePixelRatio || 1;
+                                Controller.reviewWord(entry.modelData.word, Math.round(at.x * ratio), Math.round(at.y * ratio));
+                            }
+                        }
+
+                        /// The row is going away -- a filter change rebuilds every delegate -- and
+                        /// a bubble it raised must not outlive it. It is the pointer leaving the
+                        /// row in every sense but the event: a destroyed delegate reports no
+                        /// un-hover.
+                        Component.onDestruction: Controller.dismissReview()
+
                         Text {
                             id: wordText
                             anchors.left: parent.left
@@ -329,6 +359,24 @@ Window {
                             color: Tokens.text
                             font.pixelSize: 13
                             elide: Text.ElideRight
+
+                            // Pointing at the word, not at the row it sits in: the rest of the row
+                            // is the metadata and the two verdict pills, and a reading is not what a
+                            // pointer crossing those is after. The word hands over the text it is
+                            // already drawing rather than a case looking it up in Controller.words
+                            // -- that walk measured ~170 ms a row (docs/QML.md section 6).
+                            HoverHandler {
+                                onHoveredChanged: {
+                                    if (hovered) {
+                                        // The dwell: a pointer crossing the list on its way
+                                        // somewhere else is not asking about every word it passes.
+                                        reviewDwell.restart();
+                                        return;
+                                    }
+                                    reviewDwell.stop();
+                                    Controller.dismissReview();
+                                }
+                            }
                         }
 
                         Row {

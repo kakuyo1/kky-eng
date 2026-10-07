@@ -4,24 +4,24 @@
 <context>
     <name>Bubble</name>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="305"/>
+        <location filename="../src/app/qml/Bubble.qml" line="312"/>
         <source>Sentence</source>
         <translation>Oración</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="305"/>
-        <location filename="../src/app/qml/Bubble.qml" line="491"/>
+        <location filename="../src/app/qml/Bubble.qml" line="312"/>
+        <location filename="../src/app/qml/Bubble.qml" line="498"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="305"/>
-        <location filename="../src/app/qml/Bubble.qml" line="518"/>
+        <location filename="../src/app/qml/Bubble.qml" line="312"/>
+        <location filename="../src/app/qml/Bubble.qml" line="525"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="537"/>
+        <location filename="../src/app/qml/Bubble.qml" line="547"/>
         <source>Disappears in %1s</source>
         <translation>Desaparece en %1 s</translation>
     </message>
@@ -67,6 +67,32 @@
     </message>
 </context>
 <context>
+    <name>HotkeyField</name>
+    <message>
+        <location filename="../src/app/qml/components/HotkeyField.qml" line="56"/>
+        <source>Press the combination</source>
+        <translation>Pulsa la combinación</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/components/HotkeyField.qml" line="56"/>
+        <source>Trigger key</source>
+        <translation>Tecla de activación</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/components/HotkeyField.qml" line="112"/>
+        <source>Unavailable: it needs Ctrl or Alt, and no other program may hold it</source>
+        <translation>No disponible: necesita Ctrl o Alt, y ningún otro programa puede tenerla</translation>
+    </message>
+</context>
+<context>
+    <name>Mask</name>
+    <message>
+        <location filename="../src/app/qml/Mask.qml" line="142"/>
+        <source>Drag to frame the text to read · Esc cancels</source>
+        <translation>Arrastra para encuadrar el texto que quieres leer · Esc cancela</translation>
+    </message>
+</context>
+<context>
     <name>SelectionBar</name>
     <message>
         <location filename="../src/app/qml/SelectionBar.qml" line="135"/>
@@ -87,60 +113,60 @@
 <context>
     <name>SettingsCapturePage</name>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="79"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="99"/>
         <source>Checking OCR</source>
         <translation>Comprobando el OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="80"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="100"/>
         <source>English OCR data is missing</source>
         <translation>Faltan los datos de OCR en inglés</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="81"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="101"/>
         <source>OCR runtime is unavailable</source>
         <translation>El entorno de OCR no está disponible</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="96"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="100"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="116"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="121"/>
         <source>Tesseract executable</source>
         <translation>Ejecutable de Tesseract</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="110"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="114"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="131"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="136"/>
         <source>Tesseract data folder</source>
         <translation>Carpeta de datos de Tesseract</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="125"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="147"/>
         <source>Minimum word length</source>
         <translation>Longitud mínima de palabra</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="144"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="166"/>
         <source>Drag threshold</source>
         <translation>Umbral de arrastre</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="171"/>
         <source>Sensitive</source>
         <translation>Sensible</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="171"/>
         <source>Standard</source>
         <translation>Estándar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="149"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="171"/>
         <source>Reluctant</source>
         <translation>Reacio</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="159"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="169"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="181"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="191"/>
         <source>Scan whitelist</source>
         <translation>Lista blanca de escaneo</translation>
     </message>
@@ -171,6 +197,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="51"/>
+        <location filename="../src/app/app_controller.cpp" line="259"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -180,19 +207,24 @@
         <translation>Escaneo automático</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="69"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="73"/>
+        <source>OCR trigger key</source>
+        <translation>Tecla de activación del OCR</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="89"/>
         <location filename="../src/app/qml/SettingsPopup.qml" line="51"/>
         <source>Popup &amp; clipboard</source>
         <translation>Ventana y portapapeles</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="71"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="91"/>
         <location filename="../src/app/qml/SettingsClipboardPage.qml" line="25"/>
         <source>Give up silently</source>
         <translation>Desistir en silencio</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="72"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="92"/>
         <location filename="../src/app/qml/SettingsClipboardPage.qml" line="25"/>
         <source>Raise to top</source>
         <translation>Traer al frente</translation>
@@ -399,28 +431,28 @@
         <translation>Varias acepciones</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="24"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="32"/>
         <source>Provider</source>
         <translation>Proveedor</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="42"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="50"/>
         <source>Model</source>
         <translation>Modelo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="86"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="115"/>
         <location filename="../src/app/qml/SettingsPopup.qml" line="52"/>
         <source>API configuration</source>
         <translation>Configuración de la API</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="88"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="117"/>
         <source>Configured</source>
         <translation>Configurada</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="89"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="118"/>
         <source>Not configured</source>
         <translation>Sin configurar</translation>
     </message>
@@ -455,24 +487,39 @@
         <translation>Guardar</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="386"/>
+        <location filename="../src/app/explanation_duty.cpp" line="484"/>
         <source>Domestic</source>
         <translation>Nacional</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="387"/>
+        <location filename="../src/app/explanation_duty.cpp" line="485"/>
         <source>International</source>
         <translation>Internacional</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="388"/>
+        <location filename="../src/app/explanation_duty.cpp" line="486"/>
         <source>Other</source>
         <translation>Otros</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="389"/>
+        <location filename="../src/app/explanation_duty.cpp" line="487"/>
         <source>Custom service</source>
         <translation>Servicio propio</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="255"/>
+        <source>Checking OCR</source>
+        <translation>Comprobando el OCR</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="256"/>
+        <source>English OCR data is missing</source>
+        <translation>Faltan los datos de OCR en inglés</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="257"/>
+        <source>OCR runtime is unavailable</source>
+        <translation>El entorno de OCR no está disponible</translation>
     </message>
 </context>
 <context>
@@ -549,34 +596,34 @@
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="249"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="393"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="253"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="441"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="249"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="427"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="253"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="475"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="359"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="407"/>
         <source>%1×</source>
         <translation>%1×</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="149"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="153"/>
         <source>Words</source>
         <translation>Palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="239"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="243"/>
         <source>%1 words</source>
         <translation>%1 palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="249"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="253"/>
         <source>All</source>
         <translation>Todas</translation>
     </message>
@@ -596,17 +643,17 @@
         <translation>Eliminar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="505"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="553"/>
         <source>Export words</source>
         <translation>Exportar palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="508"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="556"/>
         <source>Text files (*.txt)</source>
         <translation>Archivos de texto (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="508"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="556"/>
         <source>All files (*)</source>
         <translation>Todos los archivos (*)</translation>
     </message>
@@ -624,42 +671,83 @@
 <context>
     <name>lens::app::AppController</name>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="351"/>
+        <location filename="../src/app/app_controller.cpp" line="248"/>
+        <source>Screenshot capture is off.</source>
+        <translation>La captura de pantalla está desactivada.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="249"/>
+        <location filename="../src/app/app_controller.cpp" line="397"/>
+        <source>Today&apos;s budget is used up.</source>
+        <translation>El presupuesto de hoy se ha agotado.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="250"/>
+        <source>A recognition is already running.</source>
+        <translation>Ya hay un reconocimiento en curso.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="252"/>
+        <source>That region cannot be captured.</source>
+        <translation>Esa región no se puede capturar.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="253"/>
+        <source>No text was found in that region.</source>
+        <translation>No se encontró texto en esa región.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="254"/>
+        <source>That region could not be read.</source>
+        <translation>No se pudo leer esa región.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/app_controller.cpp" line="470"/>
         <source>Today %1</source>
         <translation>Hoy %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="353"/>
+        <location filename="../src/app/app_controller.cpp" line="472"/>
         <source>Yesterday %1</source>
         <translation>Ayer %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="360"/>
+        <location filename="../src/app/app_controller.cpp" line="479"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="362"/>
+        <location filename="../src/app/app_controller.cpp" line="481"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="446"/>
+        <location filename="../src/app/app_controller.cpp" line="565"/>
         <source>Auto</source>
         <translation>Automático</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="446"/>
+        <location filename="../src/app/app_controller.cpp" line="565"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="241"/>
+        <location filename="../src/app/explanation_duty.cpp" line="218"/>
+        <source>No explanation is stored for this word in the current language.</source>
+        <translation>No hay ninguna explicación guardada para esta palabra en el idioma actual.</translation>
+    </message>
+    <message>
+        <location filename="../src/app/explanation_duty.cpp" line="220"/>
+        <source>Explain now</source>
+        <translation>Explicar ahora</translation>
+    </message>
+    <message>
+        <location filename="../src/app/explanation_duty.cpp" line="281"/>
         <source>Explaining…</source>
         <translation>Explicando…</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="309"/>
+        <location filename="../src/app/explanation_duty.cpp" line="354"/>
         <source>Request failed</source>
         <translation>La solicitud ha fallado</translation>
     </message>
@@ -687,12 +775,12 @@
 <context>
     <name>lens::app::ExplanationDuty</name>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="380"/>
+        <location filename="../src/app/explanation_duty.cpp" line="478"/>
         <source>No listed price; recorded cost is zero.</source>
         <translation>Sin precio en la lista; el gasto registrado es cero.</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="381"/>
+        <location filename="../src/app/explanation_duty.cpp" line="479"/>
         <source>Input %1 / Output %2 %3 per %4 tokens</source>
         <translation>Entrada %1 / Salida %2 %3 por %4 tokens</translation>
     </message>
@@ -818,18 +906,18 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="81"/>
+        <location filename="../src/llm/llm_client.cpp" line="114"/>
         <source>There is nothing to look up.</source>
         <translation>No hay nada que consultar.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="89"/>
+        <location filename="../src/llm/llm_client.cpp" line="122"/>
         <source>The API key is missing.</source>
         <translation>Falta la clave de API.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="121"/>
-        <location filename="../src/llm/llm_client.cpp" line="126"/>
+        <location filename="../src/llm/llm_client.cpp" line="154"/>
+        <location filename="../src/llm/llm_client.cpp" line="159"/>
         <source>The request could not reach the service: %1</source>
         <translation>La solicitud no pudo llegar al servicio: %1</translation>
     </message>

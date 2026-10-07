@@ -55,9 +55,23 @@ set "VSDIRFILE=%TEMP%\lens_vsdir.txt"
 set /p VSDIR=<"%VSDIRFILE%"
 del "%VSDIRFILE%" >nul 2>&1
 
+REM vswhere reads the installer's own database, and a Visual Studio that was moved after being
+REM installed is not in it: it exits 0 and prints nothing, which is indistinguishable from "not
+REM installed". So when it comes back empty, the root is taken from config\paths.json's vsRoot --
+REM a machine path, so it belongs there and not in an environment variable (config\README.md).
 if not defined VSDIR (
-  echo [build] Visual Studio not found. Install the C++ workload, or call
-  echo [build] cmake --preset %PRESET% from a VS developer command prompt instead.
+  REM The redirect names the file literally rather than through a variable set in this same
+  REM block: cmd expands %VAR% when it parses the block, which is before the set inside it has
+  REM run, so a variable here would send the output to an empty path and the build would report
+  REM the wrong failure -- "cannot find the path" instead of "no Visual Studio".
+  powershell -NoProfile -ExecutionPolicy Bypass -Command ". .\scripts\build\paths.ps1; (Get-LensPaths -Root $PWD).vsRoot" > "%TEMP%\lens_vsroot.txt" 2>nul
+  set /p VSDIR=<"%TEMP%\lens_vsroot.txt"
+  del "%TEMP%\lens_vsroot.txt" >nul 2>&1
+)
+
+if not defined VSDIR (
+  echo [build] Visual Studio not found. Install the C++ workload, give config\paths.json a
+  echo [build] vsRoot, or call cmake --preset %PRESET% from a VS developer command prompt instead.
   exit /b 1
 )
 

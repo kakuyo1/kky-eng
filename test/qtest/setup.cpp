@@ -2,9 +2,11 @@
  * @file setup.cpp
  * @brief Build the singletons the surfaces bind to, the way main() builds them.
  *
- * Everything here is the application's own startup minus the two steps a test must not take:
+ * Everything here is the application's own startup minus the three steps a test must not take:
  * the mouse hook is never installed (a WH_MOUSE_LL hook would make every case wait on the
- * pointer and would move it), and the tray icon is never shown.
+ * pointer and would move it), the OCR trigger key is never registered (a global hotkey would take
+ * that combination away from whatever else the machine is doing while the suite runs), and the tray
+ * icon is never shown.
  */
 
 #include "setup.h"
@@ -67,6 +69,7 @@ void installUiFonts()
 #include <memory>
 
 #include "app/app_controller.h"
+#include "app/global_hotkey.h"
 #include "app/mouse_selection_hook.h"
 #include "app/tray.h"
 #include "core/known_store.h"
@@ -76,6 +79,7 @@ void installUiFonts()
 namespace {
 
 using lens::app::AppController;
+using lens::app::GlobalHotkey;
 using lens::app::MouseSelectionHook;
 using lens::app::Tray;
 using lens::core::KnownStore;
@@ -98,6 +102,7 @@ struct Singletons {
     std::unique_ptr<KnownStore> store;
     std::unique_ptr<lens::llm::LlmClient> llm;
     std::unique_ptr<MouseSelectionHook> hook;
+    std::unique_ptr<GlobalHotkey> hotkey;
     std::unique_ptr<lens::llm::Pricing> pricing;
     std::unique_ptr<AppController> controller;
     std::unique_ptr<Tray> tray;
@@ -137,10 +142,11 @@ Singletons& singletons()
         built.llm = std::make_unique<lens::llm::LlmClient>(
             lens::llm::Config{QUrl{}, QString{}, QStringLiteral("deepseek-flash")});
         built.hook    = std::make_unique<MouseSelectionHook>();
+        built.hotkey  = std::make_unique<GlobalHotkey>();
         built.pricing = std::make_unique<lens::llm::Pricing>(lens::llm::Pricing::load(std::filesystem::path(LENS_DATA_DIR) / "llm" / "pricing.json"));
         for (auto const channel : {lens::llm::Channel::Word, lens::llm::Channel::Entity, lens::llm::Channel::Sentence})
             lens::llm::loadLlmProtocol(channel, std::filesystem::path(LENS_DATA_DIR) / "llm");
-        built.controller = std::make_unique<AppController>(*built.store, *built.llm, *built.hook, *built.pricing);
+        built.controller = std::make_unique<AppController>(*built.store, *built.llm, *built.hook, *built.hotkey, *built.pricing);
         built.tray       = std::make_unique<Tray>(*built.controller);
         return built;
     }();

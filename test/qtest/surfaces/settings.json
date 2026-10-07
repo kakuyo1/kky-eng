@@ -18,5 +18,10 @@
   "daily": {
     "2026-01-01": { "pops": 4, "learned": 1, "fresh": 3, "promptTokens": 1000, "completionTokens": 500 },
     "2026-01-02": { "pops": 7, "learned": 3, "fresh": 4, "promptTokens": 2000, "completionTokens": 1000 }
+  },
+  "cache": {
+    "zh": {
+      "panel": { "ipa": "/ˈpænl/", "en": "a flat board forming part of a surface", "zh": "面板；专门小组" }
+    }
   }
 }

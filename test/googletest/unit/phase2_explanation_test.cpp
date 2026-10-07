@@ -79,10 +79,23 @@ struct Manager final : QNetworkAccessManager {
     QByteArray response = envelope({word()});
     QByteArray posted;
     QUrl endpoint;
+    QUrl listed;
     bool usesTestToken = false;
     int posts          = 0;
-    QNetworkReply* createRequest(Operation, QNetworkRequest const& request, QIODevice* device) override
+    int gets           = 0;
+    QNetworkReply* createRequest(Operation operation, QNetworkRequest const& request, QIODevice* device) override
     {
+        // The model list is a GET and carries no body at all, so it is answered without a device:
+        // the assertions here are about the POST, and reading a device this call does not have is
+        // how a null dereference gets into a test fake.
+        if (operation == GetOperation) {
+            ++gets;
+            listed               = request.url();
+            const QByteArray ids = request.url().toString().contains(QLatin1String("deepseek"))
+                                       ? QByteArrayLiteral(R"({"data":[{"id":"deepseek-flash"},{"id":"deepseek-v4-pro"}]})")
+                                       : QByteArrayLiteral(R"({"data":[{"id":"gpt-4.1-mini"},{"id":"gpt-4.1-nano"}]})");
+            return new Reply{ids, this};
+        }
         ++posts;
         endpoint      = request.url();
         usesTestToken = request.rawHeader("Authorization") == "Bearer fake-test-token";
@@ -256,23 +269,25 @@ TEST_F(LlmTest, Phase2ChangingSettingsDuringResponseKeepsTheOriginalCacheContext
     EXPECT_FALSE(store.cacheGet("bank", {"ja", false}));
 }
 
-TEST_F(LlmTest, Phase2AProviderChoiceMovesTheEndpointAndItsWireOptionsOnly)
+TEST_F(LlmTest, Phase2AProviderChoiceMovesTheEndpointItsWireOptionsAndTheModel)
 {
     QtApplication qt;
     QTemporaryDir temporary;
     auto store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
     app::StorageDuty storage{store};
     Manager manager;
-    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "deepseek-flash"}, &manager};
+    // A model that belongs to neither service, so both trips through the loop prove the same
+    // thing: the one standing is from somewhere else, and following the service replaces it.
+    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "gpt-4.1-nano"}, &manager};
     auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
     app::CostDuty cost{storage.statsStore(), client, pricing};
     app::ExplanationDuty duty{storage, client, cost};
     for (auto const* provider : {"DeepSeek", "openai"}) {
         ASSERT_TRUE(duty.setProvider(provider));
         auto const entry = llm::serviceProvider(provider);
-        // The reader's model survives the choice: only the endpoint and its wire quirks move.
-        EXPECT_EQ(client.model(), "deepseek-flash");
-        EXPECT_FALSE(store.document().contains("MODEL"));
+        // The endpoint, its wire quirks -- and the model, which follows the service: a name from
+        // another one is the 400 whose message names nothing (docs/adr/0017).
+        EXPECT_EQ(client.model(), provider == std::string_view{"DeepSeek"} ? "deepseek-flash" : "gpt-4.1-mini");
         EXPECT_EQ(store.document().at("URL"), entry.value("baseUrl").toString().toStdString());
         duty.setSelection(selection());
         duty.dismissBubble();
@@ -284,6 +299,14 @@ TEST_F(LlmTest, Phase2AProviderChoiceMovesTheEndpointAndItsWireOptionsOnly)
         auto const body = QJsonDocument::fromJson(manager.posted).object();
         EXPECT_EQ(body.contains("thinking"), provider == std::string{"DeepSeek"});
     }
+    // The list the service itself answered with replaces the catalog's seed, and it is kept for
+    // that service alone: ids change under the app, and the seed is only for a machine that has
+    // never reached the service at all.
+    EXPECT_GE(manager.gets, 1);
+    EXPECT_TRUE(manager.listed.toString().endsWith(QLatin1String("/models")));
+    EXPECT_EQ(store.document().at("MODELS").at("DeepSeek").at(0), "deepseek-flash");
+    EXPECT_EQ(store.document().at("MODELS").at("openai").at(0), "gpt-4.1-mini");
+
     // The price shown is the typed model's, not the provider's.
     ASSERT_TRUE(duty.setModel("gpt-4.1-mini"));
     EXPECT_GT(pricing.cost(client.model(), {1000, 1000}), 0.0);
@@ -375,9 +398,10 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     store.document()["API-KEY"] = "fake-test-token";
     auto const pricing          = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
     app::MouseSelectionHook hook;
+    app::GlobalHotkey hotkey;
     Manager manager;
     llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    app::AppController controller{store, client, hook, pricing};
+    app::AppController controller{store, client, hook, hotkey, pricing};
     int settingsChanges = 0;
     QObject::connect(&controller, &app::AppController::settingsChanged, [&] { ++settingsChanges; });
     auto const initial = controller.settings();
@@ -402,7 +426,9 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     EXPECT_TRUE(request(client).contains("thinking"));
     controller.setProvider("custom");
     EXPECT_EQ(controller.settings().value("url").toString(), "https://api.deepseek.com");
-    EXPECT_FALSE(store.document().contains("MODEL"));
+    // The custom endpoint keeps the address it was on, and a model is always in force: which one
+    // follows from the service, and the rule itself is pinned in the provider test above.
+    EXPECT_FALSE(controller.settings().value("model").toString().isEmpty());
     EXPECT_EQ(store.document().at("URL"), "https://api.deepseek.com");
     EXPECT_FALSE(request(client).contains("thinking"));
     settingsChanges = 0;
@@ -420,11 +446,13 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
 
     controller.setProvider("unknown");
     controller.setModel(" ");
-    EXPECT_EQ(settingsChanges, 2);
+    // Three: the provider, the model, and the list the service answered with -- which arrives on
+    // its own turn, long after the click that asked for it.
+    EXPECT_EQ(settingsChanges, 3);
     controller.setApiUrl("https://example.invalid/v2");
     auto restored = core::KnownStore::load(path);
     llm::LlmClient restarted{{QUrl{"https://wrong.invalid"}, "fake-test-token", "wrong-model"}, &manager};
-    app::AppController restoredController{restored, restarted, hook, pricing};
+    app::AppController restoredController{restored, restarted, hook, hotkey, pricing};
     auto const restoredBody = request(restarted);
     EXPECT_EQ(restoredBody.value("model").toString(), "gpt-4.1-nano");
     EXPECT_FALSE(restoredBody.contains("thinking"));
@@ -436,7 +464,7 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     controller.setModel("custom-model");
     auto customStore = core::KnownStore::load(path);
     llm::LlmClient custom{{QUrl{"https://wrong.invalid"}, "fake-test-token", "wrong-model"}, &manager};
-    app::AppController customController{customStore, custom, hook, pricing};
+    app::AppController customController{customStore, custom, hook, hotkey, pricing};
     auto const customBody = request(custom);
     EXPECT_EQ(customBody.value("model").toString(), "custom-model");
     EXPECT_FALSE(customBody.contains("thinking"));
@@ -455,9 +483,10 @@ TEST_F(LlmTest, Phase2ControllerRejectsAnInsecurePersistedServiceUrl)
     store.document()["MODEL"]    = "deepseek-flash";
     auto const pricing           = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
     app::MouseSelectionHook hook;
+    app::GlobalHotkey hotkey;
     llm::LlmClient client{{QUrl{"https://safe.invalid"}, "fake-test-token", "test-model"}};
 
-    app::AppController controller{store, client, hook, pricing};
+    app::AppController controller{store, client, hook, hotkey, pricing};
 
     EXPECT_EQ(client.baseUrl(), QUrl{"https://api.deepseek.com"});
     EXPECT_EQ(controller.settings().value("url").toString(), "https://api.deepseek.com");

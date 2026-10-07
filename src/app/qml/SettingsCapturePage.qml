@@ -65,6 +65,26 @@ Item {
             }
         }
 
+        // Beside the trigger-channel group rather than inside it: those three are switches, and
+        // this one is the key that stands in for a gesture, which is a value rather than an on/off.
+        Column {
+            width: parent.width
+            spacing: 7
+            Text { text: qsTranslate("SettingsPopup", "OCR trigger key"); color: Tokens.muted; font.pixelSize: 11 }
+            HotkeyField {
+                id: hotkeyField
+                width: parent.width
+                objectName: "ocrHotkey"
+                combination: Controller.settings.ocrHotkey
+                interactive: Controller.settings.ocrAvailable
+                // A combination the shell would not take says so until the reader picks one that
+                // it will: the property is where the controller's own answer is kept.
+                conflicted: Controller.settings.ocrHotkeyConflicted || hotkeyField.refused
+                property bool refused: false
+                onKeyChosen: (key, modifiers) => hotkeyField.refused = Controller.setOcrHotkey(key, modifiers) !== ""
+            }
+        }
+
         SettingsLinkRow {
             label: qsTranslate("SettingsPopup", "Popup & clipboard")
             note: Controller.settings.clipboardPolicy === "silent"

@@ -46,16 +46,25 @@ Item {
                 findChild(service, "providerField").picked("openai");
                 compare(Controller.settings.provider, "openai");
                 compare(Controller.settings.url, "https://api.openai.com/v1");
-                // The provider carries the address and nothing else: the model the reader had
-                // stands until they type another one.
-                compare(Controller.settings.model, previous.model);
+                // The model follows the service now (docs/adr/0017): a name from another one is the
+                // 400 whose message names nothing, and the service is what the reader changed. The
+                // list it follows comes from the catalog until this service has answered for itself.
+                compare(Controller.settings.model, "gpt-4.1-mini");
                 const modelField = findChild(service, "modelField");
-                verify(modelField);
-                modelField.forceActiveFocus();
-                modelField.text = "gpt-4.1-nano";
-                root.forceActiveFocus();
+                verify(modelField, "the model page draws no model field");
+                compare(modelField.visible, true);
+                compare(modelField.editable, true, "the model has to be the reader's to type");
+                compare(modelField.options.length, 2);
+                modelField.picked("gpt-4.1-nano");
                 tryCompare(Controller.settings, "model", "gpt-4.1-nano");
-                compare(modelField.text, "gpt-4.1-nano");
+                compare(modelField.currentValue, "gpt-4.1-nano");
+                // Typing is the other half of the same field, and it is what keeps a model the
+                // service never listed -- a private deployment, one newer than the last fetch --
+                // reachable. The field keeps its one shape whichever of the two was used.
+                modelField.edited("house-model");
+                tryCompare(Controller.settings, "model", "house-model");
+                findChild(service, "providerField").picked("custom");
+                compare(findChild(service, "modelField").visible, true);
                 const page = createTemporaryObject(learning, root, {settings: Qt.binding(function() { return Controller.settings; })});
                 verify(page);
                 findChild(page, "languageField").picked("ja");
@@ -87,7 +96,7 @@ Item {
             compare(providerField.current.label, "OpenAI");
             const modelField = findChild(service, "modelField");
             verify(modelField, "the model page has no model field");
-            compare(modelField.text, "gpt-4.1-mini");
+            compare(modelField.currentValue, "gpt-4.1-mini");
         }
 
         function test_snapshotPageContents() {

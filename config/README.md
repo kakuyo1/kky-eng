@@ -15,6 +15,9 @@ CMake 侧是 `CMAKE_SOURCE_DIR`（`src/app/CMakeLists.txt`、`test/qtest/CMakeLi
 | 提交钩子 | 经 PowerShell 读；钩子本来就只服务 Windows |
 | `CMakePresets.json` | 读不到 JSON，改用 `$env{QT_ROOT}`，由 `scripts/build/build.bat` 从本文件导出 |
 
+`vsRoot` 只有一种机器需要它：VS 被移动过、安装器的数据库里已经没有这个实例（`vswhere` 退出码 0
+却什么都不打印）。`build.bat` 先问 `vswhere`，查不到才读这个键。
+
 C++ 不读这个文件：路径在 configure 期由 CMake 变成编译定义，运行期再去解析一份配置只会多一个失败点。
 
 ## 换机器

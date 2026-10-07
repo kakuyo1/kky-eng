@@ -96,6 +96,14 @@ public:
     /// @return False for an unknown provider; custom retains the current endpoint and model.
     bool setProvider(QString const& provider);
 
+    /// @brief Ask the service which models this account can use.
+    ///
+    /// A `GET /models`, which costs nothing and is the only current answer there is: the ids a
+    /// provider supports change under the app, and a name that is no longer one of them is the 400
+    /// nobody can read (docs/adr/0017). Failure is not worth a card -- the list this already has
+    /// stays, and explaining still works.
+    void fetchModels();
+
     /// @brief Set which protocol the next request speaks.
     ///
     /// The channel is decided locally, before anything is sent, and selects the request
@@ -127,6 +135,9 @@ signals:
     /// @param message Reader-facing reason, already routed through translation.
     ///                Never contains the API key.
     void failed(QString message);
+
+    /// @brief The service's own list of model ids, in the order it gave them.
+    void modelsFetched(QStringList models);
 
 public slots:
     /// @brief Look up the whole payload in one HTTP request.

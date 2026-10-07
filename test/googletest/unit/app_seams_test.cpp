@@ -29,18 +29,35 @@ using lens::app::noticePayload;
 
 } // namespace
 
-/// The shape is the contract the notice surface will be built against, so it is pinned here
+/// The shape is the contract the notice surface is built against, so it is pinned here
 /// rather than left to whatever the controller happens to put in the map.
-TEST(NoticePayload, CarriesTitleBodyAndKindAndNothingElse)
+TEST(NoticePayload, CarriesAReasonAndAtMostOneAction)
 {
     const QVariantMap notice = noticePayload(QStringLiteral("ubiquitous"),
                                              QString::fromUtf8("这张卡片没有可解释的单词"),
                                              QString::fromUtf8(kNoticeInfo));
 
-    EXPECT_EQ(notice.size(), 3) << "a fourth key would be one no surface reads";
+    EXPECT_EQ(notice.size(), 5) << "a sixth key would be one no surface reads";
     EXPECT_EQ(notice.value("title").toString(), QStringLiteral("ubiquitous"));
     EXPECT_EQ(notice.value("body").toString(), QString::fromUtf8("这张卡片没有可解释的单词"));
     EXPECT_EQ(notice.value("kind").toString(), QStringLiteral("info"));
+    // Most notices are the end of the road: nothing to press, and no word to press it about.
+    EXPECT_TRUE(notice.value("action").toString().isEmpty());
+    EXPECT_TRUE(notice.value("lemma").toString().isEmpty());
+}
+
+/// A notice that does offer one names the word it would act on, because the surface that draws the
+/// button does not know what the button means -- the side that raised the notice does.
+TEST(NoticePayload, AnOfferedActionNamesWhatItActsOn)
+{
+    const QVariantMap notice = noticePayload(QStringLiteral("panel"),
+                                             QStringLiteral("No explanation is stored for this word."),
+                                             QString::fromUtf8(kNoticeInfo),
+                                             QStringLiteral("Explain now"),
+                                             QStringLiteral("panel"));
+
+    EXPECT_EQ(notice.value("action").toString(), QStringLiteral("Explain now"));
+    EXPECT_EQ(notice.value("lemma").toString(), QStringLiteral("panel"));
 }
 
 TEST(NoticePayload, TheTwoKindsAreDistinctAndATitleMayBeAbsent)

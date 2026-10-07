@@ -5,10 +5,11 @@
 
 ## 1 模块与目录
 
-`src/app/qml/` 根下是十个 `Window`（表面），`src/app/qml/components/` 下是十个可复用件
+`src/app/qml/` 根下是十个 `Window`（表面）加一个 `Mask.qml`——它不是窗口而是窗口的宿主，每块屏幕一个
+（见 §2 与 `UI.md` 4.11）；`src/app/qml/components/` 下是十二个可复用件
 （`Icon` / `ShadowCard` / `Tokens` / `MixedText` / `Segment` / `StatRow` / `MenuRow` /
-`DropdownField` / `Switch` / `SwitchRow`），`src/app/qml/theme/` 下是两套主题各一份色值表
-（`Light` / `Dark`）加一份动效表（`Motion`）。三组同属一个 QML 模块（`qt_add_qml_module` 的
+`DropdownField` / `Switch` / `SwitchRow` / `PathField` / `HotkeyField`），`src/app/qml/theme/` 下是三套主题
+各一份色值表（`Light` / `Dark` / `Forest`）加一份动效表（`Motion`）。三组同属一个 QML 模块（`qt_add_qml_module` 的
 `QML_FILES` 里写子目录路径即可），Qt 给模块内每个文件隐式导入本模块的类型，**跨目录照样按类型名解析，
 谁也不需要写 import**。
 
@@ -34,6 +35,16 @@
 ## 2 窗口
 
 - **各表面是独立 `Window`，不是 `Popup`**（`UI.md` 的 “各表面相互独立，不共用窗口” 正是这么写的）。
+- **一张表面可以不只一个窗口**：`Mask.qml` 的根是 `Item`，里面用 `Instantiator` 每块屏幕建一张 `Window`。
+  两条都是实测：`Repeater` 的 delegate 必须是 `Item`，放 `Window` 会报 `Delegate must be of Item type`
+  且一个都不建；`Instantiator` 的 `model` 只认数字、列表或 item model，把 `Qt.application.screens` 这个
+  QML 列表属性直接交进去也一个都不建、**而且不报错**——所以要传屏幕数（`Qt.application.screens.length`），
+  delegate 再按 `index` 回读 `Qt.application.screens[index]`，插拔显示器靠这个读数跟着重建。
+- **它是唯一吃焦点的表面**：其余表面一律 `WindowDoesNotAcceptFocus`，这一张要拿指针和 `Esc`，所以照常
+  `raise()` 之外还要 `requestActivate()`；`Esc` 仍按仓库惯例走应用级 `Shortcut`（离屏平台上没有窗口是
+  激活的，窗口级快捷键测不到）。
+- **蒙版必须先离屏再抓屏**：抓的是屏幕 DC（`QScreen::grabWindow`），蒙版自己会在画面里，于是松手与
+  取词之间留了 `Mask.qml` 的 `settleMs`。这条只能靠真人看，脚本拍不到。
 - **主窗口不存在，根窗口却必须真的可见**：QML 里嵌在另一个 `Window` 内的 `Window` 会成为它的
   transient child，Windows 在父窗口隐藏时不会把 transient child 显示出来——原先写的 “0×0 且
   `visible: false`” 实测所有表面都不出现，改成 1×1、`opacity: 0`、带 `WindowTransparentForInput`
