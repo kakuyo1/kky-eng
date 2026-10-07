@@ -91,9 +91,8 @@ QJsonObject const& resultSchema(Channel channel);
 /// @return Provider and language choices loaded alongside the protocol.
 QJsonObject const& serviceCatalog();
 
-/// @return One provider entry -- its label, group, base URL and wire overrides -- or an empty
-///         object for an unknown provider. The catalog names no model: the reader types the one
-///         their account carries, so a provider choice only moves the endpoint.
+/// @return One provider entry, including optional model-list endpoint metadata, or an empty object
+///         for an unknown provider.
 QJsonObject serviceProvider(QString const& provider);
 
 }

@@ -67,6 +67,7 @@ QString results(const QString& items)
 const QStringList kAskedFor{"ubiquitous"};
 const QString kGoodResult =
     QStringLiteral(R"({"word":"ubiquitous","ipa":"/juːˈbɪkwɪtəs/","en":"existing everywhere","zh":"无处不在的"})");
+const QJsonObject kOpenAiModelRules{{"arrayField", "data"}, {"idField", "id"}};
 
 } // namespace
 
@@ -75,13 +76,14 @@ const QString kGoodResult =
 TEST(ParseModelIds, ReadsTheServicesOwnListAndNothingElse)
 {
     const auto ids = lens::llm::parseModelIds(QByteArrayLiteral(
-        R"({"object":"list","data":[{"id":"deepseek-flash"},{"id":"deepseek-v4-pro"},{"id":"deepseek-flash"}]})"));
+                                                  R"({"object":"list","data":[{"id":"deepseek-flash"},{"id":"deepseek-v4-pro"},{"id":"deepseek-flash"}]})"),
+                                              kOpenAiModelRules);
 
     ASSERT_EQ(ids.size(), 2);
     EXPECT_EQ(ids.at(0), QStringLiteral("deepseek-flash"));
     EXPECT_EQ(ids.at(1), QStringLiteral("deepseek-v4-pro"));
-    EXPECT_TRUE(lens::llm::parseModelIds(QByteArrayLiteral(R"({"data":"nope"})")).isEmpty());
-    EXPECT_TRUE(lens::llm::parseModelIds(QByteArrayLiteral("not json at all")).isEmpty());
+    EXPECT_TRUE(lens::llm::parseModelIds(QByteArrayLiteral(R"({"data":"nope"})"), kOpenAiModelRules).isEmpty());
+    EXPECT_TRUE(lens::llm::parseModelIds(QByteArrayLiteral("not json at all"), kOpenAiModelRules).isEmpty());
 }
 
 /// What a `/models` answer carries besides the chat models: the app can send a completion to one
@@ -100,7 +102,8 @@ TEST(ParseModelIds, KeepsOnlyModelsAChatRequestCanReach)
         {"id":"omni-moderation-latest"},
         {"id":"bge-reranker-v2-m3"},
         {"id":"llama-3-8b-instruct"}
-    ]})"));
+    ]})"),
+                                              kOpenAiModelRules);
 
     ASSERT_EQ(ids.size(), 2);
     EXPECT_EQ(ids.at(0), QStringLiteral("gpt-4.1-mini"));
@@ -115,10 +118,31 @@ TEST(ParseModelIds, FollowsTheServicesOwnModalityWhenItStatesOne)
         {"id":"google/gemini-2.5-flash","architecture":{"output_modalities":["text"]}},
         {"id":"stability/sdxl-turbo","architecture":{"output_modalities":["image"]}},
         {"id":"acme/speech-maker","architecture":{"output_modalities":["audio"]}}
-    ]})"));
+    ]})"),
+                                              kOpenAiModelRules);
 
     ASSERT_EQ(ids.size(), 1);
     EXPECT_EQ(ids.at(0), QStringLiteral("google/gemini-2.5-flash"));
+}
+
+TEST(ParseModelIds, MapsTheNativeGeminiEnvelopeToChatCompletionIds)
+{
+    const QJsonObject rules{{"arrayField", "models"},
+                            {"idField", "name"},
+                            {"stripPrefix", "models/"},
+                            {"capabilityField", "supportedGenerationMethods"},
+                            {"capabilityValue", "generateContent"}};
+    const auto ids = lens::llm::parseModelIds(QByteArrayLiteral(R"({"models":[
+        {"name":"models/gemini-2.5-flash","supportedGenerationMethods":["generateContent"]},
+        {"name":"models/gemini-2.5-flash-image-generation","supportedGenerationMethods":["generateContent"]},
+        {"name":"models/text-embedding-004","supportedGenerationMethods":["embedContent"]},
+        {"name":"models/gemini-2.5-flash","supportedGenerationMethods":["generateContent"]}
+    ]})"),
+                                              rules);
+
+    ASSERT_EQ(ids.size(), 1);
+    EXPECT_EQ(ids.front(), QStringLiteral("gemini-2.5-flash"));
+    EXPECT_TRUE(lens::llm::parseModelIds(QByteArrayLiteral(R"({"data":[{"id":"valid"},7]})"), kOpenAiModelRules).isEmpty());
 }
 
 TEST(LlmPureMask, CollapsesEmailUrlAndLongDigits)

@@ -56,6 +56,13 @@ TEST(CapturePolicy, DragTiersAreAtomicAndHandleBothDirections)
     EXPECT_TRUE(lens::app::isSelectionGesture({INT_MIN, 0, INT_MAX, 0}, 8));
 }
 
+TEST(CapturePolicy, ExplicitSelectionLengthCountsUnicodeLettersOnly)
+{
+    EXPECT_EQ(lens::capture::selectionLetterCount(QStringLiteral("ab3!")), 2);
+    EXPECT_EQ(lens::capture::selectionLetterCount(QStringLiteral("word")), 4);
+    EXPECT_EQ(lens::capture::selectionLetterCount(QString::fromUtf8("é中")), 2);
+}
+
 TEST_F(CoreTest, ScanRequiresWhitelistStableFramesAndTwoSecondRateLimit)
 {
     auto scan = scanner();

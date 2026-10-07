@@ -80,6 +80,9 @@ struct Manager final : QNetworkAccessManager {
     QByteArray posted;
     QUrl endpoint;
     QUrl listed;
+    QByteArray listedAuthorization;
+    QByteArray listedGoogleKey;
+    QByteArray modelResponseOverride;
     bool usesTestToken = false;
     int posts          = 0;
     int gets           = 0;
@@ -91,7 +94,13 @@ struct Manager final : QNetworkAccessManager {
         if (operation == GetOperation) {
             ++gets;
             listed               = request.url();
-            const QByteArray ids = request.url().toString().contains(QLatin1String("deepseek"))
+            listedAuthorization  = request.rawHeader("Authorization");
+            listedGoogleKey      = request.rawHeader("x-goog-api-key");
+            const QByteArray ids = not modelResponseOverride.isEmpty()
+                                       ? modelResponseOverride
+                                   : request.url().host() == QLatin1String("generativelanguage.googleapis.com")
+                                       ? QByteArrayLiteral(R"({"models":[{"name":"models/gemini-2.5-flash","supportedGenerationMethods":["generateContent"]},{"name":"models/text-embedding-004","supportedGenerationMethods":["embedContent"]}]})")
+                                   : request.url().toString().contains(QLatin1String("deepseek"))
                                        ? QByteArrayLiteral(R"({"data":[{"id":"deepseek-flash"},{"id":"deepseek-v4-pro"}]})")
                                        : QByteArrayLiteral(R"({"data":[{"id":"gpt-4.1-mini"},{"id":"gpt-4.1-nano"}]})");
             return new Reply{ids, this};
@@ -303,7 +312,7 @@ TEST_F(LlmTest, Phase2AProviderChoiceMovesTheEndpointItsWireOptionsAndTheModel)
     // that service alone: ids change under the app, and the seed is only for a machine that has
     // never reached the service at all.
     EXPECT_GE(manager.gets, 1);
-    EXPECT_TRUE(manager.listed.toString().endsWith(QLatin1String("/models")));
+    EXPECT_TRUE(manager.listed.path().endsWith(QLatin1String("/models")));
     EXPECT_EQ(store.document().at("MODELS").at("DeepSeek").at(0), "deepseek-flash");
     EXPECT_EQ(store.document().at("MODELS").at("openai").at(0), "gpt-4.1-mini");
 
@@ -319,6 +328,86 @@ TEST_F(LlmTest, Phase2AProviderChoiceMovesTheEndpointItsWireOptionsAndTheModel)
     EXPECT_EQ(client.model(), "unlisted-model");
     auto const restored = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
     EXPECT_EQ(restored.document().at("PROVIDER"), "custom");
+}
+
+TEST_F(LlmTest, ProviderModelEndpointsUseTheirCatalogAuthAndResponseMapping)
+{
+    QtApplication qt;
+    Manager manager;
+    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
+    ASSERT_TRUE(client.setProvider("Google"));
+    QString fetchedProvider;
+    QStringList fetchedModels;
+    QEventLoop loop;
+    QObject::connect(&client, &llm::LlmClient::modelsFetched, &loop, [&](QString provider, QStringList models) {
+        fetchedProvider = std::move(provider);
+        fetchedModels   = std::move(models);
+        loop.quit();
+    });
+    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+
+    client.fetchModels("Google");
+    loop.exec();
+
+    EXPECT_EQ(manager.listed, QUrl{"https://generativelanguage.googleapis.com/v1beta/models"});
+    EXPECT_EQ(manager.listedGoogleKey, "fake-test-token");
+    EXPECT_TRUE(manager.listedAuthorization.isEmpty());
+    EXPECT_EQ(fetchedProvider, "Google");
+    ASSERT_EQ(fetchedModels.size(), 1);
+    EXPECT_EQ(fetchedModels.front(), "gemini-2.5-flash");
+}
+
+TEST_F(LlmTest, ModelListRefreshKeepsTheUserCacheWhenAResponseIsMalformed)
+{
+    QtApplication qt;
+    QTemporaryDir temporary;
+    auto store                             = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    store.document()["MODELS"]["DeepSeek"] = nlohmann::json::array({"cached-model"});
+    app::MouseSelectionHook hook;
+    app::GlobalHotkey hotkey;
+    Manager manager;
+    manager.modelResponseOverride = QByteArrayLiteral(R"({"data":"malformed"})");
+    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "deepseek-flash"}, &manager};
+    auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    app::AppController controller{store, client, hook, hotkey, pricing};
+
+    ASSERT_EQ(controller.models().size(), 1);
+    EXPECT_EQ(controller.models().front().toMap().value("value").toString(), "cached-model");
+    QEventLoop loop;
+    QObject::connect(&client, &llm::LlmClient::modelsFetched, &loop, &QEventLoop::quit);
+    QTimer::singleShot(50, &loop, &QEventLoop::quit);
+    loop.exec();
+
+    EXPECT_EQ(controller.models().front().toMap().value("value").toString(), "cached-model");
+    EXPECT_EQ(store.document().at("MODELS").at("DeepSeek").at(0), "cached-model");
+}
+
+TEST_F(LlmTest, OverlappingProviderRefreshesStayWithTheProviderThatStartedThem)
+{
+    QtApplication qt;
+    QTemporaryDir temporary;
+    auto store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    app::StorageDuty storage{store};
+    Manager manager;
+    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "deepseek-flash"}, &manager};
+    auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    app::CostDuty cost{storage.statsStore(), client, pricing};
+    app::ExplanationDuty duty{storage, client, cost};
+    int responses = 0;
+    QEventLoop loop;
+    QObject::connect(&client, &llm::LlmClient::modelsFetched, &loop, [&responses, &loop](QString, QStringList) {
+        if (++responses == 2) loop.quit();
+    });
+    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+
+    ASSERT_TRUE(duty.setProvider("DeepSeek"));
+    ASSERT_TRUE(duty.setProvider("openai"));
+    loop.exec();
+
+    ASSERT_EQ(responses, 2);
+    EXPECT_EQ(store.document().at("MODELS").at("DeepSeek").at(0), "deepseek-flash");
+    EXPECT_EQ(store.document().at("MODELS").at("openai").at(0), "gpt-4.1-mini");
+    EXPECT_EQ(client.model(), "gpt-4.1-mini");
 }
 
 TEST_F(LlmTest, Phase2DefaultsToOneSenseAndQueuesTheLatestRequestedMode)

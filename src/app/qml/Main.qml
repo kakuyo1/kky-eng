@@ -397,8 +397,13 @@ Window {
         target: Controller
 
         function onSelectionBarRequested(payload) {
-            const at = root.toDip(payload);
             const generation = ++root.selectionBarGeneration;
+            if (payload.letterCount < Controller.settings.minimumWordLength) {
+                bar.visible = false;
+                return;
+            }
+
+            const at = root.toDip(payload);
             bar.selectionText = payload.text;
             bar.openAt(at);
             bar.visible = false;

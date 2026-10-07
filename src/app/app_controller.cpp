@@ -349,6 +349,11 @@ void AppController::setProvider(QString provider)
     explanation_.setProvider(std::move(provider));
 }
 
+void AppController::refreshModels()
+{
+    explanation_.refreshModels();
+}
+
 void AppController::setModel(QString model)
 {
     if (explanation_.setModel(model))

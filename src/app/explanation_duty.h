@@ -117,8 +117,8 @@ private:
     /// @return The model list known for @p provider: what the service said last time, else the
     ///         catalog's own seed, else empty -- a custom endpoint names no models at all.
     QStringList modelsFor(QString const& provider) const;
-    /// @brief Keep the list the service just answered with, and use it for the provider on show.
-    void noteModelsFetched(QStringList models);
+    /// @brief Keep the response under the provider that was actually requested.
+    void noteModelsFetched(QString provider, QStringList models);
     /// @brief Rebuild the cached model list from the provider in force, and say so if it moved.
     void rebuildModels();
     /// @return The provider in force, from the document.
@@ -144,10 +144,6 @@ private:
     /// Whether the bubble standing is the one reviewWord() raised. Only that one is the pointer's
     /// to take down: a scan or a selection bubble outlives the pointer leaving a word-list row.
     bool reviewRaised_ = false;
-    /// The provider an outstanding model-list request was made for. The answer names no service,
-    /// so without this one arriving after the reader switched providers would be filed under the
-    /// wrong one, and would replace a model belonging to neither.
-    QString listingFor_;
     /// The provider in force's models, in the shape the settings page draws.
     QVariantList models_;
     bool requestedFromScan_       = false;

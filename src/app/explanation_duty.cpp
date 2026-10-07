@@ -420,7 +420,6 @@ bool ExplanationDuty::setProvider(QString const& provider)
     // says "malformed" and nothing else, and the reader changed the service, not the model. A
     // model that this service does list is left alone: switching back and forth between two
     // services must not lose a choice that was still valid.
-    listingFor_             = provider;
     const QStringList known = modelsFor(provider);
     if (not known.isEmpty() and not known.contains(llm_.model())) {
         LENS_INFO("model follows the provider: '{}' -> '{}'", llm_.model().toStdString(), known.front().toStdString());
@@ -430,7 +429,7 @@ bool ExplanationDuty::setProvider(QString const& provider)
     rebuildModels();
     storage_.save();
     emit settingsChanged();
-    llm_.fetchModels();
+    llm_.fetchModels(provider);
     return true;
 }
 
@@ -472,18 +471,14 @@ void ExplanationDuty::rebuildModels()
 
 void ExplanationDuty::refreshModels()
 {
-    listingFor_ = currentProvider();
+    const auto provider = currentProvider();
     rebuildModels();
-    llm_.fetchModels();
+    llm_.fetchModels(provider);
 }
 
-void ExplanationDuty::noteModelsFetched(QStringList models)
+void ExplanationDuty::noteModelsFetched(QString provider, QStringList models)
 {
-    if (models.isEmpty()) return;
-    // The service that answered, not the one in force now: the request names no service, and the
-    // reader may well have switched while it was in flight.
-    const QString provider = listingFor_.isEmpty() ? currentProvider() : listingFor_;
-    listingFor_.clear();
+    if (models.isEmpty() or llm::serviceProvider(provider).isEmpty()) return;
     LENS_INFO("the service lists {} model(s) for '{}'; they replace the catalog's", models.size(), provider.toStdString());
     nlohmann::json ids = nlohmann::json::array();
     for (const QString& id : models)
@@ -494,14 +489,15 @@ void ExplanationDuty::noteModelsFetched(QStringList models)
     // service's own answer is the authority on what it carries, so the model in force is corrected
     // to one it does list. It is only corrected here -- never to a name from a list of another
     // service, and never when the reader has moved to a different one meanwhile.
-    if (provider == currentProvider() and not models.contains(llm_.model())) {
+    const bool isCurrentProvider = provider == currentProvider();
+    if (isCurrentProvider and not models.contains(llm_.model())) {
         LENS_INFO("'{}' is not one of them; the model becomes '{}'", llm_.model().toStdString(), models.front().toStdString());
         llm_.setModel(models.front());
         storage_.knownStore().document()["MODEL"] = models.front().toStdString();
     }
-    rebuildModels();
+    if (isCurrentProvider) rebuildModels();
     storage_.save();
-    emit settingsChanged();
+    if (isCurrentProvider) emit settingsChanged();
 }
 
 QVariantMap ExplanationDuty::settings() const

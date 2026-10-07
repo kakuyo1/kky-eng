@@ -32,6 +32,7 @@ Item {
     property bool editable: false
 
     signal picked(var value)
+    signal listOpened()
     /// A value was typed and the reader left the field. Only ever emitted when `editable`.
     signal edited(string text)
 
@@ -74,6 +75,7 @@ Item {
         list.x = originX + point.x - list.shadowMargin;
         list.y = originY + point.y - list.shadowMargin;
         list.visible = true;
+        listOpened();
     }
 
     Rectangle {

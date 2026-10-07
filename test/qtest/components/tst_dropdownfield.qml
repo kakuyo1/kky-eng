@@ -66,10 +66,13 @@ Item {
 
         function test_theListIsADownByDefaultAndComesUpOnDemand() {
             const field = make({});
+            let opened = 0;
+            field.listOpened.connect(function () { opened += 1; });
 
             compare(field.openChildRect, null, "the list should start down");
             field.openList();
             verify(field.openChildRect !== null, "openList() did not raise the list");
+            compare(opened, 1);
             field.closeList();
             compare(field.openChildRect, null, "closeList() left the list up");
         }

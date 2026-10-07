@@ -95,6 +95,7 @@ public:
     Q_INVOKABLE void setClipboardPolicy(QString policy);
     Q_INVOKABLE void setPopupFrequency(QString frequency);
     Q_INVOKABLE void setProvider(QString provider);
+    Q_INVOKABLE void refreshModels();
     Q_INVOKABLE void setModel(QString model);
     Q_INVOKABLE void setApiUrl(QString url);
     Q_INVOKABLE void setAutostart(bool on);

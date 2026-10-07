@@ -4,6 +4,11 @@
 #pragma once
 
 #include <cstdint>
+#include <algorithm>
+
+#include <QChar>
+#include <QList>
+#include <QString>
 
 namespace lens::capture {
 
@@ -32,6 +37,15 @@ constexpr bool exceedsDragThreshold(std::int64_t const dx, std::int64_t const dy
 constexpr int minimumWordLength(int const value)
 {
     return value >= 2 and value <= 5 ? value : 3;
+}
+
+/// @return The number of Unicode letter code points in an explicit selection.
+inline int selectionLetterCount(QString const& text)
+{
+    const auto codepoints = text.toUcs4();
+    return static_cast<int>(std::count_if(codepoints.cbegin(), codepoints.cend(), [](uint codepoint) {
+        return QChar::isLetter(codepoint);
+    }));
 }
 
 }

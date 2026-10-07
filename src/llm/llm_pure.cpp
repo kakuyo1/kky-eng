@@ -380,19 +380,44 @@ bool speaksChat(const QJsonObject& entry)
 
 } // namespace
 
-QStringList parseModelIds(const QByteArray& body)
+QStringList parseModelIds(QByteArray const& body, QJsonObject const& responseRules)
 {
-    const auto data = QJsonDocument::fromJson(body).object().value("data");
-    if (not data.isArray()) {
+    const auto document = QJsonDocument::fromJson(body);
+    if (not document.isObject()) {
+        LENS_WARN("the model list was not valid JSON; keeping the one we have");
+        return {};
+    }
+    const auto arrayField = responseRules.value("arrayField").toString();
+    const auto idField    = responseRules.value("idField").toString();
+    const auto data       = document.object().value(arrayField);
+    if (arrayField.isEmpty() or idField.isEmpty() or not data.isArray() or data.toArray().size() > 2000) {
         LENS_WARN("the model list did not arrive in the shape this reads; keeping the one we have");
         return {};
     }
+    const auto capabilityField = responseRules.value("capabilityField").toString();
+    const auto capabilityValue = responseRules.value("capabilityValue").toString();
+    const auto stripPrefix     = responseRules.value("stripPrefix").toString();
     QStringList ids;
     for (const auto& entry : data.toArray()) {
+        if (not entry.isObject()) return {};
         const auto object = entry.toObject();
-        const auto id     = object.value("id").toString().trimmed();
-        if (id.isEmpty() or ids.contains(id)) continue;
-        if (not speaksChat(object)) continue;
+        const auto rawId  = object.value(idField);
+        if (not rawId.isString()) return {};
+        auto id = rawId.toString().trimmed();
+        if (not stripPrefix.isEmpty() and id.startsWith(stripPrefix))
+            id.remove(0, stripPrefix.size());
+        if (id.isEmpty() or id.size() > 256) return {};
+        if (ids.contains(id)) continue;
+        if (not capabilityField.isEmpty()) {
+            const auto capabilities = object.value(capabilityField);
+            if (not capabilities.isArray()) return {};
+            if (not capabilities.toArray().contains(capabilityValue)) continue;
+        }
+        auto chatEntry = object;
+        chatEntry.insert("id", id);
+        if (not speaksChat(chatEntry)) {
+            continue;
+        }
         ids.append(id);
     }
     LENS_INFO("the service lists {} model(s) this app can use", ids.size());

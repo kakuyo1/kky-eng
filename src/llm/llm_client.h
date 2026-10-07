@@ -92,17 +92,13 @@ public:
     /// @brief Replace the bearer token used by subsequent requests without logging it.
     void setApiKey(const QString& apiKey);
 
-    /// @brief Apply a catalog provider's endpoint, default model and wire options.
+    /// @brief Apply a catalog provider's base URL and wire options.
     /// @return False for an unknown provider; custom retains the current endpoint and model.
     bool setProvider(QString const& provider);
 
-    /// @brief Ask the service which models this account can use.
-    ///
-    /// A `GET /models`, which costs nothing and is the only current answer there is: the ids a
-    /// provider supports change under the app, and a name that is no longer one of them is the 400
-    /// nobody can read (docs/adr/0017). Failure is not worth a card -- the list this already has
-    /// stays, and explaining still works.
-    void fetchModels();
+    /// @brief Ask the provider-specific catalog endpoint for this account's model ids.
+    /// @note Empty, malformed, failed, or timed-out responses leave the current cache untouched.
+    void fetchModels(QString provider);
 
     /// @brief Set which protocol the next request speaks.
     ///
@@ -137,7 +133,7 @@ signals:
     void failed(QString message);
 
     /// @brief The service's own list of model ids, in the order it gave them.
-    void modelsFetched(QStringList models);
+    void modelsFetched(QString provider, QStringList models);
 
 public slots:
     /// @brief Look up the whole payload in one HTTP request.
@@ -147,9 +143,10 @@ public slots:
 
 private:
     Config config_;
-    Channel channel_ = Channel::Word;
-    QString preset_  = QStringLiteral("default");
-    QString lang_    = QStringLiteral("en");
+    Channel channel_  = Channel::Word;
+    QString preset_   = QStringLiteral("default");
+    QString lang_     = QStringLiteral("en");
+    QString provider_ = QStringLiteral("DeepSeek");
     QNetworkAccessManager* manager_;
 };
 

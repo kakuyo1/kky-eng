@@ -509,7 +509,11 @@ void CaptureDuty::classifyText(QString text, QPoint const anchor, bool const fro
         emit selectionActionRequested(QStringLiteral("translate"), pending.text);
         return;
     }
-    emit selectionBarRequested(QVariantMap{{"x", anchor.x()}, {"y", anchor.y()}, {"kind", pending.kind}, {"text", pending.text}});
+    emit selectionBarRequested(QVariantMap{{"x", anchor.x()},
+                                           {"y", anchor.y()},
+                                           {"kind", pending.kind},
+                                           {"text", pending.text},
+                                           {"letterCount", capture::selectionLetterCount(pending.text)}});
 }
 
 std::size_t CaptureDuty::minFreqRank() const

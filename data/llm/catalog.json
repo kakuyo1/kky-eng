@@ -1,10 +1,9 @@
 {
   "_comment": [
-    "`models` is what a provider is normally used with, most common first: a provider change fills",
-    "the model in from the first entry (docs/adr/0017). An empty or absent list means the app has",
-    "nothing to fill in offline -- the reader types one, and the provider's own /models response",
-    "becomes the list as soon as it arrives. Only the two entries below are lists this project can",
-    "vouch for; the others are left to that response rather than filled with names nobody checked."
+    "models is an offline seed, most common first. modelList describes the provider's official",
+    "refresh endpoint and response mapping. Successful results are cached per provider in the",
+    "reader's settings document; this shipped file remains read-only at runtime. Only the seed",
+    "entries below contain model ids this project can vouch for."
   ],
   "defaultProvider": "DeepSeek",
   "languages": [
@@ -18,47 +17,56 @@
       "value": "DeepSeek", "label": "DeepSeek", "group": "Domestic", "note": "",
       "baseUrl": "https://api.deepseek.com",
       "models": ["deepseek-flash", "deepseek-v4-pro"],
+      "modelList": {"method": "GET", "path": "/models", "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://api-docs.deepseek.com/api/list-models"},
       "requestOverrides": {"thinking": {"type": "disabled"}}
     },
     {
       "value": "Moonshot", "label": "Moonshot (Kimi)", "group": "Domestic", "note": "",
       "baseUrl": "https://api.moonshot.cn/v1",
+      "modelList": {"method": "GET", "path": "/models", "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://platform.kimi.com/docs/models"},
       "requestOverrides": {"thinking": null}
     },
     {
       "value": "Zhipu", "label": "Zhipu (GLM)", "group": "Domestic", "note": "",
       "baseUrl": "https://open.bigmodel.cn/api/paas/v4",
+      "modelList": {"method": "GET", "path": "/models", "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://docs.bigmodel.cn/cn/guide/develop/openai/introduction"},
       "requestOverrides": {"thinking": null}
     },
     {
       "value": "Qwen", "label": "Alibaba Cloud (Qwen)", "group": "Domestic", "note": "",
       "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "modelList": {"method": "GET", "path": "/models", "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope"},
       "requestOverrides": {"thinking": null}
     },
     {
       "value": "SiliconFlow", "label": "SiliconFlow", "group": "Domestic", "note": "",
       "baseUrl": "https://api.siliconflow.cn/v1",
+      "modelList": {"method": "GET", "path": "/models", "query": {"sub_type": "chat"}, "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://docs.siliconflow.cn/docs/api/models-get"},
       "requestOverrides": {"thinking": null}
     },
     {
       "value": "openai", "label": "OpenAI", "group": "International", "note": "",
       "baseUrl": "https://api.openai.com/v1",
       "models": ["gpt-4.1-mini", "gpt-4.1-nano"],
+      "modelList": {"method": "GET", "path": "/models", "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://platform.openai.com/docs/api-reference/models/list"},
       "requestOverrides": {"thinking": null}
     },
     {
       "value": "Google", "label": "Google (Gemini)", "group": "International", "note": "",
       "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "modelList": {"method": "GET", "path": "https://generativelanguage.googleapis.com/v1beta/models", "auth": {"type": "header", "header": "x-goog-api-key"}, "response": {"arrayField": "models", "idField": "name", "stripPrefix": "models/", "capabilityField": "supportedGenerationMethods", "capabilityValue": "generateContent"}, "docs": "https://ai.google.dev/api/models"},
       "requestOverrides": {"thinking": null}
     },
     {
       "value": "OpenRouter", "label": "OpenRouter", "group": "International", "note": "",
       "baseUrl": "https://openrouter.ai/api/v1",
+      "modelList": {"method": "GET", "path": "/models", "query": {"output_modalities": "text"}, "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://openrouter.ai/docs/api/api-reference/models/get-models"},
       "requestOverrides": {"thinking": null}
     },
     {
       "value": "Groq", "label": "Groq", "group": "International", "note": "",
       "baseUrl": "https://api.groq.com/openai/v1",
+      "modelList": {"method": "GET", "path": "/models", "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://console.groq.com/docs/api-reference#models"},
       "requestOverrides": {"thinking": null}
     },
     {

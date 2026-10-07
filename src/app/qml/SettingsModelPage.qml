@@ -42,6 +42,7 @@ Item {
                 options: root.settings.providers || []
                 currentValue: root.settings.provider
                 onPicked: (value) => Controller.setProvider(value)
+                onListOpened: Controller.refreshModels()
             }
         }
 

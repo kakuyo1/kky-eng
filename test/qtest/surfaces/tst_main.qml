@@ -23,6 +23,7 @@ Item {
     }
 
     TestCase {
+        id: testCase
         name: "Main"
         when: windowShown
 
@@ -126,6 +127,32 @@ Item {
             main.showSettings();
             compare(settings.visible, true);
             compare(stats.visible, false, "the statistics panel stayed up behind the settings panel");
+        }
+
+        function test_selectionBarRequiresTheConfiguredLetterCount() {
+            const main = make();
+            const bar = panel(main, "SelectionBar");
+            const originalMinimum = Controller.settings.minimumWordLength;
+            Controller.setMinimumWordLength(4);
+
+            Controller.selectionBarRequested({ x: 300, y: 300, kind: "word", text: "abc", letterCount: 3 });
+            wait(20);
+            compare(bar.visible, false);
+
+            Controller.selectionBarRequested({ x: 300, y: 300, kind: "word", text: "word", letterCount: 4 });
+            tryCompare(bar, "visible", true);
+            compare(bar.selectionText, "word");
+            if (lensQaSnapshotDir)
+                verify(Util.saveSnapshot(testCase, bar.contentItem, lensQaSnapshotDir, "selection-bar-valid"));
+
+            Controller.selectionBarRequested({ x: 300, y: 300, kind: "word", text: "abc", letterCount: 3 });
+            tryCompare(bar, "visible", false);
+
+            Controller.selectionBarRequested({ x: 300, y: 300, kind: "word", text: "words", letterCount: 5 });
+            tryCompare(bar, "visible", true);
+            compare(bar.selectionText, "words");
+            bar.visible = false;
+            Controller.setMinimumWordLength(originalMinimum);
         }
 
         /// The menu and the two panels the statistics panel drills into all go through the same

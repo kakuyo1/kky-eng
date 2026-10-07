@@ -95,13 +95,12 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
                                                               bool multipleSenses            = false);
 
 /**
- * @brief Read the model ids out of an OpenAI-compatible `/models` response.
+ * @brief Read model ids using one provider's catalog response mapping.
  *
  * The service's own answer is the only current list there is: the ids a provider supports change
- * under the app, and a name that is no longer one of them is a 400 (docs/adr/0017). The shape is
- * the one every OpenAI-compatible service returns -- `{"data": [{"id": "..."}, ...]}` -- and
- * anything else is treated as no list at all rather than as a partial one, because a truncated
- * list of models is worse than none: it hides the model the reader wanted.
+ * under the app, and a name that is no longer one of them is a 400 (docs/adr/0017). Response array
+ * and id fields come from catalog metadata, allowing native provider envelopes. Missing or
+ * malformed arrays are treated as no list rather than as a partial one.
  *
  * What comes back is the whole catalogue, not the chat models in it: embeddings, speech, image and
  * video models sit in the same answer, and this app can use exactly one kind of them. Those are
@@ -109,9 +108,10 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
  * does not, so the reader is not handed a thousand names they can never pick.
  *
  * @param body Raw HTTP response body.
+ * @param responseRules Catalog `modelList.response` mapping.
  * @return The ids the app can talk to, in the order the service gave them, or an empty list.
  */
-QStringList parseModelIds(const QByteArray& body);
+QStringList parseModelIds(QByteArray const& body, QJsonObject const& responseRules);
 
 /**
  * @brief Read the token counts out of a response envelope.
