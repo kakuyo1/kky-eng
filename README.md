@@ -1,80 +1,40 @@
 # Lens
 
-Lens 是一个 Windows 桌面英语学习工具。阅读英文时，拖选一个词、一段名称或一个句子，Lens 会在不离开当前窗口的情况下给出解释。
+**Stay with the page you are reading.** Lens is a Windows tray companion that explains English words, names, and sentences in small overlays, without opening a separate dictionary window.
 
-Lens 常驻系统托盘，没有主窗口。它把交互放在托盘菜单、选区动作条、解释气泡和几个轻量浮层里，尽量不打断阅读。
+[English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [Español](README.es.md)
 
-## 当前能力
+## Made for reading
 
-- 拖选单个词，查看英文释义、中文释义和音标。
-- 拖选命名实体，查看简短的百科式说明。
-- 拖选句子，选择翻译或解释长难句、口语和梗。
-- 在解释气泡中标记 “已会” 或 “新词”，并在词汇、统计和花费浮层中查看记录。
-- 使用 OpenAI 兼容接口，读者自行提供 API 配置。
-- 只发送当前选中的文本。应用在发送前会做本地脱敏，设置文件和 API key 保存在读者自己的 `%APPDATA%\Lens` 目录中。
+Select text for a quick explanation, mark a word as known or new, and keep reading. When text cannot be selected, capture a screen region for OCR. Optional automatic scanning is limited to the applications you allow.
 
-扫描、截图和悬停取词依赖 OCR，当前版本保留设置占位，不会触发这些路径。
+Lens sorts captured text on your PC into word, entity, or sentence requests. A word request sends the word, an entity request sends its name, and a sentence request sends the selected sentence. Lens masks URLs, email addresses, and long digit strings before sending. The selected AI provider receives the request and returns the explanation; Lens does not include a local definition dictionary.
 
-## 构建
+Use your own API key with a supported provider or a custom HTTPS endpoint. Choose the explanation language, review cached word explanations, keep known/new marks, and see your word history and model costs. A daily budget can pause requests when it is reached.
 
-项目使用 C++ 20、Qt 6、CMake、Ninja 和 MSVC。工具链与机器路径配置见 `AGENTS.md` 和 `config/README.md`。
+## Product principles
 
-先确认 `config/paths.json` 中的 Qt 路径有效，然后在 Visual Studio 的 C++ 环境中运行：
+- **Keep the reading flow.** Lens lives in the tray and puts explanations beside the text that prompted them.
+- **Send only what the request needs.** Candidate filtering and text classification happen locally; the chosen provider handles the explanation.
+- **Let readers set the boundaries.** Choose how text is captured, which apps automatic scanning may inspect, which provider to use, and how much to spend in a day.
+- **Keep learning history on the reader's PC.** Settings, API key, cached explanations, word marks, and history are stored in the Windows user profile.
 
-```bat
-scripts\build\build.bat
-```
+## UI concepts
 
-脚本首次运行时配置 `build-ninja`，之后执行增量构建。需要构建指定目标时，把 CMake 参数传给脚本：
+These images are screenshots of the HTML files in [`ui-prototypes/`](ui-prototypes/). They show design concepts, not screenshots of the running application; implementation details can differ.
 
-```bat
-scripts\build\build.bat --target lens_gtest_unit
-```
+| Explanation bubble | Selection actions |
+| --- | --- |
+| ![Lens explanation bubble concept showing a word, pronunciation, definition, and learning status](docs/readme-images/bubble-ui.png) | ![Lens selection action bar concept with translate, explain, and copy actions](docs/readme-images/selection-bar-ui.png) |
 
-运行速度更接近交付版本的构建使用单独的 RelWithDebInfo 树：
+| Settings | Word history |
+| --- | --- |
+| ![Lens settings concept showing its categories](docs/readme-images/settings-ui.png) | ![Lens word history concept with known and new word marks](docs/readme-images/words-ui.png) |
 
-```bat
-scripts\build\build-release.bat
-```
+## Languages and appearance
 
-## 运行
+The interface and generated explanations support English, Chinese, Spanish, and Japanese. The interface offers Light, Dark, Forest, and Custom themes, plus an animation switch that respects Windows accessibility settings.
 
-开发构建完成后运行 `build-ninja\src\app\lens.exe`；需要使用优化构建时运行 `build-ninja-release\src\app\lens.exe`。
+## Privacy and security
 
-首次运行会在 `%APPDATA%\Lens` 创建设置文件。API 配置由读者自行填写，应用不会把密钥写入安装目录、日志或错误消息。
-
-## 测试
-
-测试按用途拆成不需要窗口的 GoogleTest 目标和需要 Qt Quick 场景的 QTest 目标。常用目标如下：
-
-```bat
-scripts\build\build.bat --target lens_gtest_unit
-scripts\build\build.bat --target lens_gtest_perf
-scripts\build\build.bat --target lens_qtest_components
-scripts\build\build.bat --target lens_qtest_surfaces
-```
-
-构建完成后，可执行文件位于 `build-ninja\test\googletest\` 或 `build-ninja\test\qtest\`。`lens_gtest_integration` 需要真实鼠标和剪贴板，`lens_gtest_smoke` 需要 API key 并会调用真实模型，这两个目标按 `TEST.md` 的人工测试说明运行。
-
-## 安装包
-
-安装包使用 Windeployqt 和 Inno Setup 生成。先构建发布树，再运行安装器目标：
-
-```bat
-scripts\build\build-release.bat --target installer
-```
-
-产物写入 `build-ninja-release\installer\`，文件名为 `Lens-<version>-setup.exe`。安装包会带上 Qt 运行时和 `data/`，不会带读者的设置文件。当前安装配置以 `installer\lens.iss` 为准。
-
-## 项目结构
-
-- `src/core/`：词根还原、词表过滤、已知词和统计存储。
-- `src/llm/`：OpenAI 兼容客户端、协议和响应校验。
-- `src/app/`：Windows 选区捕获、托盘和 QML 浮层。
-- `data/llm/`：请求提示词与响应 schema。
-- `test/`：GoogleTest、QTest 和运行记录约定。
-- `docs/`、`PRODUCT.md`、`PHASE2.md`：设计、实现契约和 Qt Quick 说明。
-
-更多开发约定与验证命令见 [`AGENTS.md`](AGENTS.md)，测试的完整说明见 [`TEST.md`](TEST.md)。
-
-脚本目录与后续版本发布命令见 [`scripts/README.md`](scripts/README.md)。
+Your API key and learning data are stored in `%APPDATA%\Lens\settings.json`. Lens sends selected text to the provider you configure, so avoid sending confidential or sensitive material. Redaction is limited and does not identify every kind of personal information. See [SECURITY.md](SECURITY.md) for data flows, current safeguards, known limits, and how to report a security issue.
