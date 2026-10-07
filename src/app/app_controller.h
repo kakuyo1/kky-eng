@@ -134,6 +134,8 @@ public:
     QVariantList models() const;
     QVariantMap stats() const;
     QVariantList words() const;
+    /// @brief The last 365 local dates, including zero-use days, for the annual words surface.
+    QVariantList yearDays() const;
     QVariantMap cost() const;
     QString modeLabel() const;
     QString busyLabel() const;
@@ -145,6 +147,7 @@ public:
     Q_PROPERTY(QVariantList models READ models NOTIFY modelsChanged)
     Q_PROPERTY(QVariantMap stats READ stats NOTIFY statsChanged)
     Q_PROPERTY(QVariantList words READ words NOTIFY statsChanged)
+    Q_PROPERTY(QVariantList yearDays READ yearDays NOTIFY yearDaysChanged)
     Q_PROPERTY(QVariantMap cost READ cost NOTIFY statsChanged)
     Q_PROPERTY(QString modeLabel READ modeLabel NOTIFY settingsChanged)
     Q_PROPERTY(QString busyLabel READ busyLabel NOTIFY busyChanged)
@@ -161,6 +164,7 @@ signals:
     /// @brief The provider in force carries a different list of models than it did.
     void modelsChanged();
     void statsChanged();
+    void yearDaysChanged();
     void busyChanged();
     void uiLanguageChanged(QString lang);
     void dailyBudgetChanged();

@@ -197,7 +197,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="51"/>
-        <location filename="../src/app/app_controller.cpp" line="259"/>
+        <location filename="../src/app/app_controller.cpp" line="265"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -431,28 +431,28 @@
         <translation>Varias acepciones</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="32"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="34"/>
         <source>Provider</source>
         <translation>Proveedor</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="50"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="52"/>
         <source>Model</source>
         <translation>Modelo</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="115"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="84"/>
         <location filename="../src/app/qml/SettingsPopup.qml" line="52"/>
         <source>API configuration</source>
         <translation>Configuración de la API</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="117"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="86"/>
         <source>Configured</source>
         <translation>Configurada</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="118"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="87"/>
         <source>Not configured</source>
         <translation>Sin configurar</translation>
     </message>
@@ -487,37 +487,37 @@
         <translation>Guardar</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="484"/>
+        <location filename="../src/app/explanation_duty.cpp" line="519"/>
         <source>Domestic</source>
         <translation>Nacional</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="485"/>
+        <location filename="../src/app/explanation_duty.cpp" line="520"/>
         <source>International</source>
         <translation>Internacional</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="486"/>
+        <location filename="../src/app/explanation_duty.cpp" line="521"/>
         <source>Other</source>
         <translation>Otros</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="487"/>
+        <location filename="../src/app/explanation_duty.cpp" line="522"/>
         <source>Custom service</source>
         <translation>Servicio propio</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="255"/>
+        <location filename="../src/app/app_controller.cpp" line="261"/>
         <source>Checking OCR</source>
         <translation>Comprobando el OCR</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="256"/>
+        <location filename="../src/app/app_controller.cpp" line="262"/>
         <source>English OCR data is missing</source>
         <translation>Faltan los datos de OCR en inglés</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="257"/>
+        <location filename="../src/app/app_controller.cpp" line="263"/>
         <source>OCR runtime is unavailable</source>
         <translation>El entorno de OCR no está disponible</translation>
     </message>
@@ -596,34 +596,34 @@
 <context>
     <name>WordsPopup</name>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="253"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="441"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="264"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="452"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="253"/>
-        <location filename="../src/app/qml/WordsPopup.qml" line="475"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="264"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="486"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="407"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="418"/>
         <source>%1×</source>
         <translation>%1×</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="153"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="155"/>
         <source>Words</source>
         <translation>Palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="243"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="254"/>
         <source>%1 words</source>
         <translation>%1 palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="253"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="264"/>
         <source>All</source>
         <translation>Todas</translation>
     </message>
@@ -643,17 +643,17 @@
         <translation>Eliminar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="553"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="564"/>
         <source>Export words</source>
         <translation>Exportar palabras</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="556"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="567"/>
         <source>Text files (*.txt)</source>
         <translation>Archivos de texto (*.txt)</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/WordsPopup.qml" line="556"/>
+        <location filename="../src/app/qml/WordsPopup.qml" line="567"/>
         <source>All files (*)</source>
         <translation>Todos los archivos (*)</translation>
     </message>
@@ -669,65 +669,223 @@
     </message>
 </context>
 <context>
+    <name>YearWordsPopup</name>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="31"/>
+        <source>Red</source>
+        <translation>Rojo</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="31"/>
+        <source>Orange</source>
+        <translation>Naranja</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="32"/>
+        <source>Yellow</source>
+        <translation>Amarillo</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="32"/>
+        <source>Yellow green</source>
+        <translation>Amarillo verdoso</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="33"/>
+        <source>Green</source>
+        <translation>Verde</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="33"/>
+        <source>Teal</source>
+        <translation>Verde azulado</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="34"/>
+        <source>Cyan</source>
+        <translation>Cian</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="34"/>
+        <source>Blue</source>
+        <translation>Azul</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="35"/>
+        <source>Indigo</source>
+        <translation>Índigo</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="35"/>
+        <source>Violet</source>
+        <translation>Violeta</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="36"/>
+        <source>Magenta</source>
+        <translation>Magenta</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="36"/>
+        <source>Rose</source>
+        <translation>Rosa</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="133"/>
+        <source>Year in words</source>
+        <translation>Año en palabras</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="145"/>
+        <source>365 days</source>
+        <translation>365 días</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="169"/>
+        <source>%1: %2 lookups</source>
+        <translation>%1: %2 consultas</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="170"/>
+        <source>Words explained</source>
+        <translation>Palabras explicadas</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="177"/>
+        <source>%1 words</source>
+        <translation>%1 palabras</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="230"/>
+        <source>Mon</source>
+        <translation>Lun</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="230"/>
+        <source>Wed</source>
+        <translation>Mié</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="230"/>
+        <source>Fri</source>
+        <translation>Vie</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="262"/>
+        <source>%1, %2 words</source>
+        <translation>%1, %2 palabras</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="279"/>
+        <source>Less</source>
+        <translation>Menos</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="292"/>
+        <source>No words, choose color</source>
+        <translation>Sin palabras, elegir color</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="292"/>
+        <source>Level %1, choose color</source>
+        <translation>Nivel %1, elegir color</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="296"/>
+        <source>More</source>
+        <translation>Más</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="339"/>
+        <source>Cell colors</source>
+        <translation>Colores de las celdas</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="346"/>
+        <source>%1 hue · 4 shades</source>
+        <translation>Tono %1 · 4 intensidades</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="448"/>
+        <source>Four activity levels</source>
+        <translation>Cuatro niveles de actividad</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="475"/>
+        <source>Light</source>
+        <translation>Claro</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="475"/>
+        <source>Dark</source>
+        <translation>Oscuro</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/YearWordsPopup.qml" line="486"/>
+        <source>Select a hue to replace the four active levels.</source>
+        <translation>Elige un tono para reemplazar los cuatro niveles activos.</translation>
+    </message>
+</context>
+<context>
     <name>lens::app::AppController</name>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="248"/>
+        <location filename="../src/app/app_controller.cpp" line="254"/>
         <source>Screenshot capture is off.</source>
         <translation>La captura de pantalla está desactivada.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="249"/>
-        <location filename="../src/app/app_controller.cpp" line="397"/>
+        <location filename="../src/app/app_controller.cpp" line="255"/>
+        <location filename="../src/app/app_controller.cpp" line="409"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>El presupuesto de hoy se ha agotado.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="250"/>
+        <location filename="../src/app/app_controller.cpp" line="256"/>
         <source>A recognition is already running.</source>
         <translation>Ya hay un reconocimiento en curso.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="252"/>
+        <location filename="../src/app/app_controller.cpp" line="258"/>
         <source>That region cannot be captured.</source>
         <translation>Esa región no se puede capturar.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="253"/>
+        <location filename="../src/app/app_controller.cpp" line="259"/>
         <source>No text was found in that region.</source>
         <translation>No se encontró texto en esa región.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="254"/>
+        <location filename="../src/app/app_controller.cpp" line="260"/>
         <source>That region could not be read.</source>
         <translation>No se pudo leer esa región.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="470"/>
+        <location filename="../src/app/app_controller.cpp" line="487"/>
         <source>Today %1</source>
         <translation>Hoy %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="472"/>
+        <location filename="../src/app/app_controller.cpp" line="489"/>
         <source>Yesterday %1</source>
         <translation>Ayer %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="479"/>
+        <location filename="../src/app/app_controller.cpp" line="496"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="481"/>
+        <location filename="../src/app/app_controller.cpp" line="498"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="565"/>
+        <location filename="../src/app/app_controller.cpp" line="603"/>
         <source>Auto</source>
         <translation>Automático</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="565"/>
+        <location filename="../src/app/app_controller.cpp" line="603"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>
@@ -775,12 +933,12 @@
 <context>
     <name>lens::app::ExplanationDuty</name>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="478"/>
+        <location filename="../src/app/explanation_duty.cpp" line="513"/>
         <source>No listed price; recorded cost is zero.</source>
         <translation>Sin precio en la lista; el gasto registrado es cero.</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="479"/>
+        <location filename="../src/app/explanation_duty.cpp" line="514"/>
         <source>Input %1 / Output %2 %3 per %4 tokens</source>
         <translation>Entrada %1 / Salida %2 %3 por %4 tokens</translation>
     </message>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 单词年度记录</title>
+<style>
+:root{
+  --bg:#e9ebef; --panel:#fff; --panel2:#f1f3f7; --line:#d6dae1; --line2:#e6e9ee;
+  --text:#1a1a1f; --muted:#66666f; --faint:#8a8a95; --ok:#2f9e6e;
+  --ink:#1a1a1f; --on:#fff; --r-lg:18px; --hue:145; --palette-hue:145;
+  --cell0:#ebedf0;
+  --cell1:hsl(var(--hue) 58% 84%); --cell2:hsl(var(--hue) 60% 64%);
+  --cell3:hsl(var(--hue) 64% 46%); --cell4:hsl(var(--hue) 68% 30%);
+  --sh2:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,sans-serif;
+  --mono:"Cascadia Code","Consolas",ui-monospace,monospace;
+}
+html[data-theme=dark]{
+  --bg:#0b0e13; --panel:#171c25; --panel2:#212936; --line:#36404e; --line2:#242b37;
+  --text:#e9edf3; --muted:#a8b3c2; --faint:#8a95a6; --ok:#4dc492;
+  --ink:#eef3fa; --on:#0c1016; --cell0:#252b33;
+  --cell1:hsl(var(--hue) 58% 29%); --cell2:hsl(var(--hue) 60% 40%);
+  --cell3:hsl(var(--hue) 64% 51%); --cell4:hsl(var(--hue) 68% 63%);
+  --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh;padding:36px 14px}
+button{font:inherit;color:inherit}
+.panel{position:relative;width:380px;max-width:100%;margin:0 auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);padding:13px 14px 12px;overflow:visible}
+.header{display:flex;align-items:center;min-height:22px}
+.title{font-size:13px;font-weight:700}
+.actions{display:flex;align-items:center;gap:3px;margin-left:auto}
+.year{border:0;background:transparent;padding:3px 5px;border-radius:6px;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer}
+.year:hover{background:var(--panel2);color:var(--text)}
+.icon{display:grid;place-items:center;width:22px;height:22px;border:0;border-radius:6px;background:transparent;color:var(--faint);cursor:pointer}
+.icon:hover{background:var(--panel2);color:var(--text)}
+.icon svg{width:14px;height:14px}
+.summary{display:flex;align-items:baseline;gap:7px;margin-top:12px}
+.summary strong{font-family:var(--mono);font-size:20px;line-height:1;font-weight:700}
+.summary span{font-size:11px;color:var(--muted)}
+.summary em{margin-left:auto;color:var(--faint);font-size:11px;font-style:normal}
+.graph-wrap{margin-top:12px}
+.month-labels{display:grid;grid-template-columns:18px repeat(53,minmax(0,1fr));height:12px;align-items:start;color:var(--faint);font-family:var(--mono);font-size:7px;line-height:1}
+.month-labels span{white-space:nowrap}
+.graph-row{display:grid;grid-template-columns:15px minmax(0,1fr);gap:4px}
+.week-labels{display:grid;grid-template-rows:repeat(7,1fr);height:63px;color:var(--faint);font-size:7px;line-height:1;text-align:left}
+.week-labels span{display:flex;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(53,minmax(0,1fr));grid-template-rows:repeat(7,minmax(0,1fr));grid-auto-flow:column;gap:1px;min-width:0}
+.day{display:block;width:100%;aspect-ratio:1;border:0;border-radius:1px;background:var(--cell0);cursor:pointer;min-width:0}
+.day[data-level="1"]{background:var(--cell1)}
+.day[data-level="2"]{background:var(--cell2)}
+.day[data-level="3"]{background:var(--cell3)}
+.day[data-level="4"]{background:var(--cell4)}
+.day[aria-pressed=true]{outline:1px solid var(--text);outline-offset:1px}
+.legend{display:flex;align-items:center;justify-content:flex-end;gap:3px;margin-top:7px;color:var(--faint);font-size:8px}
+.swatch{display:block;width:8px;height:8px;border:0;border-radius:1px;background:var(--cell0);cursor:pointer;padding:0}
+.swatch[data-level="1"]{background:var(--cell1)}
+.swatch[data-level="2"]{background:var(--cell2)}
+.swatch[data-level="3"]{background:var(--cell3)}
+.swatch[data-level="4"]{background:var(--cell4)}
+.swatch:hover,.swatch[aria-pressed=true]{outline:1px solid var(--text);outline-offset:1px}
+.theme{position:fixed;top:12px;right:14px;padding:5px 10px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--muted);font-size:11px;cursor:pointer}
+.theme:hover{color:var(--text)}
+.palette{margin-top:11px;padding-top:10px;border-top:1px solid var(--line2);opacity:0;transform:translateY(-5px);transition:opacity .18s ease,transform .18s ease}
+.palette.open{opacity:1;transform:none}
+.palette-head{display:flex;align-items:center;font-size:11px;font-weight:700}
+.palette-head small{margin-left:6px;color:var(--faint);font-size:9px;font-weight:400}
+.palette-close{margin-left:auto;width:21px;height:21px;border:0;border-radius:6px;background:transparent;color:var(--faint);cursor:pointer}
+.palette-close:hover{background:var(--panel2);color:var(--text)}
+.palette-close svg{width:13px;height:13px;vertical-align:-2px}
+.palette-body{display:flex;align-items:center;gap:13px;margin-top:9px}
+.hue-wheel{position:relative;width:124px;height:124px;flex:none;animation:hue-wheel-in .28s cubic-bezier(.2,.8,.2,1)}
+.hue-wheel::before{content:"";position:absolute;inset:12px;border-radius:50%;background:conic-gradient(#ef4444 0deg 30deg,#f97316 30deg 60deg,#eab308 60deg 90deg,#84cc16 90deg 120deg,#22c55e 120deg 150deg,#14b8a6 150deg 180deg,#06b6d4 180deg 210deg,#3b82f6 210deg 240deg,#6366f1 240deg 270deg,#8b5cf6 270deg 300deg,#d946ef 300deg 330deg,#ec4899 330deg 360deg);box-shadow:inset 0 0 0 1px rgba(255,255,255,.24)}
+.hue-wheel::after{content:"";position:absolute;inset:34px;border:1px solid var(--line);border-radius:50%;background:var(--panel)}
+.hue-core{position:absolute;z-index:1;inset:43px;display:grid;place-items:center;border-radius:50%;background:var(--panel2);color:var(--muted);font-size:9px;pointer-events:none}
+.hue{position:absolute;z-index:2;left:50%;top:50%;width:21px;height:21px;border:2px solid var(--panel);border-radius:50%;background:hsl(var(--hue-value) 70% 52%);box-shadow:0 1px 3px rgba(20,20,26,.24);cursor:pointer;transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-51px) rotate(calc(var(--angle) * -1));transition:transform .15s ease,box-shadow .15s ease}
+.hue:hover,.hue[aria-pressed=true]{box-shadow:0 0 0 2px var(--text),0 2px 4px rgba(20,20,26,.26);transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-51px) rotate(calc(var(--angle) * -1)) scale(1.12)}
+.shade-panel{min-width:0;flex:1}
+.shade-title{font-size:10px;color:var(--muted);margin-bottom:7px}
+.shades{display:flex;gap:5px}
+.shade{display:flex;flex:1;flex-direction:column;gap:4px;align-items:center;color:var(--faint);font-size:8px}
+.shade i{display:block;width:100%;height:18px;border-radius:3px;background:hsl(var(--palette-hue) 58% 84%)}
+.shade:nth-child(2) i{background:hsl(var(--palette-hue) 60% 64%)}
+.shade:nth-child(3) i{background:hsl(var(--palette-hue) 64% 46%)}
+.shade:nth-child(4) i{background:hsl(var(--palette-hue) 68% 30%)}
+html[data-theme=dark] .shade:nth-child(1) i{background:hsl(var(--palette-hue) 58% 29%)}
+html[data-theme=dark] .shade:nth-child(2) i{background:hsl(var(--palette-hue) 60% 40%)}
+html[data-theme=dark] .shade:nth-child(3) i{background:hsl(var(--palette-hue) 64% 51%)}
+html[data-theme=dark] .shade:nth-child(4) i{background:hsl(var(--palette-hue) 68% 63%)}
+.palette-note{margin-top:9px;color:var(--faint);font-size:9px;line-height:1.35}
+.icon:focus-visible,.day:focus-visible,.year:focus-visible,.swatch:focus-visible,.hue:focus-visible,.palette-close:focus-visible,.theme:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+@keyframes hue-wheel-in{from{opacity:0;transform:scale(.72) rotate(-22deg)}to{opacity:1;transform:none}}
+@media(max-width:410px){body{padding-inline:10px}.panel{padding-inline:13px}.palette-body{gap:9px}.hue-wheel{width:116px;height:116px}.hue{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-47px) rotate(calc(var(--angle) * -1))}.hue:hover,.hue[aria-pressed=true]{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-47px) rotate(calc(var(--angle) * -1)) scale(1.12)}}
+@media(prefers-reduced-motion:reduce){.palette{transition:none}.hue-wheel{animation:none}.hue{transition:none}}
+</style>
+</head>
+<body>
+<button class="theme" id="theme" type="button">黑夜</button>
+<section class="panel" id="panel" aria-label="单词年度记录">
+  <header class="header">
+    <button class="icon" type="button" aria-label="返回词汇" title="返回词汇"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg></button>
+    <span class="title">年度记录</span>
+    <div class="actions"><button class="year" type="button" aria-label="查看 2025 年">2025</button><button class="icon" type="button" aria-label="关闭"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  </header>
+  <div class="summary"><strong>2025</strong><span id="dayDetail">年度弹词</span><em id="total">0 词</em></div>
+  <div class="graph-wrap">
+    <div class="month-labels" aria-hidden="true" id="monthLabels"></div>
+    <div class="graph-row"><div class="week-labels" aria-hidden="true"><span></span><span>一</span><span></span><span>三</span><span></span><span>五</span><span></span></div><div class="grid" id="grid"></div></div>
+    <div class="legend" aria-label="颜色图例"><span>少</span><button class="swatch" type="button" data-level="0" aria-label="无记录，打开配色选择"></button><button class="swatch" type="button" data-level="1" aria-label="第 1 档，打开配色选择"></button><button class="swatch" type="button" data-level="2" aria-label="第 2 档，打开配色选择"></button><button class="swatch" type="button" data-level="3" aria-label="第 3 档，打开配色选择"></button><button class="swatch" type="button" data-level="4" aria-label="第 4 档，打开配色选择"></button><span>多</span></div>
+  </div>
+  <section class="palette" id="palette" hidden aria-label="选择年度记录配色">
+    <header class="palette-head"><span>格子配色</span><small id="paletteHint">选择一个色相</small><button class="palette-close" id="paletteClose" type="button" aria-label="关闭配色选择"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
+    <div class="palette-body">
+      <div class="hue-wheel" id="hueWheel" aria-label="12 色相环"><span class="hue-core" id="hueCore">绿</span></div>
+      <div class="shade-panel"><div class="shade-title" id="shadeTitle">绿 · 4 档深浅</div><div class="shades"><span class="shade"><i></i><span>浅</span></span><span class="shade"><i></i><span>1</span></span><span class="shade"><i></i><span>2</span></span><span class="shade"><i></i><span>深</span></span></div><p class="palette-note">点击色相后，4 档活跃色会一起替换。</p></div>
+    </div>
+  </section>
+</section>
+<script>
+const year=2025;
+const months=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+const hues=[['红',0],['橙',30],['黄',60],['黄绿',90],['绿',120],['青绿',150],['青',180],['蓝',210],['靛',240],['紫',270],['洋红',300],['玫红',330]];
+const days=[];const counts=new Map();const key=date=>`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+for(let month=0;month<12;month++)for(let day=1;day<=new Date(year,month+1,0).getDate();day++){const date=new Date(year,month,day);const seed=(month*17+day*9+Math.floor(day/5))%17;const count=seed<8?0:seed<11?1:seed<14?2:seed<16?4:7;days.push(date);counts.set(key(date),count)}
+document.getElementById('total').textContent=`${[...counts.values()].reduce((sum,value)=>sum+value,0)} 词`;
+const level=count=>count===0?0:count===1?1:count<=3?2:count<=5?3:4;const mondayOffset=date=>(date.getDay()+6)%7;const offset=mondayOffset(new Date(year,0,1));const weekCount=Math.ceil((offset+days.length)/7);
+const monthLabels=document.getElementById('monthLabels');monthLabels.style.gridTemplateColumns=`18px repeat(${weekCount},minmax(0,1fr))`;
+months.forEach((month,index)=>{const label=document.createElement('span');label.textContent=month;const monthStart=days.findIndex(date=>date.getMonth()===index);label.style.gridColumn=`${Math.floor((offset+monthStart)/7)+2} / span 4`;monthLabels.append(label)});
+const grid=document.getElementById('grid');grid.style.gridTemplateColumns=`repeat(${weekCount},minmax(0,1fr))`;
+function choose(date,count){document.querySelectorAll('.day').forEach(day=>day.setAttribute('aria-pressed',String(day.dataset.date===key(date))));document.getElementById('dayDetail').textContent=`${key(date)}：查阅 ${count} 次`}
+for(let week=0;week<weekCount;week++)for(let weekday=0;weekday<7;weekday++){const index=week*7+weekday-offset;const date=index>=0&&index<days.length?days[index]:null;if(!date){const blank=document.createElement('i');blank.className='day';blank.style.visibility='hidden';grid.append(blank);continue}const count=counts.get(key(date));const button=document.createElement('button');button.type='button';button.className='day';button.dataset.date=key(date);button.dataset.level=level(count);button.setAttribute('aria-pressed','false');button.setAttribute('aria-label',`${key(date)}，${count} 个词`);button.title=`${key(date)} · ${count} 个词`;button.addEventListener('click',()=>choose(date,count));grid.append(button)}
+choose(new Date(year,9,7),counts.get(key(new Date(year,9,7))));
+const root=document.documentElement;const palette=document.getElementById('palette');const panel=document.getElementById('panel');const hueWheel=document.getElementById('hueWheel');const hueCore=document.getElementById('hueCore');const paletteHint=document.getElementById('paletteHint');const shadeTitle=document.getElementById('shadeTitle');let selectedHue=4;
+hues.forEach(([name,hue],index)=>{const button=document.createElement('button');button.type='button';button.className='hue';button.style.setProperty('--hue-value',hue);button.style.setProperty('--angle',`${index*30}deg`);button.dataset.index=index;button.setAttribute('aria-label',`${name}色相`);button.setAttribute('aria-pressed',String(index===selectedHue));button.addEventListener('click',()=>applyHue(index));hueWheel.append(button)});
+function applyHue(index){selectedHue=index;const [name,hue]=hues[index];root.style.setProperty('--hue',hue);root.style.setProperty('--palette-hue',hue);hueCore.textContent=name;paletteHint.textContent=`${name}色相 · 4 档深浅`;shadeTitle.textContent=`${name} · 4 档深浅`;document.querySelectorAll('.hue').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.index)===index)))}
+function openPalette(){palette.hidden=false;panel.classList.add('palette-open');requestAnimationFrame(()=>palette.classList.add('open'));document.querySelector('.swatch[aria-pressed=true]')?.focus()}
+function closePalette(){palette.classList.remove('open');panel.classList.remove('palette-open');setTimeout(()=>{if(!palette.classList.contains('open'))palette.hidden=true},180)}
+document.querySelectorAll('.swatch').forEach(swatch=>swatch.addEventListener('click',()=>{document.querySelectorAll('.swatch').forEach(item=>item.setAttribute('aria-pressed',String(item===swatch)));openPalette()}));
+document.getElementById('paletteClose').addEventListener('click',closePalette);document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!palette.hidden)closePalette()});
+applyHue(selectedHue);
+const theme=document.getElementById('theme');function setTheme(value){root.dataset.theme=value;theme.textContent=value==='dark'?'白天':'黑夜'}setTheme(new URLSearchParams(location.search).get('theme')==='dark'?'dark':'light');theme.addEventListener('click',()=>setTheme(root.dataset.theme==='dark'?'light':'dark'));
+</script>
+</body>
+</html>

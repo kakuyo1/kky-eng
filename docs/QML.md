@@ -5,7 +5,7 @@
 
 ## 1 模块与目录
 
-`src/app/qml/` 根下是十个 `Window`（表面）加一个 `Mask.qml`——它不是窗口而是窗口的宿主，每块屏幕一个
+`src/app/qml/` 根下是十一个 `Window`（表面）加一个 `Mask.qml`——它不是窗口而是窗口的宿主，每块屏幕一个
 （见 §2 与 `UI.md` 4.11）；`src/app/qml/components/` 下是十二个可复用件
 （`Icon` / `ShadowCard` / `Tokens` / `MixedText` / `Segment` / `StatRow` / `MenuRow` /
 `DropdownField` / `Switch` / `SwitchRow` / `PathField` / `HotkeyField`），`src/app/qml/theme/` 下是三套主题

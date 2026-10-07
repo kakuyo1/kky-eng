@@ -9,6 +9,7 @@
 | `tray-menu.html` | 托盘菜单，含语言子菜单 |
 | `stats.html` | 统计弹窗 |
 | `words.html` | 词汇弹窗 |
+| `year-in-words.html` | 单词年度记录弹窗 |
 | `cost.html` | 花费弹窗 |
 | `settings.html` | 设置浮层 |
 | `bubble.html` | 解释气泡 |

@@ -135,6 +135,7 @@ Item {
             const stats = panel(main, "StatsPopup");
             const cost = panel(main, "CostPopup");
             const words = panel(main, "WordsPopup");
+            const yearWords = panel(main, "YearWordsPopup");
             const menu = panel(main, "TrayMenu");
 
             main.showStats();
@@ -146,6 +147,10 @@ Item {
             main.showWords();
             compare(words.visible, true, "showWords() did not put the words panel up");
             compare(cost.visible, false);
+
+            main.showYearWords();
+            compare(yearWords.visible, true, "showYearWords() did not put the annual panel up");
+            compare(words.visible, false);
 
             main.showTrayMenu();
             compare(menu.visible, true, "showTrayMenu() did not put the menu up");

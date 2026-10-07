@@ -70,11 +70,15 @@ AppController::AppController(core::KnownStore& store,
         refreshCaptureGates();
         emit busyChanged();
     });
-    connect(&explanation_, &ExplanationDuty::statsChanged, this, &AppController::statsChanged);
+    connect(&explanation_, &ExplanationDuty::statsChanged, this, [this] {
+        emit statsChanged();
+        emit yearDaysChanged();
+    });
     connect(&cost_, &CostDuty::stateChanged, this, [this] {
         refreshCaptureGates();
         explanation_.resumeQueued();
         emit statsChanged();
+        emit yearDaysChanged();
         emit settingsChanged();
         emit dailyBudgetChanged();
     });
@@ -502,6 +506,26 @@ QVariantList AppController::words() const
     return out;
 }
 
+QVariantList AppController::yearDays() const
+{
+    const QDate today = QDate::currentDate();
+    const auto& daily = storage_.statsStore().daily();
+    QVariantList out;
+    out.reserve(365);
+
+    for (int offset = 364; offset >= 0; --offset) {
+        const QDate date             = today.addDays(-offset);
+        const std::string key        = date.toString(QStringLiteral("yyyy-MM-dd")).toStdString();
+        const auto day               = daily.find(key);
+        const core::DailyUsage usage = day == daily.end() ? core::DailyUsage{} : day->second;
+        out.append(QVariantMap{{"date", QString::fromStdString(key)},
+                               {"pops", usage.pops},
+                               {"learned", usage.learned},
+                               {"fresh", usage.fresh}});
+    }
+    return out;
+}
+
 QString AppController::exportWords(QString scope)
 {
     core::ExportScope which;
@@ -563,6 +587,7 @@ bool AppController::removeWord(QString lemma)
     const bool removed = storage_.removeWord(value);
     if (removed) {
         emit statsChanged();
+        emit yearDaysChanged();
         emit bubbleChanged();
     }
     return removed;

@@ -216,7 +216,7 @@ Window {
      * Take down every panel but the one being opened.
      */
     function hidePanels(except) {
-        const panels = [trayMenu, settingsPopup, statsPopup, wordsPopup, costPopup];
+        const panels = [trayMenu, settingsPopup, statsPopup, wordsPopup, yearWordsPopup, costPopup];
         for (const panel of panels)
             if (panel !== except)
                 panel.visible = false;
@@ -240,6 +240,11 @@ Window {
     function showWords() {
         root.hidePanels(wordsPopup);
         root.placePanel(wordsPopup, root.trayAnchor());
+    }
+
+    function showYearWords() {
+        root.hidePanels(yearWordsPopup);
+        root.placePanel(yearWordsPopup, root.trayAnchor());
     }
 
     function showTrayMenu() {
@@ -320,7 +325,7 @@ Window {
             panel.closeChild();
         }
 
-        const surfaces = [bar, settingsPopup, statsPopup, wordsPopup, costPopup, trayMenu];
+        const surfaces = [bar, settingsPopup, statsPopup, wordsPopup, yearWordsPopup, costPopup, trayMenu];
         for (const surface of surfaces) {
             if (!surface.visible)
                 continue;
@@ -372,7 +377,14 @@ Window {
 
     WordsPopup {
         id: wordsPopup
+        onYearRequested: root.showYearWords()
         onBackRequested: root.showStats()
+    }
+
+    YearWordsPopup {
+        id: yearWordsPopup
+        onBackRequested: root.showWords()
+        onPaletteOpenChanged: if (visible) root.placePanel(yearWordsPopup, root.trayAnchor())
     }
 
     TrayMenu {

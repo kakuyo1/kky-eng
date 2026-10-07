@@ -145,9 +145,10 @@ qt_add_qml_module(lens_app
     qml/SettingsExtensionsPage.qml
     qml/SettingsClipboardPage.qml
     qml/SettingsConnectionPage.qml
-    qml/StatsPopup.qml
-    qml/WordsPopup.qml
-    qml/RemovalQuestion.qml
+     qml/StatsPopup.qml
+     qml/WordsPopup.qml
+     qml/YearWordsPopup.qml
+     qml/RemovalQuestion.qml
     qml/CostPopup.qml
     qml/components/Tokens.qml
     qml/theme/Light.qml

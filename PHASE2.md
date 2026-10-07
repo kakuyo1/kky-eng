@@ -24,7 +24,7 @@
 | A 取词 | `feature/phase2-capture` | §3.1、§3.2 | 新 `src/capture/**`、`mouse_selection_hook.*`、取词设置 section 与 duty class | F |
 | B 解释 | `feature/phase2-explanation` | §4.1、§4.2、§4.3 | `data/llm/**`、`llm_*.{h,cpp}`、`known_store` 缓存、`Bubble.qml`、阅读与模型设置 section | F |
 | C 成本 | `feature/phase2-cost` | §4.4 | `stats_store.*`、`tray.*`、预算设置 section 与 duty class | F |
-| D 存储 | `feature/phase2-storage` | §5.2 | `WordsPopup.qml`、`known_store` / `stats_store` 的删除 API | F、B |
+| D 存储 | `feature/phase2-storage` | §5.2、§5.3 | `WordsPopup.qml`、年度记录表面、`known_store` / `stats_store` 的删除 API | F、B |
 | E 界面 | `feature/phase2-interface` | §6.1、§6.2 | `Main.qml` 定位、`theme/**`、`Tokens.qml`、通用设置 section | F |
 | G 安装 | `feature/phase2-installer` | §8.1 | `installer/**` | 无 |
 
@@ -184,6 +184,12 @@ F 不实现功能，只交付可并行基线：
 - **目标**：读者可以移除词汇列表里的词（`TODO.md` 的 Pending Ideas “词表增加移除功能”）。
 - **要点**：词汇弹窗（`UI.md` §4.8）每行加删除入口；确认后从 known-set、缓存与历史中移除该词，并同步扣除对应历史日期的弹词 / 已会 / 新词计数；这是破坏性动作，当前通过确认对话框保护，不提供撤销。
 - **验收**：删除后该词不再判为已知、缓存不再命中；`lens_qtest_surfaces` 与离线用例覆盖。
+
+### 5.3 单词年度记录（阶段 D）
+
+- **目标**：从词汇弹窗进入 GitHub 风格的年度记录，查看最近 365 个本地日期的弹词密度。
+- **要点**：年度表只读 `StatsStore.daily()`，包含零记录日期；控制器向 QML 暴露日期、弹词数量与独立通知信号。表面替换词汇弹窗，不与其叠加。
+- **验收**：空年度、只有一天有记录、闰年与最高密度日期均能正确绘制；点击日期格后摘要行显示当天日期与查阅数量；QML 可通过返回箭头回到词汇弹窗；数据不受 `history` 的 2000 条上限影响。
 
 ## 6 界面
 

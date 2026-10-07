@@ -48,6 +48,19 @@ Item {
             });
         }
 
+        function test_theYearProjectionHas365OrderedZeroFilledDays() {
+            const days = Controller.yearDays;
+            compare(days.length, 365);
+            compare(days[0].date.length, 10);
+            compare(days[364].date.length, 10);
+            verify(days[0].date < days[364].date);
+            verify(days.every(function (day) {
+                return typeof day.date === "string" && typeof day.pops === "number"
+                    && typeof day.learned === "number" && typeof day.fresh === "number";
+            }));
+            verify(days.some(function (day) { return day.pops === 0; }));
+        }
+
         /// An action arrives from the bar the reader is looking at; with no selection behind it
         /// there is nothing to act on, and answering would paint a card about nothing.
         function test_anActionWithNoSelectionPendingIsIgnored() {

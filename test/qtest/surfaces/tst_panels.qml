@@ -33,10 +33,16 @@ Item {
         WordsPopup {}
     }
 
+    Component {
+        id: yearWordsComponent
+        YearWordsPopup {}
+    }
+
     TestCase {
         id: testCase
         name: "Panels"
         when: windowShown
+        property int titleRequests: 0
 
         function make(component) {
             const panel = createTemporaryObject(component, root);
@@ -124,6 +130,100 @@ Item {
             verify(words.length > 1, "the fixture needs more than one word for this to mean anything");
 
             compare(wordsShown(popup).sort(), words.slice().sort());
+        }
+
+        function test_theWordsTitleRequestsTheYearPanel() {
+            const popup = make(wordsComponent);
+            titleRequests = 0;
+            popup.yearRequested.connect(function () { titleRequests += 1; });
+            const title = Util.textWith(Util.textsUnder(popup), [qsTr("Words")]);
+            verify(title, "the Words title is not drawn");
+
+            mouseClick(title, title.width / 2, title.height / 2);
+            tryCompare(testCase, "titleRequests", 1);
+        }
+
+        function test_theYearWordsPanelProjectsTheControllerDaysAndPalette() {
+            const popup = make(yearWordsComponent);
+            popup.visible = true;
+            wait(50);
+
+            compare(popup.dataCellCount, Controller.yearDays.length);
+            compare(popup.dataCellCount, 365);
+            compare(popup.gridCellCount, 371);
+            verify(Controller.yearDays.some(function (day) { return day.pops === 0; }));
+            const compactHeight = popup.height;
+
+            const monthLabels = Util.findAll(popup, function (item) {
+                return item.objectName === "yearMonthLabel";
+            }).sort(function (left, right) {
+                return left.x - right.x;
+            });
+            for (let i = 1; i < monthLabels.length; ++i) {
+                verify(monthLabels[i - 1].x + monthLabels[i - 1].width <= monthLabels[i].x);
+            }
+
+            const selectedDay = Controller.yearDays.find(function (day) { return day.pops > 0; });
+            const selectedCell = Util.findAll(popup, function (item) {
+                return item.day && item.day.date === selectedDay.date;
+            })[0];
+            verify(selectedCell, "the fixture has no cell for a day with lookups");
+            mouseClick(selectedCell, selectedCell.width / 2, selectedCell.height / 2);
+            compare(popup.selectedDate, selectedDay.date);
+            const selectedDayText = qsTr("%1: %2 lookups").arg(selectedDay.date).arg(selectedDay.pops);
+            verify(Util.textWith(Util.textsUnder(popup), [selectedDayText]),
+                   "the selected day's lookup count is not shown as text");
+
+            popup.openPalette(3);
+            tryCompare(popup, "paletteOpen", true);
+            tryCompare(popup, "paletteReady", true);
+            compare(popup.selectedLevel, 3);
+
+            const wheel = Util.findAll(popup, function (item) { return item.objectName === "yearHueWheel"; })[0];
+            const shades = Util.findAll(popup, function (item) { return item.objectName === "yearShadeColumn"; })[0];
+            const title = Util.findAll(popup, function (item) { return item.objectName === "yearPaletteTitle"; })[0];
+            const hueName = Util.findAll(popup, function (item) { return item.objectName === "yearPaletteHueName"; })[0];
+            const close = Util.findAll(popup, function (item) { return item.objectName === "yearPaletteClose"; })[0];
+            const header = Util.findAll(popup, function (item) { return item.objectName === "yearPaletteHeader"; })[0];
+            verify(wheel && shades && title && hueName && close && header);
+            verify(wheel.x + wheel.width <= shades.x);
+            verify(title.x + title.width < hueName.x);
+            verify(hueName.mapToItem(header, hueName.width, 0).x <= close.x);
+
+            const green = popup.cellColor(1);
+            popup.selectHue(7);
+            compare(popup.hueIndex, 7);
+            verify(!Qt.colorEqual(green, popup.cellColor(1)));
+
+            popup.closePalette();
+            compare(popup.paletteOpen, false);
+
+            popup.openPalette(3);
+            tryCompare(popup, "paletteReady", true);
+            tryVerify(function () { return popup.height > compactHeight; });
+            popup.closePalette();
+            tryCompare(popup, "paletteOpen", false);
+            tryCompare(popup, "height", compactHeight);
+
+            if (lensQaSnapshotDir) {
+                const wasTheme = Tokens.theme;
+                popup.visible = true;
+                wait(Tokens.motion.pop + 80);
+                verify(Util.saveSnapshot(testCase, popup.contentItem, lensQaSnapshotDir, "year-words-light"));
+                popup.openPalette(2);
+                tryCompare(popup, "paletteReady", true);
+                wait(Tokens.motion.pop + 80);
+                verify(Util.saveSnapshot(testCase, popup.contentItem, lensQaSnapshotDir, "year-words-palette"));
+                Tokens.theme = "dark";
+                wait(Tokens.motion.pop + 80);
+                verify(Util.saveSnapshot(testCase, popup.contentItem, lensQaSnapshotDir, "year-words-dark"));
+                popup.closePalette();
+                tryCompare(popup, "height", compactHeight);
+                wait(Tokens.motion.pop + 80);
+                verify(Util.saveSnapshot(testCase, popup.contentItem, lensQaSnapshotDir, "year-words-closed"));
+                Tokens.theme = wasTheme;
+                popup.visible = false;
+            }
         }
 
         /// The card is sized to its widest row, so the columns beside the word have to fit under

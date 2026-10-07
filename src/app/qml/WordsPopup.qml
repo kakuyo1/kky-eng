@@ -123,6 +123,8 @@ Window {
 
     /// The reader asked for the panel this one was opened from.
     signal backRequested()
+    /// The title is the entry point to the annual word record.
+    signal yearRequested()
 
     ShadowCard {
         anchors.fill: parent
@@ -154,6 +156,15 @@ Window {
                     color: Tokens.text
                     font.pixelSize: 14
                     font.weight: Font.Bold
+                    font.underline: titleHover.hovered
+
+                    HoverHandler {
+                        id: titleHover
+                        cursorShape: Qt.PointingHandCursor
+                    }
+                    TapHandler {
+                        onTapped: words.yearRequested()
+                    }
                 }
 
                 // The title row is the handle rather than the card, because the card holds the
