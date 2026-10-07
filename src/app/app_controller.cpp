@@ -173,11 +173,6 @@ void AppController::setMinimumWordLength(int length)
     capture_.setMinimumWordLength(length);
 }
 
-void AppController::setDragSensitivity(QString sensitivity)
-{
-    capture_.setDragSensitivity(std::move(sensitivity));
-}
-
 bool AppController::setScanWhitelist(QString processes)
 {
     return capture_.setScanWhitelist(std::move(processes));
@@ -332,16 +327,6 @@ void AppController::setClipboardPolicy(QString policy)
     emit settingsChanged();
 }
 
-void AppController::setPopupFrequency(QString frequency)
-{
-    if (frequency != QLatin1String("standard") && frequency != QLatin1String("less")) {
-        LENS_WARN("unknown popup frequency '{}'; leaving the setting alone", frequency.toStdString());
-        return;
-    }
-    storage_.writeDocument("popupFrequency", frequency);
-    emit settingsChanged();
-}
-
 void AppController::setProvider(QString provider)
 {
     // No emit here: the duty announces the change itself, and it is the one that also hears the
@@ -439,7 +424,6 @@ QVariantMap AppController::settings() const
                        {"hasApiKey", !storage_.documentString("API-KEY", QString()).isEmpty()},
                        {"selectionCapture", storage_.documentString("selectionCapture", QStringLiteral("true")) == QLatin1String("true")},
                        {"clipboardPolicy", storage_.documentString("clipboardPolicy", QStringLiteral("topmost"))},
-                       {"popupFrequency", storage_.documentString("popupFrequency", QStringLiteral("standard"))},
                        {"ocrHotkey", hotkey_.keys().toString(QKeySequence::PortableText)},
                        {"ocrHotkeyConflicted", hotkey_.conflicted()},
                        {"provider", provider},

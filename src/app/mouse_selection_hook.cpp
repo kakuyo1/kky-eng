@@ -6,7 +6,6 @@
 #include "mouse_selection_hook.h"
 
 #include <cstdlib>
-#include <atomic>
 #include <cstdint>
 #include <condition_variable>
 #include <functional>
@@ -24,13 +23,14 @@
 namespace lens::app {
 namespace {
 
+constexpr int kDragSlopPx = 4;
+
 /**
  * The gesture bookkeeping the callback accumulates, and the system thresholds it judges
  * against. File scope rather than members, because LowLevelMouseProc is a free function:
  * Windows hands it no user data, so it has nothing to reach an instance through.
  */
 struct GestureTracker {
-    std::atomic<int> dragSlopPx{4};
     int downX          = 0;
     int downY          = 0;
     bool overOwnWindow = false; ///< The press landed on a surface of this process.
@@ -52,7 +52,7 @@ struct GestureTracker {
         if (overOwnWindow) return std::nullopt;
 
         const Gesture gesture{downX, downY, x, y};
-        if (!isSelectionGesture(gesture, dragSlopPx.load(std::memory_order_relaxed))) return std::nullopt;
+        if (!isSelectionGesture(gesture, kDragSlopPx)) return std::nullopt;
         return QPoint(x, y);
     }
 };
@@ -192,17 +192,6 @@ bool isSelectionGesture(const Gesture& gesture, int dragSlopPx)
     return capture::exceedsDragThreshold(dx, dy, dragSlopPx);
 }
 
-void MouseSelectionHook::setDragThreshold(int const pixels)
-{
-    if (pixels == 2 or pixels == 4 or pixels == 8)
-        g_tracker.dragSlopPx.store(pixels, std::memory_order_relaxed);
-}
-
-int MouseSelectionHook::dragThreshold() const
-{
-    return g_tracker.dragSlopPx.load(std::memory_order_relaxed);
-}
-
 MouseSelectionHook::MouseSelectionHook(QObject* parent)
     : QObject(parent)
 {}
@@ -241,7 +230,7 @@ bool MouseSelectionHook::install()
     }
 
     installed_ = true;
-    LENS_INFO("MouseSelectionHook::install: listening on its own thread (drag slop {} px; click-to-select disabled)", dragThreshold());
+    LENS_INFO("MouseSelectionHook::install: listening on its own thread ({} px drag slop; click-to-select disabled)", kDragSlopPx);
     return true;
 }
 

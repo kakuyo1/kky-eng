@@ -40,13 +40,10 @@ Item {
             Tokens.theme = "dark";
         }
 
-        function test_dragTiersFollowTheControllerFacade() {
+        function test_dragSensitivityIsNotExposedAsASetting() {
             const page = make();
-            const segment = child(page, "dragSensitivity");
-            mouseClick(segment, 20, segment.height / 2);
-            tryVerify(() => Controller.settings.dragSensitivity === "sensitive");
-            mouseClick(segment, segment.width - 20, segment.height / 2);
-            tryVerify(() => Controller.settings.dragSensitivity === "reluctant");
+            compare(Controller.settings.dragSensitivity, undefined);
+            compare(findChild(page, "dragSensitivity"), null);
         }
 
         function test_minimumLengthWritesTheSelectedBoundary() {

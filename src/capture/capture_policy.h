@@ -12,20 +12,6 @@
 
 namespace lens::capture {
 
-enum class DragSensitivity : std::uint8_t { Sensitive,
-                                            Standard,
-                                            Reluctant };
-
-/// @return Physical pixel threshold for the selected drag tier.
-constexpr int dragThreshold(DragSensitivity const sensitivity)
-{
-    switch (sensitivity) {
-        case DragSensitivity::Sensitive: return 2;
-        case DragSensitivity::Reluctant: return 8;
-        default: return 4;
-    }
-}
-
 /// @return Whether either axis reaches the threshold, including negative screen origins.
 constexpr bool exceedsDragThreshold(std::int64_t const dx, std::int64_t const dy, int const threshold)
 {

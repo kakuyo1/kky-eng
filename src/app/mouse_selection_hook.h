@@ -41,8 +41,7 @@ struct Gesture {
  * action bar unexpectedly.
  *
  * @param gesture    Endpoints the hook accumulated.
- * @param dragSlopPx Movement below this counts as jitter rather than a drag. The caller
- *                   supplies the selected 2 / 4 / 8 physical pixel tier.
+ * @param dragSlopPx Movement below this counts as jitter rather than a drag.
  * @return True when the gesture should be treated as a selection.
  */
 bool isSelectionGesture(const Gesture& gesture, int dragSlopPx);
@@ -70,12 +69,6 @@ public:
      *       reinstalling.
      */
     bool install();
-
-    /// @brief Update the physical drag threshold without touching the hook thread's tracker.
-    void setDragThreshold(int pixels);
-
-    /// @return The current physical threshold.
-    int dragThreshold() const;
 
 signals:
     /// @brief A left-button gesture was judged a completed selection.

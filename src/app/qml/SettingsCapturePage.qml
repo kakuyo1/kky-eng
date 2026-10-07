@@ -163,21 +163,6 @@ Item {
         Column {
             width: parent.width
             spacing: 7
-            Text { text: qsTr("Drag threshold"); color: Tokens.muted; font.pixelSize: 12 }
-            Segment {
-                objectName: "dragSensitivity"
-                width: parent.width
-                height: 31
-                labels: [qsTr("Sensitive"), qsTr("Standard"), qsTr("Reluctant")]
-                currentIndex: Controller.settings.dragSensitivity === "sensitive" ? 0
-                              : Controller.settings.dragSensitivity === "reluctant" ? 2 : 1
-                onPicked: (index) => Controller.setDragSensitivity(["sensitive", "standard", "reluctant"][index])
-            }
-        }
-
-        Column {
-            width: parent.width
-            spacing: 7
             Text { text: qsTr("Scan whitelist"); color: Tokens.muted; font.pixelSize: 12 }
             TextField {
                 id: whitelistField

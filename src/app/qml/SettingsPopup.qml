@@ -99,7 +99,6 @@ Window {
         Controller.setTheme("light");
         Controller.setSelectionCapture(true);
         Controller.setClipboardPolicy("topmost");
-        Controller.setPopupFrequency("standard");
         Controller.setProvider("DeepSeek");
         Controller.setModel("deepseek-flash");
         Controller.restoreCaptureDefaults();

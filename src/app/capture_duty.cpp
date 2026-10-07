@@ -69,12 +69,6 @@ CaptureDuty::CaptureDuty(StorageDuty& storage,
     connect(&hook_, &MouseSelectionHook::selectionReleased, this, &CaptureDuty::onSelectionReleased);
     connect(&hook_, &MouseSelectionHook::pointerPressed, this, &CaptureDuty::pointerPressed);
 
-    auto const sensitivity = settings().value("dragSensitivity").toString();
-    hook_.setDragThreshold(capture::dragThreshold(sensitivity == QLatin1String("sensitive")
-                                                      ? capture::DragSensitivity::Sensitive
-                                                  : sensitivity == QLatin1String("reluctant")
-                                                      ? capture::DragSensitivity::Reluctant
-                                                      : capture::DragSensitivity::Standard));
     auto const names = settings().value("scanWhitelist").toString().split(';', Qt::SkipEmptyParts);
     std::vector<std::string> whitelist;
     for (auto const& name : names)
@@ -101,14 +95,10 @@ QVariantMap CaptureDuty::settings() const
 {
     bool valid        = false;
     auto const length = storage_.documentString("minimumWordLength", QStringLiteral("3")).toInt(&valid);
-    auto sensitivity  = storage_.documentString("dragSensitivity", QStringLiteral("standard"));
-    if (sensitivity != QLatin1String("sensitive") and sensitivity != QLatin1String("reluctant"))
-        sensitivity = QStringLiteral("standard");
     return {{"ocrCapture", storage_.documentString("ocrCapture", QStringLiteral("false")) == QLatin1String("true")},
             {"autoScan", storage_.documentString("autoScan", QStringLiteral("false")) == QLatin1String("true")},
             {"ocrAvailable", ocrState_ == capture::OcrStatus::Ready},
             {"minimumWordLength", valid ? capture::minimumWordLength(length) : 3},
-            {"dragSensitivity", sensitivity},
             {"tesseractExecutable", storage_.documentString("tesseractExecutable", QString{})},
             {"tesseractDataDirectory", storage_.documentString("tesseractDataDirectory", QString{})},
             // What an empty setting resolves to, for the surface that shows the reader where OCR
@@ -160,18 +150,6 @@ void CaptureDuty::setMinimumWordLength(int const length)
     if (length < 2 or length > 5) return;
     storage_.writeDocument("minimumWordLength", QString::number(length));
     invalidateScan();
-    emit settingsChanged();
-}
-
-void CaptureDuty::setDragSensitivity(QString sensitivity)
-{
-    if (sensitivity != QLatin1String("sensitive") and sensitivity != QLatin1String("standard") and
-        sensitivity != QLatin1String("reluctant")) return;
-    storage_.writeDocument("dragSensitivity", sensitivity);
-    auto const tier = sensitivity == QLatin1String("sensitive")   ? capture::DragSensitivity::Sensitive
-                      : sensitivity == QLatin1String("reluctant") ? capture::DragSensitivity::Reluctant
-                                                                  : capture::DragSensitivity::Standard;
-    hook_.setDragThreshold(capture::dragThreshold(tier));
     emit settingsChanged();
 }
 
@@ -232,7 +210,6 @@ void CaptureDuty::restoreDefaults()
     setAutoScan(false);
     setOcrCapture(false);
     setMinimumWordLength(3);
-    setDragSensitivity(QStringLiteral("standard"));
     setScanWhitelist(QStringLiteral("chrome.exe;msedge.exe;firefox.exe;AcroRd32.exe"));
     setTesseractExecutable(QString{});
     setTesseractDataDirectory(QString{});

@@ -50,7 +50,6 @@ public:
     Q_INVOKABLE void setOcrCapture(bool on);
     Q_INVOKABLE void setAutoScan(bool on);
     Q_INVOKABLE void setMinimumWordLength(int length);
-    Q_INVOKABLE void setDragSensitivity(QString sensitivity);
     Q_INVOKABLE bool setScanWhitelist(QString processes);
     /// @brief Point OCR at the reader's own Tesseract and probe it again; empty means the bundled one.
     Q_INVOKABLE void setTesseractExecutable(QString executable);

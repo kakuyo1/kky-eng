@@ -69,10 +69,15 @@ TEST(CostBudget, ReachesOnlyPositiveLimitsAtTheBoundary)
 TEST_F(CostDutyTest, PersistsNumericBudgetAndKeepsUnknownDocumentKeys)
 {
     QtApplication qt;
-    auto store                    = KnownStore::load(path);
-    store.document()["API-KEY"]   = "secret-is-not-a-log";
-    store.document()["futureKey"] = nlohmann::json{{"keep", true}};
+    auto store                          = KnownStore::load(path);
+    store.document()["API-KEY"]         = "secret-is-not-a-log";
+    store.document()["futureKey"]       = nlohmann::json{{"keep", true}};
+    store.document()["dragSensitivity"] = "reluctant";
+    store.document()["popupFrequency"]  = "less";
     lens::app::StorageDuty storage{store};
+
+    EXPECT_FALSE(store.document().contains("dragSensitivity"));
+    EXPECT_FALSE(store.document().contains("popupFrequency"));
 
     storage.writeDocument("numericSetting", QVariant(1.25));
     ASSERT_TRUE(storage.statsStore().setDailyBudget(1.25));
@@ -84,6 +89,8 @@ TEST_F(CostDutyTest, PersistsNumericBudgetAndKeepsUnknownDocumentKeys)
     EXPECT_EQ(reloaded.document().at("numericSetting"), 1.25);
     EXPECT_EQ(reloaded.document().at("API-KEY"), "secret-is-not-a-log");
     EXPECT_EQ(reloaded.document().at("futureKey").at("keep"), true);
+    EXPECT_FALSE(reloaded.document().contains("dragSensitivity"));
+    EXPECT_FALSE(reloaded.document().contains("popupFrequency"));
 
     lens::core::StatsStore stats(reloaded.document());
     EXPECT_FALSE(stats.setDailyBudget(-1.0));

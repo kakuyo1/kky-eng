@@ -45,11 +45,8 @@ void observe(ScanPipeline& scan, int seconds, std::string_view text, std::uint64
 
 }
 
-TEST(CapturePolicy, DragTiersAreAtomicAndHandleBothDirections)
+TEST(CapturePolicy, DragBoundaryHandlesBothDirections)
 {
-    EXPECT_EQ(lens::capture::dragThreshold(lens::capture::DragSensitivity::Sensitive), 2);
-    EXPECT_EQ(lens::capture::dragThreshold(lens::capture::DragSensitivity::Standard), 4);
-    EXPECT_EQ(lens::capture::dragThreshold(lens::capture::DragSensitivity::Reluctant), 8);
     EXPECT_FALSE(lens::capture::exceedsDragThreshold(-1, 0, 2));
     EXPECT_TRUE(lens::capture::exceedsDragThreshold(-2, 0, 2));
     EXPECT_TRUE(lens::capture::exceedsDragThreshold(0, 8, 8));

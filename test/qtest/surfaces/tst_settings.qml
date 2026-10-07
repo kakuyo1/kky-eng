@@ -39,7 +39,6 @@ Item {
         /// that writes one puts it back rather than leaving the next suite reading it.
         function cleanup() {
             Controller.setClipboardPolicy("topmost");
-            Controller.setPopupFrequency("standard");
             Controller.setDailyBudget(0);
         }
 
@@ -130,6 +129,7 @@ Item {
             compare(Controller.settings.clipboardPolicy, "silent",
                     "the pick did not reach setClipboardPolicy");
             compare(segment.currentIndex, 1, "the segment did not follow the policy it wrote");
+            compare(Util.textWith(Util.textsUnder(panel), ["Popup frequency"]), null);
         }
 
         function test_theDailyBudgetIsReachableAndPersistsThroughTheController() {

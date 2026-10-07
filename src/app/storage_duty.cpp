@@ -14,6 +14,11 @@ namespace lens::app {
 StorageDuty::StorageDuty(core::KnownStore& store)
     : store_(store), stats_(store.document())
 {
+    auto& document                    = store_.document();
+    const bool removedDragSensitivity = document.erase("dragSensitivity") > 0;
+    const bool removedPopupFrequency  = document.erase("popupFrequency") > 0;
+    if (removedDragSensitivity or removedPopupFrequency)
+        store_.save();
 }
 
 core::KnownStore& StorageDuty::knownStore()

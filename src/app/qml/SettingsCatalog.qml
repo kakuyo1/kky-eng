@@ -26,7 +26,7 @@ Item {
         }
         SettingsCategoryRow {
             title: qsTranslate("SettingsPopup", "Capture & popups")
-            summary: qsTranslate("SettingsPopup", "Trigger channels, clipboard, popup frequency")
+            summary: qsTranslate("SettingsPopup", "Trigger channels")
             onPicked: root.categoryRequested("capture")
         }
         SettingsCategoryRow {

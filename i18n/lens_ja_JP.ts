@@ -146,27 +146,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="166"/>
-        <source>Drag threshold</source>
-        <translation>ドラッグのしきい値</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="171"/>
-        <source>Sensitive</source>
-        <translation>敏感</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="171"/>
-        <source>Standard</source>
-        <translation>標準</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="171"/>
-        <source>Reluctant</source>
-        <translation>鈍め</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="181"/>
-        <location filename="../src/app/qml/SettingsCapturePage.qml" line="191"/>
+        <location filename="../src/app/qml/SettingsCapturePage.qml" line="176"/>
         <source>Scan whitelist</source>
         <translation>スキャン対象プロセス</translation>
     </message>
@@ -187,6 +167,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="22"/>
+        <location filename="../src/app/qml/SettingsCatalog.qml" line="29"/>
         <source>Trigger channels</source>
         <translation>取得のきっかけ</translation>
     </message>
@@ -197,7 +178,7 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCapturePage.qml" line="51"/>
-        <location filename="../src/app/app_controller.cpp" line="265"/>
+        <location filename="../src/app/app_controller.cpp" line="260"/>
         <source>OCR</source>
         <translation>OCR</translation>
     </message>
@@ -258,11 +239,6 @@
         <translation>取得とポップアップ</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsCatalog.qml" line="29"/>
-        <source>Trigger channels, clipboard, popup frequency</source>
-        <translation>取得のきっかけ、クリップボード、表示頻度</translation>
-    </message>
-    <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="33"/>
         <location filename="../src/app/qml/SettingsPopup.qml" line="44"/>
         <source>Model service</source>
@@ -294,21 +270,6 @@
         <location filename="../src/app/qml/SettingsClipboardPage.qml" line="18"/>
         <source>When the clipboard is occupied</source>
         <translation>クリップボードが使用中のとき</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/SettingsClipboardPage.qml" line="35"/>
-        <source>Popup frequency</source>
-        <translation>ポップアップの頻度</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/SettingsClipboardPage.qml" line="42"/>
-        <source>Standard</source>
-        <translation>標準</translation>
-    </message>
-    <message>
-        <location filename="../src/app/qml/SettingsClipboardPage.qml" line="42"/>
-        <source>Less often</source>
-        <translation>少なめ</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsConnectionPage.qml" line="24"/>
@@ -436,23 +397,23 @@
         <translation>プロバイダー</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="52"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="53"/>
         <source>Model</source>
         <translation>モデル</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="84"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="85"/>
         <location filename="../src/app/qml/SettingsPopup.qml" line="52"/>
         <source>API configuration</source>
         <translation>API 設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="86"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="87"/>
         <source>Configured</source>
         <translation>設定済み</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsModelPage.qml" line="87"/>
+        <location filename="../src/app/qml/SettingsModelPage.qml" line="88"/>
         <source>Not configured</source>
         <translation>未設定</translation>
     </message>
@@ -462,62 +423,62 @@
         <translation>保存しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="108"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="107"/>
         <source>Defaults restored</source>
         <translation>初期設定に戻しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="166"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="165"/>
         <source>Settings</source>
         <translation>設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="273"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="272"/>
         <source>Defaults</source>
         <translation>初期設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="289"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="288"/>
         <source>Unsaved changes</source>
         <translation>未保存の変更</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="311"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="310"/>
         <source>Save</source>
         <translation>保存</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="519"/>
+        <location filename="../src/app/explanation_duty.cpp" line="515"/>
         <source>Domestic</source>
         <translation>国内</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="520"/>
+        <location filename="../src/app/explanation_duty.cpp" line="516"/>
         <source>International</source>
         <translation>海外</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="521"/>
+        <location filename="../src/app/explanation_duty.cpp" line="517"/>
         <source>Other</source>
         <translation>その他</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="522"/>
+        <location filename="../src/app/explanation_duty.cpp" line="518"/>
         <source>Custom service</source>
         <translation>カスタムサービス</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="261"/>
+        <location filename="../src/app/app_controller.cpp" line="256"/>
         <source>Checking OCR</source>
         <translation>OCR を確認中</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="262"/>
+        <location filename="../src/app/app_controller.cpp" line="257"/>
         <source>English OCR data is missing</source>
         <translation>英語の OCR データがありません</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="263"/>
+        <location filename="../src/app/app_controller.cpp" line="258"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR ランタイムが利用できません</translation>
     </message>
@@ -829,63 +790,63 @@
 <context>
     <name>lens::app::AppController</name>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="254"/>
+        <location filename="../src/app/app_controller.cpp" line="249"/>
         <source>Screenshot capture is off.</source>
         <translation>スクリーンショットからの取得はオフです。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="255"/>
-        <location filename="../src/app/app_controller.cpp" line="409"/>
+        <location filename="../src/app/app_controller.cpp" line="250"/>
+        <location filename="../src/app/app_controller.cpp" line="399"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>本日の予算を使い切りました。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="256"/>
+        <location filename="../src/app/app_controller.cpp" line="251"/>
         <source>A recognition is already running.</source>
         <translation>すでに認識中です。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="258"/>
+        <location filename="../src/app/app_controller.cpp" line="253"/>
         <source>That region cannot be captured.</source>
         <translation>この範囲は取得できません。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="259"/>
+        <location filename="../src/app/app_controller.cpp" line="254"/>
         <source>No text was found in that region.</source>
         <translation>その範囲に文字が見つかりませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="260"/>
+        <location filename="../src/app/app_controller.cpp" line="255"/>
         <source>That region could not be read.</source>
         <translation>その範囲を読み取れませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="487"/>
+        <location filename="../src/app/app_controller.cpp" line="476"/>
         <source>Today %1</source>
         <translation>今日 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="489"/>
+        <location filename="../src/app/app_controller.cpp" line="478"/>
         <source>Yesterday %1</source>
         <translation>昨日 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="496"/>
+        <location filename="../src/app/app_controller.cpp" line="485"/>
         <source>Known</source>
         <translation>覚えた</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="498"/>
+        <location filename="../src/app/app_controller.cpp" line="487"/>
         <source>New</source>
         <translation>初見</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="603"/>
+        <location filename="../src/app/app_controller.cpp" line="592"/>
         <source>Auto</source>
         <translation>自動</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="603"/>
+        <location filename="../src/app/app_controller.cpp" line="592"/>
         <source>Manual</source>
         <translation>手動</translation>
     </message>
@@ -910,22 +871,22 @@
         <translation>リクエストに失敗しました</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="86"/>
-        <location filename="../src/app/storage_duty.cpp" line="87"/>
+        <location filename="../src/app/storage_duty.cpp" line="91"/>
+        <location filename="../src/app/storage_duty.cpp" line="92"/>
         <source>CEFR</source>
         <translation>CEFR</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="88"/>
-        <location filename="../src/app/storage_duty.cpp" line="89"/>
-        <location filename="../src/app/storage_duty.cpp" line="90"/>
-        <location filename="../src/app/storage_duty.cpp" line="91"/>
+        <location filename="../src/app/storage_duty.cpp" line="93"/>
+        <location filename="../src/app/storage_duty.cpp" line="94"/>
+        <location filename="../src/app/storage_duty.cpp" line="95"/>
+        <location filename="../src/app/storage_duty.cpp" line="96"/>
         <source>National exams</source>
         <translation>国内試験</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="92"/>
-        <location filename="../src/app/storage_duty.cpp" line="93"/>
+        <location filename="../src/app/storage_duty.cpp" line="97"/>
+        <location filename="../src/app/storage_duty.cpp" line="98"/>
         <source>Study-abroad exams</source>
         <translation>留学試験</translation>
     </message>
@@ -933,12 +894,12 @@
 <context>
     <name>lens::app::ExplanationDuty</name>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="513"/>
+        <location filename="../src/app/explanation_duty.cpp" line="509"/>
         <source>No listed price; recorded cost is zero.</source>
         <translation>価格表にないため、記録される費用は 0 です。</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="514"/>
+        <location filename="../src/app/explanation_duty.cpp" line="510"/>
         <source>Input %1 / Output %2 %3 per %4 tokens</source>
         <translation>入力 %1 / 出力 %2 %3（%4 トークンあたり）</translation>
     </message>
@@ -1064,18 +1025,18 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="114"/>
+        <location filename="../src/llm/llm_client.cpp" line="143"/>
         <source>There is nothing to look up.</source>
         <translation>調べる内容がありません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="122"/>
+        <location filename="../src/llm/llm_client.cpp" line="151"/>
         <source>The API key is missing.</source>
         <translation>API キーが設定されていません。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="154"/>
-        <location filename="../src/llm/llm_client.cpp" line="159"/>
+        <location filename="../src/llm/llm_client.cpp" line="183"/>
+        <location filename="../src/llm/llm_client.cpp" line="188"/>
         <source>The request could not reach the service: %1</source>
         <translation>リクエストがサービスに届きませんでした：%1</translation>
     </message>

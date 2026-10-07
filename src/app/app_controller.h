@@ -78,7 +78,6 @@ public:
     Q_INVOKABLE void setAutoScan(bool on);
     Q_INVOKABLE void setOcrCapture(bool on);
     Q_INVOKABLE void setMinimumWordLength(int length);
-    Q_INVOKABLE void setDragSensitivity(QString sensitivity);
     Q_INVOKABLE bool setScanWhitelist(QString processes);
     /// @param executable File the reader picked in the system's dialog; C++ takes the local path.
     Q_INVOKABLE void setTesseractExecutable(QUrl executable);
@@ -93,7 +92,6 @@ public:
     Q_INVOKABLE void setSelectionCapture(bool on);
     Q_INVOKABLE void setApiKey(QString key);
     Q_INVOKABLE void setClipboardPolicy(QString policy);
-    Q_INVOKABLE void setPopupFrequency(QString frequency);
     Q_INVOKABLE void setProvider(QString provider);
     Q_INVOKABLE void refreshModels();
     Q_INVOKABLE void setModel(QString model);
