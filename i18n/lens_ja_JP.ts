@@ -218,8 +218,8 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="19"/>
-        <source>Theme, launch at startup</source>
-        <translation>テーマ、スタートアップ起動</translation>
+        <source>Theme, animations, launch at startup</source>
+        <translation>テーマ、アニメーション、スタートアップ</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="23"/>
@@ -377,6 +377,16 @@
         <translation>スタートアップ時に起動</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="210"/>
+        <source>Animations</source>
+        <translation>アニメーション</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="218"/>
+        <source>Animations are disabled by Windows accessibility settings.</source>
+        <translation>Windows のアクセシビリティ設定により、アニメーションは無効です。</translation>
+    </message>
+    <message>
         <location filename="../src/app/qml/SettingsLearningPage.qml" line="24"/>
         <source>Vocabulary level</source>
         <translation>語彙レベル</translation>
@@ -423,27 +433,27 @@
         <translation>保存しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="107"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="108"/>
         <source>Defaults restored</source>
         <translation>初期設定に戻しました</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="165"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="166"/>
         <source>Settings</source>
         <translation>設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="272"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="273"/>
         <source>Defaults</source>
         <translation>初期設定</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="288"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="289"/>
         <source>Unsaved changes</source>
         <translation>未保存の変更</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="310"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="311"/>
         <source>Save</source>
         <translation>保存</translation>
     </message>
@@ -796,7 +806,7 @@
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="250"/>
-        <location filename="../src/app/app_controller.cpp" line="399"/>
+        <location filename="../src/app/app_controller.cpp" line="405"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>本日の予算を使い切りました。</translation>
     </message>
@@ -821,32 +831,32 @@
         <translation>その範囲を読み取れませんでした。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="476"/>
+        <location filename="../src/app/app_controller.cpp" line="483"/>
         <source>Today %1</source>
         <translation>今日 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="478"/>
+        <location filename="../src/app/app_controller.cpp" line="485"/>
         <source>Yesterday %1</source>
         <translation>昨日 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="485"/>
+        <location filename="../src/app/app_controller.cpp" line="492"/>
         <source>Known</source>
         <translation>覚えた</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="487"/>
+        <location filename="../src/app/app_controller.cpp" line="494"/>
         <source>New</source>
         <translation>初見</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="592"/>
+        <location filename="../src/app/app_controller.cpp" line="599"/>
         <source>Auto</source>
         <translation>自動</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="592"/>
+        <location filename="../src/app/app_controller.cpp" line="599"/>
         <source>Manual</source>
         <translation>手動</translation>
     </message>
@@ -871,22 +881,22 @@
         <translation>リクエストに失敗しました</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="91"/>
-        <location filename="../src/app/storage_duty.cpp" line="92"/>
+        <location filename="../src/app/storage_duty.cpp" line="99"/>
+        <location filename="../src/app/storage_duty.cpp" line="100"/>
         <source>CEFR</source>
         <translation>CEFR</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="93"/>
-        <location filename="../src/app/storage_duty.cpp" line="94"/>
-        <location filename="../src/app/storage_duty.cpp" line="95"/>
-        <location filename="../src/app/storage_duty.cpp" line="96"/>
+        <location filename="../src/app/storage_duty.cpp" line="101"/>
+        <location filename="../src/app/storage_duty.cpp" line="102"/>
+        <location filename="../src/app/storage_duty.cpp" line="103"/>
+        <location filename="../src/app/storage_duty.cpp" line="104"/>
         <source>National exams</source>
         <translation>国内試験</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="97"/>
-        <location filename="../src/app/storage_duty.cpp" line="98"/>
+        <location filename="../src/app/storage_duty.cpp" line="105"/>
+        <location filename="../src/app/storage_duty.cpp" line="106"/>
         <source>Study-abroad exams</source>
         <translation>留学試験</translation>
     </message>

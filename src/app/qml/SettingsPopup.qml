@@ -97,6 +97,7 @@ Window {
         Controller.setExplanationLang("en");
         Controller.setMultiSense(false);
         Controller.setTheme("light");
+        Controller.setAnimationsEnabled(true);
         Controller.setSelectionCapture(true);
         Controller.setClipboardPolicy("topmost");
         Controller.setProvider("DeepSeek");

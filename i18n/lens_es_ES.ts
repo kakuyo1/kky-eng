@@ -218,8 +218,8 @@
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="19"/>
-        <source>Theme, launch at startup</source>
-        <translation>Tema, inicio con el sistema</translation>
+        <source>Theme, animations, launch at startup</source>
+        <translation>Tema, animaciones e inicio con el sistema</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsCatalog.qml" line="23"/>
@@ -377,6 +377,16 @@
         <translation>Iniciar con el sistema</translation>
     </message>
     <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="210"/>
+        <source>Animations</source>
+        <translation>Animaciones</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsGeneralPage.qml" line="218"/>
+        <source>Animations are disabled by Windows accessibility settings.</source>
+        <translation>La configuración de accesibilidad de Windows ha desactivado las animaciones.</translation>
+    </message>
+    <message>
         <location filename="../src/app/qml/SettingsLearningPage.qml" line="24"/>
         <source>Vocabulary level</source>
         <translation>Nivel de vocabulario</translation>
@@ -423,27 +433,27 @@
         <translation>Guardado</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="107"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="108"/>
         <source>Defaults restored</source>
         <translation>Valores por defecto restaurados</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="165"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="166"/>
         <source>Settings</source>
         <translation>Ajustes</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="272"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="273"/>
         <source>Defaults</source>
         <translation>Por defecto</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="288"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="289"/>
         <source>Unsaved changes</source>
         <translation>Cambios sin guardar</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/SettingsPopup.qml" line="310"/>
+        <location filename="../src/app/qml/SettingsPopup.qml" line="311"/>
         <source>Save</source>
         <translation>Guardar</translation>
     </message>
@@ -796,7 +806,7 @@
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="250"/>
-        <location filename="../src/app/app_controller.cpp" line="399"/>
+        <location filename="../src/app/app_controller.cpp" line="405"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>El presupuesto de hoy se ha agotado.</translation>
     </message>
@@ -821,32 +831,32 @@
         <translation>No se pudo leer esa región.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="476"/>
+        <location filename="../src/app/app_controller.cpp" line="483"/>
         <source>Today %1</source>
         <translation>Hoy %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="478"/>
+        <location filename="../src/app/app_controller.cpp" line="485"/>
         <source>Yesterday %1</source>
         <translation>Ayer %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="485"/>
+        <location filename="../src/app/app_controller.cpp" line="492"/>
         <source>Known</source>
         <translation>Conocida</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="487"/>
+        <location filename="../src/app/app_controller.cpp" line="494"/>
         <source>New</source>
         <translation>Nueva</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="592"/>
+        <location filename="../src/app/app_controller.cpp" line="599"/>
         <source>Auto</source>
         <translation>Automático</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="592"/>
+        <location filename="../src/app/app_controller.cpp" line="599"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>
@@ -871,22 +881,22 @@
         <translation>La solicitud ha fallado</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="91"/>
-        <location filename="../src/app/storage_duty.cpp" line="92"/>
+        <location filename="../src/app/storage_duty.cpp" line="99"/>
+        <location filename="../src/app/storage_duty.cpp" line="100"/>
         <source>CEFR</source>
         <translation>CEFR</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="93"/>
-        <location filename="../src/app/storage_duty.cpp" line="94"/>
-        <location filename="../src/app/storage_duty.cpp" line="95"/>
-        <location filename="../src/app/storage_duty.cpp" line="96"/>
+        <location filename="../src/app/storage_duty.cpp" line="101"/>
+        <location filename="../src/app/storage_duty.cpp" line="102"/>
+        <location filename="../src/app/storage_duty.cpp" line="103"/>
+        <location filename="../src/app/storage_duty.cpp" line="104"/>
         <source>National exams</source>
         <translation>Exámenes nacionales</translation>
     </message>
     <message>
-        <location filename="../src/app/storage_duty.cpp" line="97"/>
-        <location filename="../src/app/storage_duty.cpp" line="98"/>
+        <location filename="../src/app/storage_duty.cpp" line="105"/>
+        <location filename="../src/app/storage_duty.cpp" line="106"/>
         <source>Study-abroad exams</source>
         <translation>Exámenes de estudios en el extranjero</translation>
     </message>

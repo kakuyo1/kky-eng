@@ -88,6 +88,7 @@ public:
     Q_INVOKABLE void setExplanationLang(QString lang);
     Q_INVOKABLE void setMultiSense(bool on);
     Q_INVOKABLE void setTheme(QString theme);
+    Q_INVOKABLE void setAnimationsEnabled(bool on);
     Q_INVOKABLE void setUiLanguage(QString lang);
     Q_INVOKABLE void setSelectionCapture(bool on);
     Q_INVOKABLE void setApiKey(QString key);

@@ -9,15 +9,14 @@ import QtQuick
  * forwarded by Tokens the same way they are.
  *
  * Reduced motion is not a CSS media query in this application. Windows exposes no
- * prefers-reduced-motion, and the preference comes from SystemParametersInfoW(
- * SPI_GETCLIENTAREAANIMATION) instead -- src/app/system_motion.h names the interface and reads
- * it once. When it says the reader has turned animations off, every duration below resolves to
- * zero, which QML takes as jumping straight to the final value.
+ * prefers-reduced-motion, and its preference comes from SystemParametersInfoW(
+ * SPI_GETCLIENTAREAANIMATION) -- src/app/system_motion.h names the interface and reads it once.
+ * The application switch can also reduce every duration to zero, but cannot override Windows'
+ * choice to turn animations off.
  */
 QtObject {
-    /// True when the reader has turned Windows' animations off. Writable so a test can build
-    /// one of these with a known answer rather than whatever the machine happens to say.
-    property bool reduced: SystemMotion.reduced
+    /// Writable so a test can build one of these with a known answer rather than the machine value.
+    property bool reduced: SystemMotion.reduced || !Controller.settings.animationsEnabled
 
     /// A button going down and coming back up, a switch crossing, a hover fill arriving.
     readonly property int press: reduced ? 0 : 150

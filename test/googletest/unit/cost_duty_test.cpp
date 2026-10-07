@@ -98,6 +98,21 @@ TEST_F(CostDutyTest, PersistsNumericBudgetAndKeepsUnknownDocumentKeys)
     EXPECT_DOUBLE_EQ(stats.dailyBudget(), 1.25);
 }
 
+TEST_F(CostDutyTest, PersistsAnimationPreferenceAsABooleanAndDefaultsToEnabled)
+{
+    QtApplication qt;
+    auto store = KnownStore::load(path);
+    lens::app::StorageDuty storage{store};
+
+    EXPECT_TRUE(storage.documentBool("animationsEnabled", true));
+    storage.writeDocument("animationsEnabled", false);
+
+    auto reloaded = KnownStore::load(path);
+    lens::app::StorageDuty reloadedStorage{reloaded};
+    EXPECT_FALSE(reloadedStorage.documentBool("animationsEnabled", true));
+    EXPECT_TRUE(reloaded.document().at("animationsEnabled").is_boolean());
+}
+
 TEST_F(CostDutyTest, MigratesLegacyDailyTokensToOneDeterministicBucket)
 {
     QtApplication qt;

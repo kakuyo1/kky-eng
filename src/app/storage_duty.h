@@ -34,6 +34,9 @@ public:
     /// @return A string document value, or @p fallback when it is absent or not a string.
     QString documentString(const char* key, const QString& fallback) const;
 
+    /// @return A boolean document value, or @p fallback when it is absent or not a boolean.
+    bool documentBool(const char* key, bool fallback) const;
+
     /// @brief Write one document value, preserving its scalar type, and persist the document.
     void writeDocument(const char* key, const QVariant& value);
 

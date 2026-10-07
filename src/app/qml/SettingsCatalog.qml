@@ -16,7 +16,7 @@ Item {
 
         SettingsCategoryRow {
             title: qsTranslate("SettingsPopup", "General")
-            summary: qsTranslate("SettingsPopup", "Theme, launch at startup")
+            summary: qsTranslate("SettingsPopup", "Theme, animations, launch at startup")
             onPicked: root.categoryRequested("general")
         }
         SettingsCategoryRow {

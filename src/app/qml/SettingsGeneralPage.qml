@@ -204,5 +204,21 @@ Item {
             checked: Controller.settings.autostart
             onToggled: (on) => Controller.setAutostart(on)
         }
+
+        SwitchRow {
+            width: parent.width
+            label: qsTranslate("SettingsPopup", "Animations")
+            checked: Controller.settings.animationsEnabled
+            onToggled: (on) => Controller.setAnimationsEnabled(on)
+        }
+
+        Text {
+            width: parent.width
+            visible: SystemMotion.reduced
+            text: qsTranslate("SettingsPopup", "Animations are disabled by Windows accessibility settings.")
+            color: Tokens.muted
+            font.pixelSize: 11
+            wrapMode: Text.WordWrap
+        }
     }
 }

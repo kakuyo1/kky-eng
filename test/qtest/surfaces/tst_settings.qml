@@ -132,6 +132,32 @@ Item {
             compare(Util.textWith(Util.textsUnder(panel), ["Popup frequency"]), null);
         }
 
+        function test_animationSwitchControlsTheMotionTokens() {
+            Controller.setAnimationsEnabled(true);
+            const main = make();
+            main.showSettings();
+            const panel = settingsPanel(main);
+            openCategory(panel, "General");
+
+            const row = switchRowLabelled(panel, "Animations");
+            verify(row, "the General page has no animation switch");
+            compare(row.checked, Controller.settings.animationsEnabled);
+
+            const switcher = Util.ofType(row, "Switch");
+            verify(switcher, "the animation row has no switch control");
+            mouseClick(switcher, switcher.width / 2, switcher.height / 2);
+            tryCompare(Controller.settings, "animationsEnabled", false);
+            compare(Tokens.motion.press, 0);
+            compare(Tokens.motion.pop, 0);
+            compare(Tokens.motion.bubble, 0);
+
+            Controller.setAnimationsEnabled(true);
+            tryCompare(row, "checked", true);
+            compare(Tokens.motion.press, SystemMotion.reduced ? 0 : 150);
+            compare(Tokens.motion.pop, SystemMotion.reduced ? 0 : 180);
+            compare(Tokens.motion.bubble, SystemMotion.reduced ? 0 : 220);
+        }
+
         function test_theDailyBudgetIsReachableAndPersistsThroughTheController() {
             const main = make();
             main.showSettings();

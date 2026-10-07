@@ -49,6 +49,14 @@ QString StorageDuty::documentString(const char* key, const QString& fallback) co
     return QString::fromStdString(document[key].get<std::string>());
 }
 
+bool StorageDuty::documentBool(const char* key, bool fallback) const
+{
+    const nlohmann::json& document = store_.document();
+    if (!document.is_object() || !document.contains(key) || !document[key].is_boolean())
+        return fallback;
+    return document[key].get<bool>();
+}
+
 void StorageDuty::writeDocument(const char* key, const QVariant& value)
 {
     const int type = value.typeId();

@@ -136,7 +136,7 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 </div>
 <script>
 const categories = [
-  { id: "general", name: "通用", summary: "主题、开机自启" },
+  { id: "general", name: "通用", summary: "主题、动画效果、开机自启" },
   { id: "learning", name: "阅读学习", summary: "词汇档位、解释语言、多义解释" },
   { id: "capture", name: "取词与弹窗", summary: "触发通道" },
   { id: "model", name: "模型服务", summary: "服务商、模型、API 配置" },
@@ -144,7 +144,7 @@ const categories = [
   { id: "extensions", name: "扩展", summary: "桌面宠物" }
 ];
 const titles = { clipboard: "弹窗与剪贴板", connection: "API 配置" };
-const defaults = { theme: "light", uiLang: "zh", level: "CET-4", language: "en", startup: false, selection: true,
+const defaults = { theme: "light", uiLang: "zh", level: "CET-4", language: "en", startup: false, animations: true, selection: true,
   policy: "topmost", minLen: "3", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
   tesseractExe: "", tesseractData: "", triggerKey: "Ctrl+Alt+S",
   dailyBudget: "0", customBg: "#e9ebef", customPanel: "#ffffff", customText: "#1a1a1f", customMuted: "#66666f", customFaint: "#9d9da8", customOk: "#2f9e6e",
@@ -210,7 +210,7 @@ function page(id) {
         { value: "dark", label: "黑夜", group: "" },
         { value: "forest", label: "Forest", group: "" },
         { value: "custom", label: "Custom", group: "" }
-      ]) + customColors() + sw("开机自启", "startup");
+      ]) + customColors() + sw("开机自启", "startup") + sw("动画效果", "animations");
     case "learning": return dropdown("词汇档位", "level", [
         { value: "B1–B2", label: "B1–B2", group: "CEFR" },
         { value: "C1–C2", label: "C1–C2", group: "CEFR" },

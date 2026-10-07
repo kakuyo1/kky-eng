@@ -30,6 +30,7 @@ Item {
             Controller.setExplanationLang("en");
             Controller.setMultiSense(false);
             Controller.setTheme("light");
+            Controller.setAnimationsEnabled(true);
             Controller.setUiLanguage("zh");
             Controller.setSelectionCapture(true);
             Controller.setClipboardPolicy("topmost");
@@ -81,6 +82,7 @@ Item {
             Controller.setLevel(4);
             Controller.setExplanationLang("zh");
             Controller.setTheme("dark");
+            Controller.setAnimationsEnabled(false);
             Controller.setSelectionCapture(false);
             Controller.setClipboardPolicy("silent");
             Controller.setAutoScan(true);
@@ -92,6 +94,7 @@ Item {
             tryCompare(Controller.settings, "level", 2);
             compare(Controller.settings.explanationLang, "en");
             compare(Controller.settings.theme, "light");
+            compare(Controller.settings.animationsEnabled, true);
             compare(Controller.settings.selectionCapture, true);
             compare(Controller.settings.clipboardPolicy, "topmost");
             compare(Controller.settings.autoScan, false);
@@ -162,7 +165,12 @@ Item {
 
             openCategory(panel, "General");
             wait(settled);
-            verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-general"));
+            Controller.setTheme("light");
+            wait(settled);
+            verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-general-light"));
+            Controller.setTheme("dark");
+            wait(settled);
+            verify(Util.saveSnapshot(testCase, panel.contentItem, lensQaSnapshotDir, "settings-general-dark"));
             back(panel);
 
             openCategory(panel, "Capture & popups");

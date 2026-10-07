@@ -290,6 +290,12 @@ void AppController::setTheme(QString theme)
     emit settingsChanged();
 }
 
+void AppController::setAnimationsEnabled(bool on)
+{
+    storage_.writeDocument("animationsEnabled", on);
+    emit settingsChanged();
+}
+
 void AppController::setUiLanguage(QString lang)
 {
     storage_.writeDocument("uiLanguage", lang);
@@ -420,6 +426,7 @@ QVariantMap AppController::settings() const
                        {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
                        {"multiSense", storage_.documentString("multiSense", QStringLiteral("false")) == QLatin1String("true")},
                        {"theme", storage_.documentString("theme", QStringLiteral("light"))},
+                       {"animationsEnabled", storage_.documentBool("animationsEnabled", true)},
                        {"uiLanguage", storage_.documentString("uiLanguage", QStringLiteral("zh"))},
                        {"hasApiKey", !storage_.documentString("API-KEY", QString()).isEmpty()},
                        {"selectionCapture", storage_.documentString("selectionCapture", QStringLiteral("true")) == QLatin1String("true")},
