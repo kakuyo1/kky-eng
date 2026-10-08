@@ -36,6 +36,9 @@ Window {
     property string english: ""
     property string chinese: ""
     property string translation: ""
+    /// Where the word came from, in one sentence, in the same language as the definition. Empty
+    /// whenever the etymology setting is off, or when the model had no origin to give the word.
+    property string etymology: ""
     property var senses: []
     property string status: "" ///< "new", "known", or empty when there is no word verdict (entity / sentence).
 
@@ -93,6 +96,7 @@ Window {
         english = payload.en || "";
         chinese = payload.zh || "";
         translation = payload.translation || "";
+        etymology = payload.etymology || "";
         senses = payload.senses ? payload.senses.slice(0, 3) : [];
         status = payload.status || "";
         countsDown = payload.countsDown !== false;
@@ -440,6 +444,53 @@ Window {
                     font.pixelSize: 12
                     lineHeight: 1.5
                     wrapMode: Text.Wrap
+                }
+
+                // The word's origin, under the explanation it belongs to. A hairline and a small
+                // label are what keep it from reading as one more line of the definition: the
+                // reader asked for two different things and has to see two different things
+                // (UI.md 4.3). The label is the card's label colour and weight; the sentence under
+                // it sits one step down from the definition's colour, because an origin is context
+                // for the meaning rather than another meaning.
+                // Nothing at all is drawn when there is none: an empty labelled slot would read as
+                // a model that failed rather than as a word with no origin to give.
+                // The gap above the rule is the 6 px a sense break uses, not the 12 this block
+                // was drawn with first: measured on the rendered card, that put 24 px of blank
+                // between the definition and the hairline -- the widest gap on the card, in the
+                // one place that is only introducing an aside.
+                Column {
+                    id: etymologyBlock
+                    objectName: "etymologyBlock"
+                    visible: bubble.etymology !== ""
+                    width: parent.width
+                    topPadding: 6
+                    spacing: 5
+
+                    Rectangle {
+                        objectName: "etymologySeparator"
+                        width: parent.width
+                        height: 1
+                        color: Tokens.line2
+                    }
+
+                    Text {
+                        objectName: "etymologyLabel"
+                        text: qsTr("Etymology")
+                        color: Tokens.muted
+                        font.pixelSize: 11
+                        font.weight: Font.Bold
+                    }
+
+                    Text {
+                        objectName: "etymologyText"
+                        width: parent.width
+                        text: bubble.etymology
+                        textFormat: Text.PlainText
+                        color: Tokens.muted
+                        font.pixelSize: 12
+                        lineHeight: 1.5
+                        wrapMode: Text.Wrap
+                    }
                 }
 
                 // Hover expands the verdict buttons; the row contributes no height when shut.

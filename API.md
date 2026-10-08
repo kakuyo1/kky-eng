@@ -83,7 +83,10 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 | `en` | string | 一行英文释义 |
 | `zh` | string | 一行中文释义 |
 | `translation` | string | `es` / `ja` 解释语言下的目标语言释义；对应语言时非空 |
+| `etymology` | string | 词源，一句话，语言跟随解释语言；**可选**：仅词源开关打开时才请求，缩写等来历不明的词没有 |
 | `senses` | array | 多义结果，按频率降序；每项含 `en`、`zh`，并在 `es` / `ja` 下含 `translation`，最多保留 3 项 |
+
+`etymology` 的开关落在提示词上：`request.word.json` 的 `etymologyPrompt` 给出句子与 JSON 示例里的字段片段，模板用 `{etymologyNote}` 与 `{etymologyField}` 两处占位符接住，代码按开关填入或填成空串——关闭时提示词与没有这个字段时逐字相同，因此单义与多义两份模板各一份就够，不必为 “开 / 关 × 单义 / 多义” 维护四份重复文本。字段不进 `required`：关闭时本就不发，来了也按可选处理。
 
 ## 3.1 响应体：实体
 
@@ -129,7 +132,7 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 2. `finish_reason` 必须是 `stop`——`length`（截断）、`content_filter`、`insufficient_system_resource`、`aborted` 一律判失败；
 3. `message.content` 能解析成 JSON 对象，且带 `results` 数组（容忍 Markdown ``` 围栏或前后闲话：提取首个 `{` 到末个 `}`）；
 4. `results` 每一项是对象，且**具备所选 schema 要求的全部字段**；
-5. `en` / `zh` 非空；解释语言为 `es` / `ja` 时 `translation` 也必须非空；单词通道额外要求 `word` 非空，`ipa` 可空（孤立缩写的单词没有音标）；多义数组按 schema 校验，应用最多保留 3 项；
+5. `en` / `zh` 非空；解释语言为 `es` / `ja` 时 `translation` 也必须非空；单词通道额外要求 `word` 非空，`ipa` 可空（孤立缩写的单词没有音标），`etymology` 同样可空（开关关着时不发，来历不明的词也没有）；多义数组按 schema 校验，应用最多保留 3 项；
 6. 单词通道回显的词与请求**逐一对应**：不多、不少、不重、不拼错；实体 / 句子不回显，按请求顺序取结果（`title` 由 App 盖上），模型把一段拆成多条时按顺序**合并**（各条 `en` / `zh` 以换行拼接）。返回顺序不作要求，代码按请求顺序回填。
 
 失败原因会经 Qt 翻译（`tr()` / `QCoreApplication::translate()`）后交给 `LlmClient::failed(QString)`，译文见 `i18n/lens_zh_CN.ts`。

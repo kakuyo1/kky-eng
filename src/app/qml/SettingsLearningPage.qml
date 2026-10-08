@@ -58,5 +58,15 @@ Item {
             checked: root.settings.multiSense
             onToggled: (on) => Controller.setMultiSense(on)
         }
+
+        // Beside "multiple senses" rather than in a category of its own: both decide what a word's
+        // explanation is made of, and one is read as a richer version of the other.
+        SwitchRow {
+            width: parent.width
+            objectName: "etymologySwitch"
+            label: qsTranslate("SettingsPopup", "Etymology")
+            checked: root.settings.etymology
+            onToggled: (on) => Controller.setEtymology(on)
+        }
     }
 }

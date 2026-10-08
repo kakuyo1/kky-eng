@@ -77,6 +77,12 @@ void LlmClient::setPreset(const QString& preset)
     preset_ = preset;
 }
 
+void LlmClient::setEtymology(bool etymology)
+{
+    LENS_TRACE("LlmClient::setEtymology: '{}'", etymology ? "on" : "off");
+    etymology_ = etymology;
+}
+
 void LlmClient::fetchModels(QString provider)
 {
     const auto entry     = serviceProvider(provider);
@@ -171,7 +177,7 @@ void LlmClient::explainWords(QStringList words)
     LENS_TRACE("POST {} (timeout {} ms, key hidden)", url.toString().toStdString(), kTimeoutMs);
 
     QNetworkReply* reply =
-        manager_->post(request, buildRequestBody(config_, channel, words, lang_, preset));
+        manager_->post(request, buildRequestBody(config_, channel, words, lang_, preset, etymology_));
     connect(reply, &QNetworkReply::finished, this, [this, reply, words, channel, language, preset, model] {
         reply->deleteLater();
 

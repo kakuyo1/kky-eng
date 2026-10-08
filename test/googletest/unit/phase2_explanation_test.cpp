@@ -47,6 +47,13 @@ QJsonObject word(int const count = 3, QString const& translation = QStringLitera
     return {{"word", "bank"}, {"ipa", "/bank/"}, {"senses", senses}};
 }
 
+QJsonObject plainWord(QString const& lemma, QString const& etymology = {})
+{
+    QJsonObject value{{"word", lemma}, {"ipa", "/x/"}, {"en", "English"}, {"zh", "中文"}};
+    if (not etymology.isEmpty()) value["etymology"] = etymology;
+    return value;
+}
+
 struct QtApplication {
     int argc      = 1;
     char name[32] = "phase2_explanation_test";
@@ -207,7 +214,8 @@ TEST_F(LlmTest, Phase2CachePreservesLegacyEntriesAndSeparatesAllContexts)
     for (auto const* language : {"en", "zh", "es", "ja"}) {
         for (bool const multiple : {false, true}) {
             if (std::string{language} == "en" and not multiple) continue;
-            core::WordCache entry{"/bank/", language, "meaning", language, {{language, "meaning", language}, {"second", "meaning 2", language}}};
+            core::WordCache entry{.ipa = "/bank/", .en = language, .zh = "meaning", .translation = language, .etymology = "from " + std::string{language}};
+            entry.senses = {{language, "meaning", language}, {"second", "meaning 2", language}};
             store.cachePut("bank", entry, {language, multiple});
         }
     }
@@ -215,12 +223,17 @@ TEST_F(LlmTest, Phase2CachePreservesLegacyEntriesAndSeparatesAllContexts)
     auto const restored = core::KnownStore::load(path);
     EXPECT_EQ(restored.document().at("untouched"), "sentinel");
     EXPECT_EQ(restored.cacheGet("bank", {"en", false})->en, "legacy");
+    // A legacy entry has no origin, and one must not be invented for it.
+    EXPECT_TRUE(restored.cacheGet("bank", {"en", false})->etymology.empty());
     for (auto const* language : {"en", "zh", "es", "ja"}) {
         for (bool const multiple : {false, true}) {
             auto const entry = restored.cacheGet("bank", {language, multiple});
             ASSERT_TRUE(entry);
             EXPECT_EQ(entry->senses.size(), std::string{language} == "en" and not multiple ? 0u : multiple ? 2u
                                                                                                            : 1u);
+            // Outside the cache key, so it survives every context this loop covers.
+            if (not(std::string{language} == "en" and not multiple))
+                EXPECT_EQ(entry->etymology, "from " + std::string{language});
         }
     }
 }
@@ -251,6 +264,74 @@ TEST_F(LlmTest, Phase2LanguagesRoundTripThroughDutyTransportAndCache)
         EXPECT_EQ(duty.bubble().value("senses").toList().size(), 3);
         EXPECT_EQ(store.cacheGet("bank", {language, true})->senses.size(), 3u);
     }
+}
+
+TEST_F(LlmTest, Phase2TheEtymologySettingBringsTheOriginAlongAndKeepsItOutOfTheKey)
+{
+    QtApplication qt;
+    QTemporaryDir temporary;
+    auto store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    app::StorageDuty storage{store};
+    Manager manager;
+    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
+    auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    app::CostDuty cost{storage.statsStore(), client, pricing};
+    app::ExplanationDuty duty{storage, client, cost};
+
+    auto const explain = [&](QString const& lemma) {
+        const int before = manager.posts;
+        duty.setSelection(selectionFor(lemma));
+        QEventLoop loop;
+        QObject::connect(&client, &llm::LlmClient::batchFinished, &loop, &QEventLoop::quit);
+        QObject::connect(&client, &llm::LlmClient::failed, &loop, &QEventLoop::quit);
+        QTimer::singleShot(2000, &loop, &QEventLoop::quit);
+        duty.runSelectionAction("explain", lemma);
+        // A word already stored is answered without a round trip, so waiting would be waiting for
+        // something that is not coming -- and the bubble is up before this returns.
+        if (manager.posts > before) loop.exec();
+    };
+    auto const askedForOrigin = [&] {
+        // The prompt is a string inside the posted body, so its own quotes arrive escaped; the
+        // question is what the model was told, which means reading the body.
+        const auto messages = QJsonDocument::fromJson(manager.posted).object().value("messages").toArray();
+        if (messages.isEmpty()) return false;
+        return messages.at(0).toObject().value("content").toString().contains(QStringLiteral("\"etymology\":\"...\""));
+    };
+
+    // Explained with the setting off, the word is bought without its origin and the card shows none.
+    manager.response = envelope({plainWord("bank")});
+    explain("bank");
+    EXPECT_FALSE(askedForOrigin()) << "the origin was paid for though the setting was off";
+    EXPECT_TRUE(duty.bubble().value("etymology").toString().isEmpty());
+
+    // The setting decides what is asked for, never what was already paid for: turning it on does
+    // not go back and buy the origin of a word explained while it was off (docs/adr/0019).
+    duty.dismissBubble();
+    store.document()["etymology"] = "true";
+    explain("bank");
+    EXPECT_EQ(manager.posts, 1) << "the stored definition was bought a second time";
+    EXPECT_TRUE(duty.bubble().value("etymology").toString().isEmpty());
+
+    // Asked for from the start, the origin arrives with the definition and is drawn under it.
+    duty.dismissBubble();
+    manager.response = envelope({plainWord("resilience", "Latin resilire, to leap back.")});
+    explain("resilience");
+    ASSERT_TRUE(askedForOrigin());
+    EXPECT_EQ(duty.bubble().value("etymology").toString(), QStringLiteral("Latin resilire, to leap back."));
+
+    // And it is stored, so putting it away and taking it out again costs nothing: the entry is
+    // reused whole, and the setting only decides whether the card draws the part it holds.
+    duty.dismissBubble();
+    store.document()["etymology"] = "false";
+    explain("resilience");
+    EXPECT_EQ(manager.posts, 2);
+    EXPECT_TRUE(duty.bubble().value("etymology").toString().isEmpty()) << "a stored origin was drawn with the setting off";
+
+    duty.dismissBubble();
+    store.document()["etymology"] = "true";
+    explain("resilience");
+    EXPECT_EQ(manager.posts, 2) << "the same word was paid for twice";
+    EXPECT_EQ(duty.bubble().value("etymology").toString(), QStringLiteral("Latin resilire, to leap back."));
 }
 
 TEST_F(LlmTest, Phase2ChangingSettingsDuringResponseKeepsTheOriginalCacheContext)

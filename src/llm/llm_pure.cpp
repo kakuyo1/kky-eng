@@ -18,7 +18,7 @@ namespace {
 // the strings would silently never reach the .ts files.
 
 /// @brief Render a channel's system prompt with the output-language line filled in.
-QString renderSystemPrompt(Channel channel, const QString& explanationLang, const QString& preset)
+QString renderSystemPrompt(Channel channel, const QString& explanationLang, const QString& preset, bool const etymology)
 {
     const PromptTemplate& tmpl = promptTemplate(channel, preset);
 
@@ -30,6 +30,12 @@ QString renderSystemPrompt(Channel channel, const QString& explanationLang, cons
 
     QString prompt = tmpl.systemPromptTemplate;
     prompt.replace(QLatin1String(kOutputLanguagePlaceholder), line);
+    // Clearing both placeholders is the whole of "this word is being asked for without its
+    // origin": the sentence and the field it names travel together, and what is left is the prompt
+    // exactly as it read before the setting existed. A channel whose template never carried them
+    // is untouched, which is how entity and sentence keep out of this.
+    prompt.replace(QLatin1String(kEtymologyNotePlaceholder), etymology ? tmpl.etymologyNote : QString{});
+    prompt.replace(QLatin1String(kEtymologyFieldPlaceholder), etymology ? tmpl.etymologyField : QString{});
     return prompt;
 }
 
@@ -141,7 +147,8 @@ QByteArray buildRequestBody(const Config& config,
                             Channel channel,
                             const QStringList& inputs,
                             const QString& explanationLang,
-                            const QString& preset)
+                            const QString& preset,
+                            bool const etymology)
 {
     const RequestTemplate& tmpl = requestTemplate(channel);
 
@@ -155,7 +162,7 @@ QByteArray buildRequestBody(const Config& config,
         {"messages",
          QJsonArray{
              QJsonObject{{"role", "system"},
-                         {"content", renderSystemPrompt(channel, explanationLang, preset)}},
+                         {"content", renderSystemPrompt(channel, explanationLang, preset, etymology)}},
              QJsonObject{{"role", "user"}, {"content", masked.join(QLatin1Char('\n'))}},
          }},
         {"response_format", tmpl.responseFormat},
@@ -249,6 +256,10 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
                       obj.value(QStringLiteral("en")).toString(),
                       obj.value(QStringLiteral("zh")).toString()};
         e.translation = obj.value("translation").toString();
+        // Read and never demanded: the origin is asked for only when the setting is on, an acronym
+        // has none, and the model is free to answer "unknown". Failing a whole batch over it would
+        // throw away the definitions that did arrive, the same trade `ipa` already makes.
+        e.etymology = obj.value(QStringLiteral("etymology")).toString();
         if (isWord and obj.contains("senses")) {
             auto const senses = obj.value("senses").toArray();
             for (auto const& value : senses) {

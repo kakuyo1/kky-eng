@@ -185,7 +185,9 @@ TEST_F(StatsStoreTest, RemovingWordClearsMarksCachesAndHistoryButKeepsUsage)
     auto store = KnownStore::load(path);
     store.mark("apple", true);
     store.cachePut("apple", {"/a/", "apple", "苹果"}, {"en", false});
-    store.cachePut("apple", {"/a/", "apple", "苹果", {}, {{"apple", "苹果", {}}}}, {"zh", true});
+    // Named rather than positional: five of the six fields are strings, and the one carrying the
+    // senses is the one this case is about.
+    store.cachePut("apple", {.ipa = "/a/", .en = "apple", .zh = "苹果", .senses = {{"apple", "苹果", {}}}}, {"zh", true});
 
     StatsStore stats(store.document());
     stats.recordPop("apple", "2026-10-03 09:00");

@@ -35,6 +35,7 @@ llm::Explanation fromCache(core::WordCache const& cached, QString const& lemma)
                             QString::fromStdString(cached.en),
                             QString::fromStdString(cached.zh),
                             QString::fromStdString(cached.translation)};
+    result.etymology = QString::fromStdString(cached.etymology);
     for (auto const& sense : cached.senses)
         result.senses.push_back({QString::fromStdString(sense.en), QString::fromStdString(sense.zh), QString::fromStdString(sense.translation)});
     return result;
@@ -73,7 +74,13 @@ ExplanationDuty::ExplanationDuty(StorageDuty& storage, llm::LlmClient& llm, Cost
             if (selection == requestedBatch_.cend()) continue;
             if (invalidatedWords_.contains(selection->lemma)) continue;
             if (selection->kind == QLatin1String("word")) {
-                core::WordCache cached{result.ipa.toStdString(), result.en.toStdString(), result.zh.toStdString(), result.translation.toStdString()};
+                // Named rather than positional: five of these six fields are strings, and the one
+                // that must not be dropped is the one that arrived last.
+                core::WordCache cached{.ipa         = result.ipa.toStdString(),
+                                       .en          = result.en.toStdString(),
+                                       .zh          = result.zh.toStdString(),
+                                       .translation = result.translation.toStdString(),
+                                       .etymology   = result.etymology.toStdString()};
                 for (auto const& sense : result.senses)
                     cached.senses.push_back({sense.en.toStdString(), sense.zh.toStdString(), sense.translation.toStdString()});
                 storage_.knownStore().cachePut(selection->lemma.toStdString(), std::move(cached), requestedContext_);
@@ -272,6 +279,7 @@ void ExplanationDuty::requestExplanations(QVector<PendingSelection> batch, core:
     llm_.setChannel(channel);
     llm_.setExplanationLang(QString::fromStdString(requestedContext_.language));
     llm_.setPreset(requestedContext_.multipleSenses ? QStringLiteral("multiple") : requestedBatch_.front().preset);
+    llm_.setEtymology(requestedBatch_.front().kind == QLatin1String("word") && etymologyEnabled());
     QStringList inputs;
     for (const auto& item : requestedBatch_) {
         inputs << (item.kind == QLatin1String("word") ? item.lemma : item.text);
@@ -331,6 +339,11 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
         }
         payload.insert(QStringLiteral("senses"), senses);
         payload.insert(QStringLiteral("ipa"), explanation.ipa);
+        // Read off the setting as the card is drawn rather than as the request was made: turning
+        // the setting off puts the origin away on the next bubble, and the entry it came from is
+        // left whole for whoever asks for it later.
+        if (etymologyEnabled())
+            payload.insert(QStringLiteral("etymology"), explanation.etymology);
         payload.insert(QStringLiteral("status"), storage_.knownStore().isKnown(explanation.title.toStdString()) ? QStringLiteral("known") : QStringLiteral("new"));
     }
     bubble_ = payload;
@@ -531,6 +544,11 @@ QVariantMap ExplanationDuty::settings() const
 QVariantList ExplanationDuty::models() const
 {
     return models_;
+}
+
+bool ExplanationDuty::etymologyEnabled() const
+{
+    return storage_.documentString("etymology", QStringLiteral("false")) == QLatin1String("true");
 }
 
 bool ExplanationDuty::setModel(QString const& model)

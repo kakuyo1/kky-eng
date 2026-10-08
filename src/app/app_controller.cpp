@@ -284,6 +284,12 @@ void AppController::setMultiSense(bool on)
     emit settingsChanged();
 }
 
+void AppController::setEtymology(bool on)
+{
+    storage_.writeDocument("etymology", on ? QStringLiteral("true") : QStringLiteral("false"));
+    emit settingsChanged();
+}
+
 void AppController::setTheme(QString theme)
 {
     storage_.writeDocument("theme", theme);
@@ -425,6 +431,7 @@ QVariantMap AppController::settings() const
                        {"levels", StorageDuty::levelOptions()},
                        {"explanationLang", QString::fromStdString(storage_.knownStore().explanationLang())},
                        {"multiSense", storage_.documentString("multiSense", QStringLiteral("false")) == QLatin1String("true")},
+                       {"etymology", storage_.documentString("etymology", QStringLiteral("false")) == QLatin1String("true")},
                        {"theme", storage_.documentString("theme", QStringLiteral("light"))},
                        {"animationsEnabled", storage_.documentBool("animationsEnabled", true)},
                        {"uiLanguage", storage_.documentString("uiLanguage", QStringLiteral("zh"))},

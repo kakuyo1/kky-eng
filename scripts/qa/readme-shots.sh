@@ -49,7 +49,7 @@ fi
 
 # surface:width:height -- the size each surface was drawn at, which is the size its image ships
 # at. Height is the panel's plus the padding around it that the prototype's own body carries.
-SIZES='bubble.html:340:200
+SIZES='bubble.html:340:290
 selection-bar.html:600:150
 settings.html:440:540
 words.html:380:500'

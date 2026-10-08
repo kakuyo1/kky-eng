@@ -142,28 +142,28 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 const L = {
   en: { title: "Settings", defaults: "Defaults", save: "Save",
         cat: { general: ["General", "Theme, animations, launch at startup"],
-               learning: ["Reading & learning", "Vocabulary level, explanation language, multiple senses"],
+               learning: ["Reading & learning", "Vocabulary level, explanation language, multiple senses, etymology"],
                capture: ["Capture & popups", "Trigger channels"],
                model: ["Model service", "Provider, model, API configuration"],
                budget: ["Daily budget", "Limit model spending for one local day"],
                extensions: ["Extensions", "Desktop companion"] } },
   zh: { title: "设置", defaults: "恢复默认", save: "保存",
         cat: { general: ["通用", "主题、动画效果、开机自启"],
-               learning: ["阅读学习", "词汇档位、解释语言、多义解释"],
+               learning: ["阅读学习", "词汇档位、解释语言、多义解释、词源"],
                capture: ["取词与弹窗", "触发通道"],
                model: ["模型服务", "服务商、模型、API 配置"],
                budget: ["每日预算", "限制单个本地日的模型花费"],
                extensions: ["扩展", "桌面宠物"] } },
   ja: { title: "設定", defaults: "初期設定", save: "保存",
         cat: { general: ["一般", "テーマ、アニメーション、スタートアップ"],
-               learning: ["読解と学習", "語彙レベル、解説の言語、複数の語義"],
+               learning: ["読解と学習", "語彙レベル、解説の言語、複数の語義、語源"],
                capture: ["取得とポップアップ", "取得のきっかけ"],
                model: ["モデルサービス", "プロバイダー、モデル、API 設定"],
                budget: ["1 日の予算", "1 日あたりのモデル費用を制限"],
                extensions: ["拡張", "デスクトップの相棒"] } },
   es: { title: "Ajustes", defaults: "Por defecto", save: "Guardar",
         cat: { general: ["General", "Tema, animaciones e inicio con el sistema"],
-               learning: ["Lectura y aprendizaje", "Nivel de vocabulario, idioma de las explicaciones, varias acepciones"],
+               learning: ["Lectura y aprendizaje", "Nivel de vocabulario, idioma de las explicaciones, varias acepciones, etimología"],
                capture: ["Captura y ventanas", "Canales de activación"],
                model: ["Servicio del modelo", "Proveedor, modelo, configuración de la API"],
                budget: ["Presupuesto diario", "Limita el gasto del modelo en un día local"],
@@ -181,7 +181,7 @@ const defaults = { theme: "light", uiLang: "zh", level: "CET-4", language: "en",
   policy: "topmost", minLen: "3", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
   tesseractExe: "", tesseractData: "", triggerKey: "Ctrl+Alt+S",
   dailyBudget: "0", customBg: "#e9ebef", customPanel: "#ffffff", customText: "#1a1a1f", customMuted: "#66666f", customFaint: "#9d9da8", customOk: "#2f9e6e",
-  ocr: false, scan: false, multi: false, pet: false };
+  ocr: false, scan: false, multi: false, etym: false, pet: false };
 const app = document.getElementById("app"), view = document.getElementById("view");
 const titleEl = document.getElementById("title"), crumbEl = document.getElementById("crumb");
 const backBtn = document.getElementById("back"), statusEl = document.getElementById("status");
@@ -254,7 +254,7 @@ function page(id) {
         { value: "IELTS", label: "IELTS", group: "Study-abroad exams" },
         { value: "TOEFL", label: "TOEFL", group: "Study-abroad exams" }
       ]) + seg("解释语言", "language", [["en", "English"], ["zh", "中文"], ["es", "Español"], ["ja", "日本語"]]) +
-      sw("多义解释", "multi");
+      sw("多义解释", "multi") + sw("词源", "etym");
     case "capture": return `<div class="field"><div class="group-title">触发通道</div><div class="swgroup">${sw("选区取词", "selection")}${sw("OCR", "ocr")}${sw("自动扫描", "scan")}</div></div>` +
       keyRow("OCR 触发热键", "triggerKey") +
       pathField("Tesseract 可执行文件", "tesseractExe", "程序目录\\ocr\\tesseract.exe") +

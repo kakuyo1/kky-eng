@@ -123,6 +123,13 @@ private:
     void rebuildModels();
     /// @return The provider in force, from the document.
     QString currentProvider() const;
+    /// @return Whether the reader wants a word's origin with its explanation.
+    ///
+    /// One reader of this, two uses: the request asks the model for it, and the card decides
+    /// whether to draw it. Turned off, the definition alone is what is bought and shown; turned
+    /// back on, the entries already stored are the ones served -- see WordCache for why the origin
+    /// sits outside the cache key.
+    bool etymologyEnabled() const;
     void clearBubble();
     void clearNotice();
 

@@ -29,6 +29,13 @@ std::optional<WordCache> readCache(nlohmann::json const& entry, std::string cons
         if (not entry["translation"].is_string()) return std::nullopt;
         result.translation = entry["translation"].get<std::string>();
     }
+    // Optional, and absent from every entry written before the setting existed. An empty one is
+    // kept as empty rather than failing the read: it says the model had no origin to give, not that
+    // the entry is damaged.
+    if (entry.contains("etymology")) {
+        if (not entry["etymology"].is_string()) return std::nullopt;
+        result.etymology = entry["etymology"].get<std::string>();
+    }
     if (language != "en" and language != "zh" and result.translation.empty()) return std::nullopt;
     if (entry.contains("senses")) {
         if (not entry["senses"].is_array() or entry["senses"].empty()) return std::nullopt;
@@ -55,6 +62,7 @@ nlohmann::json writeCache(WordCache const& entry)
 {
     nlohmann::json value{{"ipa", entry.ipa}, {"en", entry.en}, {"zh", entry.zh}};
     if (not entry.translation.empty()) value["translation"] = entry.translation;
+    if (not entry.etymology.empty()) value["etymology"] = entry.etymology;
     if (not entry.senses.empty()) {
         value["senses"] = nlohmann::json::array();
         for (auto const& sense : entry.senses)

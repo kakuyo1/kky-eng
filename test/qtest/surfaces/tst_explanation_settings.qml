@@ -16,7 +16,7 @@ Item {
             {value: "es", label: "Español", group: "", note: ""},
             {value: "ja", label: "日本語", group: "", note: ""}
         ],
-        explanationLang: "es", multiSense: true,
+        explanationLang: "es", multiSense: true, etymology: true,
         providers: [{value: "openai", label: "OpenAI", group: "International", note: ""}],
         provider: "openai", model: "gpt-4.1-mini",
         modelPrice: "Input 0.4 / Output 1.6 USD per 1000000 tokens",
@@ -97,6 +97,26 @@ Item {
             const modelField = findChild(service, "modelField");
             verify(modelField, "the model page has no model field");
             compare(modelField.currentValue, "gpt-4.1-mini");
+        }
+
+        /// The etymology switch is a setting, not a view: it reads what the document holds and
+        /// writes it back through the controller, which is what makes it survive a restart.
+        function test_theEtymologySwitchReadsAndWritesTheSetting() {
+            const page = createTemporaryObject(learning, root);
+            verify(page);
+            const row = findChild(page, "etymologySwitch");
+            verify(row, "the learning page draws no etymology switch");
+            compare(row.label, "Etymology");
+            compare(row.checked, root.settings.etymology);
+
+            const previous = Controller.settings.etymology;
+            try {
+                row.toggled(!previous);
+                compare(Controller.settings.etymology, !previous);
+            } finally {
+                row.toggled(previous);
+            }
+            compare(Controller.settings.etymology, previous);
         }
 
         function test_snapshotPageContents() {

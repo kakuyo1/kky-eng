@@ -235,6 +235,56 @@ TEST_F(LlmTest, RequestBodyKeepsTheDeepSeekContract)
     }
 }
 
+TEST_F(LlmTest, AsksForTheEtymologyOnlyWhenAskedAndOnlyOnTheWordChannel)
+{
+    const Config config{QUrl("https://api.deepseek.com"), "sk-not-a-real-key", "deepseek-flash"};
+    const auto prompt = [&](Channel channel, const QString& preset, bool etymology) {
+        const auto body =
+            QJsonDocument::fromJson(buildRequestBody(config, channel, {"ubiquitous"}, "zh", preset, etymology));
+        return body.object().value("messages").toArray().at(0).toObject().value("content").toString();
+    };
+
+    // Both word presets, because the field is asked for on either: a reader who turned on multiple
+    // senses has not thereby given up the origin.
+    for (const auto* preset : {"default", "multiple"}) {
+        SCOPED_TRACE(preset);
+        const auto off = prompt(Channel::Word, preset, false);
+        const auto on  = prompt(Channel::Word, preset, true);
+        // Off, the prompt reads as it did before the field existed: nothing is paid for that the
+        // reader's setting did not ask for.
+        EXPECT_FALSE(off.contains("etymology")) << "the field is named even though it was not asked for";
+        // On, the sentence and the example travel together. A shape that does not name the field
+        // is a field the model leaves out, and a missing optional value is not a failure any
+        // validator can report -- the card would simply have nothing to draw.
+        EXPECT_TRUE(on.contains(QStringLiteral("\"etymology\":\"...\""))) << "the format example omits the field";
+        EXPECT_TRUE(on.contains("origin")) << "nothing in the prompt asks for the word's origin";
+        EXPECT_GT(on.size(), off.size());
+    }
+
+    // The entity and sentence templates have no place for the origin, so the flag changes nothing
+    // there -- an entity is not a word with a history.
+    EXPECT_EQ(prompt(Channel::Entity, "default", false), prompt(Channel::Entity, "default", true));
+}
+
+TEST_F(LlmTest, KeepsAWordOriginWhenTheResponseCarriesOneAndShrugsWithoutIt)
+{
+    const QString withOrigin =
+        QStringLiteral(R"({"word":"ubiquitous","ipa":"/juːˈbɪkwɪtəs/","en":"existing everywhere","zh":"无处不在的",)"
+                       R"("etymology":"Latin, from ubique: everywhere."})");
+
+    const auto parsed = parseExplanations(Channel::Word, envelope(results(withOrigin)), kAskedFor);
+    ASSERT_TRUE(accepted(parsed)) << errorOf(parsed).toStdString();
+    EXPECT_EQ(std::get<QVector<Explanation>>(parsed).front().etymology,
+              QStringLiteral("Latin, from ubique: everywhere."));
+
+    // Absent is the ordinary case, not a fault: the setting asks for the field, and a word with no
+    // recorded origin answers with none. Rejecting the batch over it would throw away the
+    // definitions that did arrive.
+    const auto bare = parseExplanations(Channel::Word, envelope(results(kGoodResult)), kAskedFor);
+    ASSERT_TRUE(accepted(bare));
+    EXPECT_TRUE(std::get<QVector<Explanation>>(bare).front().etymology.isEmpty());
+}
+
 TEST_F(LlmTest, AcceptsAWellFormedResponse)
 {
     const auto result = parseExplanations(Channel::Word, envelope(results(kGoodResult)), kAskedFor);

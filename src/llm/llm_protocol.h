@@ -30,6 +30,13 @@ namespace lens::llm {
 /// is substituted into.
 inline constexpr const char* kOutputLanguagePlaceholder = "{outputLanguage}";
 
+/// Placeholders the etymology request is substituted into: the sentence that asks for the word's
+/// origin, and the field it adds to the JSON example in the same template. Both belong to the word
+/// channel, whose only reader-visible extra is a word's etymology; a template without them is
+/// left alone, which is what makes the substitution harmless on the entity and sentence channels.
+inline constexpr const char* kEtymologyNotePlaceholder  = "{etymologyNote}";
+inline constexpr const char* kEtymologyFieldPlaceholder = "{etymologyField}";
+
 /// @brief Which channel a request belongs to. Decided locally, before anything is sent.
 enum class Channel : std::uint8_t { Word = 0,
                                     Entity,
@@ -40,6 +47,13 @@ enum class Channel : std::uint8_t { Word = 0,
 struct PromptTemplate {
     QString systemPromptTemplate;               ///< Carries kOutputLanguagePlaceholder.
     QHash<QString, QString> outputLanguageLine; ///< "en" / "zh" -> closing prompt line.
+    /// The sentence asking for the word's origin, substituted into kEtymologyNotePlaceholder --
+    /// the reader's setting keeps it or clears it, and one channel prompt therefore serves both.
+    QString etymologyNote;
+    /// The `"etymology":"..."` fragment for the JSON example at kEtymologyFieldPlaceholder. It
+    /// travels with the sentence above: a shape that does not name the field is a field the model
+    /// leaves out, and a missing etymology is not something the validator can report.
+    QString etymologyField;
 };
 
 /// @brief Request half of one channel's protocol, from `request.<channel>.json`.

@@ -87,6 +87,8 @@ public:
     Q_INVOKABLE void setLevel(int level);
     Q_INVOKABLE void setExplanationLang(QString lang);
     Q_INVOKABLE void setMultiSense(bool on);
+    /// @brief Ask for a word's origin with its explanation, and draw it on the bubble.
+    Q_INVOKABLE void setEtymology(bool on);
     Q_INVOKABLE void setTheme(QString theme);
     Q_INVOKABLE void setAnimationsEnabled(bool on);
     Q_INVOKABLE void setUiLanguage(QString lang);

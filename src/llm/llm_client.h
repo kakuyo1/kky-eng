@@ -39,9 +39,13 @@ inline constexpr int kMaxSenses = 3;
 /// @note `title` is `word` on the word channel and the echoed sentence or entity otherwise.
 ///       `ipa` is required only by the word schema; sentence and entity responses have three
 ///       fields (`title`, `en`, `zh`).
+///       `etymology` is the word's origin in one sentence, in the explanation language. Optional
+///       like `ipa`: it is asked for only when the reader's setting wants it, and a word whose
+///       origin is unknown answers with none.
 struct Explanation {
     QString title, ipa, en, zh;
     QString translation;
+    QString etymology;
     QVector<Sense> senses;
 };
 
@@ -107,6 +111,13 @@ public:
     /// phase 1 produces.
     void setChannel(Channel channel);
 
+    /// @brief Ask the next request for the word's origin as well.
+    ///
+    /// A setter for the same reason the explanation language is one: the reader can flip it in the
+    /// settings popup, and it changes the system prompt rather than the connection. It is on the
+    /// word channel only in effect -- the other channels' templates have no place for it.
+    void setEtymology(bool etymology);
+
     /// @brief Select the loaded prompt preset for the next request.
     void setPreset(const QString& preset);
 
@@ -146,6 +157,7 @@ private:
     Channel channel_  = Channel::Word;
     QString preset_   = QStringLiteral("default");
     QString lang_     = QStringLiteral("en");
+    bool etymology_   = false;
     QString provider_ = QStringLiteral("DeepSeek");
     QNetworkAccessManager* manager_;
 };

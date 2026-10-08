@@ -59,6 +59,9 @@ QString httpErrorFor(int status);
  * @param explanationLang "en" or "zh"; picks the closing line of the system prompt.
  *                        An unknown value falls back to "en" and logs a warning.
  * @param preset          Prompt preset, such as sentence's "translate" or "explain".
+ * @param etymology       Ask for the word's origin as well. The word channel's templates carry the
+ *                        placeholders for it; a channel without them ignores the flag. Costs output
+ *                        tokens, so it is the reader's setting and never this function's default.
  * @return A compact JSON body, ready to POST.
  * @throws std::logic_error If that channel's protocol has not been loaded.
  */
@@ -66,7 +69,8 @@ QByteArray buildRequestBody(const Config& config,
                             Channel channel,
                             const QStringList& inputs,
                             const QString& explanationLang,
-                            const QString& preset = QStringLiteral("default"));
+                            const QString& preset = QStringLiteral("default"),
+                            bool etymology        = false);
 
 /**
  * @brief Validate a response that arrives from the network and must not be trusted.

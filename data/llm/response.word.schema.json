@@ -18,6 +18,7 @@
           "en": { "type": "string", "minLength": 1, "description": "One-line English definition." },
           "zh": { "type": "string", "minLength": 1, "description": "One-line Chinese definition." },
           "translation": { "type": "string", "minLength": 1 },
+          "etymology": { "type": "string", "description": "One short sentence on where the word came from, in the explanation language. Optional: it is asked for only when the etymology setting is on, and a word whose origin is unknown has none." },
           "senses": {
             "type": "array",
             "minItems": 1,

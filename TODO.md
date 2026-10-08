@@ -20,12 +20,6 @@
 
 待办：真机再遇到时，核对 `HoverHandler` 记录的光标与卡片屏幕矩形，确认是光标出界还是窗口可见性变化。
 
-## CI 的文档检查
-
-现状：`.github/workflows/ci.yml` 已覆盖构建、离线单测、QTest、QML lint 和覆盖率报告；真机集成与真实模型冒烟保留人工执行。
-
-待办：评估是否把本地 `.githooks/pre-commit` 的文档检查接入 CI，先确认重复维护的成本是否值得。
-
 ## HTTP 200 下的传输失败分类
 
 `LlmClient` 仅凭 HTTP 状态码选择错误路径，没有核对 `QNetworkReply::error()`。返回 200 后中途断开可能被报告为 schema 错误。补充离线失败用例，确认网络错误的提示措辞，再修正分类。
@@ -52,8 +46,6 @@
 ## 弹窗边缘检测优化
 
 ## 更新功能
-
-## etymology
 
 ## log 相关代码统一放 util
 

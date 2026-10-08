@@ -33,6 +33,11 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 .bub-word{font-size:20px;font-weight:650;letter-spacing:-.01em}
 .ipa{margin-left:7px;font-size:12.5px;font-weight:400;color:var(--faint)}
 .bub-def{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:6px}
+/* The word's origin, set off from the meaning above it: the rule and the label are what keep the
+   reader from reading one long definition (UI.md 4.3). Nothing is drawn when there is no origin. */
+.bub-etym{margin-top:6px;border-top:1px solid var(--line2);padding-top:5px}
+.bub-etym-label{font-size:11px;font-weight:700;color:var(--muted)}
+.bub-etym-text{font-size:12px;color:var(--muted);line-height:1.5;margin-top:5px}
 .bub-actions{display:flex;gap:8px;max-height:0;opacity:0;overflow:hidden;transition:.22s ease}
 .bubble:hover .bub-actions{max-height:44px;opacity:1;margin-top:12px;padding-top:12px;border-top:1px solid var(--line2)}
 .bub-meta{font-size:11px;color:var(--faint);margin-top:9px;display:flex;align-items:center;gap:6px}
@@ -52,6 +57,10 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
   <div class="bub-top"><span class="tag" data-l="new"></span><svg class="bub-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></div>
   <div class="bub-word">serendipity<span class="ipa">/ˌserənˈdɪpəti/</span></div>
   <div class="bub-def" data-l="def"></div>
+  <div class="bub-etym">
+    <div class="bub-etym-label" data-l="etymLabel"></div>
+    <div class="bub-etym-text" data-l="etym"></div>
+  </div>
   <div class="bub-actions"><button class="btn known" data-l="known"></button><button class="btn again" data-l="new"></button></div>
   <div class="bub-meta" data-l="meta"></div>
 </div>
@@ -60,18 +69,28 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 /// The reader-facing strings, one column per language, taken from i18n/lens_*.ts so the
 /// prototype and the application say the same thing. `def` is the explanation itself -- sample
 /// content, not a string the application owns, and it follows the explanation-language setting.
+/// `etymLabel` is a string the application owns; `etym` is more of the same sample content, and it
+/// is drawn only when the etymology setting is on.
 const L = {
   en: { new: "New", known: "Known", meta: "Disappears in 5s",
         def: "the occurrence of events by chance in a happy or beneficial way",
+        etymLabel: "Etymology",
+        etym: "Coined in 1754 from Horace Walpole's tale of the three princes of Serendip.",
         themeDark: "Dark", themeLight: "Light" },
   zh: { new: "新词", known: "已会", meta: "5 秒后自动消失",
         def: "偶然遇到美好事物的运气；意外的幸运发现。",
+        etymLabel: "词源",
+        etym: "1754 年由霍勒斯·沃波尔在《塞伦迪普三王子》中首创。",
         themeDark: "黑夜", themeLight: "白天" },
   ja: { new: "初見", known: "覚えた", meta: "5 秒後に消えます",
         def: "思いがけず素敵なものに出会う幸運。",
+        etymLabel: "語源",
+        etym: "1754 年、ホレス・ウォルポールの『セレンディップの三人の王子』で作られた語。",
         themeDark: "ダーク", themeLight: "ライト" },
   es: { new: "Nueva", known: "Conocida", meta: "Desaparece en 5 s",
         def: "el hallazgo afortunado de algo bueno por casualidad.",
+        etymLabel: "Etimología",
+        etym: "Acuñada en 1754 a partir del cuento de los tres príncipes de Serendip, de Horace Walpole.",
         themeDark: "Oscuro", themeLight: "Claro" }
 };
 const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();

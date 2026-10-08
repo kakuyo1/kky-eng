@@ -35,9 +35,14 @@ struct CacheContext {
 
 /// @brief A word's first definition and its ordered senses, in one cache context.
 /// @note Persisted IPA must be present but may be empty; older entries without it miss.
+/// @note Etymology is the word's origin in one sentence, in the explanation language. It is not
+///       part of the key: the setting that asks for it is not a context the entry is stored under,
+///       so a word explained with the setting off and one explained with it on are the same entry,
+///       and turning the setting back on never buys the same definition twice.
 struct WordCache {
     std::string ipa, en, zh;
     std::string translation;
+    std::string etymology;
     std::vector<CachedSense> senses;
 };
 
