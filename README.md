@@ -25,11 +25,11 @@ These images are screenshots of the HTML files in [`ui-prototypes/`](ui-prototyp
 
 | Explanation bubble | Selection actions |
 | --- | --- |
-| ![Lens explanation bubble concept showing a word, pronunciation, definition, and learning status](docs/readme-images/bubble-ui.png) | ![Lens selection action bar concept with translate, explain, and copy actions](docs/readme-images/selection-bar-ui.png) |
+| ![Lens explanation bubble concept showing a word, pronunciation, definition, and learning status](docs/readme-images/en/bubble-ui.png) | ![Lens selection action bar concept with translate, explain, and copy actions](docs/readme-images/en/selection-bar-ui.png) |
 
 | Settings | Word history |
 | --- | --- |
-| ![Lens settings concept showing its categories](docs/readme-images/settings-ui.png) | ![Lens word history concept with known and new word marks](docs/readme-images/words-ui.png) |
+| ![Lens settings concept showing its categories](docs/readme-images/en/settings-ui.png) | ![Lens word history concept with known and new word marks](docs/readme-images/en/words-ui.png) |
 
 ## Languages and appearance
 

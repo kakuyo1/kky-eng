@@ -25,11 +25,11 @@
 
 | 説明バブル | 選択アクションバー |
 | --- | --- |
-| ![単語、発音、説明、学習状態を表示する Lens の説明バブル案](docs/readme-images/bubble-ui.png) | ![翻訳、説明、テキストのコピーを表示する Lens の選択アクションバー案](docs/readme-images/selection-bar-ui.png) |
+| ![単語、発音、説明、学習状態を表示する Lens の説明バブル案](docs/readme-images/ja/bubble-ui.png) | ![翻訳、説明、テキストのコピーを表示する Lens の選択アクションバー案](docs/readme-images/ja/selection-bar-ui.png) |
 
 | 設定 | 単語履歴 |
 | --- | --- |
-| ![カテゴリを表示する Lens の設定画面案](docs/readme-images/settings-ui.png) | ![覚えた単語と新しい単語の印を表示する Lens の単語履歴案](docs/readme-images/words-ui.png) |
+| ![カテゴリを表示する Lens の設定画面案](docs/readme-images/ja/settings-ui.png) | ![覚えた単語と新しい単語の印を表示する Lens の単語履歴案](docs/readme-images/ja/words-ui.png) |
 
 ## 言語と外観
 

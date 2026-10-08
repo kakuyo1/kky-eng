@@ -25,11 +25,11 @@ Estas imágenes son capturas de los archivos HTML de [`ui-prototypes/`](ui-proto
 
 | Burbuja de explicación | Acciones de selección |
 | --- | --- |
-| ![Propuesta de burbuja de Lens con palabra, pronunciación, definición y estado de aprendizaje](docs/readme-images/bubble-ui.png) | ![Propuesta de barra de selección de Lens con acciones para traducir, explicar y copiar](docs/readme-images/selection-bar-ui.png) |
+| ![Propuesta de burbuja de Lens con palabra, pronunciación, definición y estado de aprendizaje](docs/readme-images/es/bubble-ui.png) | ![Propuesta de barra de selección de Lens con acciones para traducir, explicar y copiar](docs/readme-images/es/selection-bar-ui.png) |
 
 | Ajustes | Historial de palabras |
 | --- | --- |
-| ![Propuesta de ajustes de Lens con sus categorías](docs/readme-images/settings-ui.png) | ![Propuesta del historial de Lens con marcas para palabras conocidas y nuevas](docs/readme-images/words-ui.png) |
+| ![Propuesta de ajustes de Lens con sus categorías](docs/readme-images/es/settings-ui.png) | ![Propuesta del historial de Lens con marcas para palabras conocidas y nuevas](docs/readme-images/es/words-ui.png) |
 
 ## Idiomas y apariencia
 

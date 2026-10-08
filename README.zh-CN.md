@@ -25,11 +25,11 @@ Lens 在本机把捕获的文字分成单词、实体名称或句子请求。查
 
 | 解释气泡 | 选区动作条 |
 | --- | --- |
-| ![Lens 解释气泡设计稿，展示单词、音标、释义和学习状态](docs/readme-images/bubble-ui.png) | ![Lens 选区动作条设计稿，包含翻译、解释和复制操作](docs/readme-images/selection-bar-ui.png) |
+| ![Lens 解释气泡设计稿，展示单词、音标、释义和学习状态](docs/readme-images/zh-CN/bubble-ui.png) | ![Lens 选区动作条设计稿，包含翻译、解释和复制操作](docs/readme-images/zh-CN/selection-bar-ui.png) |
 
 | 设置 | 词汇历史 |
 | --- | --- |
-| ![Lens 设置界面设计稿，展示设置分类](docs/readme-images/settings-ui.png) | ![Lens 词汇历史设计稿，展示已会和新词标记](docs/readme-images/words-ui.png) |
+| ![Lens 设置界面设计稿，展示设置分类](docs/readme-images/zh-CN/settings-ui.png) | ![Lens 词汇历史设计稿，展示已会和新词标记](docs/readme-images/zh-CN/words-ui.png) |
 
 ## 语言与外观
 

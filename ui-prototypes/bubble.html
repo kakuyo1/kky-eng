@@ -49,21 +49,47 @@ body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100v
 </head>
 <body>
 <div class="bubble">
-  <div class="bub-top"><span class="tag">新词</span><svg class="bub-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></div>
+  <div class="bub-top"><span class="tag" data-l="new"></span><svg class="bub-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 5l14 14M19 5L5 19"/></svg></div>
   <div class="bub-word">serendipity<span class="ipa">/ˌserənˈdɪpəti/</span></div>
-  <div class="bub-def">the occurrence of events by chance in a happy or beneficial way</div>
-  <div class="bub-actions"><button class="btn known">已会</button><button class="btn again">新词</button></div>
-  <div class="bub-meta">Disappears in 5s</div>
+  <div class="bub-def" data-l="def"></div>
+  <div class="bub-actions"><button class="btn known" data-l="known"></button><button class="btn again" data-l="new"></button></div>
+  <div class="bub-meta" data-l="meta"></div>
 </div>
-<button class="themebtn" id="tb">黑夜</button>
+<button class="themebtn" id="tb"></button>
 <script>
+/// The reader-facing strings, one column per language, taken from i18n/lens_*.ts so the
+/// prototype and the application say the same thing. `def` is the explanation itself -- sample
+/// content, not a string the application owns, and it follows the explanation-language setting.
+const L = {
+  en: { new: "New", known: "Known", meta: "Disappears in 5s",
+        def: "the occurrence of events by chance in a happy or beneficial way",
+        themeDark: "Dark", themeLight: "Light" },
+  zh: { new: "新词", known: "已会", meta: "5 秒后自动消失",
+        def: "偶然遇到美好事物的运气；意外的幸运发现。",
+        themeDark: "黑夜", themeLight: "白天" },
+  ja: { new: "初見", known: "覚えた", meta: "5 秒後に消えます",
+        def: "思いがけず素敵なものに出会う幸運。",
+        themeDark: "ダーク", themeLight: "ライト" },
+  es: { new: "Nueva", known: "Conocida", meta: "Desaparece en 5 s",
+        def: "el hallazgo afortunado de algo bueno por casualidad.",
+        themeDark: "Oscuro", themeLight: "Claro" }
+};
+const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();
+const lang = asked.startsWith('zh') ? 'zh' : (L[asked] ? asked : 'zh');
+const t = L[lang];
+document.documentElement.lang = { en: 'en', zh: 'zh-CN', ja: 'ja', es: 'es' }[lang];
+for (const el of document.querySelectorAll('[data-l]')) el.textContent = t[el.dataset.l];
+
 const tb = document.getElementById('tb');
-function applyTheme(t) {
-  document.documentElement.dataset.theme = t;
-  tb.textContent = t === 'dark' ? '白天' : '黑夜';
+function applyTheme(v) {
+  document.documentElement.dataset.theme = v;
+  tb.textContent = v === 'dark' ? t.themeLight : t.themeDark;
 }
 applyTheme(location.search.includes('theme=dark') ? 'dark' : 'light');
 tb.onclick = () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+// ?shot is for the README's screenshots: the toggle is a way to look at the prototype, not part
+// of the surface, and no image of it ships.
+if (new URLSearchParams(location.search).has('shot')) tb.remove();
 </script>
 </body>
 </html>

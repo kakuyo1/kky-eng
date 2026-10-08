@@ -122,27 +122,60 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 <div class="settings" id="app" data-level="home">
   <div class="set-h">
     <button class="set-back" id="back" type="button" aria-label="返回">‹</button>
-    <span class="set-title" id="title">设置</span>
+    <span class="set-title" id="title" data-l="title"></span>
     <span class="set-sep" id="crumb-sep" hidden aria-hidden="true">/</span>
     <span class="set-crumb" id="crumb" hidden></span>
     <button class="close" type="button" aria-label="关闭">×</button>
   </div>
   <div class="set-body" id="view"></div>
   <div class="set-f">
-    <button class="btn ghost" id="defaults" type="button" disabled>恢复默认</button>
+    <button class="btn ghost" id="defaults" type="button" disabled data-l="defaults"></button>
     <span class="status" id="status" role="status" aria-live="polite"></span>
-    <button class="btn ink" id="save" type="button" disabled>保存</button>
+    <button class="btn ink" id="save" type="button" disabled data-l="save"></button>
   </div>
 </div>
 <script>
-const categories = [
-  { id: "general", name: "通用", summary: "主题、动画效果、开机自启" },
-  { id: "learning", name: "阅读学习", summary: "词汇档位、解释语言、多义解释" },
-  { id: "capture", name: "取词与弹窗", summary: "触发通道" },
-  { id: "model", name: "模型服务", summary: "服务商、模型、API 配置" },
-  { id: "budget", name: "每日预算", summary: "限制单个本地日的模型花费" },
-  { id: "extensions", name: "扩展", summary: "桌面宠物" }
-];
+/// The reader-facing strings, one column per language, taken from i18n/lens_*.ts so the
+/// prototype and the application say the same thing. `cat` is the catalogue: one entry per
+/// category, keyed by the id the routing already uses, name first and summary second. The
+/// sub-pages behind the catalogue keep the Chinese they were drawn in.
+const L = {
+  en: { title: "Settings", defaults: "Defaults", save: "Save",
+        cat: { general: ["General", "Theme, animations, launch at startup"],
+               learning: ["Reading & learning", "Vocabulary level, explanation language, multiple senses"],
+               capture: ["Capture & popups", "Trigger channels"],
+               model: ["Model service", "Provider, model, API configuration"],
+               budget: ["Daily budget", "Limit model spending for one local day"],
+               extensions: ["Extensions", "Desktop companion"] } },
+  zh: { title: "设置", defaults: "恢复默认", save: "保存",
+        cat: { general: ["通用", "主题、动画效果、开机自启"],
+               learning: ["阅读学习", "词汇档位、解释语言、多义解释"],
+               capture: ["取词与弹窗", "触发通道"],
+               model: ["模型服务", "服务商、模型、API 配置"],
+               budget: ["每日预算", "限制单个本地日的模型花费"],
+               extensions: ["扩展", "桌面宠物"] } },
+  ja: { title: "設定", defaults: "初期設定", save: "保存",
+        cat: { general: ["一般", "テーマ、アニメーション、スタートアップ"],
+               learning: ["読解と学習", "語彙レベル、解説の言語、複数の語義"],
+               capture: ["取得とポップアップ", "取得のきっかけ"],
+               model: ["モデルサービス", "プロバイダー、モデル、API 設定"],
+               budget: ["1 日の予算", "1 日あたりのモデル費用を制限"],
+               extensions: ["拡張", "デスクトップの相棒"] } },
+  es: { title: "Ajustes", defaults: "Por defecto", save: "Guardar",
+        cat: { general: ["General", "Tema, animaciones e inicio con el sistema"],
+               learning: ["Lectura y aprendizaje", "Nivel de vocabulario, idioma de las explicaciones, varias acepciones"],
+               capture: ["Captura y ventanas", "Canales de activación"],
+               model: ["Servicio del modelo", "Proveedor, modelo, configuración de la API"],
+               budget: ["Presupuesto diario", "Limita el gasto del modelo en un día local"],
+               extensions: ["Extensiones", "Compañero de escritorio"] } }
+};
+const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();
+const lang = asked.startsWith('zh') ? 'zh' : (L[asked] ? asked : 'zh');
+const t = L[lang];
+document.documentElement.lang = { en: 'en', zh: 'zh-CN', ja: 'ja', es: 'es' }[lang];
+for (const el of document.querySelectorAll('[data-l]')) el.textContent = t[el.dataset.l];
+
+const categories = Object.entries(t.cat).map(([id, [name, summary]]) => ({ id, name, summary }));
 const titles = { clipboard: "弹窗与剪贴板", connection: "API 配置" };
 const defaults = { theme: "light", uiLang: "zh", level: "CET-4", language: "en", startup: false, animations: true, selection: true,
   policy: "topmost", minLen: "3", provider: "DeepSeek", model: "deepseek-flash", api: "", url: "",
@@ -289,7 +322,7 @@ function updateFoot() {
 }
 function render(focus = false) {
   app.dataset.level = (route || category) ? "sub" : "home";
-  titleEl.textContent = "设置";
+  titleEl.textContent = t.title;
   const crumb = route ? titles[route] : category ? categories.find(c => c.id === category).name : "";
   crumbEl.textContent = crumb; crumbEl.hidden = !crumb;
   document.getElementById("crumb-sep").hidden = !crumb;
