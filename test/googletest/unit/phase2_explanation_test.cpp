@@ -576,7 +576,7 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     QObject::connect(&controller, &app::AppController::settingsChanged, [&] { ++settingsChanges; });
     auto const initial = controller.settings();
     EXPECT_EQ(initial.value("languages").toList().size(), 4);
-    EXPECT_EQ(initial.value("providers").toList().size(), 10);
+    EXPECT_EQ(initial.value("providers").toList().size(), 9);
     EXPECT_EQ(initial.value("provider").toString(), "DeepSeek");
     // The provider carries no model, so the one the client was built with stands.
     EXPECT_EQ(initial.value("model").toString(), "test-model");

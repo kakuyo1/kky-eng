@@ -159,7 +159,7 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 
 ## 7 相关文件
 
-模型列表刷新由目录项的 `modelList` 定义：HTTP 方法、相对或 HTTPS 绝对路径、认证头、可选查询参数、响应数组与 ID 字段、可选能力过滤，以及官方文档 URL。Google 使用原生 `GET https://generativelanguage.googleapis.com/v1beta/models`，通过 `x-goog-api-key` 认证，从 `models[].name` 去掉 `models/` 前缀，按 `supportedGenerationMethods` 保留 `generateContent`，再按模型 ID 排除图像、语音等非对话模型。其他当前服务商使用各自 OpenAI 兼容 base URL 下的 `GET /models` 与 Bearer 认证；SiliconFlow 追加 `sub_type=chat`，OpenRouter 追加 `output_modalities=text`。不配置非官方目录源。
+模型列表刷新由目录项的 `modelList` 定义：HTTP 方法、相对或 HTTPS 绝对路径、认证头、可选查询参数、响应数组与 ID 字段、可选能力过滤，以及官方文档 URL。Google 使用原生 `GET https://generativelanguage.googleapis.com/v1beta/models`，通过 `x-goog-api-key` 认证，从 `models[].name` 去掉 `models/` 前缀，按 `supportedGenerationMethods` 保留 `generateContent`，再按模型 ID 排除图像、语音等非对话模型。其他当前服务商使用各自 OpenAI 兼容 base URL 下的 `GET /models` 与 Bearer 认证，OpenRouter 追加 `output_modalities=text`。不配置非官方目录源。
 
 模型列表缓存写在用户的 `%APPDATA%\Lens\settings.json` 的 `MODELS`，`catalog.json` 只作为安装包中的只读种子。刷新失败、超时、空响应或结构无效时保持已有缓存；成功响应只写入发起请求的服务商。模型列表请求超时为 10 秒，响应上限为 2 MiB，模型条目上限为 2000；API key 仅通过目录指定的请求头发送，不写入目录、缓存或日志。
 

@@ -3,7 +3,10 @@
     "models is an offline seed, most common first. modelList describes the provider's official",
     "refresh endpoint and response mapping. Successful results are cached per provider in the",
     "reader's settings document; this shipped file remains read-only at runtime. Only the seed",
-    "entries below contain model ids this project can vouch for."
+    "entries below contain model ids this project can vouch for.",
+    "xAI publishes no model-list endpoint in its API reference. Its modelList is the",
+    "OpenAI-compatible convention every other service here follows, unverified against a live",
+    "key; a list that never arrives leaves the model field as it was, and it can be typed in."
   ],
   "defaultProvider": "DeepSeek",
   "languages": [
@@ -39,12 +42,6 @@
       "requestOverrides": {"thinking": null}
     },
     {
-      "value": "SiliconFlow", "label": "SiliconFlow", "group": "Domestic", "note": "",
-      "baseUrl": "https://api.siliconflow.cn/v1",
-      "modelList": {"method": "GET", "path": "/models", "query": {"sub_type": "chat"}, "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://docs.siliconflow.cn/docs/api/models-get"},
-      "requestOverrides": {"thinking": null}
-    },
-    {
       "value": "openai", "label": "OpenAI", "group": "International", "note": "",
       "baseUrl": "https://api.openai.com/v1",
       "models": ["gpt-4.1-mini", "gpt-4.1-nano"],
@@ -64,9 +61,9 @@
       "requestOverrides": {"thinking": null}
     },
     {
-      "value": "Groq", "label": "Groq", "group": "International", "note": "",
-      "baseUrl": "https://api.groq.com/openai/v1",
-      "modelList": {"method": "GET", "path": "/models", "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://console.groq.com/docs/api-reference#models"},
+      "value": "xAI", "label": "xAI (Grok)", "group": "International", "note": "",
+      "baseUrl": "https://api.x.ai/v1",
+      "modelList": {"method": "GET", "path": "/models", "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://docs.x.ai/docs/api-reference"},
       "requestOverrides": {"thinking": null}
     },
     {
