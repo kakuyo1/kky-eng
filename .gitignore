@@ -25,3 +25,7 @@ i18n/*.qm
 # repository, so an unignored one shows up as an untracked tree and can be staged whole by a
 # `git add -A`; the branches they carry are the thing to keep, not the directories.
 .claude/worktrees/
+
+# The /team workflow's handover documents (PLAN/IMPLEMENTATION/REVIEW, watcher state). They live
+# inside the checkout but belong to no commit; ignoring them keeps `git status` clean.
+.orca/
