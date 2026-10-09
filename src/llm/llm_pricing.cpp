@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "core/log.h"
+#include "util/log.h"
 
 namespace lens::llm {
 

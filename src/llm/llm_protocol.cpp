@@ -1,6 +1,6 @@
 #include "llm/llm_protocol.h"
 
-#include "core/log.h"
+#include "util/log.h"
 
 #include <QByteArray>
 #include <QJsonArray>

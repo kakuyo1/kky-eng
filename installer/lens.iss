@@ -57,7 +57,7 @@ Source: "{#DataDir}\*"; DestDir: "{app}\data"; Flags: recursesubdirs createallsu
 
 [Icons]
 ; WorkingDir is named rather than left to the default: the app writes its rotating log to logs/
-; below the directory it is started in (src/core/log.cpp), and a shortcut that does not say which
+; below the directory it is started in (src/util/log.cpp), and a shortcut that does not say which
 ; that is leaves the file wherever the shell happened to choose.
 Name: "{group}\Lens"; Filename: "{app}\lens.exe"; WorkingDir: "{app}"
 
