@@ -106,7 +106,7 @@
 | Overlay | QML | 解释气泡 + 学习标记 + 设置浮层 + 统计 / 词汇 / 花费弹窗 |
 | Test（`test/googletest/`，独立目标 `lens_gtest_*`） | C++ | 自检：单测（样例集离线断言）+ 冒烟（真 LLM 人工核验）。不编进 `lens_app`，不进发布包 |
 
-## 阶段一（真 LLM 直连）
+## 阶段一到二
 
 - 阶段一取词范围：选区（鼠标钩子 → Ctrl+C 取文）真可用；阶段二已用程序目录内的 Tesseract runtime 补齐截图与自动扫描，悬停取词仍未在设置中暴露。
 - 密钥边界：API key 仅存本地 `%APPDATA%\Lens\settings.json`，不提交、不入日志。
