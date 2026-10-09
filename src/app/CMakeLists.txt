@@ -22,6 +22,8 @@ add_library(lens_app STATIC
   global_hotkey.cpp
   mouse_selection_hook.h
   mouse_selection_hook.cpp
+  paths.h
+  paths.cpp
   selection_text_grabber.cpp
   storage_duty.h
   storage_duty.cpp

@@ -6,6 +6,8 @@
 #include <QTimer>
 #include <QtQml/qqmlregistration.h>
 
+#include "app/tray_state.h"
+
 class QSystemTrayIcon;
 class QQmlEngine; // For the create() factory's signature; see app_controller.h.
 class QJSEngine;
@@ -70,19 +72,11 @@ private:
     /// @brief What main() handed to provide(); see AppController::provide().
     static Tray* instance_;
 
-    /// @brief What the icon is saying.
-    enum class State {
-        Auto,   ///< Selection capture is on and nothing is in flight.
-        Busy,   ///< An explanation is being fetched.
-        Off,    ///< Selection capture is off.
-        Budget, ///< Today's budget has been reached.
-    };
-
     /// @brief Recompute the state, the icon and the tooltip.
     void refresh();
 
-    /// @return The state the controller's own values imply.
-    State state() const;
+    /// @return The state the controller's own values imply; the rule lives in tray_state.h.
+    TrayState state() const;
 
     AppController& controller_;
     QSystemTrayIcon* icon_ = nullptr;

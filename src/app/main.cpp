@@ -12,7 +12,6 @@
 #include <QFontDatabase>
 #include <QCoreApplication>
 #include <QQmlApplicationEngine>
-#include <QStandardPaths>
 #include <QTimer>
 #include <QVariant>
 #include <QTranslator>
@@ -32,6 +31,7 @@
 #include "llm/llm_pricing.h"
 #include "llm/llm_protocol.h"
 #include "mouse_selection_hook.h"
+#include "paths.h"
 #include "tray.h"
 #include "util/log.h"
 #include "util/qt_log.h"
@@ -40,6 +40,9 @@ using lens::app::AppController;
 using lens::app::GlobalHotkey;
 using lens::app::MouseSelectionHook;
 using lens::app::Tray;
+using lens::app::narrow;
+using lens::app::settingsPath;
+using lens::app::toPath;
 using lens::core::KnownStore;
 
 namespace {
@@ -51,18 +54,6 @@ constexpr const char* kBuildDataDir = LENS_DATA_DIR;
 /// The settings document at the repository root, which a first run after the packaging change
 /// copies into the reader's profile once. See settingsPath().
 constexpr const char* kDevSettingsPath = LENS_SETTINGS_PATH;
-
-/// @return @p text as a std::filesystem::path, for the loaders that take one.
-std::filesystem::path toPath(const QString& text)
-{
-    return std::filesystem::path{text.toStdWString()};
-}
-
-/// @return @p path as the log wants it: UTF-8, whatever the account is named.
-std::string narrow(const std::filesystem::path& path)
-{
-    return QString::fromStdWString(path.wstring()).toStdString();
-}
 
 /**
  * @brief Where the word list and the protocol files are read from.
@@ -81,45 +72,6 @@ std::filesystem::path dataDirectory()
     if (std::filesystem::is_directory(installed, ec))
         return installed;
     return toPath(QString::fromUtf8(kBuildDataDir));
-}
-
-/**
- * @brief Where the settings document lives: the reader's profile, never the install folder.
- *
- * `%APPDATA%\Lens\settings.json`, from QStandardPaths::AppDataLocation with the application
- * name main() sets and no organization name -- naming one would add a directory level for a
- * name the product does not use. The install folder is wrong for this file twice over: it can
- * be read-only under Program Files, and it is shared by every account, while the document
- * carries one reader's API key and word marks.
- *
- * The document used to live at the repository root. A first run whose profile copy is missing
- * copies that one over, once, so a key already configured keeps working. Only the path is ever
- * logged -- the document holds the key, and its contents do not belong in a log.
- *
- * @param legacy Document to carry over from, when the profile has none yet.
- * @return The path to load and save; its directory exists on return unless it could not be
- *         created at all.
- */
-std::filesystem::path settingsPath(const std::filesystem::path& legacy)
-{
-    const std::filesystem::path target =
-        toPath(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)) / "settings.json";
-
-    std::error_code ec;
-    std::filesystem::create_directories(target.parent_path(), ec);
-    if (ec) {
-        LENS_WARN("settings directory {} could not be created: {}", narrow(target.parent_path()), ec.message());
-        return target;
-    }
-
-    if (!std::filesystem::exists(target, ec) && std::filesystem::exists(legacy, ec)) {
-        std::filesystem::copy_file(legacy, target, ec);
-        if (ec)
-            LENS_WARN("the settings document was not carried over from {}: {}", narrow(legacy), ec.message());
-        else
-            LENS_INFO("settings carried over from {} to {}", narrow(legacy), narrow(target));
-    }
-    return target;
 }
 
 /// @brief The setting's language code, and the locale whose .qm carries it.

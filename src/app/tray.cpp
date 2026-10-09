@@ -121,31 +121,16 @@ QRect Tray::geometry() const
     return lastGeometry_;
 }
 
-Tray::State Tray::state() const
+TrayState Tray::state() const
 {
-    if (controller_.stats().value("budgetExhausted").toBool())
-        return State::Budget;
-    if (!controller_.busyLabel().isEmpty())
-        return State::Busy;
-    return controller_.settings().value("selectionCapture").toBool() ? State::Auto : State::Off;
+    return trayState(controller_.stats().value("budgetExhausted").toBool(),
+                     !controller_.busyLabel().isEmpty(),
+                     controller_.settings().value("selectionCapture").toBool());
 }
 
 void Tray::refresh()
 {
-    switch (state()) {
-        case State::Busy:
-            icon_->setIcon(iconFor("busy", taskbarIsDark()));
-            break;
-        case State::Auto:
-            icon_->setIcon(iconFor("auto", taskbarIsDark()));
-            break;
-        case State::Off:
-            icon_->setIcon(iconFor("off", taskbarIsDark()));
-            break;
-        case State::Budget:
-            icon_->setIcon(iconFor("budget", taskbarIsDark()));
-            break;
-    }
+    icon_->setIcon(iconFor(trayIconName(state()), taskbarIsDark()));
 
     const QVariantMap stats = controller_.stats();
     const QString today     = tr("Today %1 words").arg(QString::number(stats.value("todayPops").toInt()));
