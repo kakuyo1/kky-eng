@@ -12,8 +12,7 @@
  * The two conversions are what main.cpp used to keep to itself. settingsPath() moved out of
  * main.cpp's anonymous namespace because nothing in there can be reached from a test, and the
  * boundary it draws -- the reader's API key rides in that document, so the document belongs to
- * the profile and never to the install tree -- is the one PHASE2 section 5.1 asks a case to
- * lock.
+ * the profile and never to the install tree -- is the one a case locks.
  */
 
 namespace lens::app {

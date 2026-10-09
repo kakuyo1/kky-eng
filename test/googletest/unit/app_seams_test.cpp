@@ -112,8 +112,8 @@ TEST(Autostart, TheCommandQuotesTheExecutablePath)
 }
 
 /// The tray state is a priority, not a sum: an exhausted budget is the one thing the reader has
-/// to act on, so it outranks a request in flight and the capture switch both. PHASE2 section
-/// 4.4's acceptance names that state, and nothing behind Tray's private half could assert it.
+/// to act on, so it outranks a request in flight and the capture switch both. Nothing behind
+/// Tray's private half could assert it, which is why the rule lives in tray_state.h.
 TEST(TrayState, TheExhaustedBudgetOutranksTheRestAndEveryStateNamesItsArt)
 {
     EXPECT_EQ(trayState(true, true, true), TrayState::Budget);
@@ -210,9 +210,9 @@ std::string readFile(const std::filesystem::path& path)
     return {std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>()};
 }
 
-/// PHASE2 section 5.1 names this boundary: the document carries the reader's API key and word
-/// marks, so it belongs to the profile -- one per account -- and never to the install tree,
-/// which every account shares and which may be read-only under Program Files.
+/// The boundary: the document carries the reader's API key and word marks, so it belongs to the
+/// profile -- one per account -- and never to the install tree, which every account shares and
+/// which may be read-only under Program Files.
 TEST(SettingsPath, LivesInTheProfileAndNeverInTheInstallTree)
 {
     const ProfileScope scope;

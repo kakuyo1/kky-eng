@@ -1,6 +1,6 @@
 add_library(lens_llm STATIC
-  # The file lives in src/util/, but lens_util's contract is Qt-free (PHASE2.md 7.1), so
-  # lens_llm is the lowest target that can compile it.
+  # The file lives in src/util/, but lens_util's contract is Qt-free, so lens_llm is the
+  # lowest target that can compile it.
   ${CMAKE_SOURCE_DIR}/src/util/qt_log.cpp
   llm_protocol.cpp
   llm_pricing.cpp

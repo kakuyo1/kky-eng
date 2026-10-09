@@ -5,8 +5,8 @@
  * @brief Routes Qt's own diagnostics into spdlog, so one file holds the whole story.
  *
  * @note This is Qt plumbing with no LLM behaviour in it. The file lives in src/util/
- *       because the logging code belongs together, but lens_util's contract is Qt-free
- *       (PHASE2.md 7.1), so lens_llm is the lowest target that can compile it.
+ *       because the logging code belongs together, but lens_util's contract is Qt-free,
+ *       so lens_llm is the lowest target that can compile it.
  */
 
 namespace lens::log {

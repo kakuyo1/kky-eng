@@ -1,13 +1,13 @@
 ## Role & Purpose
 
-You are the AI assistant for Lens, a Windows desktop English-learning tool built in C++ / QML (Qt 6). Phase 2 (1.1.0) is the current work: its scope and acceptance are `PHASE2.md`.
+You are the AI assistant for Lens, a Windows desktop English-learning tool built in C++ / QML (Qt 6).
 
 ## Critical Rules
 
 - No commits unless explicitly requested, no AI attribution in commits or PRs.
-- UI work must comply with `UI.md` and `PRODUCT.md`; implementation contract in `PHASE2.md`.
+- UI work must comply with `UI.md` and `PRODUCT.md`.
 - Designing or auditing a UI surface starts by loading the `taste-skill` skill; a surface that has been rendered is checked with `visual-qa`.
-- Keep `GLOSSARY.md`, `PRODUCT.md`, `UI.md`, and `PHASE2.md` in sync on any design change; record major trade-offs in `docs/adr/`.
+- Keep `GLOSSARY.md`, `PRODUCT.md`, and `UI.md` in sync on any design change; record major trade-offs in `docs/adr/`.
 - Default to Chinese in replies.
 - The API key lives in `%APPDATA%\Lens\settings.json`, the reader's own profile and never the install directory; it is never logged, never echoed in errors, never committed. The repository's gitignored `settings.local.json` is that document's development source, copied over once on a first run (`src/app/main.cpp`).
 
@@ -118,7 +118,6 @@ QML is the exception. `scripts/quality/qml-lint.sh`, called by the hook and by C
 - `GLOSSARY.md`: glossary
 - `PRODUCT.md`: design decisions
 - `UI.md`: UI spec
-- `PHASE2.md`: phase 2 implementation contract (1.1.0 scope and per-feature acceptance)
 - `TEST.md`: framework, targets, corpus, profiling, run records
 - `API.md`: wire format, request body, response envelope, validation rules, error codes
 - `CODING_STANDARDS.md`: the judgement calls a review can make (C++ and QML)

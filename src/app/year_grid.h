@@ -17,7 +17,7 @@
  * AppController answered this from QDate::currentDate(), so its cases could only check the shape
  * of whichever day they happened to run on -- never a leap year, and never a year with a single
  * recorded day. The window is a pure projection of a date and the daily tallies, so it lives
- * here where a case can hand it the date it means; PHASE2 section 5.3 names both of those.
+ * here where a case can hand it the date it means.
  */
 
 namespace lens::app {
