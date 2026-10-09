@@ -28,7 +28,7 @@ lens/
 ├── third_party       # vendored: nlohmann/json, spdlog, googletest
 ├── icons
 ├── logs              # runtime logs, rotating, gitignored but for .gitkeep
-├── src
+├── src               # util/, core/ (no Qt), llm/, capture/, app/ (Qt + app/qml/)
 ├── test              # gtest (unit / integration / perf / smoke) and qtest targets, separate from src/
 └── ui-prototypes/    # one HTML prototype per surface; see its README.md
 ```
@@ -69,7 +69,7 @@ PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
 
 `TEST.md` owns the rest: the targets, the corpus format, the profiling facility and its build tree, the coverage scan, and the run-record convention.
 
-Targets: `lens_core` (no Qt) → `lens_llm` → `lens_app`. The `lens_gtest_*` targets are standalone and never shipped.
+Targets: `lens_util` → `lens_core` → `lens_capture` / `lens_llm` → `lens_app`. The `lens_gtest_*` targets are standalone and never shipped.
 
 Match the run to the change instead of running the whole matrix every time: a one-file edit needs only the target that covers it, `lens_gtest_unit` for `src/core` or `src/llm` and the matching `lens_qtest_*` for QML, while the full run is for a merge, a release, or a change that crosses targets.
 
