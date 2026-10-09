@@ -22,6 +22,7 @@ scripts\build\build-release.bat
 
 ```sh
 sh scripts/quality/qml-lint.sh
+sh scripts/qa/readme-shots.sh          # 重画 README 的四语言截图，源是 ui-prototypes/
 ```
 
 具体测试目标、覆盖率口径和桌面验证方法见 [`TEST.md`](../TEST.md)。
