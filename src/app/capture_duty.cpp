@@ -18,8 +18,8 @@
 #include "capture/capture_policy.h"
 #include "capture/foreground_window.h"
 #include "core/filter_core.h"
-#include "core/log.h"
 #include "mouse_selection_hook.h"
+#include "util/log.h"
 
 namespace lens::app {
 namespace {

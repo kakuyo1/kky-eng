@@ -232,7 +232,7 @@ F 不实现功能，只交付可并行基线：
 ### 7.1 重复函数收敛到 `src/util`（阶段 F）
 
 - **目标**：把散落的重复函数抽到 `src/util` 复用（`TODO.md` 的 Pending Ideas “重复函数收敛为 util”）。
-- **要点**：先盘点重复（时间 / 统计算术、字符串处理、路径拼装等）；新增 `lens_util` 目标，纯函数、无 Qt 的部分放这里，可离线单测；`lens_core` / `lens_llm` / `lens_app` 依赖它。
+- **要点**：先盘点重复（时间 / 统计算术、字符串处理、路径拼装等）；新增 `lens_util` 目标，纯函数、无 Qt 的部分放这里，可离线单测；log 代码也归入 `src/util/`：`util/log.h` 无 Qt、可离线单测；`util/qt_log.h` 是 Qt 桥接，文件在 `util/` 但由 `lens_llm` 编译；`lens_core` / `lens_llm` / `lens_app` 依赖它。
 - **验收**：重复消除，行为不变；新增单测覆盖抽出的函数；根 `CMakeLists.txt` 的目标图更新。
 
 ### 7.2 1.0.0 bug 修复（阶段 F）

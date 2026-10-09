@@ -13,8 +13,8 @@
 #include <optional>
 #include <thread>
 
-#include "core/log.h"
 #include "capture/capture_policy.h"
+#include "util/log.h"
 
 // Last, after everything else: windows.h brings a few hundred macros with it (min and max
 // among them), and including it first would let them loose on the standard library.

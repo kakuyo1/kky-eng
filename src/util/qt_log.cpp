@@ -1,6 +1,6 @@
-#include "llm/qt_log.h"
+#include "util/qt_log.h"
 
-#include "core/log.h"
+#include "util/log.h"
 
 #include <QtCore/QString>
 #include <QtCore/qlogging.h>

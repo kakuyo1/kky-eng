@@ -8,8 +8,8 @@
 #include <utility>
 #include <variant>
 
-#include "core/log.h"
 #include "llm_pure.h"
+#include "util/log.h"
 
 namespace lens::llm {
 namespace {

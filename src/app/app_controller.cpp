@@ -18,8 +18,8 @@
 #include <utility>
 
 #include "autostart.h"
-#include "core/log.h"
 #include "notice.h"
+#include "util/log.h"
 
 namespace lens::app {
 namespace {

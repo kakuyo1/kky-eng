@@ -8,7 +8,7 @@
 #include <QCoreApplication>
 #include <QSettings>
 
-#include "core/log.h"
+#include "util/log.h"
 
 namespace lens::app {
 

@@ -7,7 +7,7 @@
 #include <QJsonObject>
 #include <QRegularExpression>
 
-#include "core/log.h"
+#include "util/log.h"
 
 namespace lens::llm {
 namespace {

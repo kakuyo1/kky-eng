@@ -102,7 +102,7 @@ Comments are English and Doxygen-style. `///` with `@brief`, `@param`, `@return`
 std::string lemmatize(std::string_view token);
 ```
 
-Log through the `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_ERROR` / `LENS_CRITICAL` macros in `src/core/log.h`.
+Log through the `LENS_TRACE` / `LENS_DEBUG` / `LENS_INFO` / `LENS_WARN` / `LENS_ERROR` / `LENS_CRITICAL` macros in `src/util/log.h`.
 
 ## Lint
 

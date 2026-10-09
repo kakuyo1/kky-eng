@@ -8,7 +8,7 @@
 
 - **注释用英文、说 why 不说 what、密度与邻座一致**。写法的正文在 `AGENTS.md`。
 - **日志走 `LENS_*` 宏**，不用 `qDebug` / `std::cout`。Qt 自己的 qDebug / qWarning 由
-  `src/llm/qt_log.h` 折进同一个 logger，源位置指向 Qt 调用点。
+  `src/util/qt_log.h` 折进同一个 logger，源位置指向 Qt 调用点。
 - **一个设计若与既有注释冲突，改注释与改代码放进同一个提交**。留在树里的旧注释比没有注释更坏——下一个
   读者会照着它做。
 

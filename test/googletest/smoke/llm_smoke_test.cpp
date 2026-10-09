@@ -26,10 +26,10 @@
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
 
-#include "core/log.h"
 #include "llm/llm_client.h"
-#include "llm/qt_log.h"
 #include "llm_support.h"
+#include "util/log.h"
+#include "util/qt_log.h"
 
 #ifdef _WIN32
 #include <windows.h>

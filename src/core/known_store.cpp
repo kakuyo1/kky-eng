@@ -1,5 +1,5 @@
 #include "core/known_store.h"
-#include "core/log.h"
+#include "util/log.h"
 
 #include <fstream>
 #include <stdexcept>

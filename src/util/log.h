@@ -15,7 +15,7 @@
 #include <cstddef>
 #include <filesystem>
 
-// SPDLOG_ACTIVE_LEVEL is set by CMake on lens_core (trace in Debug, info in Release), not
+// SPDLOG_ACTIVE_LEVEL is set by CMake on lens_util (trace in Debug, info in Release), not
 // here. spdlog's own common.h defaults it to info the moment it is included, so defining
 // it in this header would silently lose to that default whatever the include order.
 

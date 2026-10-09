@@ -15,7 +15,7 @@
 #include <optional>
 #include <string>
 
-#include "core/log.h"
+#include "util/log.h"
 
 // Last, after everything else: windows.h brings a few hundred macros with it (min and max
 // among them), and including it first would let them loose on the standard library.

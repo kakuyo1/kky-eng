@@ -27,14 +27,14 @@
 #include "app_controller.h"
 #include "core/filter_core.h"
 #include "core/known_store.h"
-#include "core/log.h"
 #include "global_hotkey.h"
 #include "llm/llm_client.h"
 #include "llm/llm_pricing.h"
 #include "llm/llm_protocol.h"
-#include "llm/qt_log.h"
 #include "mouse_selection_hook.h"
 #include "tray.h"
+#include "util/log.h"
+#include "util/qt_log.h"
 
 using lens::app::AppController;
 using lens::app::GlobalHotkey;

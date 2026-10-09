@@ -14,7 +14,7 @@
 #include <QVariantMap>
 
 #include "app_controller.h"
-#include "core/log.h"
+#include "util/log.h"
 
 namespace lens::app {
 namespace {
