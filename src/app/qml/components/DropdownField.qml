@@ -15,6 +15,18 @@ import QtQuick.Window
  * field is the reader's cursor, which is what makes a model name the service never listed
  * reachable by hand (UI.md 4.4, docs/adr/0017).
  *
+ * Typing in the editable shape is also how the list is searched: a keystroke narrows the rows to
+ * the options whose `value` contains what was typed, and brings the list up by itself, so the
+ * reader never presses the chevron to look. It comes down on three things -- the text becoming one
+ * of the ids in the list, a row being picked, and a field the reader has emptied -- and it never
+ * comes up at all for a search that matches nothing, because an empty card is not a dropdown. The
+ * text is never rewritten: a private deployment name the catalogue has never heard of is the reason
+ * this field is typeable at all, so an exact match closes the list and changes nothing else.
+ *
+ * That second path up the list deliberately does not emit `listOpened`, which means "the reader
+ * asked for the list" and is wired to a refresh. One request per keystroke is not what that
+ * signal says.
+ *
  * A chevron with no list behind it is dimmed and takes no press, the way a switch that cannot be
  * moved is: a service that never answered has no models to offer, and the field is still the
  * reader's to type in. It is greyed rather than taken away because the shape of this control is
@@ -31,6 +43,9 @@ Item {
     /// Whether the value can be typed as well as picked.
     property bool editable: false
 
+    /// What the reader has typed, trimmed, and is searching the list by. Blank is no filter.
+    property string filterText: ""
+
     signal picked(var value)
     signal listOpened()
     /// A value was typed and the reader left the field. Only ever emitted when `editable`.
@@ -43,6 +58,24 @@ Item {
             if (options[i].value === currentValue)
                 return options[i];
         return null;
+    }
+
+    /// The rows the list is drawn over: the whole `options` when nothing is being searched for,
+    /// otherwise the ones whose value contains the search.
+    ///
+    /// A substring test, not a subsequence one. A subsequence match would offer ids that share no
+    /// run of characters with what was typed, which reads as a filter that is broken rather than
+    /// as one that found nothing. Matching on `value` rather than on `label` because in this list
+    /// the two are the same string, and `value` is the one the field takes.
+    readonly property var shown: {
+        const needle = filterText.trim().toLowerCase();
+        if (needle.length === 0)
+            return options;
+        const matched = [];
+        for (let i = 0; i < options.length; ++i)
+            if (String(options[i].value).trim().toLowerCase().indexOf(needle) >= 0)
+                matched.push(options[i]);
+        return matched;
     }
 
     readonly property int rowHeight: 29
@@ -60,11 +93,20 @@ Item {
 
     /// @brief Take the list down. The panel calls this when it hides itself, since the list is
     ///        a window of its own and would otherwise outlive its owner.
+    ///
+    /// The search goes with it: whatever the reader had typed was a search, and a chevron pressed
+    /// afterwards has to open the whole list again rather than the fragment they were reading.
     function closeList() {
         list.visible = false;
+        root.filterText = "";
     }
 
-    function openList() {
+    /// Put the list's window under the field, in screen coordinates.
+    ///
+    /// Placement only. The two ways the list comes up differ in whether the reader asked for it --
+    /// the chevron emits `listOpened`, a keystroke does not -- not in where the card lands, so
+    /// both go through here rather than each carrying its own copy of the arithmetic.
+    function placeList() {
         // Where the field's bottom edge is, in screen coordinates.
         const point = button.mapToItem(null, 0, button.height + 6);
         const originX = Window.window ? Window.window.x : 0;
@@ -74,8 +116,61 @@ Item {
         // window-edge to field-edge it sat 26px right and 26px low.
         list.x = originX + point.x - list.shadowMargin;
         list.y = originY + point.y - list.shadowMargin;
+    }
+
+    function openList() {
+        // The search goes, because this is the reader asking for the list outright rather than
+        // narrowing it. Leaving the filter on would answer a deliberate press with whatever the
+        // search had left -- and with nothing at all, if it had matched nothing, which is the one
+        // thing the search path never shows.
+        root.filterText = "";
+        placeList();
         list.visible = true;
         listOpened();
+    }
+
+    /// @brief Narrow the list to the text the reader has just typed, and show or hide it to match.
+    ///
+    /// Called from `textEdited` and never from `textChanged`: the latter also fires when
+    /// `onEditingFinished` puts the binding back on `currentValue`, which writes the owner's answer
+    /// into the input rather than the reader typing it, and filtering there would bring the list
+    /// back up as they leave the field.
+    ///
+    /// The text arrives as an argument rather than being read off the input, so the whole decision
+    /// is reachable from a case without a keystroke -- this QtTest cannot deliver one into a
+    /// TextInput, which is why the typing cases call this directly. The one line that connection
+    /// leaves unpinned is `onTextEdited` below.
+    ///
+    /// The text is read, never written. Rewriting it to the catalogue's spelling would move the
+    /// caret mid-word and would throw away the private deployment name this field exists for.
+    function filterTyped(text) {
+        root.filterText = text.trim();
+        const typed = root.filterText;
+        // A field the reader has emptied is searching for nothing, so there is nothing to show:
+        // the whole list is the chevron's business, not an empty query's. It also keeps the rule
+        // even -- every keystroke is judged on its own, backspaces included.
+        if (typed.length === 0) {
+            list.visible = false;
+            return;
+        }
+        if (root.shown.length === 0) {
+            // Nothing matches: no list. An empty card is not a dropdown, and one that stays up
+            // after the reader deletes their way out of it is worse than never having opened.
+            list.visible = false;
+            return;
+        }
+        // The text is an id in the list already, so there is nothing left to choose from it. The
+        // case is here rather than at the end of typing because the reader can get there by
+        // deleting as well as by typing.
+        const needle = typed.toLowerCase();
+        for (let i = 0; i < root.shown.length; ++i) {
+            if (String(root.shown[i].value).trim().toLowerCase() === needle) {
+                list.visible = false;
+                return;
+            }
+        }
+        placeList();
+        list.visible = true;
     }
 
     Rectangle {
@@ -117,10 +212,12 @@ Item {
             color: Tokens.text
             font.pixelSize: 13
             selectByMouse: true
+            onTextEdited: root.filterTyped(input.text)
             onEditingFinished: {
                 if (text !== root.currentValue)
                     root.edited(text);
                 text = Qt.binding(() => root.currentValue);
+                root.filterText = "";
             }
         }
 
@@ -168,7 +265,7 @@ Item {
     Window {
         id: list
 
-        flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
+        flags: Qt.Tool | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowDoesNotAcceptFocus
         color: "transparent"
         visible: false
 
@@ -202,7 +299,7 @@ Item {
                 width: list.width - 2 * (list.shadowMargin + list.listPadding)
                 height: Math.min(contentHeight, list.maximumListHeight)
                 clip: true
-                model: root.options
+                model: root.shown
                 boundsBehavior: Flickable.StopAtBounds
 
                 delegate: Column {
@@ -212,10 +309,13 @@ Item {
 
                     width: listColumn.width
 
-                    // A rule between groups, never before the first one.
+                    // A rule between groups, never before the first one. Read against
+                    // `shown`, the list the view is built over, not `options`: while a search is
+                    // narrowing the list the row above this one on screen is not options[index-1],
+                    // and a rule drawn from that would sit against a row nobody can see.
                     Rectangle {
                         visible: group.index > 0
-                                 && group.modelData.group !== root.options[group.index - 1].group
+                                 && group.modelData.group !== root.shown[group.index - 1].group
                         width: parent.width
                         height: 1
                         color: Tokens.line2
@@ -252,7 +352,10 @@ Item {
                         TapHandler {
                             onTapped: {
                                 root.picked(group.modelData.value);
-                                list.visible = false;
+                                // Through closeList(), so a search that was narrowing the list
+                                // is dropped with it: the next chevron opens the whole list
+                                // again rather than the fragment the reader just picked from.
+                                root.closeList();
                             }
                         }
                     }

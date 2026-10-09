@@ -22,6 +22,20 @@ Item {
         { value: 2, label: "rare", group: "two", note: "" },
     ]
     readonly property var labels: ["whole", "phrase", "rare"]
+
+    /// Options shaped the way the model field really receives them -- the id is both the `value`
+    /// and the `label`, which is why the filter matches on `value` -- and with their groups
+    /// interleaved on purpose. The numbering of the rows above cannot be searched at all, since
+    /// their values are 0, 1 and 2; searching is what this second set is for.
+    ///
+    /// The groups alternate so that a search can bring two rows of the same group together. That
+    /// is the case the group rule has to get right, and it is why these are not simply sorted.
+    readonly property var modelOptions: [
+        { value: "deepseek-v4-pro", label: "deepseek-v4-pro", group: "Domestic", note: "" },
+        { value: "gpt-4.1-pro", label: "gpt-4.1-pro", group: "International", note: "" },
+        { value: "gpt-4.1-mini", label: "gpt-4.1-mini", group: "International", note: "" },
+        { value: "deepseek-v4-flash", label: "deepseek-v4-flash", group: "Domestic", note: "" },
+    ]
     /// The padding the rows leave inside the list's card, from components/DropdownField.qml.
     readonly property int listPadding: 10
 
@@ -210,6 +224,221 @@ Item {
 
             compare(picked, 2, "the row reported the wrong value");
             compare(field.openChildRect, null, "the list stayed up after a row was picked");
+        }
+
+        /// @return The editable field's input, which is where every keystroke in the cases below
+        ///         has to land.
+        function inputOf(field) {
+            const input = Util.textsUnder(field).filter(
+                (t) => t.visible && t.Window.window === root.Window.window)[0];
+            verify(input, "the editable field draws nothing to type in");
+            return input;
+        }
+
+        /// Search the field: the filter that follows from the text a reader would have left in it.
+        ///
+        /// Called through the component's own entry point rather than by typing, because nothing
+        /// can type here. Under this QtTest (6.9.0, offscreen) keyPress/keyRelease, keySequence and
+        /// keyClick all leave a TextInput empty, and keyClick with a printable key asserts fatally
+        /// inside qasciikey.cpp and takes the whole binary down with it. Measured, not assumed --
+        /// and it is why `filterTyped` takes the text as an argument.
+        ///
+        /// What that leaves unpinned is the one line joining the two,
+        /// `onTextEdited: root.filterTyped(input.text)`. Everything behind it -- narrowing,
+        /// showing, hiding, and the ways the list goes down -- is what the cases below cover.
+        ///
+        /// No text is the deletion case: an emptied field is one state however it got there, which
+        /// is why the same call covers typing and deleting.
+        function type(field, text) {
+            field.filterTyped(text);
+            wait(20);
+        }
+
+        /// What the reader would see in the open list: the labels of the rows that are actually
+        /// drawn, in order. Every row also carries a note, which is blank on all the model-shaped
+        /// options above, so the blanks are what is dropped rather than a list of expected names --
+        /// a case that named them would have to be rewritten every time the fixture changed.
+        function rowsShown(field) {
+            return Util.textsInNestedWindow(field)
+                .filter((t) => t.text !== "")
+                .map((t) => t.text);
+        }
+
+        /// Typing is how the model list is searched, so the list comes up on its own: the reader
+        /// types "mini" and the rows narrow to the one id carrying it, with no press on anything.
+        function test_typingNarrowsTheRowsAndRaisesTheListByItself() {
+            const field = make({ editable: true, currentValue: "", options: root.modelOptions });
+            compare(field.openChildRect, null, "the list should start down");
+
+            type(field, "mini");
+
+            verify(field.openChildRect !== null, "typing did not bring the list up by itself");
+            compare(rowsShown(field), ["gpt-4.1-mini"]);
+            compare(field.filterText, "mini");
+        }
+
+        /// A substring is a substring, and the reader's case is not the catalogue's. The option is
+        /// spelled in caps and typed in lower case, because the reader's keyboard does not know
+        /// how the catalogue spells it. A subsequence match would have found nothing here, which
+        /// is what "reads as a broken filter" means.
+        function test_theMatchIgnoresTheCaseTheReaderTypesIn() {
+            const field = make({
+                editable: true,
+                currentValue: "",
+                options: [{ value: "GLM-5.3-PRIME", label: "GLM-5.3-PRIME", group: "", note: "" }],
+            });
+
+            type(field, "glm");
+
+            compare(rowsShown(field), ["GLM-5.3-PRIME"]);
+        }
+
+        /// Once the text is one of the ids there is nothing left to choose from it, so the list
+        /// goes away by itself -- in the reader's case as well as the catalogue's, since the
+        /// catalogue spells this one in caps and no reader's keyboard does.
+        function test_typingAnIdInAnyCasePutsTheListAway() {
+            const field = make({
+                editable: true,
+                currentValue: "",
+                options: [{ value: "RARE-MODEL", label: "RARE-MODEL", group: "", note: "" }],
+            });
+
+            type(field, "rare");
+            verify(field.openChildRect !== null, "the list never came up");
+
+            type(field, "rare-model");
+            compare(field.openChildRect, null, "the list stayed up once the text was an id in it");
+        }
+
+        /// A search never writes to the field it is narrowing: a name the catalogue has never
+        /// heard of is what this shape of field exists for, and rewriting it would move the caret
+        /// out from under the reader mid-word. The text here comes from the binding the field
+        /// starts with, so nothing has to be typed to ask the question.
+        function test_theSearchNeverRewritesWhatIsInTheField() {
+            const field = make({
+                editable: true,
+                currentValue: "my-own-name",
+                options: root.modelOptions,
+            });
+            const input = inputOf(field);
+            compare(input.text, "my-own-name");
+
+            type(field, "mini");
+
+            compare(input.text, "my-own-name", "the search rewrote what is in the field");
+        }
+
+        /// A name no id carries leaves no list: an empty card is not a dropdown. The field is still
+        /// open for business afterwards, and the chevron brings the whole list back rather than the
+        /// empty result the search left behind.
+        function test_typingSomethingNoIdContainsLeavesNoList() {
+            const field = make({ editable: true, currentValue: "", options: root.modelOptions });
+
+            type(field, "a private deployment");
+
+            compare(field.openChildRect, null, "a search that matched nothing opened a list");
+
+            field.openList();
+            wait(20);
+
+            compare(rowsShown(field).length, root.modelOptions.length,
+                    "the chevron did not bring the whole list back");
+        }
+
+        /// A space is not a search: it trims to nothing, which is the state an emptied field is
+        /// in, so there is no list and no filter. Worth pinning because the other reading --
+        /// treating the space as a needle -- shows an empty card, and a reader types a space
+        /// without meaning anything by it on the way to a two-word name.
+        function test_aSpaceIsNotASearchAndLeavesNoList() {
+            const field = make({ editable: true, currentValue: "", options: root.modelOptions });
+
+            type(field, " ");
+
+            compare(field.filterText, "", "the space became a needle");
+            compare(field.openChildRect, null, "a blank search opened a list");
+            compare(field.shown.length, root.modelOptions.length, "the rows were narrowed");
+        }
+
+        /// Deleting back to nothing is the other way the list comes down, and it stops filtering:
+        /// the rows are the whole list again, ready for the reader to press the chevron.
+        function test_deletingBackToEmptyPutsTheListAwayAndStopsFiltering() {
+            const field = make({ editable: true, currentValue: "", options: root.modelOptions });
+
+            type(field, "mini");
+            verify(field.openChildRect !== null, "the list never came up");
+            compare(field.shown.length, 1);
+
+            type(field, "");
+
+            compare(field.filterText, "", "the filter survived deleting every character");
+            compare(field.shown.length, root.modelOptions.length, "the rows are still narrowed");
+            compare(field.openChildRect, null, "the list stayed up with nothing typed");
+        }
+
+        /// `listOpened` means the reader asked for the list, and the settings page wires it to a
+        /// refresh. A keystroke is a search, not a request for one, so it must never raise it --
+        /// otherwise every character typed would cost a GET.
+        function test_listOpenedFiresForThePressAndNotForTyping() {
+            const field = make({ editable: true, currentValue: "", options: root.modelOptions });
+            let opened = 0;
+            field.listOpened.connect(function () { opened += 1; });
+
+            type(field, "mini");
+            verify(field.openChildRect !== null, "typing did not bring the list up");
+            compare(opened, 0, "typing raised listOpened, which the settings page reads as a request");
+
+            field.openList();
+            compare(opened, 1, "the chevron did not raise listOpened");
+        }
+
+        /// The rule above a row is drawn from the row before it in the list the view is built over.
+        /// "gpt" leaves the two International rows together, so a correctly read list draws no
+        /// rule at all -- while the unfiltered list would put one above the first of them, because
+        /// the row above it there is the Domestic one. That gap is the whole case.
+        function test_theGroupRuleFollowsTheFilteredList() {
+            const field = make({ editable: true, currentValue: "", options: root.modelOptions });
+
+            type(field, "gpt");
+
+            verify(field.openChildRect !== null, "the list never came up");
+            compare(rowsShown(field), ["gpt-4.1-pro", "gpt-4.1-mini"]);
+            const shown = Util.findAll(field, (o) => o.height === 1).filter((rule) => rule.visible);
+            compare(shown.length, 0,
+                    "a rule was drawn between two rows of the same group, from the unfiltered list");
+        }
+
+        /// Picking a row reports it and puts the list away, search and all -- so the chevron
+        /// afterwards opens the whole list rather than the fragment just picked from.
+        function test_pickingARowDropsTheSearchWithTheList() {
+            const field = make({ editable: true, currentValue: "", options: root.modelOptions });
+            let picked = "";
+            field.picked.connect(function (value) { picked = value; });
+
+            type(field, "mini");
+            verify(field.openChildRect !== null, "the list never came up");
+            const row = Util.textWith(Util.textsInNestedWindow(field), ["gpt-4.1-mini"]).parent;
+            mouseClick(row, 20, row.height / 2);
+
+            compare(picked, "gpt-4.1-mini", "the row reported the wrong value");
+            compare(field.openChildRect, null, "the list stayed up after a row was picked");
+            compare(field.filterText, "", "the search outlived the list it narrowed");
+        }
+
+        /// A whole search writes nothing: `edited` is the field reporting what the reader left in
+        /// it when they leave it, and `listOpened` is the settings page's cue to fetch. Neither is
+        /// a search's business, and a request per character is what raising the second would cost.
+        function test_aSearchRaisesNoEditAndNoRequest() {
+            const field = make({ editable: true, currentValue: "", options: root.modelOptions });
+            let edited = -1;
+            let opened = 0;
+            field.edited.connect(function (text) { edited = text.length; });
+            field.listOpened.connect(function () { opened += 1; });
+
+            type(field, "mini");
+            type(field, "gpt");
+
+            compare(edited, -1, "a search reported an edit");
+            compare(opened, 0, "a search asked for the list");
         }
     }
 }
