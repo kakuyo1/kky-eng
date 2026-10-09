@@ -15,6 +15,7 @@
 #include <utility>
 
 #include "cost_duty.h"
+#include "llm/llm_pure.h"
 #include "notice.h"
 #include "util/log.h"
 
@@ -425,16 +426,23 @@ bool ExplanationDuty::setProvider(QString const& provider)
 {
     auto const entry = llm::serviceProvider(provider);
     if (entry.isEmpty() || not llm_.setProvider(provider)) return false;
+    // Whether the reader is actually changing service, read before the document below is written:
+    // that is the whole condition the correction is for. Re-picking the provider already in force is
+    // a tap on the dropdown row, not a change, and with a shared model list that tap would replace a
+    // valid model with whichever id the source happens to list first (docs/adr/0020). A document
+    // that has never chosen one counts as a change -- the first pick is one.
+    const bool changed   = storage_.documentString("PROVIDER", QString{}) != provider;
     auto& document       = storage_.knownStore().document();
     document["PROVIDER"] = provider.toStdString();
     document["URL"]      = llm_.baseUrl().toString().toStdString();
 
-    // The model follows the service (docs/adr/0017). A name from another service is the 400 that
-    // says "malformed" and nothing else, and the reader changed the service, not the model. A
-    // model that this service does list is left alone: switching back and forth between two
-    // services must not lose a choice that was still valid.
+    // The model follows the service when the service changes (docs/adr/0017, kept by docs/adr/0020
+    // only here). A name from another service is the 400 that says "malformed" and nothing else, and
+    // the reader changed the service, not the model. A model that this service does list is left
+    // alone: switching back and forth between two services must not lose a choice that was still
+    // valid.
     const QStringList known = modelsFor(provider);
-    if (not known.isEmpty() and not known.contains(llm_.model())) {
+    if (changed and not known.isEmpty() and not known.contains(llm_.model())) {
         LENS_INFO("model follows the provider: '{}' -> '{}'", llm_.model().toStdString(), known.front().toStdString());
         llm_.setModel(known.front());
         document["MODEL"] = known.front().toStdString();
@@ -442,14 +450,14 @@ bool ExplanationDuty::setProvider(QString const& provider)
     rebuildModels();
     storage_.save();
     emit settingsChanged();
-    llm_.fetchModels(provider);
+    llm_.fetchModels();
     return true;
 }
 
 QStringList ExplanationDuty::modelsFor(QString const& provider) const
 {
-    // What the service itself answered last time wins: the catalog's list is a seed for a machine
-    // that has never reached it, and the ids a service carries change under the app.
+    // What the source listed for this provider last time wins: the catalog's list is a seed for a
+    // machine that has never reached it, and the ids a service carries change under the app.
     const nlohmann::json& document = storage_.knownStore().document();
     if (document.contains("MODELS") and document["MODELS"].is_object()) {
         const auto& served = document["MODELS"];
@@ -484,33 +492,38 @@ void ExplanationDuty::rebuildModels()
 
 void ExplanationDuty::refreshModels()
 {
-    const auto provider = currentProvider();
     rebuildModels();
-    llm_.fetchModels(provider);
+    llm_.fetchModels();
 }
 
-void ExplanationDuty::noteModelsFetched(QString provider, QStringList models)
+void ExplanationDuty::noteModelsFetched(QStringList models)
 {
-    if (models.isEmpty() or llm::serviceProvider(provider).isEmpty()) return;
-    LENS_INFO("the service lists {} model(s) for '{}'; they replace the catalog's", models.size(), provider.toStdString());
-    nlohmann::json ids = nlohmann::json::array();
-    for (const QString& id : models)
-        ids.push_back(id.toStdString());
-    storage_.knownStore().document()["MODELS"][provider.toStdString()] = std::move(ids);
-
-    // A model the service does not list is the one that answers 400 and says only "malformed": the
-    // service's own answer is the authority on what it carries, so the model in force is corrected
-    // to one it does list. It is only corrected here -- never to a name from a list of another
-    // service, and never when the reader has moved to a different one meanwhile.
-    const bool isCurrentProvider = provider == currentProvider();
-    if (isCurrentProvider and not models.contains(llm_.model())) {
-        LENS_INFO("'{}' is not one of them; the model becomes '{}'", llm_.model().toStdString(), models.front().toStdString());
-        llm_.setModel(models.front());
-        storage_.knownStore().document()["MODEL"] = models.front().toStdString();
+    if (models.isEmpty()) return;
+    // One answer, several caches: each provider takes the ids its own vendor prefix names, and a
+    // provider with no prefix gets no entry at all.
+    auto& document = storage_.knownStore().document();
+    int filled     = 0;
+    int total      = 0;
+    for (const auto& value : llm::serviceCatalog().value("providers").toArray()) {
+        const auto provider = value.toObject();
+        if (not provider.contains("openRouterPrefix")) continue;
+        const QStringList ids = llm::idsForPrefix(models, provider.value("openRouterPrefix").toString());
+        if (ids.isEmpty()) continue;
+        ++filled;
+        total += ids.size();
+        nlohmann::json written = nlohmann::json::array();
+        for (const QString& id : ids)
+            written.push_back(id.toStdString());
+        document["MODELS"][provider.value("value").toString().toStdString()] = std::move(written);
     }
-    if (isCurrentProvider) rebuildModels();
+    if (filled == 0) return;
+    LENS_INFO("the model source lists {} model(s) across {} provider(s)", total, filled);
+
+    // The model in force is not touched here. This answer describes the whole industry, not the
+    // one service standing, so "not in the list" says nothing about what that service carries --
+    // the correction belongs to the reader changing the service (docs/adr/0020).
+    rebuildModels();
     storage_.save();
-    if (isCurrentProvider) emit settingsChanged();
 }
 
 QVariantMap ExplanationDuty::settings() const

@@ -54,7 +54,7 @@ public:
     /// signal that flaps is what made it appear and disappear while the pointer stood still. The
     /// word the pointer is on is the one thing that is not in doubt.
     void dismissReview();
-    /// @brief Ask the service in force for its model list, and remember who was asked.
+    /// @brief Ask the shared model source for the whole catalogue.
     void refreshModels();
     /// @brief Ask the model about a lemma the reader asked for by name, anchored where it was read.
     void explainLemma(QString lemma);
@@ -86,9 +86,8 @@ public:
     ///
     /// The model follows the service (docs/adr/0017): a model name from another one is a 400 whose
     /// message names nothing, and the service is the only thing the reader meant to choose. The
-    /// list the service itself gave last time wins over the catalog's, and asking for a fresh one
-    /// happens here too -- it costs nothing and the answer is the only current list there is.
-    /// @return False for an unknown provider.
+    /// list fetched last time wins over the catalog's, and asking for a fresh one happens here too
+    /// -- it costs nothing. @return False for an unknown provider.
     bool setProvider(QString const& provider);
     bool setModel(QString const& model);
 
@@ -114,11 +113,16 @@ private:
     ///        the pointer leaves it.
     void showBubble(llm::Explanation const& explanation, PendingSelection const& selection, core::CacheContext const& context, bool countsDown = true);
     QString noticeTitle(PendingSelection const& pending) const;
-    /// @return The model list known for @p provider: what the service said last time, else the
-    ///         catalog's own seed, else empty -- a custom endpoint names no models at all.
+    /// @return The model list known for @p provider: what the source listed for it last time, else
+    ///         the catalog's own seed, else empty -- a custom endpoint names no models at all.
     QStringList modelsFor(QString const& provider) const;
-    /// @brief Keep the response under the provider that was actually requested.
-    void noteModelsFetched(QString provider, QStringList models);
+    /// @brief Split one shared answer into the per-provider caches the catalog names.
+    ///
+    /// @p models is the whole catalogue; each provider takes the ids its `openRouterPrefix` names.
+    /// A fetched list never rewrites the model in force (docs/adr/0020): it is a list of the whole
+    /// industry, not of the one service standing, so it is not the authority on what that service
+    /// carries.
+    void noteModelsFetched(QStringList models);
     /// @brief Rebuild the cached model list from the provider in force, and say so if it moved.
     void rebuildModels();
     /// @return The provider in force, from the document.

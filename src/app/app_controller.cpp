@@ -116,9 +116,8 @@ void AppController::restoreModelService()
     const QString model = storage_.documentString("MODEL", QString{}).trimmed();
     if (!model.isEmpty())
         llm_.setModel(model);
-    // The service's own list of models, asked for once per run: it costs nothing, the ids a
-    // service carries change under the app, and a model it no longer lists is the 400 that names
-    // nothing (docs/adr/0017).
+    // The shared model source, asked once per run: one unauthenticated GET that costs nothing, and
+    // the slices it answers with are what the model field then offers (docs/adr/0020).
     explanation_.refreshModels();
 }
 
@@ -322,8 +321,9 @@ void AppController::setApiKey(QString key)
     llm_.setApiKey(key);
     storage_.writeDocument("API-KEY", key);
     LENS_INFO("API key {}", key.isEmpty() ? "cleared" : "updated");
-    // The list a service names cannot be asked for without a key, so the moment one arrives is
-    // the moment to ask: before it, the model field has nothing to offer and says so (greyed).
+    // The source takes no key, so the field already has a list and a key change does not unlock one
+    // (docs/adr/0020). The trigger stays because the request is free and this is the moment the
+    // reader is most likely looking at the field.
     explanation_.refreshModels();
     emit settingsChanged();
 }
@@ -366,8 +366,9 @@ void AppController::setApiUrl(QString url)
     }
     llm_.setBaseUrl(parsed);
     storage_.writeDocument("URL", parsed.toString());
-    // A different address is a different service to ask, and the list in hand belongs to the old
-    // one: the answer is free and the field is showing the wrong models until it comes back.
+    // The source is one fixed endpoint, so a new address does not move where the list comes from
+    // and the models in hand are not the old service's. The refresh is kept only because the
+    // triggers were deliberately left alone (docs/adr/0020); the request is free.
     explanation_.refreshModels();
     emit settingsChanged();
 }

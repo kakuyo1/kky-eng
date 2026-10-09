@@ -362,77 +362,52 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
     return ordered;
 }
 
-namespace {
-
-/// @brief Whether an id names something a chat completion can be sent to.
-///
-/// `/models` answers with the whole catalogue, not with the chat models in it: embeddings, speech,
-/// image and video models sit in the same array, and a service that resells other people's models
-/// (OpenRouter) answers with several hundred of them. The app can use exactly one kind, so the
-/// rest are dropped before the list ever reaches the reader.
-///
-/// Where the service says so itself -- `architecture.output_modalities`, which OpenRouter fills in
-/// -- that answer is used. Everywhere else the id is the only thing there is, which is why the
-/// markers below are read as substrings: `tts-1` and `gpt-4o-mini-tts` are the same category and
-/// share no prefix. They are all words that name a modality no chat request reaches, so a chat
-/// model carrying one would be a surprise, not a rule being bent.
-bool speaksChat(const QJsonObject& entry)
-{
-    const auto modalities = entry.value("architecture").toObject().value("output_modalities");
-    if (modalities.isArray() and not modalities.toArray().contains(QStringLiteral("text")))
-        return false;
-
-    static const char* const kNotChat[]{"embed", "rerank", "moderation", "whisper", "tts", "audio", "speech", "transcri", "dall-e", "dalle", "image", "video", "sora"};
-    const QString id = entry.value("id").toString().toLower();
-    for (const char* marker : kNotChat)
-        if (id.contains(QLatin1String(marker))) return false;
-    return true;
-}
-
-} // namespace
-
-QStringList parseModelIds(QByteArray const& body, QJsonObject const& responseRules)
+QStringList parseModelIds(QByteArray const& body)
 {
     const auto document = QJsonDocument::fromJson(body);
     if (not document.isObject()) {
         LENS_WARN("the model list was not valid JSON; keeping the one we have");
         return {};
     }
-    const auto arrayField = responseRules.value("arrayField").toString();
-    const auto idField    = responseRules.value("idField").toString();
-    const auto data       = document.object().value(arrayField);
-    if (arrayField.isEmpty() or idField.isEmpty() or not data.isArray() or data.toArray().size() > 2000) {
+    const auto data = document.object().value("data");
+    if (not data.isArray() or data.toArray().size() > 2000) {
         LENS_WARN("the model list did not arrive in the shape this reads; keeping the one we have");
         return {};
     }
-    const auto capabilityField = responseRules.value("capabilityField").toString();
-    const auto capabilityValue = responseRules.value("capabilityValue").toString();
-    const auto stripPrefix     = responseRules.value("stripPrefix").toString();
     QStringList ids;
     for (const auto& entry : data.toArray()) {
         if (not entry.isObject()) return {};
         const auto object = entry.toObject();
-        const auto rawId  = object.value(idField);
+        const auto rawId  = object.value("id");
         if (not rawId.isString()) return {};
-        auto id = rawId.toString().trimmed();
-        if (not stripPrefix.isEmpty() and id.startsWith(stripPrefix))
-            id.remove(0, stripPrefix.size());
+        const auto id = rawId.toString().trimmed();
         if (id.isEmpty() or id.size() > 256) return {};
-        if (ids.contains(id)) continue;
-        if (not capabilityField.isEmpty()) {
-            const auto capabilities = object.value(capabilityField);
-            if (not capabilities.isArray()) return {};
-            if (not capabilities.toArray().contains(capabilityValue)) continue;
-        }
-        auto chatEntry = object;
-        chatEntry.insert("id", id);
-        if (not speaksChat(chatEntry)) {
+        // A `:` suffix is OpenRouter's own routing and pricing mode (`:batch`, `:free`), never a
+        // model name at a first-party endpoint.
+        if (id.contains(QLatin1Char(':'))) continue;
+        // The source states the modality itself, so the app states it too rather than guessing from
+        // the name. An entry that does not say "text" and nothing else is one a completion cannot
+        // be sent to: it drops that entry, never the whole answer.
+        const auto modalities = object.value("architecture").toObject().value("output_modalities");
+        if (not modalities.isArray() or modalities.toArray().size() != 1 or modalities.toArray().at(0) != QLatin1String("text"))
             continue;
-        }
+        if (ids.contains(id)) continue;
         ids.append(id);
     }
-    LENS_INFO("the service lists {} model(s) this app can use", ids.size());
+    LENS_INFO("the model source lists {} model(s) this app can use", ids.size());
     return ids;
+}
+
+QStringList idsForPrefix(QStringList const& ids, QString const& prefix)
+{
+    if (prefix.isEmpty()) return ids;
+    const auto marker = prefix + QLatin1Char('/');
+    QStringList matched;
+    for (const auto& id : ids) {
+        if (not id.startsWith(marker)) continue;
+        matched.append(id.mid(marker.size()));
+    }
+    return matched;
 }
 
 Usage parseUsage(const QByteArray& responseBody)

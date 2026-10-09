@@ -181,7 +181,14 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
     if (providers.isEmpty() or languages.isEmpty())
         throw std::runtime_error("empty provider or language catalog");
     auto const defaultProvider = requireString(catalog, "defaultProvider", dir / "catalog.json");
-    bool hasDefault            = false;
+    // One source answers for every provider, so its shape is checked once, outside the loop.
+    auto const modelSource = catalog.value("modelSource").toObject();
+    requireString(modelSource, "docs", dir / "catalog.json");
+    auto const sourceUrl = QUrl{requireString(modelSource, "url", dir / "catalog.json")};
+    if (not sourceUrl.isValid() or sourceUrl.scheme() != QLatin1String("https") or sourceUrl.host().isEmpty() or
+        not sourceUrl.userInfo().isEmpty() or sourceUrl.hasQuery() or sourceUrl.hasFragment())
+        throw std::runtime_error("invalid model source URL in catalog");
+    bool hasDefault = false;
     for (auto const& value : languages) {
         auto const language = value.toObject();
         auto const code     = requireString(language, "value", dir / "catalog.json");
@@ -200,26 +207,14 @@ void loadLlmProtocol(Channel channel, const std::filesystem::path& dir)
         auto const url = QUrl{requireString(provider, "baseUrl", dir / "catalog.json")};
         if (not url.isValid() or url.scheme() != QLatin1String("https") or url.host().isEmpty() or not url.userInfo().isEmpty() or url.hasQuery() or url.hasFragment())
             throw std::runtime_error("invalid provider base URL in catalog");
-        const auto modelList = provider.value("modelList").toObject();
-        if (requireString(modelList, "method", dir / "catalog.json") != QLatin1String("GET"))
-            throw std::runtime_error("unsupported model-list method in catalog");
-        const auto modelPath = QUrl{requireString(modelList, "path", dir / "catalog.json")};
-        if (modelPath.isRelative() and not modelPath.path().startsWith(QLatin1Char('/')))
-            throw std::runtime_error("relative model-list path must start with '/' in catalog");
-        if (not modelPath.isRelative() and (not modelPath.isValid() or modelPath.scheme() != QLatin1String("https") or
-                                            modelPath.host().isEmpty() or not modelPath.userInfo().isEmpty() or
-                                            modelPath.hasQuery() or modelPath.hasFragment() or modelPath.host() != url.host()))
-            throw std::runtime_error("invalid absolute model-list URL in catalog");
-        const auto auth       = modelList.value("auth").toObject();
-        const auto authType   = requireString(auth, "type", dir / "catalog.json");
-        const auto authHeader = requireString(auth, "header", dir / "catalog.json");
-        if (not((authType == QLatin1String("bearer") and authHeader == QLatin1String("Authorization")) or
-                (authType == QLatin1String("header") and authHeader == QLatin1String("x-goog-api-key"))))
-            throw std::runtime_error("unsupported model-list authentication in catalog");
-        const auto response = modelList.value("response").toObject();
-        requireString(response, "arrayField", dir / "catalog.json");
-        requireString(response, "idField", dir / "catalog.json");
-        requireString(modelList, "docs", dir / "catalog.json");
+        // The vendor half of an OpenRouter id, carried by the data rather than by a table here. An empty
+        // prefix is a deliberate value, not a missing one: it means the whole catalogue, ids left
+        // whole, which is what OpenRouter itself needs. So the check is the type and the slash, not
+        // requireString().
+        if (const auto raw = provider.value("openRouterPrefix"); not raw.isUndefined()) {
+            if (not raw.isString() or raw.toString().contains(QLatin1Char('/')))
+                throw std::runtime_error("invalid provider model-source prefix in catalog");
+        }
     }
     if (not hasDefault) throw std::runtime_error("default provider is absent from catalog");
     try {

@@ -105,8 +105,8 @@ QJsonObject const& resultSchema(Channel channel);
 /// @return Provider and language choices loaded alongside the protocol.
 QJsonObject const& serviceCatalog();
 
-/// @return One provider entry, including optional model-list endpoint metadata, or an empty object
-///         for an unknown provider.
+/// @return One provider entry, including the optional model-source vendor prefix, or an empty
+///         object for an unknown provider.
 QJsonObject serviceProvider(QString const& provider);
 
 }

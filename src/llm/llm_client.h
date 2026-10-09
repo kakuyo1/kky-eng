@@ -64,6 +64,9 @@ struct Usage {
  *
  * One HTTP request per call. The response is treated as untrusted data and goes through
  * the checks in parseExplanations() before anything is emitted.
+ *
+ * The model list is the one thing this client asks for on its own: a single unauthenticated GET
+ * to the shared source, which answers for every configured provider.
  */
 class LlmClient : public QObject {
     Q_OBJECT
@@ -100,9 +103,10 @@ public:
     /// @return False for an unknown provider; custom retains the current endpoint and model.
     bool setProvider(QString const& provider);
 
-    /// @brief Ask the provider-specific catalog endpoint for this account's model ids.
-    /// @note Empty, malformed, failed, or timed-out responses leave the current cache untouched.
-    void fetchModels(QString provider);
+    /// @brief Ask the shared model source for the whole catalogue of model ids.
+    /// @note No key, no auth header, no query: the source answers for every provider at once.
+    ///       Empty, malformed, failed, or timed-out responses leave the current cache untouched.
+    void fetchModels();
 
     /// @brief Set which protocol the next request speaks.
     ///
@@ -143,8 +147,8 @@ signals:
     ///                Never contains the API key.
     void failed(QString message);
 
-    /// @brief The service's own list of model ids, in the order it gave them.
-    void modelsFetched(QString provider, QStringList models);
+    /// @brief The whole usable catalogue the shared source lists, in the order it gave them.
+    void modelsFetched(QStringList models);
 
 public slots:
     /// @brief Look up the whole payload in one HTTP request.
@@ -154,11 +158,10 @@ public slots:
 
 private:
     Config config_;
-    Channel channel_  = Channel::Word;
-    QString preset_   = QStringLiteral("default");
-    QString lang_     = QStringLiteral("en");
-    bool etymology_   = false;
-    QString provider_ = QStringLiteral("DeepSeek");
+    Channel channel_ = Channel::Word;
+    QString preset_  = QStringLiteral("default");
+    QString lang_    = QStringLiteral("en");
+    bool etymology_  = false;
     QNetworkAccessManager* manager_;
 };
 

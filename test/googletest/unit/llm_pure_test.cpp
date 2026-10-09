@@ -67,82 +67,111 @@ QString results(const QString& items)
 const QStringList kAskedFor{"ubiquitous"};
 const QString kGoodResult =
     QStringLiteral(R"({"word":"ubiquitous","ipa":"/juːˈbɪkwɪtəs/","en":"existing everywhere","zh":"无处不在的"})");
-const QJsonObject kOpenAiModelRules{{"arrayField", "data"}, {"idField", "id"}};
+
+/// @brief One OpenRouter-shaped entry: an id plus the modality the source states for it.
+QJsonObject listed(QString const& id, QString const& modality = QStringLiteral("text"))
+{
+    return {{"id", id}, {"architecture", QJsonObject{{"output_modalities", modality.isEmpty() ? QJsonArray{} : QJsonArray{modality}}}}};
+}
 
 } // namespace
 
-/// The service's own list of models, in the order it gave them, and nothing invented for a body
-/// that is not that list: a partial list of models would hide the one the reader wanted.
-TEST(ParseModelIds, ReadsTheServicesOwnListAndNothingElse)
+/// The source's own list, in the order it gave them, and nothing invented for a body that is not
+/// that list: a partial list would hide the one the reader wanted.
+TEST(ParseModelIds, ReadsTheIdOrderTheSourceGaveAndDedupes)
 {
-    const auto ids = lens::llm::parseModelIds(QByteArrayLiteral(
-                                                  R"({"object":"list","data":[{"id":"deepseek-flash"},{"id":"deepseek-v4-pro"},{"id":"deepseek-flash"}]})"),
-                                              kOpenAiModelRules);
+    const auto ids = lens::llm::parseModelIds(
+        QByteArrayLiteral(R"({"data":[{"id":"deepseek/deepseek-chat","architecture":{"output_modalities":["text"]}},)"
+                          R"({"id":"openai/gpt-4.1-mini","architecture":{"output_modalities":["text"]}},)"
+                          R"({"id":"deepseek/deepseek-chat","architecture":{"output_modalities":["text"]}}]})"));
 
     ASSERT_EQ(ids.size(), 2);
-    EXPECT_EQ(ids.at(0), QStringLiteral("deepseek-flash"));
-    EXPECT_EQ(ids.at(1), QStringLiteral("deepseek-v4-pro"));
-    EXPECT_TRUE(lens::llm::parseModelIds(QByteArrayLiteral(R"({"data":"nope"})"), kOpenAiModelRules).isEmpty());
-    EXPECT_TRUE(lens::llm::parseModelIds(QByteArrayLiteral("not json at all"), kOpenAiModelRules).isEmpty());
+    EXPECT_EQ(ids.at(0), QStringLiteral("deepseek/deepseek-chat"));
+    EXPECT_EQ(ids.at(1), QStringLiteral("openai/gpt-4.1-mini"));
 }
 
-/// What a `/models` answer carries besides the chat models: the app can send a completion to one
-/// kind of them, so the rest never reach the reader's list.
-TEST(ParseModelIds, KeepsOnlyModelsAChatRequestCanReach)
+/// An id carrying `:` is OpenRouter's own routing or pricing mode, not a model name. Both sides of
+/// the rule are here: the suffix goes, and the plain neighbour stays.
+TEST(ParseModelIds, DropsRoutingVariantsAndKeepsThePlainNeighbour)
 {
-    const auto ids = lens::llm::parseModelIds(QByteArrayLiteral(R"({"data":[
-        {"id":"gpt-4.1-mini"},
-        {"id":"text-embedding-3-small"},
-        {"id":"whisper-1"},
-        {"id":"gpt-4o-mini-tts"},
-        {"id":"gpt-4o-audio-preview"},
-        {"id":"dall-e-3"},
-        {"id":"gpt-image-1"},
-        {"id":"sora-2"},
-        {"id":"omni-moderation-latest"},
-        {"id":"bge-reranker-v2-m3"},
-        {"id":"llama-3-8b-instruct"}
-    ]})"),
-                                              kOpenAiModelRules);
+    const auto ids = lens::llm::parseModelIds(
+        QByteArrayLiteral(R"({"data":[{"id":"openai/gpt-4.1-mini:batch","architecture":{"output_modalities":["text"]}},)"
+                          R"({"id":"openai/gpt-4.1-mini:free","architecture":{"output_modalities":["text"]}},)"
+                          R"({"id":"openai/gpt-4.1-mini","architecture":{"output_modalities":["text"]}}]})"));
+
+    ASSERT_EQ(ids.size(), 1);
+    EXPECT_EQ(ids.front(), QStringLiteral("openai/gpt-4.1-mini"));
+}
+
+/// The source states the output modality itself, so the app states it too: only an entry that is
+/// text and nothing else survives. An entry that also writes image or audio is dropped, and one
+/// that says nothing at all is dropped rather than guessed at from its name.
+TEST(ParseModelIds, KeepsOnlyEntriesWhoseOnlyOutputModalityIsText)
+{
+    QJsonArray data;
+    for (const auto& modality : {QStringLiteral("text"), QStringLiteral("image"), QStringLiteral("audio"), QString{}})
+        data.append(listed("acme/mixed", modality));
+    data.append(listed("acme/quiet"));
+    data.append(QJsonObject{{"id", "acme/silent"}}); // no architecture at all
+    const auto body = QJsonDocument(QJsonObject{{"data", data}}).toJson(QJsonDocument::Compact);
+
+    const auto ids = lens::llm::parseModelIds(body);
 
     ASSERT_EQ(ids.size(), 2);
-    EXPECT_EQ(ids.at(0), QStringLiteral("gpt-4.1-mini"));
-    EXPECT_EQ(ids.at(1), QStringLiteral("llama-3-8b-instruct"));
+    EXPECT_EQ(ids.at(0), QStringLiteral("acme/mixed")); // the "text"-only entry
+    EXPECT_EQ(ids.at(1), QStringLiteral("acme/quiet"));
 }
 
-/// A service that states the output modality itself is taken at its word, which the id could not
-/// have said: an image model is not obliged to carry the word "image" in its name.
-TEST(ParseModelIds, FollowsTheServicesOwnModalityWhenItStatesOne)
+/// A malformed answer is no answer. Each of these has to come back empty rather than as a shorter
+/// list, because a shorter list still reads to the reader as "these are the models".
+TEST(ParseModelIds, AnswersEmptyForAnythingThatIsNotThatList)
 {
-    const auto ids = lens::llm::parseModelIds(QByteArrayLiteral(R"({"data":[
-        {"id":"google/gemini-2.5-flash","architecture":{"output_modalities":["text"]}},
-        {"id":"stability/sdxl-turbo","architecture":{"output_modalities":["image"]}},
-        {"id":"acme/speech-maker","architecture":{"output_modalities":["audio"]}}
-    ]})"),
-                                              kOpenAiModelRules);
+    QJsonArray oversized;
+    for (int i = 0; i < 2001; ++i)
+        oversized.append(listed(QStringLiteral("acme/model-%1").arg(i)));
 
-    ASSERT_EQ(ids.size(), 1);
-    EXPECT_EQ(ids.at(0), QStringLiteral("google/gemini-2.5-flash"));
+    const struct {
+        const char* what;
+        QByteArray body;
+    } cases[] = {
+        {"not JSON at all", QByteArrayLiteral("not json at all")},
+        {"not an object", QByteArrayLiteral("[1,2,3]")},
+        {"data is not an array", QByteArrayLiteral(R"({"data":"nope"})")},
+        {"an entry has no string id", QByteArrayLiteral(R"({"data":[{"id":"acme/ok","architecture":{"output_modalities":["text"]}},7]})")},
+        {"the id is not a string", QByteArrayLiteral(R"({"data":[{"id":7,"architecture":{"output_modalities":["text"]}}]})")},
+        {"the id is blank", QByteArrayLiteral(R"({"data":[{"id":"  ","architecture":{"output_modalities":["text"]}}]})")},
+        {"more entries than the cap", QJsonDocument(QJsonObject{{"data", oversized}}).toJson(QJsonDocument::Compact)},
+    };
+
+    for (const auto& item : cases) {
+        SCOPED_TRACE(item.what);
+        EXPECT_TRUE(lens::llm::parseModelIds(item.body).isEmpty()) << item.what;
+    }
+    // The cap itself is not a failure: the entry just below it reads normally.
+    oversized.removeLast();
+    EXPECT_FALSE(lens::llm::parseModelIds(QJsonDocument(QJsonObject{{"data", oversized}}).toJson(QJsonDocument::Compact)).isEmpty());
 }
 
-TEST(ParseModelIds, MapsTheNativeGeminiEnvelopeToChatCompletionIds)
+/// An empty prefix is OpenRouter's own case: its API takes `vendor/slug`, so the ids must reach
+/// the field whole.
+TEST(IdsForPrefix, AnEmptyPrefixIsTheWholeCatalogueUntouched)
 {
-    const QJsonObject rules{{"arrayField", "models"},
-                            {"idField", "name"},
-                            {"stripPrefix", "models/"},
-                            {"capabilityField", "supportedGenerationMethods"},
-                            {"capabilityValue", "generateContent"}};
-    const auto ids = lens::llm::parseModelIds(QByteArrayLiteral(R"({"models":[
-        {"name":"models/gemini-2.5-flash","supportedGenerationMethods":["generateContent"]},
-        {"name":"models/gemini-2.5-flash-image-generation","supportedGenerationMethods":["generateContent"]},
-        {"name":"models/text-embedding-004","supportedGenerationMethods":["embedContent"]},
-        {"name":"models/gemini-2.5-flash","supportedGenerationMethods":["generateContent"]}
-    ]})"),
-                                              rules);
+    const QStringList ids{"deepseek/deepseek-chat", "openai/gpt-4.1-mini"};
 
-    ASSERT_EQ(ids.size(), 1);
-    EXPECT_EQ(ids.front(), QStringLiteral("gemini-2.5-flash"));
-    EXPECT_TRUE(lens::llm::parseModelIds(QByteArrayLiteral(R"({"data":[{"id":"valid"},7]})"), kOpenAiModelRules).isEmpty());
+    EXPECT_EQ(lens::llm::idsForPrefix(ids, QString{}), ids);
+}
+
+/// A vendor prefix matches on the slash, so a vendor that merely starts the same way is not it.
+TEST(IdsForPrefix, KeepsThePrefixedIdsAndStripsThePrefix)
+{
+    const QStringList ids{"deepseek/deepseek-chat", "deepseek/deepseek-reasoner", "openai/gpt-4.1-mini", "deepseek-x/gpt-4.1-mini", "deepseek"};
+
+    const auto matched = lens::llm::idsForPrefix(ids, QStringLiteral("deepseek"));
+
+    ASSERT_EQ(matched.size(), 2);
+    EXPECT_EQ(matched.at(0), QStringLiteral("deepseek-chat"));
+    EXPECT_EQ(matched.at(1), QStringLiteral("deepseek-reasoner"));
+    EXPECT_TRUE(lens::llm::idsForPrefix(ids, QStringLiteral("absent-vendor")).isEmpty());
 }
 
 TEST(LlmPureMask, CollapsesEmailUrlAndLongDigits)
