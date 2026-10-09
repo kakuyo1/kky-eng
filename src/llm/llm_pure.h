@@ -99,23 +99,34 @@ std::variant<QVector<Explanation>, QString> parseExplanations(Channel channel,
                                                               bool multipleSenses            = false);
 
 /**
- * @brief Read model ids using one provider's catalog response mapping.
+ * @brief Read the ids out of OpenRouter's model answer.
  *
- * The service's own answer is the only current list there is: the ids a provider supports change
- * under the app, and a name that is no longer one of them is a 400 (docs/adr/0017). Response array
- * and id fields come from catalog metadata, allowing native provider envelopes. Missing or
- * malformed arrays are treated as no list rather than as a partial one.
+ * One source, one envelope: there is no mapping parameter any more, because there is only one
+ * endpoint left to read. Every id the answer carries for a modality other than text, and every
+ * routing variant (an id carrying `:`), is dropped -- what comes back is not the catalogue but
+ * the part of it a chat completion can be sent to.
  *
- * What comes back is the whole catalogue, not the chat models in it: embeddings, speech, image and
- * video models sit in the same answer, and this app can use exactly one kind of them. Those are
- * dropped here, by the response's own modality where the service supplies it and by the id where it
- * does not, so the reader is not handed a thousand names they can never pick.
+ * A malformed answer is no answer: missing, non-array, oversized or otherwise unusable input
+ * returns an empty list rather than a partial one, so a reader is never handed a list that hides
+ * the model they wanted.
  *
  * @param body Raw HTTP response body.
- * @param responseRules Catalog `modelList.response` mapping.
- * @return The ids the app can talk to, in the order the service gave them, or an empty list.
+ * @return The ids this app can talk to, in the order the source gave them, or an empty list.
  */
-QStringList parseModelIds(QByteArray const& body, QJsonObject const& responseRules);
+QStringList parseModelIds(QByteArray const& body);
+
+/**
+ * @brief The ids one OpenRouter vendor prefix names, with that prefix removed.
+ *
+ * An id is matched on `prefix + "/"` exactly, so `deepseek-x/gpt` is not a `deepseek` id.
+ *
+ * @param ids    The whole catalogue, as parseModelIds() returned it.
+ * @param prefix Vendor part of an OpenRouter id, such as "deepseek". An empty prefix returns
+ *               @p ids unchanged: that is OpenRouter's own list, where the prefix is part of
+ *               the id the API takes.
+ * @return The matching ids, in the order @p ids gave them.
+ */
+QStringList idsForPrefix(QStringList const& ids, QString const& prefix);
 
 /**
  * @brief Read the token counts out of a response envelope.

@@ -27,12 +27,25 @@ add_executable(lens_qtest_components EXCLUDE_FROM_ALL
   setup.cpp
   setup.h
 )
+# The singletons are named here for the same reason the surfaces target names them, and it is a
+# repair rather than a widening: `theme/Motion.qml` binds its durations to
+# `Controller.settings.animationsEnabled`, and the engine builds that singleton with the module,
+# so every suite in this directory -- not just the Motion one that names the setting -- hit
+# AppController::create()'s assert before its first case ran. Without the define the whole
+# components suite is red in a Debug build.
+#
+# lens_core comes along for its include directories: setup.cpp builds a KnownStore, which
+# needs nlohmann/json.hpp from third_party/. lens_app links it privately, so it has to be
+# named here as well.
 target_link_libraries(lens_qtest_components PRIVATE
-  lens_app lens_appplugin Qt6::QuickTest
+  lens_app lens_core lens_appplugin Qt6::QuickTest
 )
 target_compile_definitions(lens_qtest_components PRIVATE
   LENS_QTEST_NAME="lens_qtest_components"
   LENS_QTEST_DIR="${CMAKE_SOURCE_DIR}/test/qtest/components"
+  LENS_QTEST_SINGLETONS
+  LENS_SETTINGS_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/surfaces/settings.json"
+  LENS_DATA_DIR="${CMAKE_SOURCE_DIR}/data"
   LENS_SYSTEM_FONTS="${LENS_SYSTEM_FONTS}"
 )
 

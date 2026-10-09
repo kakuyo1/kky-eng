@@ -100,16 +100,22 @@ struct Manager final : QNetworkAccessManager {
         // how a null dereference gets into a test fake.
         if (operation == GetOperation) {
             ++gets;
-            listed               = request.url();
-            listedAuthorization  = request.rawHeader("Authorization");
-            listedGoogleKey      = request.rawHeader("x-goog-api-key");
+            listed              = request.url();
+            listedAuthorization = request.rawHeader("Authorization");
+            listedGoogleKey     = request.rawHeader("x-goog-api-key");
+            // One source, answered by host. The body spans two vendors and carries the two kinds of
+            // entry the reader must never see: a routing variant and a model that also writes image.
             const QByteArray ids = not modelResponseOverride.isEmpty()
                                        ? modelResponseOverride
-                                   : request.url().host() == QLatin1String("generativelanguage.googleapis.com")
-                                       ? QByteArrayLiteral(R"({"models":[{"name":"models/gemini-2.5-flash","supportedGenerationMethods":["generateContent"]},{"name":"models/text-embedding-004","supportedGenerationMethods":["embedContent"]}]})")
-                                   : request.url().toString().contains(QLatin1String("deepseek"))
-                                       ? QByteArrayLiteral(R"({"data":[{"id":"deepseek-flash"},{"id":"deepseek-v4-pro"}]})")
-                                       : QByteArrayLiteral(R"({"data":[{"id":"gpt-4.1-mini"},{"id":"gpt-4.1-nano"}]})");
+                                   : request.url().host() == QLatin1String("openrouter.ai")
+                                       ? QByteArrayLiteral(R"({"data":[
+        {"id":"openai/gpt-4.1-mini","architecture":{"output_modalities":["text"]}},
+        {"id":"openai/gpt-4.1-mini:free","architecture":{"output_modalities":["text"]}},
+        {"id":"openai/image-preview","architecture":{"output_modalities":["text","image"]}},
+        {"id":"deepseek/deepseek-chat","architecture":{"output_modalities":["text"]}},
+        {"id":"google/gemini-2.5-flash","architecture":{"output_modalities":["text"]}}
+    ]})")
+                                       : QByteArrayLiteral(R"({"data":[]})");
             return new Reply{ids, this};
         }
         ++posts;
@@ -389,13 +395,16 @@ TEST_F(LlmTest, Phase2AProviderChoiceMovesTheEndpointItsWireOptionsAndTheModel)
         auto const body = QJsonDocument::fromJson(manager.posted).object();
         EXPECT_EQ(body.contains("thinking"), provider == std::string{"DeepSeek"});
     }
-    // The list the service itself answered with replaces the catalog's seed, and it is kept for
-    // that service alone: ids change under the app, and the seed is only for a machine that has
-    // never reached the service at all.
+    // One shared source, not one endpoint per provider, and it is asked with nothing the reader
+    // owns. What came back is split per provider by the vendor prefix in the catalog, and each
+    // slice is that provider's cache -- the seed is only for a machine that has never reached it.
     EXPECT_GE(manager.gets, 1);
-    EXPECT_TRUE(manager.listed.path().endsWith(QLatin1String("/models")));
-    EXPECT_EQ(store.document().at("MODELS").at("DeepSeek").at(0), "deepseek-flash");
-    EXPECT_EQ(store.document().at("MODELS").at("openai").at(0), "gpt-4.1-mini");
+    EXPECT_EQ(manager.listed, QUrl{"https://openrouter.ai/api/v1/models"});
+    EXPECT_TRUE(manager.listedAuthorization.isEmpty()) << "the shared source was sent the API key";
+    EXPECT_TRUE(manager.listedGoogleKey.isEmpty());
+    // The routing variant and the image-capable entry are in the answer and in neither slice.
+    EXPECT_EQ(store.document().at("MODELS").at("DeepSeek"), nlohmann::json::array({"deepseek-chat"}));
+    EXPECT_EQ(store.document().at("MODELS").at("openai"), nlohmann::json::array({"gpt-4.1-mini"}));
 
     // The price shown is the typed model's, not the provider's.
     ASSERT_TRUE(duty.setModel("gpt-4.1-mini"));
@@ -411,31 +420,44 @@ TEST_F(LlmTest, Phase2AProviderChoiceMovesTheEndpointItsWireOptionsAndTheModel)
     EXPECT_EQ(restored.document().at("PROVIDER"), "custom");
 }
 
-TEST_F(LlmTest, ProviderModelEndpointsUseTheirCatalogAuthAndResponseMapping)
+/// The contract of the shared source in one case: one GET, no key, and an answer that reaches
+/// more than one provider's cache because it is classified per vendor rather than per endpoint.
+TEST_F(LlmTest, OneSharedSourceIsAskedWithNoKeyAndItsAnswerReachesEveryProvider)
 {
     QtApplication qt;
+    QTemporaryDir temporary;
+    auto store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
+    app::StorageDuty storage{store};
     Manager manager;
-    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    ASSERT_TRUE(client.setProvider("Google"));
-    QString fetchedProvider;
-    QStringList fetchedModels;
+    // A client holding no key at all, which used to be exactly the case that fetched nothing.
+    llm::LlmClient client{{QUrl{"https://example.invalid"}, "", "deepseek-flash"}, &manager};
+    auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
+    app::CostDuty cost{storage.statsStore(), client, pricing};
+    app::ExplanationDuty duty{storage, client, cost};
+    QStringList fetched;
     QEventLoop loop;
-    QObject::connect(&client, &llm::LlmClient::modelsFetched, &loop, [&](QString provider, QStringList models) {
-        fetchedProvider = std::move(provider);
-        fetchedModels   = std::move(models);
+    QObject::connect(&client, &llm::LlmClient::modelsFetched, &loop, [&](QStringList models) {
+        fetched = std::move(models);
         loop.quit();
     });
     QTimer::singleShot(2000, &loop, &QEventLoop::quit);
 
-    client.fetchModels("Google");
+    duty.refreshModels();
     loop.exec();
 
-    EXPECT_EQ(manager.listed, QUrl{"https://generativelanguage.googleapis.com/v1beta/models"});
-    EXPECT_EQ(manager.listedGoogleKey, "fake-test-token");
-    EXPECT_TRUE(manager.listedAuthorization.isEmpty());
-    EXPECT_EQ(fetchedProvider, "Google");
-    ASSERT_EQ(fetchedModels.size(), 1);
-    EXPECT_EQ(fetchedModels.front(), "gemini-2.5-flash");
+    EXPECT_EQ(manager.gets, 1);
+    EXPECT_EQ(manager.listed, QUrl{"https://openrouter.ai/api/v1/models"});
+    EXPECT_TRUE(manager.listed.query().isEmpty()) << "the shared source was asked a filtered question";
+    EXPECT_TRUE(manager.listedAuthorization.isEmpty()) << "the API key went to the shared source";
+    EXPECT_TRUE(manager.listedGoogleKey.isEmpty());
+
+    // Whole catalogue, prefix-stripped per provider, and the last provider gets no entry at all.
+    ASSERT_EQ(fetched.size(), 3);
+    EXPECT_EQ(fetched.front(), QStringLiteral("openai/gpt-4.1-mini"));
+    EXPECT_EQ(store.document().at("MODELS").at("DeepSeek"), nlohmann::json::array({"deepseek-chat"}));
+    EXPECT_EQ(store.document().at("MODELS").at("openai"), nlohmann::json::array({"gpt-4.1-mini"}));
+    EXPECT_EQ(store.document().at("MODELS").at("Google"), nlohmann::json::array({"gemini-2.5-flash"}));
+    EXPECT_FALSE(store.document().at("MODELS").contains("custom")) << "custom declares no prefix";
 }
 
 TEST_F(LlmTest, ModelListRefreshKeepsTheUserCacheWhenAResponseIsMalformed)
@@ -463,32 +485,50 @@ TEST_F(LlmTest, ModelListRefreshKeepsTheUserCacheWhenAResponseIsMalformed)
     EXPECT_EQ(store.document().at("MODELS").at("DeepSeek").at(0), "cached-model");
 }
 
-TEST_F(LlmTest, OverlappingProviderRefreshesStayWithTheProviderThatStartedThem)
+/// A fetched list is the industry's, not the standing service's, so it does not get to say what
+/// that service carries: the model in force is left exactly as it was. The correction lives where
+/// it fired -- the reader changing the service -- and still happens there.
+TEST_F(LlmTest, AFetchedListNeverRewritesTheModelInForceButAProviderChangeStillDoes)
 {
     QtApplication qt;
     QTemporaryDir temporary;
     auto store = core::KnownStore::load(std::filesystem::path{temporary.path().toStdWString()} / "fixture.json");
     app::StorageDuty storage{store};
     Manager manager;
-    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "deepseek-flash"}, &manager};
+    // A model from another service, so setProvider writes MODEL to deepseek-flash and the fetch
+    // then has a standing value it would have to overwrite to prove it does not.
+    llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "gpt-4.1-nano"}, &manager};
     auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
     app::CostDuty cost{storage.statsStore(), client, pricing};
     app::ExplanationDuty duty{storage, client, cost};
-    int responses = 0;
-    QEventLoop loop;
-    QObject::connect(&client, &llm::LlmClient::modelsFetched, &loop, [&responses, &loop](QString, QStringList) {
-        if (++responses == 2) loop.quit();
-    });
-    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
 
     ASSERT_TRUE(duty.setProvider("DeepSeek"));
-    ASSERT_TRUE(duty.setProvider("openai"));
+    ASSERT_EQ(client.model(), "deepseek-flash");
+    QEventLoop loop;
+    QObject::connect(&client, &llm::LlmClient::modelsFetched, &loop, &QEventLoop::quit);
+    QTimer::singleShot(2000, &loop, &QEventLoop::quit);
     loop.exec();
 
-    ASSERT_EQ(responses, 2);
-    EXPECT_EQ(store.document().at("MODELS").at("DeepSeek").at(0), "deepseek-flash");
-    EXPECT_EQ(store.document().at("MODELS").at("openai").at(0), "gpt-4.1-mini");
+    // The answer lists deepseek-chat, not the deepseek-flash that is in force. Under the old rule
+    // this silently moved every DeepSeek reader onto a name the price list does not carry.
+    ASSERT_EQ(store.document().at("MODELS").at("DeepSeek").at(0), "deepseek-chat");
+    EXPECT_EQ(client.model(), "deepseek-flash");
+    EXPECT_EQ(store.document().at("MODEL"), "deepseek-flash");
+    EXPECT_FALSE(pricing.cost(client.model(), {1000, 1000}) <= 0.0) << "the shipped default lost its price";
+
+    // Re-picking the provider already in force is a tap on the dropdown row, not a change, and the
+    // dropdown passes the current value straight through. Before the shared model list this tap was
+    // harmless, because the list it corrected against was this service's own; now it would replace
+    // a valid model with whichever id the source happens to list first.
+    ASSERT_TRUE(duty.setProvider("DeepSeek"));
+    EXPECT_EQ(client.model(), "deepseek-flash") << "re-picking the standing provider rewrote the model";
+    EXPECT_EQ(store.document().at("MODEL"), "deepseek-flash");
+
+    // Changing the service is the one place the model still follows: the standing one is by
+    // construction from somewhere else, and the 400 that names nothing is what that produces.
+    ASSERT_TRUE(duty.setProvider("openai"));
     EXPECT_EQ(client.model(), "gpt-4.1-mini");
+    EXPECT_EQ(store.document().at("MODEL"), "gpt-4.1-mini");
 }
 
 TEST_F(LlmTest, Phase2DefaultsToOneSenseAndQueuesTheLatestRequestedMode)
@@ -616,9 +656,9 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
 
     controller.setProvider("unknown");
     controller.setModel(" ");
-    // Three: the provider, the model, and the list the service answered with -- which arrives on
-    // its own turn, long after the click that asked for it.
-    EXPECT_EQ(settingsChanges, 3);
+    // Two: the provider and the model. A fetched model list is not one of them any more -- it
+    // changes nothing in the settings map (docs/adr/0020) -- and neither rejected call counts.
+    EXPECT_EQ(settingsChanges, 2);
     controller.setApiUrl("https://example.invalid/v2");
     auto restored = core::KnownStore::load(path);
     llm::LlmClient restarted{{QUrl{"https://wrong.invalid"}, "fake-test-token", "wrong-model"}, &manager};

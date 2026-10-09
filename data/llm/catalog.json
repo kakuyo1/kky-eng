@@ -1,12 +1,14 @@
 {
   "_comment": [
-    "models is an offline seed, most common first. modelList describes the provider's official",
-    "refresh endpoint and response mapping. Successful results are cached per provider in the",
-    "reader's settings document; this shipped file remains read-only at runtime. Only the seed",
-    "entries below contain model ids this project can vouch for.",
-    "xAI publishes no model-list endpoint in its API reference. Its modelList is the",
-    "OpenAI-compatible convention every other service here follows, unverified against a live",
-    "key; a list that never arrives leaves the model field as it was, and it can be typed in."
+    "modelSource is the single endpoint every provider's list comes from; one unauthenticated GET",
+    "answers for all of them, and results are cached per provider in the reader's settings",
+    "document. This shipped file remains read-only at runtime.",
+    "models is an offline seed, most common first. Only the seed entries below contain model ids",
+    "this project can vouch for.",
+    "openRouterPrefix names the vendor part of an OpenRouter id 'vendor/slug', and it is removed",
+    "before the id reaches the field. An empty prefix means the whole catalogue with ids left whole,",
+    "which is what OpenRouter itself needs: its API takes vendor/slug. A provider with no prefix",
+    "gets no list of its own."
   ],
   "defaultProvider": "DeepSeek",
   "languages": [
@@ -15,55 +17,59 @@
     {"value": "es", "label": "Español", "group": "", "note": ""},
     {"value": "ja", "label": "日本語", "group": "", "note": ""}
   ],
+  "modelSource": {
+    "url": "https://openrouter.ai/api/v1/models",
+    "docs": "https://openrouter.ai/docs/api/api-reference/models/get-models"
+  },
   "providers": [
     {
       "value": "DeepSeek", "label": "DeepSeek", "group": "Domestic", "note": "",
       "baseUrl": "https://api.deepseek.com",
       "models": ["deepseek-flash", "deepseek-v4-pro"],
-      "modelList": {"method": "GET", "path": "/models", "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://api-docs.deepseek.com/api/list-models"},
+      "openRouterPrefix": "deepseek",
       "requestOverrides": {"thinking": {"type": "disabled"}}
     },
     {
       "value": "Moonshot", "label": "Moonshot (Kimi)", "group": "Domestic", "note": "",
       "baseUrl": "https://api.moonshot.cn/v1",
-      "modelList": {"method": "GET", "path": "/models", "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://platform.kimi.com/docs/models"},
+      "openRouterPrefix": "moonshotai",
       "requestOverrides": {"thinking": null}
     },
     {
       "value": "Zhipu", "label": "Zhipu (GLM)", "group": "Domestic", "note": "",
       "baseUrl": "https://open.bigmodel.cn/api/paas/v4",
-      "modelList": {"method": "GET", "path": "/models", "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://docs.bigmodel.cn/cn/guide/develop/openai/introduction"},
+      "openRouterPrefix": "z-ai",
       "requestOverrides": {"thinking": null}
     },
     {
       "value": "Qwen", "label": "Alibaba Cloud (Qwen)", "group": "Domestic", "note": "",
       "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
-      "modelList": {"method": "GET", "path": "/models", "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://help.aliyun.com/zh/model-studio/compatibility-of-openai-with-dashscope"},
+      "openRouterPrefix": "qwen",
       "requestOverrides": {"thinking": null}
     },
     {
       "value": "openai", "label": "OpenAI", "group": "International", "note": "",
       "baseUrl": "https://api.openai.com/v1",
       "models": ["gpt-4.1-mini", "gpt-4.1-nano"],
-      "modelList": {"method": "GET", "path": "/models", "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://platform.openai.com/docs/api-reference/models/list"},
+      "openRouterPrefix": "openai",
       "requestOverrides": {"thinking": null}
     },
     {
       "value": "Google", "label": "Google (Gemini)", "group": "International", "note": "",
       "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
-      "modelList": {"method": "GET", "path": "https://generativelanguage.googleapis.com/v1beta/models", "auth": {"type": "header", "header": "x-goog-api-key"}, "response": {"arrayField": "models", "idField": "name", "stripPrefix": "models/", "capabilityField": "supportedGenerationMethods", "capabilityValue": "generateContent"}, "docs": "https://ai.google.dev/api/models"},
+      "openRouterPrefix": "google",
       "requestOverrides": {"thinking": null}
     },
     {
       "value": "OpenRouter", "label": "OpenRouter", "group": "International", "note": "",
       "baseUrl": "https://openrouter.ai/api/v1",
-      "modelList": {"method": "GET", "path": "/models", "query": {"output_modalities": "text"}, "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://openrouter.ai/docs/api/api-reference/models/get-models"},
+      "openRouterPrefix": "",
       "requestOverrides": {"thinking": null}
     },
     {
       "value": "xAI", "label": "xAI (Grok)", "group": "International", "note": "",
       "baseUrl": "https://api.x.ai/v1",
-      "modelList": {"method": "GET", "path": "/models", "auth": {"type": "bearer", "header": "Authorization"}, "response": {"arrayField": "data", "idField": "id"}, "docs": "https://docs.x.ai/docs/api-reference"},
+      "openRouterPrefix": "x-ai",
       "requestOverrides": {"thinking": null}
     },
     {

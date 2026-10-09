@@ -1,7 +1,7 @@
 # LLM 协议
 > 本文件描述 Lens 与释义模型之间的线上格式。**实际生效的定义在 `data/llm/` 目录**，代码只组装与校验，不内联任何提示词或字段名。
 
-服务商、模型与端点由 `data/llm/catalog.json` 驱动，默认是 DeepSeek；解释请求使用 OpenAI 兼容的 `POST {baseUrl}/chat/completions`，请求头为 `Content-Type: application/json` 与 `Authorization: Bearer <API-KEY>`。模型列表接口单独按服务商配置，不假定所有服务商共用 `/models`、认证方式或响应 envelope。当前目录包含 DeepSeek（`deepseek-flash`、`deepseek-v4-pro`）、OpenAI（`gpt-4.1-mini`、`gpt-4.1-nano`）和 Custom；Custom 允许在设置中填写模型与 HTTPS 服务地址。价目独立放在 `data/llm/pricing.json`。
+服务商、模型与端点由 `data/llm/catalog.json` 驱动，默认是 DeepSeek；解释请求使用 OpenAI 兼容的 `POST {baseUrl}/chat/completions`，请求头为 `Content-Type: application/json` 与 `Authorization: Bearer <API-KEY>`。模型列表不问服务商：**全部服务商共用 `modelSource` 声明的那一个源**，回答按厂商前缀切分。当前目录包含 DeepSeek（`deepseek-flash`、`deepseek-v4-pro`）、OpenAI（`gpt-4.1-mini`、`gpt-4.1-nano`）和 Custom；Custom 允许在设置中填写模型与 HTTPS 服务地址。价目独立放在 `data/llm/pricing.json`。
 
 API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装目录、OCR payload 或日志；安装包只承载程序、静态数据与 `ocr/` 下的 Tesseract runtime 和英文 traineddata。
 
@@ -159,14 +159,14 @@ API key 只保存在读者的 `%APPDATA%\Lens\settings.json`，不进入安装�
 
 ## 7 相关文件
 
-模型列表刷新由目录项的 `modelList` 定义：HTTP 方法、相对或 HTTPS 绝对路径、认证头、可选查询参数、响应数组与 ID 字段、可选能力过滤，以及官方文档 URL。Google 使用原生 `GET https://generativelanguage.googleapis.com/v1beta/models`，通过 `x-goog-api-key` 认证，从 `models[].name` 去掉 `models/` 前缀，按 `supportedGenerationMethods` 保留 `generateContent`，再按模型 ID 排除图像、语音等非对话模型。其他当前服务商使用各自 OpenAI 兼容 base URL 下的 `GET /models` 与 Bearer 认证，OpenRouter 追加 `output_modalities=text`。不配置非官方目录源。
+模型列表由目录项的 `modelSource` 定义：一条不带认证、不带查询的 `GET https://openrouter.ai/api/v1/models`，一次回答所有服务商。每个服务商条目上的 `openRouterPrefix` 给出该厂商在 OpenRouter id `vendor/slug` 里的 vendor 部分，取到字段前被去掉；前缀为空表示整份目录、id 保持原样（OpenRouter 自己，它的接口收的就是 `vendor/slug`），没有这个键的服务商不参与切分。回答里有两条过滤：id 带 `:` 的（OpenRouter 自己的路由与计价模式，如 `:batch`、`:free`）丢掉，`architecture.output_modalities` 恰好只有 `text` 一项的才留——不是 “含有 text”，16 个同时写图像或音频的条目都含 text，那样的条件过滤不掉任何东西。
 
-模型列表缓存写在用户的 `%APPDATA%\Lens\settings.json` 的 `MODELS`，`catalog.json` 只作为安装包中的只读种子。刷新失败、超时、空响应或结构无效时保持已有缓存；成功响应只写入发起请求的服务商。模型列表请求超时为 10 秒，响应上限为 2 MiB，模型条目上限为 2000；API key 仅通过目录指定的请求头发送，不写入目录、缓存或日志。
+模型列表缓存写在用户的 `%APPDATA%\Lens\settings.json` 的 `MODELS`（键仍是服务商 `value`），`catalog.json` 只作为安装包中的只读种子；同一份回答按前缀切开后一次写入各家。刷新失败、超时、空响应或结构无效时保持已有缓存，一个字也不写。模型列表请求超时为 10 秒，响应上限为 2 MiB，模型条目上限为 2000。这次请求不带 API key，也不带读者内容，但每次启动都会发出，包括从不打开设置页、没有 key 的读者（取舍见 `docs/adr/0020`）。取到的列表**不改写当前模型**：它是整个行业的清单，不是当前那家服务的货架（`docs/adr/0020` 取代 `docs/adr/0017` 的这一条，模型跟随服务商只在换服务商时仍然发生）。
 
 - `data/llm/request.word.json`、`request.entity.json`、`request.sentence.json` — 请求模板、预设、系统提示词与输出语言行
 - `data/llm/response.word.schema.json`、`response.entity.schema.json`、`response.sentence.schema.json` — 响应 schema（校验真源）
 - `data/llm/pricing.json` — 价目数据，算金额用（§6）
-- `data/llm/catalog.json` — 服务商、离线模型种子、模型列表接口元数据、base URL、解释语言与请求覆盖项
+- `data/llm/catalog.json` — 服务商、离线模型种子、共用模型源与厂商前缀、base URL、解释语言与请求覆盖项
 - `src/llm/llm_protocol.{h,cpp}` — 加载与访问上述协议文件
 - `src/llm/llm_pricing.{h,cpp}` — 加载价目、把 `Usage` 折成金额
 - `src/llm/llm_pure.{h,cpp}` — 组装请求体、校验响应、读 `usage`，均无网络

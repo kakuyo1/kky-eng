@@ -3,7 +3,6 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
-#include <QUrlQuery>
 
 #include <utility>
 #include <variant>
@@ -64,7 +63,6 @@ bool LlmClient::setProvider(QString const& provider)
     auto const entry = serviceProvider(provider);
     if (entry.isEmpty()) return false;
     config_.requestOverrides = entry.value("requestOverrides").toObject();
-    provider_                = provider;
     // The provider duty reconciles the current model with this service's cached or seeded list.
     if (provider != QLatin1String("custom"))
         setBaseUrl(QUrl{entry.value("baseUrl").toString()});
@@ -83,51 +81,25 @@ void LlmClient::setEtymology(bool etymology)
     etymology_ = etymology;
 }
 
-void LlmClient::fetchModels(QString provider)
+void LlmClient::fetchModels()
 {
-    const auto entry     = serviceProvider(provider);
-    const auto modelList = entry.value("modelList").toObject();
-    if (entry.isEmpty() or modelList.isEmpty() or provider != provider_) return;
-    if (config_.apiKey.isEmpty()) {
-        LENS_INFO("no API key yet; the model list stays the one already known");
+    // One source, declared in the data, asked for with nothing the reader owns: no key, no auth
+    // header, no query. Whatever it answers is classified per provider further up (docs/adr/0020).
+    const auto url = QUrl{serviceCatalog().value("modelSource").toObject().value("url").toString()};
+    if (not url.isValid() or url.scheme() != QLatin1String("https") or url.host().isEmpty()) {
+        LENS_WARN("the model source URL in the catalog is not usable; the lists stay as they are");
         return;
     }
-    auto const method = modelList.value("method").toString();
-    auto const path   = modelList.value("path").toString();
-    if (method != QLatin1String("GET") or path.isEmpty()) return;
-    QUrl url{path};
-    if (not url.isValid() or url.scheme().isEmpty()) {
-        url           = config_.baseUrl;
-        auto basePath = url.path();
-        while (basePath.endsWith(QLatin1Char('/')))
-            basePath.chop(1);
-        url.setPath(basePath + (path.startsWith(QLatin1Char('/')) ? path : QLatin1Char('/') + path));
-    }
-    if (not url.isValid() or url.scheme() != QLatin1String("https") or url.host().isEmpty()) return;
-    QUrlQuery query;
-    const auto queryValues = modelList.value("query").toObject();
-    for (auto it = queryValues.begin(); it != queryValues.end(); ++it)
-        query.addQueryItem(it.key(), it.value().toString());
-    if (not query.isEmpty()) url.setQuery(query);
 
     QNetworkRequest request(url);
-    const auto auth     = modelList.value("auth").toObject();
-    const auto authType = auth.value("type").toString();
-    const auto header   = auth.value("header").toString();
-    if (authType == QLatin1String("bearer") and header == QLatin1String("Authorization"))
-        request.setRawHeader("Authorization", "Bearer " + config_.apiKey.toUtf8());
-    else if (authType == QLatin1String("header") and not header.isEmpty())
-        request.setRawHeader(header.toUtf8(), config_.apiKey.toUtf8());
-    else
-        return;
     request.setTransferTimeout(kModelListTimeoutMs);
-    LENS_TRACE("GET {} (key hidden)", url.adjusted(QUrl::RemoveQuery).toString().toStdString());
+    LENS_TRACE("GET {}", url.toString().toStdString());
 
     QNetworkReply* reply = manager_->get(request);
     connect(reply, &QNetworkReply::downloadProgress, this, [reply](qint64 received, qint64) {
         if (received > kMaxModelListBytes) reply->abort();
     });
-    connect(reply, &QNetworkReply::finished, this, [this, reply, provider, responseRules = modelList.value("response").toObject()] {
+    connect(reply, &QNetworkReply::finished, this, [this, reply] {
         reply->deleteLater();
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         if (reply->error() != QNetworkReply::NoError or (status != 0 and status != 200)) {
@@ -136,9 +108,9 @@ void LlmClient::fetchModels(QString provider)
             LENS_WARN("the model list was not fetched: HTTP {} ({})", status, reply->errorString().toStdString());
             return;
         }
-        const QStringList ids = parseModelIds(reply->readAll(), responseRules);
+        const QStringList ids = parseModelIds(reply->readAll());
         if (ids.isEmpty()) return;
-        emit modelsFetched(provider, ids);
+        emit modelsFetched(ids);
     });
 }
 
