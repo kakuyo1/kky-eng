@@ -2,7 +2,7 @@
  * Action state machine and frame clock (PHASE3 3.2 and 3.3). Pure logic: no DOM, no CSS, no window, no graphics API.
  * The renderer reads `state` each frame and draws every layer at the same frame index.
  *
- * The rules mirror src/core/pet/pet_state.cpp, which is the specification's implementation.
+ * The rules mirror src/core/pet/pet_state.cpp, which is the specification's implementation. The two must change together.
  */
 
 /** Duration of one blink step in ms. */
@@ -13,8 +13,10 @@ const BLINK_SEQUENCE = [1, 2, 1];
 const QUIET_MS = 180000;
 /** Idle wait before a random action: this base, plus up to the same again at random. */
 const IDLE_BASE_MS = 20000;
+/** How long thinking waits for its explanation before it gives up. The specification has no event for that. */
+const THINKING_TIMEOUT_MS = 30000;
 /** Actions the idle timer picks from. */
-const RANDOM_IDLE = ['look_around', 'stretch'];
+const SITUATIONAL_IDLE = ['look_around', 'stretch'];
 /** Priority tiers, lowest first. A request at or below the tier of the action now playing is dropped. */
 const TIER = { idle: 0, situational: 1, event: 2, click: 3, drag: 4 };
 
@@ -30,7 +32,8 @@ export class PetEngine {
     this.action = 'idle';
     this.priority = TIER.idle;
     this.frame = 0;
-    this.acc = 0;
+    this.frameAcc = 0;
+    this.elapsedMs = 0;
     this.blinkClock = 0;
     this.blinkT = null;
     this.paused = false;
@@ -99,12 +102,10 @@ export class PetEngine {
         this.request('thinking', TIER.event);
         return;
       case 'ExplanationShown':
-        this.held = 'study';
-        this.request('study', TIER.event);
+        this.hold('study');
         return;
       case 'ExplanationHidden':
-        if (this.held === 'study') this.held = null;
-        if (this.action === 'study') this.settle();
+        this.release('study');
         return;
       case 'KnownMarked':
       case 'UpdateAvailable':
@@ -114,12 +115,10 @@ export class PetEngine {
         this.request('encourage', TIER.event);
         return;
       case 'BudgetPaused':
-        this.held = 'sleep';
-        this.request('sleep', TIER.event);
+        this.hold('sleep');
         return;
       case 'BudgetResumed':
-        if (this.held === 'sleep') this.held = null;
-        if (this.action === 'sleep') this.settle();
+        this.release('sleep');
         return;
       default:
         throw new Error(`unknown pet event: ${event}`);
@@ -161,24 +160,34 @@ export class PetEngine {
     if (this.paused) return;
     this.tickBlink(deltaMs);
     this.tick(deltaMs);
-    this.acc += deltaMs;
+    this.frameAcc += deltaMs;
     const frameMs = 1000 / this.fps;
-    while (this.acc >= frameMs) {
-      this.acc -= frameMs;
+    while (this.frameAcc >= frameMs) {
+      this.frameAcc -= frameMs;
       this.advance();
     }
   }
 
   /**
    * Starts an action if the priority allows it. The same tier as the action now playing is dropped, so an
-   * event waits for the one-shot before it. Thinking is the wait for an explanation, so any event replaces it.
-   * @returns {boolean} Whether the action started.
+   * event waits for the one-shot before it. Thinking waits for the explanation, so any event replaces it.
    */
   request(name, tier) {
     const givesWayToThinking = this.action === 'thinking' && tier === TIER.event;
-    if (tier <= this.priority && !givesWayToThinking) return false;
+    if (tier <= this.priority && !givesWayToThinking) return;
     this.enter(name, tier);
-    return true;
+  }
+
+  /** Holds `state` (reading or sleeping) and starts it at event priority. */
+  hold(state) {
+    this.held = state;
+    this.request(state, TIER.event);
+  }
+
+  /** Releases `state`, and ends it if it is playing. */
+  release(state) {
+    if (this.held === state) this.held = null;
+    if (this.action === state) this.settle();
   }
 
   enter(name, tier) {
@@ -186,7 +195,8 @@ export class PetEngine {
     this.priority = tier;
     this.pendingReturn = this.actions[name].returnTo ?? null;
     this.frame = 0;
-    this.acc = 0;
+    this.frameAcc = 0;
+    this.elapsedMs = 0;
     this.blinkClock = 0;
     this.blinkT = null;
     if (name === 'idle') {
@@ -195,10 +205,20 @@ export class PetEngine {
     }
   }
 
-  /** A one-shot ended, or a held state was released: go to the pending return, else the held state, else idle. */
+  /**
+   * A one-shot ended, or a held state was released. Goes to the pending return first, at situational priority,
+   * so a learning event can still wake the dog into reading. Then to the held state at event priority, else idle.
+   */
   settle() {
-    const next = this.pendingReturn ?? this.held ?? 'idle';
-    this.enter(next, next === 'idle' ? TIER.idle : TIER.event);
+    if (this.pendingReturn) {
+      this.enter(this.pendingReturn, TIER.situational);
+      return;
+    }
+    if (this.held) {
+      this.enter(this.held, TIER.event);
+      return;
+    }
+    this.enter('idle', TIER.idle);
   }
 
   advance() {
@@ -229,7 +249,7 @@ export class PetEngine {
     if (this.blinkT >= BLINK_SEQUENCE.length * BLINK_STEP_MS) this.blinkT = null;
   }
 
-  /** Quiet time yawns the dog into sleep; idle time picks a random situational action. */
+  /** Quiet time yawns the dog into sleep; idle time picks a random situational action; thinking times out. */
   tick(deltaMs) {
     this.quietMs += deltaMs;
     if (this.quietMs >= QUIET_MS) {
@@ -237,13 +257,25 @@ export class PetEngine {
       this.request('yawn', TIER.situational); // the yawn's returnTo is sleep
       return;
     }
+    this.elapsedMs += deltaMs;
+    if (this.action === 'thinking') {
+      if (this.elapsedMs >= THINKING_TIMEOUT_MS) this.settle();
+      return;
+    }
     if (this.action !== 'idle') return;
     this.idleMs += deltaMs;
-    if (this.idleMs >= this.idleWait) this.request(this.pickRandomIdle(), TIER.situational);
+    if (this.idleMs < this.idleWait) return;
+    const pick = this.pickRandomIdle();
+    if (pick) this.request(pick, TIER.situational);
   }
 
+  /**
+   * Never the action just played, and only actions that have a playback. Returns nothing when no candidate is left:
+   * the dog stays idle rather than repeat itself (PHASE3 3.3).
+   */
   pickRandomIdle() {
-    const choices = RANDOM_IDLE.filter(name => name !== this.lastIdle);
+    const choices = SITUATIONAL_IDLE.filter(name => this.actions[name] && name !== this.lastIdle);
+    if (choices.length === 0) return null;
     this.lastIdle = choices[Math.min(Math.floor(this.random() * choices.length), choices.length - 1)];
     return this.lastIdle;
   }

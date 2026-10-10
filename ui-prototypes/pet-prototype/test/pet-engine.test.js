@@ -205,6 +205,52 @@ test('a request resets the quiet timer', () => {
   assert.notEqual(e.state.action, 'yawn');
 });
 
+test('an explanation after the yawn wakes the dog into reading (the return to sleep is situational)', () => {
+  const e = make({ random: () => 0.999 });
+  let yawned = false;
+  for (let t = 0; t < 1900 && !yawned; t += 1) {
+    e.update(100);
+    yawned = e.state.action === 'yawn';
+  }
+  assert.ok(yawned, 'no yawn within three minutes of quiet');
+  e.update(1000);
+  assert.equal(e.state.action, 'sleep');
+  e.handle('ExplanationShown');
+  assert.equal(e.state.action, 'study');
+});
+
+test('thinking gives up after its timeout when no explanation comes', () => {
+  const e = make({ random: () => 0.999 });
+  e.handle('ExplanationRequested');
+  e.update(29900);
+  assert.equal(e.state.action, 'thinking');
+  e.update(200);
+  assert.equal(e.state.action, 'idle');
+});
+
+test('with only one random choice left it is never repeated back to back', () => {
+  const m = structuredClone(manifest);
+  delete m.actions.stretch;
+  const e = new PetEngine(m, { random: () => 0 });
+  e.update(19999);
+  e.update(1); // the pick happens before any frame advances, so the new action is visible
+  assert.equal(e.state.action, 'look_around');
+  e.update(1100); // look_around ends
+  assert.equal(e.state.action, 'idle');
+  e.update(19999);
+  e.update(1);
+  assert.equal(e.state.action, 'idle'); // the only candidate is the one just played, so the dog stays idle
+});
+
+test('blink runs only where the action declares it, and sleep never blinks', () => {
+  const e = make({ blinkEvery: 1000 });
+  assert.equal(e.def.blink, true);
+  e.handle('BudgetPaused');
+  assert.equal(e.def.blink, undefined);
+  e.update(5000);
+  assert.equal(e.state.expression, 8);
+});
+
 test('engine source imports no DOM, CSS or window and no graphics API', () => {
   const src = readFileSync(fileURLToPath(new URL('../src/pet-engine.js', import.meta.url)), 'utf8');
   const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
