@@ -1,14 +1,15 @@
 {
   "_comment": [
-    "Where the update check asks, and the limits it asks under. The source is one fixed",
-    "endpoint that answers for everybody and carries nothing about the reader, so the",
-    "request sends no key, no query and no selection; a source that is not https is refused",
-    "and nothing is sent at all. The limits are the ceiling on one answer: a check that hangs",
-    "or grows without bound is a check the reader pays for on every start. Nothing here is",
-    "downloaded, installed or run -- the card opens the release page and stops there."
+    "Where the update check asks, and the limits it asks under. The source is the repository's",
+    "release page, which answers with a redirect to the newest tag; that redirect is the whole",
+    "answer and it is not followed, so this check reads no body and asks for no notes. The",
+    "request carries nothing the reader owns: no key, no auth header, no query, no install",
+    "identifier, and no words or selection text. A source that is not https is refused and nothing",
+    "is sent at all. The limits are the ceiling on one answer: a check that hangs or grows",
+    "without bound is a check the reader pays for on every start. Nothing is downloaded,",
+    "installed or run -- the card opens the release page and stops there."
   ],
-  "source": "https://api.github.com/repos/kakuyo1/lens/releases/latest",
+  "source": "https://github.com/kakuyo1/lens/releases/latest",
   "timeoutMs": 10000,
-  "maxBytes": 2097152,
-  "maxNotesChars": 200
+  "maxBytes": 2097152
 }

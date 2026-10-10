@@ -1,7 +1,11 @@
 /**
  * @file update_pure_test.cpp
- * @brief Offline tests for the update module: the release answer, the date and skip rules, the
- *        two guards on the request, and what the duty writes.
+ * @brief Offline tests for the update module: the release address, the date and skip rules,
+ *        the guards on the request, and what the duty writes.
+ *
+ * The answer the check now reads is a redirect, not a document: the cases below hand
+ * parseReleaseLocation() the address a release page would redirect to, and the client's own
+ * `finished` path is driven with a reply that carries the same header.
  *
  * The dates here are arguments rather than the clock, which is the whole reason the rules live
  * in update_pure.h: a once-a-day rule that can only be exercised today can only be exercised
@@ -34,7 +38,7 @@
 #include "update/update_client.h"
 #include "update/update_pure.h"
 
-using lens::update::parseRelease;
+using lens::update::parseReleaseLocation;
 using lens::update::shouldCheckAutomatically;
 using lens::update::shouldPrompt;
 using lens::update::StoredUpdate;
@@ -48,39 +52,28 @@ struct QtApplication {
     QCoreApplication application{argc, argv};
 };
 
-/// The page every usable answer names, as one string so a raw string delimiter never has to
-/// survive a JSON fragment that ends in a quote.
-const char* const kPageUrl = "https://github.com/kakuyo1/lens/releases/tag/v1.2.0";
+/// The page the check asks, and the answer it is given back.
+constexpr auto kReleasePage = "https://github.com/kakuyo1/lens/releases/latest";
 
-/// @return A release answer with @p fields appended to the two required ones.
-QByteArray release(const char* fields)
+/// @return The address the page redirects to when @p tag is the newest release.
+QUrl releaseUrl(const char* tag)
 {
-    return QByteArray("{\"tag_name\":\"v1.2.0\",\"html_url\":\"") + kPageUrl + "\"" + fields + "}";
-}
-
-/// @return A release answer whose tag is @p tag.
-QByteArray releaseWithTag(const char* tag)
-{
-    const QByteArray head = "{\"tag_name\":\"";
-    const QByteArray tail = "\",\"html_url\":\"" + QByteArray(kPageUrl) + "\"}";
-    return head + QByteArray(tag) + tail;
+    return QUrl{QStringLiteral("https://github.com/kakuyo1/lens/releases/tag/%1").arg(QLatin1String(tag))};
 }
 
 /// A reply that finishes on the next turn of the loop, so the client's own connections exist
-/// before `finished` arrives. `abort()` is what an answer that outgrew its ceiling does: a
-/// cancelled reply, which the client has to read as offline.
-///
-/// It carries no body, and cannot: QNetworkReply reads from an internal buffer that only the
-/// networking stack fills, so a stub cannot put bytes in a reader's hands. What it does carry
-/// is the request count and the abort, which are what the two guards here are about; a release
-/// answer is read through parseRelease() above, and reaches the duty on the signal the client
-/// emits when it has parsed one.
+/// before `finished` arrives. It carries the two things this check reads -- a status and,
+/// for a redirect, the `Location` -- and no body, which is the shape a redirect really has.
+/// `abort()` is what an answer that outgrew its ceiling does: a cancelled reply, which the
+/// client has to read as offline.
 class ScriptedReply final : public QNetworkReply {
 public:
-    ScriptedReply(QObject* parent, int status)
+    ScriptedReply(QObject* parent, int status, QString location = {})
         : QNetworkReply(parent), status_(status)
     {
         setAttribute(QNetworkRequest::HttpStatusCodeAttribute, status_);
+        if (not location.isEmpty())
+            setHeader(QNetworkRequest::LocationHeader, location);
         open(QIODevice::ReadOnly);
         QTimer::singleShot(0, this, [this] { deliver(); });
     }
@@ -115,22 +108,27 @@ private:
 /// The seam LlmClient takes, counting what it was asked for.
 class ScriptedManager final : public QNetworkAccessManager {
 public:
-    explicit ScriptedManager(int status = 200)
-        : status_(status)
+    explicit ScriptedManager(int status = 302, QString location = {})
+        : status_(status), location_(std::move(location))
     {
     }
 
     int requests = 0;
+    /// What the request asked about redirects, kept so a case can read it back: a stub manager
+    /// never follows one whatever the policy says, so the count alone would prove nothing.
+    QVariant redirectPolicy;
 
 protected:
-    QNetworkReply* createRequest(Operation, const QNetworkRequest&, QIODevice*) override
+    QNetworkReply* createRequest(Operation, const QNetworkRequest& request, QIODevice*) override
     {
         ++requests;
-        return new ScriptedReply(this, status_);
+        redirectPolicy = request.attribute(QNetworkRequest::RedirectPolicyAttribute);
+        return new ScriptedReply(this, status_, location_);
     }
 
 private:
     int status_;
+    QString location_;
 };
 
 /// One turn of the loop, which is when a scripted answer arrives.
@@ -146,23 +144,21 @@ const QDate pinnedDate()
 
 /// One duty over a temporary document, plus the client it asks through.
 ///
-/// The client's own request goes to the scripted manager, which counts it and answers with a
-/// bodyless reply: a stub cannot hand a reader bytes, so what a case needs the client's answer
-/// for, it delivers on the signal the client emits once it has parsed one. The parse itself is
-/// parseRelease()'s own cases above.
+/// The client's own request goes to the scripted manager, which counts it and answers it; a
+/// case that needs a release to reach the duty delivers it on the signal the client emits once
+/// it has read a redirect, built here by the same parser the client uses.
 struct DutyFixture {
-    DutyFixture(int status = 200)
+    DutyFixture(int status = 500)
         : path(std::filesystem::temp_directory_path() / "lens_update_duty_test.json")
     {
         std::filesystem::remove(path);
         store   = std::make_unique<lens::core::KnownStore>(lens::core::KnownStore::load(path));
         storage = std::make_unique<lens::app::StorageDuty>(*store);
         lens::update::Settings settings;
-        settings.source        = QUrl{QStringLiteral("https://api.github.com/repos/kakuyo1/lens/releases/latest")};
-        settings.maxNotesChars = 200;
-        settings.maxBytes      = 2 * 1024 * 1024;
-        client                 = std::make_unique<lens::update::UpdateClient>(settings, &manager);
-        duty                   = std::make_unique<lens::app::UpdateDuty>(*storage, *client, QStringLiteral("1.1.0"), [] { return pinnedDate(); });
+        settings.source   = QUrl{QString::fromLatin1(kReleasePage)};
+        settings.maxBytes = 2 * 1024 * 1024;
+        client            = std::make_unique<lens::update::UpdateClient>(settings, &manager);
+        duty              = std::make_unique<lens::app::UpdateDuty>(*storage, *client, QStringLiteral("1.1.0"), [] { return pinnedDate(); });
     }
 
     ~DutyFixture()
@@ -174,20 +170,16 @@ struct DutyFixture {
         std::filesystem::remove(path);
     }
 
-    /// @brief Answer the check in flight with a release the client would have parsed.
-    void answerWith(const char* fields)
+    /// @brief Answer the check in flight with a redirect naming the newer release.
+    void answerWithNewer()
     {
-        const auto parsed = parseRelease(release(fields), 200);
-        ASSERT_TRUE(parsed.has_value());
-        emit client->finished(*parsed);
+        deliver("v1.2.0");
     }
 
-    /// @brief The same, for an answer that names @p tag.
+    /// @brief The same, for a redirect that names @p tag.
     void answerWithTag(const char* tag)
     {
-        const auto parsed = parseRelease(releaseWithTag(tag), 200);
-        ASSERT_TRUE(parsed.has_value());
-        emit client->finished(*parsed);
+        deliver(tag);
     }
 
     std::filesystem::path path;
@@ -203,68 +195,72 @@ struct DutyFixture {
         auto again = lens::core::KnownStore::load(path);
         return again.document();
     }
+
+private:
+    void deliver(const char* tag)
+    {
+        const auto parsed = parseReleaseLocation(releaseUrl(tag));
+        ASSERT_TRUE(parsed.has_value());
+        emit client->finished(*parsed);
+    }
 };
 
 } // namespace
 
-TEST(UpdateParse, ReadsTheVersionThePageAndTheNotes)
+TEST(UpdateLocation, ReadsTheVersionAndKeepsThePageItWasGiven)
 {
     QtApplication qt;
-    const auto parsed = parseRelease(release(R"(,"body":"Fixed two things.\n\nAnd a third thing nobody reads." )"), 200);
-    ASSERT_TRUE(parsed.has_value());
-    EXPECT_EQ(parsed->versionText, QStringLiteral("1.2.0"));
-    EXPECT_EQ(parsed->pageUrl, QStringLiteral("https://github.com/kakuyo1/lens/releases/tag/v1.2.0"));
-    // Only the first paragraph: the rest is the change log, and the card has no room for it.
-    EXPECT_EQ(parsed->notes, QStringLiteral("Fixed two things."));
+    for (const char* tag : {"v1.1.0", "1.1.0"}) {
+        const QUrl url    = releaseUrl(tag);
+        const auto parsed = parseReleaseLocation(url);
+        ASSERT_TRUE(parsed.has_value()) << tag;
+        EXPECT_EQ(parsed->versionText, QStringLiteral("1.1.0")) << tag;
+        EXPECT_EQ(parsed->version, (lens::util::SemVer{1, 1, 0})) << tag;
+        EXPECT_EQ(parsed->pageUrl, url.toString()) << tag;
+        // The redirect carries no notes, and none are fetched behind it.
+        EXPECT_TRUE(parsed->notes.isEmpty()) << tag;
+    }
 }
 
-TEST(UpdateParse, AcceptsANullBodyAsAReleaseWithNothingWritten)
+TEST(UpdateLocation, RefusesAnythingThatIsNotThisProjectsReleasePage)
 {
     QtApplication qt;
-    const auto parsed = parseRelease(release(R"(,"body":null)"), 200);
-    ASSERT_TRUE(parsed.has_value());
-    EXPECT_TRUE(parsed->notes.isEmpty());
+    // Another host, including a lookalike and a subdomain of the real one.
+    EXPECT_FALSE(parseReleaseLocation(QUrl{"https://example.com/kakuyo1/lens/releases/tag/v1.1.0"}).has_value());
+    EXPECT_FALSE(parseReleaseLocation(QUrl{"https://github.com.evil.test/kakuyo1/lens/releases/tag/v1.1.0"}).has_value());
+    EXPECT_FALSE(parseReleaseLocation(QUrl{"https://raw.github.com/kakuyo1/lens/releases/tag/v1.1.0"}).has_value());
+    // Not https.
+    EXPECT_FALSE(parseReleaseLocation(QUrl{"http://github.com/kakuyo1/lens/releases/tag/v1.1.0"}).has_value());
+    EXPECT_FALSE(parseReleaseLocation(QUrl{"ftp://github.com/kakuyo1/lens/releases/tag/v1.1.0"}).has_value());
+    // Not a release tag path: the repository itself, and someone else's repository.
+    EXPECT_FALSE(parseReleaseLocation(QUrl{"https://github.com/kakuyo1/lens/releases"}).has_value());
+    EXPECT_FALSE(parseReleaseLocation(QUrl{"https://github.com/kakuyo1/lens"}).has_value());
+    EXPECT_FALSE(parseReleaseLocation(QUrl{"https://github.com/other/lens/releases/tag/v1.1.0"}).has_value());
+    // The tag itself is not a version.
+    EXPECT_FALSE(parseReleaseLocation(releaseUrl("v1.2")).has_value());
+    EXPECT_FALSE(parseReleaseLocation(releaseUrl("1.2.0-rc1")).has_value());
+    EXPECT_FALSE(parseReleaseLocation(releaseUrl("nightly")).has_value());
+    EXPECT_FALSE(parseReleaseLocation(releaseUrl("")).has_value());
+    // And nothing at all.
+    EXPECT_FALSE(parseReleaseLocation(QUrl{}).has_value());
+    EXPECT_FALSE(parseReleaseLocation(QUrl{QString{}}).has_value());
 }
 
-TEST(UpdateParse, RejectsAMissingOrWrongTypedRequiredField)
+TEST(UpdateLocation, RefusesARepositoryWithNoReleaseYet)
 {
     QtApplication qt;
-    EXPECT_FALSE(parseRelease(R"({"html_url":"https://example.com/r"})", 200).has_value());
-    EXPECT_FALSE(parseRelease(R"({"tag_name":"v1.2.0"})", 200).has_value());
-    EXPECT_FALSE(parseRelease(R"({"tag_name":1,"html_url":"https://example.com/r"})", 200).has_value());
-    EXPECT_FALSE(parseRelease(R"({"tag_name":"v1.2.0","html_url":7})", 200).has_value());
+    // Where the page sends a repository that has never published: not under the tag path, so
+    // there is no version to report and the check reads as offline rather than as up to date.
+    EXPECT_FALSE(parseReleaseLocation(QUrl{"https://github.com/kakuyo1/lens/releases"}).has_value());
 }
 
-TEST(UpdateParse, RejectsANonHttpsPageAndANonSemverTag)
+TEST(UpdateLocation, ResolvesARelativeRedirectTheWayTheClientDoes)
 {
     QtApplication qt;
-    EXPECT_FALSE(parseRelease(R"({"tag_name":"v1.2.0","html_url":"http://example.com/r"})", 200).has_value());
-    EXPECT_FALSE(parseRelease(R"({"tag_name":"v1.2.0","html_url":"https:///r"})", 200).has_value());
-    EXPECT_FALSE(parseRelease(releaseWithTag("v1.2.0-rc1"), 200).has_value());
-    EXPECT_FALSE(parseRelease(releaseWithTag("nightly"), 200).has_value());
-}
-
-TEST(UpdateParse, RejectsAnAnswerThatIsNotJSONAtAll)
-{
-    QtApplication qt;
-    EXPECT_FALSE(parseRelease("not json", 200).has_value());
-    EXPECT_FALSE(parseRelease("[]", 200).has_value());
-}
-
-TEST(UpdateParse, TakesTheFirstParagraphFromABodyThatCameBackWithWindowsLineEnds)
-{
-    QtApplication qt;
-    const auto parsed = parseRelease(release(",\"body\":\"Fixed two things.\r\n\r\nA list.\r\n\""), 200);
-    ASSERT_TRUE(parsed.has_value());
-    EXPECT_EQ(parsed->notes, QStringLiteral("Fixed two things."));
-}
-
-TEST(UpdateParse, CutsTheNotesToTheCeilingAndSaysSo)
-{
-    QtApplication qt;
-    const auto parsed = parseRelease(release(R"(,"body":"abcdefghij")"), 4);
-    ASSERT_TRUE(parsed.has_value());
-    EXPECT_EQ(parsed->notes, QStringLiteral("abcd..."));
+    const QUrl source{QString::fromLatin1(kReleasePage)};
+    EXPECT_EQ(source.resolved(QUrl{"/kakuyo1/lens/releases/tag/v1.2.0"}),
+              QUrl{"https://github.com/kakuyo1/lens/releases/tag/v1.2.0"});
+    EXPECT_TRUE(parseReleaseLocation(source.resolved(QUrl{"/kakuyo1/lens/releases/tag/v1.2.0"})).has_value());
 }
 
 TEST(UpdateAvailability, OnlyAStrictlyNewerVersionIsAvailable)
@@ -312,14 +308,14 @@ TEST(UpdateSkipRule, NothingToShowWhenThereIsNothingNew)
     EXPECT_FALSE(shouldPrompt(stored, QStringLiteral("1.2.0"), false));
 }
 
-TEST(UpdateSettings, ReadsTheSourceAndTheLimitsOutOfTheData)
+TEST(UpdateSettings, ReadsTheReleasePageAndTheLimitsOutOfTheData)
 {
     QtApplication qt;
     const auto settings = lens::update::Settings::load(std::filesystem::path(LENS_SOURCE_DIR) / "data" / "update.json");
+    EXPECT_EQ(settings.source.toString(), QString::fromLatin1(kReleasePage));
     EXPECT_EQ(settings.source.scheme(), QStringLiteral("https"));
     EXPECT_FALSE(settings.source.host().isEmpty());
     EXPECT_EQ(settings.timeoutMs, 10000);
-    EXPECT_EQ(settings.maxNotesChars, 200);
     EXPECT_EQ(settings.maxBytes, 2097152);
 }
 
@@ -335,7 +331,7 @@ TEST(UpdateClient, RefusesANonHttpsSourceWithoutSendingAnything)
     QtApplication qt;
     ScriptedManager manager;
     lens::update::Settings settings;
-    settings.source = QUrl{QStringLiteral("http://api.github.com/repos/kakuyo1/lens/releases/latest")};
+    settings.source = QUrl{"http://github.com/kakuyo1/lens/releases/latest"};
 
     lens::update::UpdateClient client(settings, &manager);
     int offline = 0;
@@ -348,14 +344,101 @@ TEST(UpdateClient, RefusesANonHttpsSourceWithoutSendingAnything)
     EXPECT_EQ(offline, 1);
 }
 
+TEST(UpdateClient, AsksTheSourceNotToFollowTheRedirect)
+{
+    QtApplication qt;
+    ScriptedManager manager{302, releaseUrl("v1.2.0").toString()};
+    lens::update::Settings settings;
+    settings.source = QUrl{QString::fromLatin1(kReleasePage)};
+
+    lens::update::UpdateClient client(settings, &manager);
+    client.fetch();
+    settle();
+
+    // The request says not to, which is the part that matters: the stub manager would not follow
+    // one either way, so the request count alone proves nothing about the client.
+    EXPECT_EQ(manager.redirectPolicy.toInt(), static_cast<int>(QNetworkRequest::ManualRedirectPolicy));
+    EXPECT_NE(manager.redirectPolicy.toInt(), static_cast<int>(QNetworkRequest::NoLessSafeRedirectPolicy));
+    EXPECT_EQ(manager.requests, 1);
+}
+
+/// The redirect is the answer: a 302 with a Location the parser accepts is a release, and
+/// everything else this page can say -- a 200, a rate limit, a redirect with nowhere to go --
+/// is offline. This drives the client's own `finished` path, header and all.
+TEST(UpdateClient, ARedirectCarryingAReleaseIsTheOnlyAnswerItAccepts)
+{
+    QtApplication qt;
+    {
+        ScriptedManager manager{302, releaseUrl("v1.2.0").toString()};
+        lens::update::Settings settings;
+        settings.source = QUrl{QString::fromLatin1(kReleasePage)};
+
+        lens::update::UpdateClient client(settings, &manager);
+        QVector<lens::update::Release> releases;
+        int offline = 0;
+        QObject::connect(&client, &lens::update::UpdateClient::finished, [&releases](lens::update::Release r) { releases.append(r); });
+        QObject::connect(&client, &lens::update::UpdateClient::offline, [&offline] { ++offline; });
+
+        client.fetch();
+        settle();
+
+        ASSERT_EQ(releases.size(), 1);
+        EXPECT_EQ(releases.front().versionText, QStringLiteral("1.2.0"));
+        EXPECT_EQ(releases.front().pageUrl, releaseUrl("v1.2.0").toString());
+        EXPECT_EQ(offline, 0);
+    }
+    {
+        ScriptedManager manager{302, QStringLiteral("https://example.com/kakuyo1/lens/releases/tag/v1.2.0")};
+        lens::update::Settings settings;
+        settings.source = QUrl{QString::fromLatin1(kReleasePage)};
+
+        lens::update::UpdateClient client(settings, &manager);
+        int offline = 0;
+        QObject::connect(&client, &lens::update::UpdateClient::offline, [&offline] { ++offline; });
+
+        client.fetch();
+        settle();
+
+        EXPECT_EQ(offline, 1, "a redirect to another host is not this project's release page");
+    }
+    {
+        // The page itself answered, which is not an answer this check can use.
+        ScriptedManager manager{200};
+        lens::update::Settings settings;
+        settings.source = QUrl{QString::fromLatin1(kReleasePage)};
+
+        lens::update::UpdateClient client(settings, &manager);
+        int offline = 0;
+        QObject::connect(&client, &lens::update::UpdateClient::offline, [&offline] { ++offline; });
+
+        client.fetch();
+        settle();
+
+        EXPECT_EQ(offline, 1, "a 200 is not the redirect this check reads");
+    }
+    {
+        ScriptedManager manager{302};
+        lens::update::Settings settings;
+        settings.source = QUrl{QString::fromLatin1(kReleasePage)};
+
+        lens::update::UpdateClient client(settings, &manager);
+        int offline = 0;
+        QObject::connect(&client, &lens::update::UpdateClient::offline, [&offline] { ++offline; });
+
+        client.fetch();
+        settle();
+
+        EXPECT_EQ(offline, 1, "a redirect that says nothing about where is no answer");
+    }
+}
+
 TEST(UpdateClient, AnAnswerLargerThanTheCeilingIsAbortedAndReadsAsOffline)
 {
     QtApplication qt;
-    ScriptedManager manager;
+    ScriptedManager manager{302, releaseUrl("v1.2.0").toString()};
     lens::update::Settings settings;
-    settings.source        = QUrl{QStringLiteral("https://api.github.com/repos/kakuyo1/lens/releases/latest")};
-    settings.maxBytes      = 16;
-    settings.maxNotesChars = 200;
+    settings.source   = QUrl{QString::fromLatin1(kReleasePage)};
+    settings.maxBytes = 16;
 
     lens::update::UpdateClient client(settings, &manager);
     int offline  = 0;
@@ -368,8 +451,7 @@ TEST(UpdateClient, AnAnswerLargerThanTheCeilingIsAbortedAndReadsAsOffline)
 
     // What the reply reports once more than the ceiling has arrived. The handler the client
     // connected is what calls abort(), and an aborted reply is an error, so this reaches the
-    // same offline branch a dead network does -- before the answer is delivered, which is when
-    // an oversized body is noticed in the first place.
+    // same offline branch a dead network does.
     const auto reply = manager.findChild<QNetworkReply*>();
     ASSERT_NE(reply, nullptr);
     emit reply->downloadProgress(17, 17);
@@ -384,13 +466,14 @@ TEST(UpdateDuty, ANewerVersionAnswersAvailableAndRaisesTheCard)
     QtApplication qt;
     DutyFixture one;
     one.duty->checkAtStartup();
-    one.answerWith(R"(,"body":"Fixed two things.")");
+    one.answerWithNewer();
 
     const QVariantMap state = one.duty->update();
     EXPECT_EQ(state.value("state").toString(), QStringLiteral("available"));
     EXPECT_EQ(state.value("current").toString(), QStringLiteral("1.1.0"));
     EXPECT_EQ(state.value("latest").toString(), QStringLiteral("1.2.0"));
-    EXPECT_EQ(state.value("notes").toString(), QStringLiteral("Fixed two things."));
+    // The redirect carries no notes, so the key is there and empty rather than absent.
+    EXPECT_TRUE(state.value("notes").toString().isEmpty());
     EXPECT_TRUE(one.duty->cardVisible());
 }
 
@@ -463,7 +546,7 @@ TEST(UpdateDuty, SkippingWritesThatExactVersionAndClosesTheCard)
     QtApplication qt;
     DutyFixture one;
     one.duty->checkAtStartup();
-    one.answerWith(R"(,"body":"Fixed two things.")");
+    one.answerWithNewer();
     ASSERT_TRUE(one.duty->cardVisible());
 
     one.duty->skipUpdate();
@@ -485,13 +568,13 @@ TEST(UpdateDuty, ASkippedVersionIsQuietOnTheAutomaticPathAndLoudOnTheManualOne)
     one.store->document()["UPDATE"]["autoCheck"] = true;
 
     one.duty->checkAtStartup();
-    one.answerWith("");
+    one.answerWithNewer();
     EXPECT_EQ(one.duty->update().value("state").toString(), QStringLiteral("available"));
     EXPECT_FALSE(one.duty->cardVisible(), "a skipped version must not raise the card again");
 
     // The reader asks, and the real state is reported whatever was skipped.
     one.duty->checkForUpdates();
-    one.answerWith("");
+    one.answerWithNewer();
     EXPECT_TRUE(one.duty->cardVisible(), "a manual check ignores what was skipped");
 }
 
@@ -511,7 +594,7 @@ TEST(UpdateDuty, AManualCheckDuringTheStartupCheckIsAnsweredAsManual)
     one.duty->checkForUpdates(); // pressed before anything came back
     EXPECT_EQ(one.manager.requests, 1, "the press must not start a second request");
 
-    one.answerWith("");
+    one.answerWithNewer();
     EXPECT_EQ(one.duty->update().value("state").toString(), QStringLiteral("available"));
     EXPECT_TRUE(one.duty->cardVisible(), "the card a reader asked for must come up");
 }
@@ -538,14 +621,14 @@ TEST(UpdateDuty, ACheckStartedWhileTheCardIsUpLeavesTheCardUp)
     QtApplication qt;
     DutyFixture one;
     one.duty->checkForUpdates();
-    one.answerWith("");
+    one.answerWithNewer();
     ASSERT_TRUE(one.duty->cardVisible());
 
     one.duty->checkForUpdates();
     EXPECT_EQ(one.duty->update().value("state").toString(), QStringLiteral("checking"));
     EXPECT_TRUE(one.duty->cardVisible(), "starting a check took the card down");
 
-    one.answerWith("");
+    one.answerWithNewer();
     EXPECT_EQ(one.duty->update().value("latest").toString(), QStringLiteral("1.2.0"));
     EXPECT_TRUE(one.duty->cardVisible(), "the same version took the card down");
 }
@@ -555,7 +638,7 @@ TEST(UpdateDuty, ACheckThatAnswersThereIsNothingNewTakesTheCardDown)
     QtApplication qt;
     DutyFixture one;
     one.duty->checkForUpdates();
-    one.answerWith("");
+    one.answerWithNewer();
     ASSERT_TRUE(one.duty->cardVisible());
 
     // The reader installed the version the card was offering and asked again.
@@ -570,11 +653,11 @@ TEST(UpdateDuty, ANewerVersionPromptsAgainAfterTheSkippedOne)
     QtApplication qt;
     DutyFixture one;
     one.duty->checkAtStartup();
-    one.answerWith("");
+    one.answerWithNewer();
     one.duty->skipUpdate();
 
     one.duty->checkForUpdates();
-    const auto parsed = parseRelease(releaseWithTag("v1.3.0"), 200);
+    const auto parsed = parseReleaseLocation(releaseUrl("v1.3.0"));
     ASSERT_TRUE(parsed.has_value());
     emit one.client->finished(*parsed);
 

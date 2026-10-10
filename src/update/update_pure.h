@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QByteArray>
 #include <QString>
+#include <QUrl>
 
 #include <optional>
 
@@ -12,9 +12,9 @@
  * @brief The network-free core of the update check: read the answer, decide what it means.
  *
  * Everything here is a function of its arguments. The date the once-a-day rule is judged
- * against arrives as a string rather than being read from the clock, so a test pins it; and
- * the response arrives as raw bytes, so the parse is exercised against exactly what the
- * source sends rather than against a struct this program built itself.
+ * against arrives as a string rather than being read from the clock, so a test pins it; and the
+ * answer arrives as one URL rather than as bytes this program would have to take apart, so what
+ * is checked is what is used.
  */
 
 namespace lens::update {
@@ -23,26 +23,25 @@ namespace lens::update {
 struct Release {
     util::SemVer version; ///< The three numbers the tag carries, whatever the tag spelled.
     QString versionText;  ///< The same version written out, e.g. "1.2.0".
-    QString pageUrl;      ///< The release page, https and with a host, or the parse failed.
-    QString notes;        ///< First paragraph of the release body, truncated, or empty.
+    QString pageUrl;      ///< The release page, which is the address the answer redirected to.
+    QString notes;        ///< Always empty: the redirect carries no notes, and none are fetched.
 };
 
 /**
- * @brief Read a `releases/latest` answer, and refuse anything this program cannot use.
+ * @brief Read the address a release page redirects to, and refuse anything else.
  *
- * Required: `tag_name`, which must parse as a plain version, and `html_url`, which must be an
- * https URL with a host. Either missing or of the wrong type rejects the whole answer rather
- * than yielding a half-release: a card that names a version with no page to open is worse than
- * no card. Optional: `body`, which may be null, and whose first paragraph becomes the notes.
+ * The answer is a `Location` header, not a document: the release page's latest address replies
+ * with a redirect to the newest tag, and that redirect is the whole answer. Nothing is fetched
+ * behind it -- no HTML is read and no release body is asked for.
  *
- * Drafts and pre-releases are not in a `latest` answer at all, so nothing here filters them
- * a second time.
+ * Usable means: https, on `github.com`, under `/kakuyo1/lens/releases/tag/`, with a last path
+ * segment that is a plain version. That last rule also covers the repository with no release
+ * yet, which redirects to `/releases` rather than to a tag: no tag, no release, `offline`.
  *
- * @param body           Raw response bytes, treated as untrusted.
- * @param maxNotesChars  Ceiling on the notes, cut with an ellipsis when it bites.
- * @return The release, or nothing when the answer is not one.
+ * @param location The redirect target, already resolved against the request URL.
+ * @return The release, or nothing when the address is not one this program can act on.
  */
-std::optional<Release> parseRelease(const QByteArray& body, int maxNotesChars);
+std::optional<Release> parseReleaseLocation(const QUrl& location);
 
 /**
  * @brief Whether @p latest is newer than the version this build carries.

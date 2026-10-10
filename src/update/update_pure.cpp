@@ -5,83 +5,48 @@
 
 #include "update_pure.h"
 
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonParseError>
-#include <QStringList>
-#include <QUrl>
-
-#include <string>
-
 #include "util/log.h"
 
 namespace lens::update {
 namespace {
 
-/// @return The body up to the first blank line, trimmed, and no longer than @p maxChars.
-///
-/// A release body is a change log: the first paragraph is what changed, and everything under
-/// it is a list the card has no room for. Cut mid-word is preferred to cut silently -- the
-/// ellipsis says the sentence continues rather than pretending it ended there.
-QString firstParagraph(const QString& body, int maxChars)
-{
-    QString paragraph;
-    // Split on the newline alone, so a body that came back with CRLF ends does not carry a
-    // carriage return into the middle of every line the card draws.
-    const QStringList lines = body.split(QLatin1Char('\n'));
-    for (const QString& raw : lines) {
-        const QString line = raw.trimmed();
-        if (line.isEmpty())
-            break;
-        if (not paragraph.isEmpty())
-            paragraph += QLatin1Char('\n');
-        paragraph += line;
-    }
-    paragraph = paragraph.trimmed();
-    if (maxChars > 0 and paragraph.size() > maxChars)
-        paragraph = paragraph.left(maxChars).trimmed() + QStringLiteral("...");
-    return paragraph;
-}
+/// The one repository this check reads, and the one path under it a release tag lives at.
+/// Both are checked rather than assumed: an address from anywhere else is not this project's
+/// release page, and the reader's card would be opening someone else's page.
+constexpr auto kReleaseHost = "github.com";
+const QString kTagPath      = QStringLiteral("/kakuyo1/lens/releases/tag/");
 
 } // namespace
 
-std::optional<Release> parseRelease(const QByteArray& body, int maxNotesChars)
+std::optional<Release> parseReleaseLocation(const QUrl& location)
 {
-    QJsonParseError error{};
-    const QJsonDocument document = QJsonDocument::fromJson(body, &error);
-    if (error.error != QJsonParseError::NoError or not document.isObject()) {
-        LENS_WARN("the release answer was not a JSON object ({})", error.errorString().toStdString());
+    if (not location.isValid() or location.scheme() != QLatin1String("https")) {
+        LENS_WARN("the release address is not an https URL; the answer was refused");
+        return std::nullopt;
+    }
+    if (location.host().compare(QLatin1String(kReleaseHost), Qt::CaseInsensitive) != 0) {
+        LENS_WARN("the release address is not on {}; the answer was refused", kReleaseHost);
+        return std::nullopt;
+    }
+    if (not location.path().startsWith(kTagPath)) {
+        // The repository with no release yet redirects here rather than to a tag, which is the
+        // one refusal that is a fact about the project rather than a fault.
+        LENS_WARN("the release address is not under {}; the answer was refused", kTagPath.toStdString());
         return std::nullopt;
     }
 
-    const QJsonObject root = document.object();
-    if (not root.value("tag_name").isString() or not root.value("html_url").isString()) {
-        LENS_WARN("the release answer carried no tag_name or html_url string");
-        return std::nullopt;
-    }
-
-    const auto version = util::parseTag(root.value("tag_name").toString().toStdString());
+    const QString tag  = location.path().mid(kTagPath.size());
+    const auto version = util::parseTag(tag.toStdString());
     if (not version) {
         LENS_WARN("the release tag is not a plain three-number version; the answer was refused");
         return std::nullopt;
     }
 
-    const QUrl pageUrl{root.value("html_url").toString()};
-    if (not pageUrl.isValid() or pageUrl.scheme() != QLatin1String("https") or pageUrl.host().isEmpty()) {
-        LENS_WARN("the release page is not an https URL with a host; the answer was refused");
-        return std::nullopt;
-    }
-
-    // A null body is a release with nothing written under it, which is a release rather than a
-    // malformed answer: the card shows the version and nothing else.
-    const QJsonValue notes = root.value("body");
-    const QString text     = notes.isString() ? notes.toString() : QString{};
-
     Release release;
     release.version     = *version;
     release.versionText = QStringLiteral("%1.%2.%3").arg(version->major).arg(version->minor).arg(version->patch);
-    release.pageUrl     = pageUrl.toString();
-    release.notes       = firstParagraph(text, maxNotesChars);
+    release.pageUrl     = location.toString();
+    // No notes: the redirect carries none, and nothing behind it is fetched.
     return release;
 }
 

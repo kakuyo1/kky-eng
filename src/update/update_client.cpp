@@ -41,8 +41,6 @@ Settings Settings::load(const std::filesystem::path& path)
         settings.timeoutMs = timeoutMs;
     if (const auto maxBytes = static_cast<qint64>(root.value("maxBytes").toDouble()); maxBytes > 0)
         settings.maxBytes = maxBytes;
-    if (const int maxNotesChars = root.value("maxNotesChars").toInt(); maxNotesChars > 0)
-        settings.maxNotesChars = maxNotesChars;
     return settings;
 }
 
@@ -57,11 +55,11 @@ UpdateClient::UpdateClient(Settings settings, QNetworkAccessManager* manager, QO
 
 void UpdateClient::fetch()
 {
-    // One source, declared in the data, asked for with nothing the reader owns: no key, no
+    // One release page, declared in the data, asked for with nothing the reader owns: no key, no
     // query, no install identifier. A source that is not https is not asked at all -- the same
     // refusal LlmClient::fetchModels() makes, and for the same reason.
     if (not settings_.source.isValid() or settings_.source.scheme() != QLatin1String("https") or settings_.source.host().isEmpty()) {
-        LENS_WARN("the update source in the data is not an https URL with a host; nothing was requested");
+        LENS_WARN("the release page in the data is not an https URL with a host; nothing was requested");
         emit offline();
         return;
     }
@@ -69,6 +67,9 @@ void UpdateClient::fetch()
     QNetworkRequest request(settings_.source);
     request.setTransferTimeout(settings_.timeoutMs);
     request.setHeader(QNetworkRequest::UserAgentHeader, userAgent_);
+    // The redirect is the answer, so it is not followed. Following it would fetch the release
+    // page to read a version this check has already been handed in a header.
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::ManualRedirectPolicy);
     LENS_TRACE("GET {}", settings_.source.toString().toStdString());
 
     QNetworkReply* reply  = manager_->get(request);
@@ -79,12 +80,22 @@ void UpdateClient::fetch()
     connect(reply, &QNetworkReply::finished, this, [this, reply] {
         reply->deleteLater();
         const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-        if (reply->error() != QNetworkReply::NoError or (status != 0 and status != 200)) {
-            LENS_WARN("the update source was not fetched: HTTP {} ({})", status, reply->errorString().toStdString());
+        if (reply->error() != QNetworkReply::NoError or status != 302) {
+            // Anything that is not the redirect is `offline`: a 200 means something answered
+            // that was not this release page, and a rate limit or a missing release is a fact
+            // the reader cannot act on either.
+            LENS_WARN("the release page did not redirect: HTTP {} ({})", status, reply->errorString().toStdString());
             emit offline();
             return;
         }
-        const auto release = parseRelease(reply->readAll(), settings_.maxNotesChars);
+        const QVariant raw = reply->header(QNetworkRequest::LocationHeader);
+        if (not raw.isValid()) {
+            LENS_WARN("the release page redirected without saying where to");
+            emit offline();
+            return;
+        }
+        // The header may be relative; the parser sees the address the redirect really names.
+        const auto release = parseReleaseLocation(settings_.source.resolved(QUrl{raw.toUrl()}));
         if (not release) {
             emit offline();
             return;

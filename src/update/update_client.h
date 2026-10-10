@@ -14,20 +14,20 @@ class QNetworkAccessManager;
  * @file update_client.h
  * @brief The one HTTP request the update check makes.
  *
- * One unauthenticated GET of a fixed endpoint, declared in `data/update.json`, with nothing
+ * One unauthenticated GET of a fixed release page, declared in `data/update.json`, with nothing
  * the reader owns on it: no key, no auth header, no query, no identifier, and no words or
- * selection text. Nothing is downloaded, installed or run -- the answer decides whether a card
- * is worth putting up, and the card's action opens the release page in the browser.
+ * selection text. The redirect that page answers with is the whole answer, and it is not
+ * followed. Nothing is downloaded, installed or run -- the version decides whether a card is
+ * worth putting up, and the card's action opens the release page in the browser.
  */
 
 namespace lens::update {
 
 /// @brief Where the check asks, and the ceilings it asks under, read from `data/update.json`.
 struct Settings {
-    QUrl source; ///< The endpoint; a non-https one is refused and nothing is sent.
-    int timeoutMs     = 10000;
-    qint64 maxBytes   = 2 * 1024 * 1024;
-    int maxNotesChars = 200;
+    QUrl source; ///< The release page; a non-https one is refused and nothing is sent.
+    int timeoutMs   = 10000;
+    qint64 maxBytes = 2 * 1024 * 1024;
 
     /**
      * @brief Read the source and its limits from `data/update.json`.
@@ -41,7 +41,7 @@ struct Settings {
 };
 
 /**
- * @brief Asks the source once, and reports one of three answers.
+ * @brief Asks the release page once, and reports one of three answers.
  *
  * A failed attempt is `offline`, never a reason: the transport's own text stops here, so no
  * error string reaches the property the surfaces read.
@@ -62,17 +62,19 @@ public:
      */
     explicit UpdateClient(Settings settings, QNetworkAccessManager* manager = nullptr, QObject* parent = nullptr);
 
-    /// @brief Ask the source, once.
+    /// @brief Ask the release page, once, and read the redirect it answers with.
     ///
-    /// A non-https source is logged and answered `offline` without a request being made. There
-    /// is no retry: one attempt per trigger, and the caller decides whether there is another.
+    /// The redirect is not followed: its `Location` is the answer, and it is handed to
+    /// parseReleaseLocation(). A non-https source is logged and answered `offline` without a
+    /// request being made. There is no retry: one attempt per trigger, and the caller decides
+    /// whether there is another.
     void fetch();
 
 signals:
-    /// @brief The answer, with the version, the page to open, and the notes to show.
+    /// @brief The answer, with the version and the page to open. The notes are always empty.
     void finished(Release release);
 
-    /// @brief The source could not be reached, answered, or trusted.
+    /// @brief The release page could not be reached, answered, or trusted.
     ///
     /// Carries no text: the reason is in the log, and nothing here reaches a surface.
     void offline();
