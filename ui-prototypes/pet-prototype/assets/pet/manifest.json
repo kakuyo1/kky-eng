@@ -1,0 +1,34 @@
+{
+  "id": "dog",
+  "canvas": 64,
+  "scale": 3,
+  "layers": { "body": 0, "expression": 2, "effect": 5 },
+  "expression": "expressions/eyes.png",
+  "actions": {
+    "idle": {
+      "frames": 5, "fps": 5, "loop": true, "priority": 0, "blink": true,
+      "sheet": "body/idle.png",
+      "anchors": [[0, 0], [0, 0], [0, -3], [0, -3], [0, 0]]
+    },
+    "study": {
+      "frames": 6, "fps": 6, "loop": true, "priority": 50, "blink": true,
+      "sheet": "body/study.png",
+      "anchors": [[0, 0], [0, 0], [0, 0], [0, -3], [0, -3], [0, 0]]
+    },
+    "celebrate": {
+      "frames": 6, "fps": 10, "loop": false, "priority": 50, "returnTo": "idle",
+      "sheet": "body/celebrate.png",
+      "anchors": [[0, 0], [0, -3], [0, -6], [0, -6], [0, -3], [0, 0]]
+    },
+    "sleep": {
+      "frames": 4, "fps": 4, "loop": true, "priority": 50, "expression": "closed",
+      "sheet": "body/sleep.png", "effect": "effects/zzz.png",
+      "anchors": [[0, 0], [0, 1], [0, 1], [0, 0]]
+    }
+  },
+  "accessories": [
+    { "id": "hat", "slot": "head", "asset": "accessories/headwear/hat.png", "zIndex": 4, "supportedActions": ["idle", "study", "celebrate"] },
+    { "id": "glasses", "slot": "face", "asset": "accessories/glasses/glasses.png", "zIndex": 3, "supportedActions": ["idle", "study", "celebrate"] },
+    { "id": "scarf", "slot": "body", "asset": "accessories/clothing/scarf.png", "zIndex": 1, "supportedActions": ["idle", "study", "celebrate", "sleep"] }
+  ]
+}

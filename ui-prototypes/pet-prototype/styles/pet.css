@@ -1,0 +1,92 @@
+/* Page chrome only. Pet motion is driven by PetEngine and drawn on the canvas. */
+:root {
+  --ok: #2f9e6e;
+  --ink: #1a1a1f;
+  --muted: #6b7078;
+  --line: #d9dce1;
+  --soft: #f4f5f7;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: var(--soft);
+}
+
+.stage {
+  flex: 1;
+  display: grid;
+  place-items: center;
+}
+
+#pet {
+  width: 192px;
+  height: 192px;
+  image-rendering: pixelated;
+}
+
+.panel {
+  width: 300px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #fff;
+  border-left: 1px solid var(--line);
+  overflow-y: auto;
+}
+
+.panel h2 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+button {
+  font: inherit;
+  padding: 5px 10px;
+  border: 1px solid #c9ced6;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+button[aria-pressed="true"] {
+  background: var(--ok);
+  border-color: var(--ok);
+  color: #fff;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.fps input {
+  width: 64px;
+  font: inherit;
+  padding: 4px 6px;
+}
+
+#status {
+  margin: 0;
+  padding: 8px;
+  font: 12px/1.6 ui-monospace, Menlo, monospace;
+  background: var(--soft);
+  border-radius: 6px;
+  white-space: pre;
+}

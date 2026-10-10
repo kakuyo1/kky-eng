@@ -1,0 +1,16 @@
+{
+  "name": "pet-prototype",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Pixel desktop pet prototype for Lens phase 3 (not a build target; see ui-prototypes/README.md)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "node --test test/*.test.js",
+    "assets": "python tools/build-assets.py"
+  },
+  "devDependencies": {
+    "vite": "^8.3.4"
+  }
+}
