@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
     MouseSelectionHook hook;
     GlobalHotkey hotkey;
 
-    AppController controller(store, llm, hook, hotkey, pricing);
+    AppController controller(store, llm, hook, hotkey, pricing, dataDir);
 
     // A refused pet data directory leaves the pet off and says why; the rest of the program is unaffected.
     std::optional<lens::app::pet::PetAssets> petAssets;
@@ -282,6 +282,12 @@ int main(int argc, char* argv[])
     // combination another program already owns leaves the trigger missing and says so in the
     // settings -- the program carries on either way.
     controller.installHotkey();
+
+    // After the settings are loaded and the surfaces are up, and after the two things that
+    // take the machine -- the mouse hook and the trigger key -- have had their moment. Once a
+    // local date at most: the duty writes the date when the check starts, so a machine that
+    // cannot reach the source does not retry on every launch.
+    controller.checkForUpdatesAtStartup();
 
 #if defined(QT_QML_DEBUG)
     const QByteArray profileScenario = qgetenv("LENS_QML_PROFILE_SCENARIO");

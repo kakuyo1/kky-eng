@@ -10,6 +10,8 @@
 #include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
 
+#include <filesystem>
+
 #include "capture_duty.h"
 #include "core/pet/pet_state.h"
 #include "cost_duty.h"
@@ -19,6 +21,7 @@
 #include "llm/llm_pricing.h"
 #include "mouse_selection_hook.h"
 #include "storage_duty.h"
+#include "update_duty.h"
 
 class QQmlEngine;
 class QJSEngine;
@@ -44,6 +47,7 @@ public:
      * @param hook Desktop selection hook, owned by main().
      * @param hotkey System-wide capture trigger, owned by main().
      * @param pricing Loaded model price list, owned by main().
+     * @param dataDir Directory `data/update.json` is read from, the same one `data/llm/` is.
      * @param parent QObject parent.
      */
     AppController(core::KnownStore& store,
@@ -51,6 +55,7 @@ public:
                   MouseSelectionHook& hook,
                   GlobalHotkey& hotkey,
                   const llm::Pricing& pricing,
+                  const std::filesystem::path& dataDir,
                   QObject* parent = nullptr);
     ~AppController() override;
 
@@ -128,6 +133,26 @@ public:
     Q_INVOKABLE bool saveWords(QUrl path, QString scope);
     Q_INVOKABLE bool removeWord(QString lemma);
     Q_INVOKABLE bool setDailyBudget(double amount);
+    /// @brief Ask the release source now, and report whatever it really says.
+    Q_INVOKABLE void checkForUpdates();
+    /// @brief Stop the automatic prompt for the version now on offer.
+    Q_INVOKABLE void skipUpdate();
+    /// @brief Open the release page in the browser, and take the card down.
+    Q_INVOKABLE void openReleasePage();
+    /// @brief Take the update card down without changing anything stored.
+    Q_INVOKABLE void closeUpdateCard();
+    /// @brief Whether the update card is up; the card reads this beside the state.
+    Q_INVOKABLE bool updateCardVisible() const;
+    /// @brief Switch the automatic startup check on or off; read back by the settings page.
+    Q_INVOKABLE void setAutoUpdateCheck(bool on);
+    Q_INVOKABLE bool autoUpdateCheck() const;
+    /// @brief Fetch the installer for the release on offer, and check it.
+    Q_INVOKABLE void downloadUpdate();
+    /// @brief Stop the transfer and delete the half-written file.
+    Q_INVOKABLE void cancelDownload();
+    /// @brief Run the installer that has been checked, and close Lens.
+    Q_INVOKABLE void installUpdate();
+    void checkForUpdatesAtStartup();
 
     QVariantMap bubble() const;
     QVariantMap notice() const;
@@ -140,6 +165,10 @@ public:
     /// @brief The last 365 local dates, including zero-use days, for the annual words surface.
     QVariantList yearDays() const;
     QVariantMap cost() const;
+    /// @brief The update check's state, versions and release page, as one map.
+    QVariantMap update() const;
+    /// @brief The download's state, percentage, availability and failure key, as one map.
+    QVariantMap download() const;
     QString modeLabel() const;
     QString busyLabel() const;
     double dailyBudget() const;
@@ -152,6 +181,10 @@ public:
     Q_PROPERTY(QVariantList words READ words NOTIFY statsChanged)
     Q_PROPERTY(QVariantList yearDays READ yearDays NOTIFY yearDaysChanged)
     Q_PROPERTY(QVariantMap cost READ cost NOTIFY statsChanged)
+    Q_PROPERTY(QVariantMap update READ update NOTIFY updateChanged)
+    Q_PROPERTY(bool updateCardVisible READ updateCardVisible NOTIFY updateChanged)
+    Q_PROPERTY(bool autoUpdateCheck READ autoUpdateCheck NOTIFY updateChanged)
+    Q_PROPERTY(QVariantMap download READ download NOTIFY downloadChanged)
     Q_PROPERTY(QString modeLabel READ modeLabel NOTIFY settingsChanged)
     Q_PROPERTY(QString busyLabel READ busyLabel NOTIFY busyChanged)
     Q_PROPERTY(double dailyBudget READ dailyBudget NOTIFY dailyBudgetChanged)
@@ -173,6 +206,10 @@ signals:
     void busyChanged();
     void uiLanguageChanged(QString lang);
     void dailyBudgetChanged();
+    /// @brief The update check's state, or its card's visibility, changed.
+    void updateChanged();
+    /// @brief The download's state, its percentage, or its availability changed.
+    void downloadChanged();
 
 private:
     /// @brief Restore provider wire options and persisted connection choices without touching credentials.
@@ -190,6 +227,9 @@ private:
     CostDuty cost_;
     CaptureDuty capture_;
     ExplanationDuty explanation_;
+    update::UpdateClient updateClient_;
+    update::DownloadClient updateDownloader_;
+    UpdateDuty updateDuty_;
     llm::LlmClient& llm_;
     GlobalHotkey& hotkey_;
     QTimer gateTimer_;

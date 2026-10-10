@@ -197,7 +197,7 @@ Singletons& singletons()
         built.pricing = std::make_unique<lens::llm::Pricing>(lens::llm::Pricing::load(std::filesystem::path(LENS_DATA_DIR) / "llm" / "pricing.json"));
         for (auto const channel : {lens::llm::Channel::Word, lens::llm::Channel::Entity, lens::llm::Channel::Sentence})
             lens::llm::loadLlmProtocol(channel, std::filesystem::path(LENS_DATA_DIR) / "llm");
-        built.controller = std::make_unique<AppController>(*built.store, *built.llm, *built.hook, *built.hotkey, *built.pricing);
+        built.controller = std::make_unique<AppController>(*built.store, *built.llm, *built.hook, *built.hotkey, *built.pricing, std::filesystem::path(LENS_DATA_DIR));
         built.tray       = std::make_unique<Tray>(*built.controller);
         // The pet as main() builds it: a refused data directory leaves it off, and the QML still gets a singleton.
         std::optional<PetAssets> pet;

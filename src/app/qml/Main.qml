@@ -350,6 +350,17 @@ Window {
         onActionTriggered: Controller.explainLemma(notice.noticeLemma)
     }
 
+    /// A new version's card. Passive: not in the panels' mutual exclusion above, and not on
+    /// the explanation notice slot, so it neither takes a notice's place nor loses one to it.
+    UpdateCard {
+        id: updateCard
+        onViewRequested: Controller.openReleasePage()
+        onSkipRequested: Controller.skipUpdate()
+        onDownloadRequested: Controller.downloadUpdate()
+        onCancelRequested: Controller.cancelDownload()
+        onInstallRequested: Controller.installUpdate()
+    }
+
     /// The capture mask, raised by the global trigger key and by nothing else. What it gives back is
     /// a rectangle for the capture duty; that it is also a surface is why it is here and not in the
     /// settings panel that owns the key.
@@ -437,6 +448,22 @@ Window {
                 notice.show(payload);
             else
                 notice.visible = false;
+        }
+
+        /// The card is raised and taken down from one flag the duty holds, rather than from a
+        /// transition through states the reader would see as a flicker. `show()` centres the
+        /// window, so it only runs when there is something new to show: the same signal also
+        /// carries the settings switch and the state the card does not draw, and re-centring
+        /// on those would move the card out from under a reader who is looking at it.
+        function onUpdateChanged() {
+            if (!Controller.updateCardVisible) {
+                updateCard.visible = false;
+                return;
+            }
+            const payload = Controller.update;
+            if (updateCard.visible && updateCard.version === payload.latest)
+                return;
+            updateCard.show({version: payload.latest, pageUrl: payload.pageUrl, notes: payload.notes});
         }
 
         function onPointerPressed(at) {
