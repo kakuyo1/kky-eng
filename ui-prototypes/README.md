@@ -14,6 +14,8 @@
 | `settings.html` | 设置浮层 |
 | `bubble.html` | 解释气泡 |
 | `selection-bar.html` | 选区动作条 |
+| `pet.html` | 桌面猫子页面（扩展 → 桌面猫，阶段三原型，占位美术） |
+| `update.html` | 检查更新（通用 分类的检查行，阶段三原型）与通知卡片的新版本样式 |
 
 ## 怎么看
 

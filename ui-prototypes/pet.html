@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 桌面宠物</title>
+<style>
+:root{
+  --bg:#e9ebef; --panel:#fff; --panel2:#f1f3f7; --line:#d6dae1; --line2:#e6e9ee;
+  --text:#1a1a1f; --muted:#66666f; --faint:#9d9da8;
+  --ok:#2f9e6e;
+  --ink:#1a1a1f; --on:#fff;
+  --r-lg:18px;
+  --sh2:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+}
+html[data-theme=dark]{
+  --bg:#131316; --panel:#1c1c20; --panel2:#242429; --line:#2f2f37; --line2:#26262c;
+  --text:#e9e9ee; --muted:#a3a3ae; --faint:#75757f;
+  --ok:#45c08a;
+  --ink:#e9e9ee; --on:#16161a;
+  --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh;display:grid;place-items:center;padding:36px 20px;font-size:13px;line-height:1.5}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* 扩展 → 桌面宠物：与设置面板同尺寸、同页头页脚 */
+.settings{width:380px;height:480px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);display:flex;flex-direction:column;overflow:hidden}
+.set-h{display:flex;align-items:center;gap:9px;padding:0 20px;min-height:58px;border-bottom:1px solid var(--line2);flex:none}
+.set-back{display:grid;place-items:center;width:26px;height:26px;margin-left:-6px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:20px;line-height:1}
+.set-back:hover{background:var(--panel2);color:var(--text)}
+.set-title{font-size:14px;font-weight:700}
+.set-sep{color:var(--faint);font-size:12px}
+.set-crumb{font-size:12px;color:var(--muted);font-weight:400}
+.set-h .close{margin-left:auto;width:26px;height:26px;border:0;border-radius:8px;background:transparent;color:var(--faint);font-size:18px;line-height:1}
+.set-h .close:hover{background:var(--panel2);color:var(--text)}
+.set-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:14px 20px 18px}
+.set-f{display:flex;align-items:center;gap:8px;padding:0 20px;min-height:56px;border-top:1px solid var(--line2);flex:none}
+.status{flex:1;text-align:center;font-size:11px;color:var(--muted)}
+.btn{padding:6px 14px;border-radius:999px;border:1px solid transparent;font-size:12px;font-weight:600}
+.btn.ghost{background:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--text)}
+.btn.ink{background:var(--ink);color:var(--on)}
+.btn.ink:disabled{opacity:.45;cursor:default}
+
+/* 开关行，规格同设置 */
+.swrow{display:flex;align-items:center;gap:12px;min-height:44px}
+.swrow .swlabel{flex:1}
+.swrow.off{color:var(--faint)}
+.swrow.off .switch{opacity:.45}
+.swhelp{font-size:11px;color:var(--muted);margin-top:-2px;margin-bottom:12px}
+.switch{flex:none;width:34px;height:20px;border:0;border-radius:99px;background:var(--line);position:relative;padding:0}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--panel)}
+.switch[aria-checked=true]{background:var(--ink)}
+.switch[aria-checked=true]::after{left:auto;right:2px;background:var(--on)}
+html[data-theme=dark] .switch::after{background:var(--faint)}
+html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
+
+/* Level 1: section title, bold with a divider above it. The first section has none, since the toggle block sits right above. */
+.group-title{font-size:12px;font-weight:700;color:var(--text);margin:16px 0 9px;padding-top:14px;border-top:1px solid var(--line2)}
+#pet-section > .group-title:first-child{margin-top:4px;padding-top:0;border-top:0}
+
+/* 宠物类型：卡片，选中项墨色描边；缩略图静止，不播放动作 */
+.pets{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pcard{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);text-align:left;min-width:0}
+.pcard[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.pcard .pn{font-size:12.5px;font-weight:600}
+.pcard .pet-art{width:64px;height:64px;flex:none}
+
+/* 预览舞台：一条桌面边线，宠物站在线上；占位美术，不是最终形态 */
+.stage{position:relative;height:170px;border:1px solid var(--line2);border-radius:12px;background:var(--panel2);overflow:hidden}
+.stage::after{content:"";position:absolute;left:14px;right:14px;bottom:24px;height:1px;background:var(--line)}
+.stage.dim{opacity:.5}
+/* 64 units at 128px is 2px a unit, so one sprite cell (3 units) is 6px: whole pixels, crisp edges. Bottom 16px puts the feet (unit 60) on the floor line. */
+.stage .pet-art{position:absolute;left:50%;bottom:16px;width:128px;height:128px;margin-left:-64px;overflow:visible;cursor:pointer}
+.pet-art rect{shape-rendering:crispEdges}
+
+/* 动作：只示意节奏，真实动作由 animations.json 的帧数与帧率决定（PHASE3 3.1）。
+   fill-box 让每个部件绕自己的几何中心或底边转，不依赖画布坐标。 */
+.p-pet,.p-head,.p-body,.p-eyes{transform-box:fill-box}
+.p-pet{transform-origin:50% 100%}
+.p-head{transform-origin:50% 100%}
+.p-eyes{transform-origin:50% 50%}
+.live .p-eyes{animation:k-blink 5s infinite}
+.p-zz{display:none;fill:var(--muted);font-size:4px;font-weight:700;font-family:var(--f)}
+.m-idle .p-pet{animation:k-bob 2.4s ease-in-out infinite}
+.m-study .p-head{animation:k-tilt 2.2s ease-in-out infinite}
+.m-thinking .p-head{animation:k-sway 2.4s ease-in-out infinite}
+.m-celebrate .p-pet{animation:k-hop .7s ease-out 1 both}
+.m-encourage .p-pet{animation:k-pump .5s ease-in-out 4}
+.m-sleep .p-pet{animation:k-sink 3s ease-in-out infinite}
+.m-sleep .p-head{animation:k-nod 3s ease-in-out infinite}
+.live.m-sleep .p-eyes{animation:none;transform:scaleY(.1)}
+.m-sleep .p-zz{display:inline}
+.m-click_react .p-pet{animation:k-squash .45s ease-out 1 both}
+.m-pickup .p-pet{animation:k-dangle .6s ease-in-out infinite}
+.m-look_around .p-head{animation:k-look 1.2s ease-in-out 1 both}
+.m-yawn .p-head{animation:k-yawn 1.6s ease-out 1 both}
+.m-stretch .p-pet{animation:k-stretch 1.6s ease-in-out 1 both}
+@keyframes k-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes k-blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+@keyframes k-tilt{0%,100%{transform:rotate(0)}50%{transform:rotate(-6deg)}}
+@keyframes k-sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@keyframes k-hop{0%,70%,100%{transform:translateY(0)}35%{transform:translateY(-14px)}}
+@keyframes k-pump{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes k-sink{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+@keyframes k-nod{0%,100%{transform:rotate(0)}50%{transform:rotate(8deg)}}
+@keyframes k-squash{0%{transform:none}30%{transform:scale(1.12,.86)}60%{transform:scale(.96,1.04)}100%{transform:none}}
+@keyframes k-dangle{0%,100%{transform:translateY(-6px) rotate(0)}50%{transform:translateY(-8px) rotate(3deg)}}
+@keyframes k-look{0%,100%{transform:rotate(0)}40%,70%{transform:rotate(-10deg)}}
+@keyframes k-yawn{0%,100%{transform:rotate(0)}40%,80%{transform:rotate(-14deg)}}
+@keyframes k-stretch{0%,100%{transform:scale(1,1)}50%{transform:scale(1.06,.94)}}
+@media (prefers-reduced-motion:reduce){.p-pet,.p-head,.p-eyes{animation:none!important}}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);font-size:12px;color:var(--text)}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--on);border-color:var(--ink);font-weight:600}
+/* Level 2: slot label in its own left column, faint, so it reads as a row header rather than a chip. Level 3: the chips. */
+.slot{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.slot:last-child{margin-bottom:0}
+/* Min width sized for the longest label ("Cuerpo"), so every row's chips start at the same x. */
+.slot-h{flex:none;width:52px;font-size:11px;color:var(--faint)}
+.slot .chips{flex:1;min-width:0}
+.themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:var(--f);font-size:11.5px;cursor:pointer}
+.themebtn:hover{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="settings" id="app">
+  <div class="set-h">
+    <button class="set-back" type="button" aria-label="返回">‹</button>
+    <span class="set-title" id="title"></span>
+    <span class="set-sep" aria-hidden="true">/</span>
+    <span class="set-crumb" id="crumb"></span>
+    <button class="close" type="button" aria-label="关闭">×</button>
+  </div>
+  <div class="set-body">
+    <div class="swrow"><span class="swlabel" id="tog-label"></span><button type="button" class="switch" role="switch" id="tog" aria-checked="false"></button></div>
+    <div class="swhelp" id="tog-help"></div>
+    <div class="swrow" id="pass-row"><span class="swlabel" id="pass-label"></span><button type="button" class="switch" role="switch" id="pass" aria-checked="false"></button></div>
+    <div class="swhelp" id="pass-help"></div>
+
+    <!-- Everything below exists only while the pet is on (PHASE3 3.5): type picker, stage, actions, accessories. -->
+    <div id="pet-section" hidden>
+      <div class="group-title" id="pick-title"></div>
+      <div class="pets" id="pets"></div>
+
+      <div class="group-title" id="stage-title"></div>
+      <div class="stage" id="stage"></div>
+
+      <div class="group-title" id="act-title"></div>
+      <div class="chips" id="acts"></div>
+      <div class="group-title" id="acc-title"></div>
+      <div id="slots"></div>
+    </div>
+  </div>
+  <div class="set-f">
+    <button class="btn ghost" id="defaults" type="button"></button>
+    <span class="status" id="status" role="status" aria-live="polite"></span>
+    <button class="btn ink" id="save" type="button" disabled></button>
+  </div>
+</div>
+<button class="themebtn" id="tb"></button>
+<script>
+/// Reader-facing strings, one column per language, same shape as the other prototypes. Character
+/// names, action names and accessory names are strings the application owns (`chars`, `acts`, `accs`).
+const L = {
+  zh: { title: "桌面宠物", crumb: "扩展", tog: "显示桌面宠物", help: "开启后宠物常驻桌面，可拖动。它不读取选区与释义，只接收事件类型。",
+        pass: "鼠标穿透", passHelp: "开启后宠物不接收鼠标，点击落到下层窗口，也不能被拖动。在这里关掉即可恢复互动。",
+        pick: "宠物类型", stage: "预览", act: "动作", acc: "配饰",
+        defaults: "恢复默认", save: "保存", saved: "已保存", reset: "已恢复默认",
+        slots: { head: "头", face: "脸", body: "身" },
+        acts: { idle: "待机", study: "阅读", thinking: "思考", celebrate: "庆祝", encourage: "鼓励", sleep: "睡觉", click_react: "被戳", pickup: "被拎起", look_around: "张望", yawn: "打哈欠", stretch: "伸懒腰" },
+        accs: { hat: "小帽子", glasses: "圆框眼镜", scarf: "围巾" },
+        chars: { dog: "白色小狗" },
+        themeDark: "黑夜", themeLight: "白天" },
+  en: { title: "Desktop pet", crumb: "Extensions", tog: "Show desktop pet", help: "When on, the pet stays on the desktop and can be dragged. It never reads your selections or explanations, only event types.",
+        pass: "Mouse passthrough", passHelp: "When on, the pet ignores the mouse: clicks reach the window below and it cannot be dragged. Turn this off here to get interaction back.",
+        pick: "Pet type", stage: "Preview", act: "Actions", acc: "Accessories",
+        defaults: "Restore defaults", save: "Save", saved: "Saved", reset: "Defaults restored",
+        slots: { head: "Head", face: "Face", body: "Body" },
+        acts: { idle: "Idle", study: "Reading", thinking: "Thinking", celebrate: "Celebrate", encourage: "Encourage", sleep: "Sleep", click_react: "Poked", pickup: "Picked up", look_around: "Look around", yawn: "Yawn", stretch: "Stretch" },
+        accs: { hat: "Little hat", glasses: "Round glasses", scarf: "Scarf" },
+        chars: { dog: "White dog" },
+        themeDark: "Dark", themeLight: "Light" },
+  ja: { title: "デスクトップペット", crumb: "拡張", tog: "デスクトップペットを表示", help: "オンにするとペットがデスクトップに常駐し、ドラッグで動かせます。選択文や解説は読まず、イベントの種類だけを受け取ります。",
+        pass: "マウス透過", passHelp: "オンにするとペットはマウスを受け取らず、クリックは下のウィンドウに届きます。ドラッグもできません。ここでオフにすると操作を戻せます。",
+        pick: "ペットの種類", stage: "プレビュー", act: "動き", acc: "アクセサリー",
+        defaults: "初期値に戻す", save: "保存", saved: "保存しました", reset: "初期値に戻しました",
+        slots: { head: "頭", face: "顔", body: "体" },
+        acts: { idle: "待機", study: "読書", thinking: "考える", celebrate: "喜ぶ", encourage: "応援", sleep: "おやすみ", click_react: "つつかれた", pickup: "持ち上げられた", look_around: "見回す", yawn: "あくび", stretch: "伸び" },
+        accs: { hat: "小さな帽子", glasses: "丸眼鏡", scarf: "マフラー" },
+        chars: { dog: "白い子犬" },
+        themeDark: "ダーク", themeLight: "ライト" },
+  es: { title: "Mascota de escritorio", crumb: "Extensiones", tog: "Mostrar mascota de escritorio", help: "Cuando está activa, la mascota se queda en el escritorio y puedes arrastrarla. Nunca lee tus selecciones ni explicaciones, solo recibe tipos de evento.",
+        pass: "Paso del ratón", passHelp: "Cuando está activo, la mascota no recibe el ratón: los clics llegan a la ventana de debajo y no se puede arrastrar. Desactívalo aquí para recuperar la interacción.",
+        pick: "Tipo de mascota", stage: "Vista previa", act: "Acciones", acc: "Accesorios",
+        defaults: "Restablecer", save: "Guardar", saved: "Guardado", reset: "Valores restablecidos",
+        slots: { head: "Cabeza", face: "Cara", body: "Cuerpo" },
+        acts: { idle: "Reposo", study: "Leer", thinking: "Pensar", celebrate: "Celebrar", encourage: "Animar", sleep: "Dormir", click_react: "Tocada", pickup: "Levantada", look_around: "Mirar alrededor", yawn: "Bostezar", stretch: "Estirarse" },
+        accs: { hat: "Gorrito", glasses: "Gafas redondas", scarf: "Bufanda" },
+        chars: { dog: "Perrito blanco" },
+        themeDark: "Oscuro", themeLight: "Claro" }
+};
+const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();
+const lang = asked.startsWith('zh') ? 'zh' : (L[asked] ? asked : 'zh');
+const t = L[lang];
+document.documentElement.lang = { en: 'en', zh: 'zh-CN', ja: 'ja', es: 'es' }[lang];
+
+/// Characters are data. The settings page has no import: a developer adds a character by adding an
+/// entry to this list (in the app, a folder under data/pet/characters/). The picker, the stage, the
+/// action list and the accessory slots are all read from the selected entry.
+///
+/// Sprites are pixel grids. A row is a string: '#' marks a filled cell, '.' an empty one. The outline is
+/// not stored; silhouette() draws it around the filled cells. The dog's grid was sampled from the
+/// reference sprite (6 px art pixels, 18 x 17 cells), so its silhouette matches the reference.
+/// Accessory `rects` are [x, y, w, h, colour] on the same grid; a negative y is allowed (the hat sits
+/// above the ears).
+const CHARACTERS = [{
+  id: 'dog',
+  /// Places the cell grid on the 64-unit canvas (PHASE3 3.1): cell (0, 0) starts at (x, y), and one
+  /// cell is `scale` units wide. With these values the dog and its outline sit centred on the canvas.
+  view: { x: 6, y: 6, scale: 3 },
+  slots: ['head', 'face', 'body'],
+  /// `playable: false` marks an action the pet plays by itself (blinking is on the expression layer).
+  actions: {
+    idle:        { frames: 5, fps: 5,  loop: true,  priority: 0 },
+    blink:       { frames: 3, fps: 10, loop: false, priority: 0, playable: false },
+    study:       { frames: 6, fps: 6,  loop: true,  priority: 50 },
+    thinking:    { frames: 4, fps: 6,  loop: true,  priority: 50 },
+    celebrate:   { frames: 6, fps: 10, loop: false, priority: 50 },
+    encourage:   { frames: 5, fps: 10, loop: false, priority: 50 },
+    sleep:       { frames: 4, fps: 4,  loop: true,  priority: 50 },
+    click_react: { frames: 4, fps: 12, loop: false, priority: 90 },
+    pickup:      { frames: 3, fps: 10, loop: true,  priority: 100 },
+    look_around: { frames: 6, fps: 8,  loop: false, priority: 50 },
+    yawn:        { frames: 5, fps: 6,  loop: false, priority: 10 },
+    stretch:     { frames: 6, fps: 6,  loop: false, priority: 10 }
+  },
+  /// The head (ears, face) and the body (back, tail, legs) are separate, so the head can tilt while the
+  /// body stays put. Eyes blink on their own layer. The mouth and eyes are features: they are drawn in
+  /// ink on the head layer and never outlined, so they move with the head.
+  sprite: {
+    head: [
+      '.#.####.#.........',
+      '.########.........',
+      '.#########........',
+      '##.##.####........',
+      '############......',
+      '..................',
+      '..................',
+      '..................',
+      '..................',
+      '..................',
+      '..................',
+      '..................',
+      '..................',
+      '..................',
+      '..................',
+      '..................',
+      '..................'
+    ],
+    body: [
+      '..................',
+      '..................',
+      '..................',
+      '..................',
+      '.................#',
+      '###..#########...#',
+      '#.#.##.###########',
+      '##....############',
+      '##################',
+      '##################',
+      '##################',
+      '##################',
+      '#################.',
+      '.################.',
+      '.##..##....##..##.',
+      '.#...##....##..#..',
+      '.....#.....#......'
+    ],
+    eyes: [[2, 3], [5, 3]],
+    mouth: [[3, 5], [4, 5], [1, 6], [3, 6], [6, 6], [2, 7], [3, 7], [4, 7], [5, 7]]
+  },
+  /// One slot each. A new accessory is one more entry with its own `id`, `slot` and `rects`.
+  accessories: [
+    { id: 'hat', slot: 'head', rects: [[3, -1, 4, 1, 'accent'], [2, 0, 6, 1, 'accent']] },
+    { id: 'glasses', slot: 'face', rects: [
+        [1, 2, 3, 1, 'ink'], [1, 4, 3, 1, 'ink'], [1, 3, 1, 1, 'ink'], [3, 3, 1, 1, 'ink'],
+        [4, 2, 3, 1, 'ink'], [4, 4, 3, 1, 'ink'], [4, 3, 1, 1, 'ink'], [6, 3, 1, 1, 'ink']] },
+    { id: 'scarf', slot: 'body', rects: [[0, 5, 3, 1, 'accent'], [5, 5, 9, 1, 'accent'], [12, 6, 2, 2, 'accent']] }
+  ]
+}];
+
+/// Pet on or off, the chosen character, and its worn accessories are what the reader sets. `action`
+/// is runtime only: it resets to idle whenever the pet is turned off or another character is chosen.
+const DEFAULT = { on: false, passthrough: false, character: 'dog', worn: {} };
+let state = structuredClone(DEFAULT);
+let saved = structuredClone(DEFAULT);
+let action = 'idle';
+let timer = 0;
+
+const $ = id => document.getElementById(id);
+const active = () => CHARACTERS.find(c => c.id === state.character) ?? CHARACTERS[0];
+
+const COLOR = { ink: '#1a1a1f', dog: '#fbfbfd', accent: 'var(--ok)' };
+const NEIGHBOURS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+const at = (x, y) => `${x},${y}`;
+
+/// Splits a sprite into its filled cells and the outline around them. Every empty cell that touches a
+/// filled cell (4-way) is outlined, and it belongs to the first part it touches (head before body), so
+/// the outline moves with that part. Features (eyes, mouth) are never outlined. A dark outline keeps the
+/// white dog readable on light and dark stages.
+function silhouette(sprite) {
+  const cellsOf = rows => rows.flatMap((row, y) => [...row].flatMap((ch, x) => ch === '#' ? [[x, y]] : []));
+  const parts = { head: cellsOf(sprite.head), body: cellsOf(sprite.body) };
+  const filled = new Set([...parts.head, ...parts.body].map(([x, y]) => at(x, y)));
+  const features = new Set([...sprite.eyes, ...sprite.mouth].map(([x, y]) => at(x, y)));
+  const seen = new Set();
+  const ring = { head: [], body: [] };
+  for (const name of ['head', 'body']) {
+    for (const [x, y] of parts[name]) {
+      for (const [dx, dy] of NEIGHBOURS) {
+        const k = at(x + dx, y + dy);
+        if (filled.has(k) || features.has(k) || seen.has(k)) continue;
+        seen.add(k);
+        ring[name].push([x + dx, y + dy]);
+      }
+    }
+  }
+  return { parts, ring };
+}
+
+const cell = (x, y, fill) => `<rect x="${x}" y="${y}" width="1" height="1" style="fill:${fill}"/>`;
+const paint = (cells, fill) => cells.map(([x, y]) => cell(x, y, fill)).join('');
+/// Each accessory rect expands to its cells, so an accessory is written as the rectangles it covers.
+const paintRects = rects => rects.flatMap(([x, y, w, h, c]) =>
+  Array.from({ length: w * h }, (_, i) => cell(x + i % w, y + Math.floor(i / w), COLOR[c]))).join('');
+
+/// `cls` decides motion: 'still' for thumbnails, 'live m-<action>' for the stage.
+function petSVG(c, worn, cls) {
+  const { parts, ring } = silhouette(c.sprite);
+  const wearing = slot => c.accessories.find(a => a.id === worn[slot]);
+  const acc = slot => { const a = wearing(slot); return a ? paintRects(a.rects) : ''; };
+  const v = c.view;
+  return `<svg class="pet-art ${cls}" viewBox="0 0 64 64" role="img" aria-label="${t.chars[c.id]}">
+    <g transform="translate(${v.x} ${v.y}) scale(${v.scale})">
+      <g class="p-pet">
+        <g class="p-body">${paint(ring.body, COLOR.ink)}${paint(parts.body, COLOR.dog)}</g>
+        ${acc('body')}
+        <g class="p-head">${paint(ring.head, COLOR.ink)}${paint(parts.head, COLOR.dog)}
+          <g class="p-eyes">${paint(c.sprite.eyes, COLOR.ink)}</g>
+          ${paint(c.sprite.mouth, COLOR.ink)}${acc('head')}${acc('face')}
+        </g>
+        <text class="p-zz" x="13" y="0">z</text>
+      </g>
+    </g></svg>`;
+}
+
+/// One action at a time. A non-looping action returns to idle after its frames have played at its fps.
+function play(name) {
+  clearTimeout(timer);
+  action = name;
+  const def = active().actions[name];
+  renderStage();
+  if (!def.loop) timer = setTimeout(() => play('idle'), def.frames / def.fps * 1000);
+  renderPanel();
+}
+
+function stop() {
+  clearTimeout(timer);
+  action = 'idle';
+}
+
+function choose(id) {
+  if (id === state.character) return;
+  state.character = id;
+  state.worn = {};
+  stop();
+}
+
+function renderToggle() {
+  $('tog').setAttribute('aria-checked', String(state.on));
+  // Passthrough only means something while the pet is shown, so its switch greys out with it.
+  $('pass').setAttribute('aria-checked', String(state.passthrough));
+  $('pass').disabled = !state.on;
+  $('pass-row').classList.toggle('off', !state.on);
+}
+
+function renderPicker() {
+  $('pets').innerHTML = CHARACTERS.map(c => `
+    <button type="button" class="pcard" data-char="${c.id}" aria-pressed="${state.character === c.id}">${petSVG(c, {}, 'still')}<span class="pn">${t.chars[c.id]}</span></button>`).join('');
+}
+
+function renderStage() {
+  $('stage').classList.toggle('dim', !state.on);
+  $('stage').innerHTML = petSVG(active(), state.worn, `live m-${action}`);
+}
+
+function renderPanel() {
+  const c = active();
+  const playable = Object.keys(c.actions).filter(a => c.actions[a].playable !== false);
+  $('acts').innerHTML = playable.map(a =>
+    `<button type="button" class="chip" data-act="${a}" aria-pressed="${action === a}">${t.acts[a]}</button>`).join('');
+  $('slots').innerHTML = c.slots.map(slot => `
+    <div class="slot"><span class="slot-h">${t.slots[slot]}</span><div class="chips">${
+      c.accessories.filter(a => a.slot === slot).map(a =>
+        `<button type="button" class="chip" data-acc="${slot}:${a.id}" aria-pressed="${state.worn[slot] === a.id}">${t.accs[a.id]}</button>`).join('')
+    }</div></div>`).join('');
+}
+
+function renderAll() {
+  renderToggle();
+  $('pet-section').hidden = !state.on;
+  renderPicker();
+  renderStage();
+  renderPanel();
+  $('save').disabled = JSON.stringify(state) === JSON.stringify(saved);
+}
+
+function renderStatic() {
+  $('title').textContent = t.title;
+  $('crumb').textContent = t.crumb;
+  $('tog-label').textContent = t.tog;
+  $('tog-help').textContent = t.help;
+  $('pass-label').textContent = t.pass;
+  $('pass-help').textContent = t.passHelp;
+  $('pick-title').textContent = t.pick;
+  $('stage-title').textContent = t.stage;
+  $('act-title').textContent = t.act;
+  $('acc-title').textContent = t.acc;
+  $('defaults').textContent = t.defaults;
+  $('save').textContent = t.save;
+}
+
+document.addEventListener('click', e => {
+  if (e.target.closest('.live')) { play('click_react'); return; }
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.id === 'tog') {
+    state.on = !state.on;
+    if (!state.on) stop();
+  }
+  else if (b.id === 'pass') { state.passthrough = !state.passthrough; }
+  else if (b.dataset.char) { choose(b.dataset.char); }
+  else if (b.dataset.act) { play(b.dataset.act); return; }
+  else if (b.dataset.acc) {
+    const [slot, id] = b.dataset.acc.split(':');
+    state.worn[slot] = state.worn[slot] === id ? null : id;
+    if (!state.worn[slot]) delete state.worn[slot];
+  }
+  else if (b.id === 'defaults') {
+    state = structuredClone(DEFAULT); saved = structuredClone(DEFAULT); stop();
+    $('status').textContent = t.reset; renderAll(); return;
+  }
+  else if (b.id === 'save') {
+    saved = structuredClone(state); $('status').textContent = t.saved; renderAll(); return;
+  }
+  else return;
+  $('status').textContent = '';
+  renderAll();
+});
+
+renderStatic();
+renderAll();
+
+// Theme toggle: the same dev affordance as the other surfaces, hidden with ?shot.
+const tb = $('tb');
+function applyTheme(v) {
+  document.documentElement.dataset.theme = v;
+  tb.textContent = v === 'dark' ? t.themeLight : t.themeDark;
+}
+applyTheme(location.search.includes('theme=dark') ? 'dark' : 'light');
+tb.onclick = () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+if (new URLSearchParams(location.search).has('shot')) tb.remove();
+</script>
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 检查更新</title>
+<style>
+:root{
+  --bg:#e9ebef; --panel:#fff; --panel2:#f1f3f7; --line:#d6dae1; --line2:#e6e9ee;
+  --text:#1a1a1f; --muted:#66666f; --faint:#9d9da8;
+  --ink:#1a1a1f; --on:#fff;
+  --r-lg:18px;
+  --sh2:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+}
+html[data-theme=dark]{
+  --bg:#131316; --panel:#1c1c20; --panel2:#242429; --line:#2f2f37; --line2:#26262c;
+  --text:#e9e9ee; --muted:#a3a3ae; --faint:#75757f;
+  --ink:#e9e9ee; --on:#16161a;
+  --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh;display:grid;place-items:center;padding:36px 20px;font-size:13px;line-height:1.5}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* 通用 分类内的检查更新行：规格同设置面板 */
+.settings{width:380px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);overflow:hidden}
+.set-h{display:flex;align-items:center;gap:9px;padding:0 20px;min-height:58px;border-bottom:1px solid var(--line2)}
+.set-title{font-size:14px;font-weight:700}
+.set-crumb{font-size:12px;color:var(--muted)}
+.set-body{padding:14px 20px 18px}
+.swrow{display:flex;align-items:center;gap:12px;min-height:44px}
+.swrow .swlabel{flex:1}
+.switch{flex:none;width:34px;height:20px;border:0;border-radius:99px;background:var(--line);position:relative;padding:0}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--panel)}
+.switch[aria-checked=true]{background:var(--ink)}
+.switch[aria-checked=true]::after{left:auto;right:2px;background:var(--on)}
+html[data-theme=dark] .switch::after{background:var(--faint)}
+html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
+.swgroup{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:2px 12px}
+.upd{display:flex;align-items:center;gap:12px;min-height:56px;border-top:1px solid var(--line2);margin-top:4px}
+.upd-main{flex:1;min-width:0}
+.upd-now{font-size:13px}
+.upd-state{font-size:11.5px;color:var(--muted);margin-top:2px;min-height:17px}
+.btn{padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:transparent;font-size:12px;font-weight:600;color:var(--text)}
+.btn:hover{background:var(--panel2)}
+.btn:disabled{color:var(--muted);cursor:default;background:transparent}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-top:12px}
+.seg button{flex:1;text-align:center;padding:6.5px 0;border:0;background:transparent;font-size:11.5px;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--on);font-weight:600}
+.caption{font-size:11px;color:var(--muted);margin:14px 0 8px}
+
+/* 通知卡片（UI.md 4.5）：无边框窗口里的一张卡，宽 320，圆角 18 */
+.notice{position:relative;width:320px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);padding:16px 18px 16px}
+.notice-t{font-size:14px;font-weight:700;padding-right:22px}
+.notice-b{font-size:13px;color:var(--muted);line-height:1.55;margin-top:6px}
+.notice-x{position:absolute;top:12px;right:12px;width:22px;height:22px;border:0;border-radius:7px;background:transparent;color:var(--faint);font-size:16px;line-height:1}
+.notice-x:hover{background:var(--panel2);color:var(--text)}
+.notice-act{display:flex;align-items:center;gap:12px;margin-top:12px}
+.capsule{padding:6px 14px;border-radius:999px;border:0;background:var(--ink);color:var(--on);font-size:12px;font-weight:700}
+.skip{border:0;background:transparent;color:var(--muted);font-size:12px;padding:0}
+.skip:hover{color:var(--text);text-decoration:underline}
+.stage{display:grid;gap:14px;justify-items:start}
+[hidden]{display:none!important}
+.themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:var(--f);font-size:11.5px;cursor:pointer}
+.themebtn:hover{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="settings">
+    <div class="set-h"><span class="set-title" id="title"></span><span class="set-crumb" id="crumb"></span></div>
+    <div class="set-body">
+      <div class="swgroup">
+        <div class="upd">
+          <div class="upd-main">
+            <div class="upd-now" id="now"></div>
+            <div class="upd-state" id="state" role="status" aria-live="polite"></div>
+          </div>
+          <button type="button" class="btn" id="check"></button>
+        </div>
+        <div class="swrow" style="border-top:1px solid var(--line2)">
+          <span class="swlabel" id="auto-label"></span>
+          <button type="button" class="switch" role="switch" id="auto" aria-checked="true"></button>
+        </div>
+      </div>
+      <div class="caption" id="cap-state"></div>
+      <div class="seg" id="seg"></div>
+    </div>
+  </div>
+
+  <div class="caption" id="cap-notice"></div>
+  <div class="notice" id="notice">
+    <button type="button" class="notice-x" id="nx" aria-label="close">×</button>
+    <div class="notice-t" id="nt"></div>
+    <div class="notice-b" id="nb"></div>
+    <div class="notice-act">
+      <button type="button" class="capsule" id="open"></button>
+      <button type="button" class="skip" id="skip"></button>
+    </div>
+  </div>
+</div>
+<button class="themebtn" id="tb"></button>
+<script>
+/// Strings, one column per language, mirroring the other prototypes. The release note body is
+/// sample content (the first paragraph of the release's own notes), not a string the app owns.
+const L = {
+  zh: { title: "检查更新", crumb: "通用", now: "当前版本 1.1.0", check: "检查更新", auto: "启动时检查更新",
+        states: { idle: "", checking: "正在检查…", latest: "已是最新版本", available: "发现新版本 1.2.0", error: "无法连接更新服务" },
+        capState: "状态预览（点选查看各态）", capNotice: "通知卡片（发现新版本时居中弹出）",
+        nt: "Lens 1.2.0 可用", nb: "新增桌面宠物，检查更新与若干修正。点击查看发布页，由你自己下载安装。",
+        open: "查看发布页", skip: "跳过此版本", themeDark: "黑夜", themeLight: "白天" },
+  en: { title: "Updates", crumb: "General", now: "Current version 1.1.0", check: "Check for updates", auto: "Check for updates at launch",
+        states: { idle: "", checking: "Checking...", latest: "You have the latest version", available: "Version 1.2.0 is available", error: "Could not reach the update service" },
+        capState: "State preview (pick one to see it)", capNotice: "Notice card (shown centred when a new version is found)",
+        nt: "Lens 1.2.0 is available", nb: "Adds a desktop pet, update checks and several fixes. Opens the release page; you download and install it yourself.",
+        open: "View release", skip: "Skip this version", themeDark: "Dark", themeLight: "Light" },
+  ja: { title: "アップデート", crumb: "一般", now: "現在のバージョン 1.1.0", check: "アップデートを確認", auto: "起動時にアップデートを確認",
+        states: { idle: "", checking: "確認しています…", latest: "最新バージョンです", available: "バージョン 1.2.0 があります", error: "更新サービスに接続できません" },
+        capState: "状態のプレビュー（選ぶと各状態を表示）", capNotice: "通知カード（新しいバージョンがあると中央に表示）",
+        nt: "Lens 1.2.0 が利用できます", nb: "デスクトップペット、更新確認、いくつかの修正を追加しました。リリースページを開くので、ダウンロードと導入はご自身で行ってください。",
+        open: "リリースを見る", skip: "このバージョンをスキップ", themeDark: "ダーク", themeLight: "ライト" },
+  es: { title: "Actualizaciones", crumb: "General", now: "Versión actual 1.1.0", check: "Buscar actualizaciones", auto: "Buscar actualizaciones al iniciar",
+        states: { idle: "", checking: "Buscando…", latest: "Tienes la versión más reciente", available: "Versión 1.2.0 disponible", error: "No se pudo conectar con el servicio de actualizaciones" },
+        capState: "Vista de estados (elige uno para verlo)", capNotice: "Tarjeta de aviso (aparece centrada al haber una nueva versión)",
+        nt: "Lens 1.2.0 está disponible", nb: "Añade una mascota de escritorio, búsqueda de actualizaciones y varias correcciones. Abre la página de la versión; la descargas e instalas tú.",
+        open: "Ver versión", skip: "Omitir esta versión", themeDark: "Oscuro", themeLight: "Claro" }
+};
+const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();
+const lang = asked.startsWith('zh') ? 'zh' : (L[asked] ? asked : 'zh');
+const t = L[lang];
+document.documentElement.lang = { en: 'en', zh: 'zh-CN', ja: 'ja', es: 'es' }[lang];
+
+const STATES = ['idle', 'checking', 'latest', 'available', 'error'];
+const $ = id => document.getElementById(id);
+
+$('title').textContent = t.title;
+$('crumb').textContent = t.crumb;
+$('now').textContent = t.now;
+$('check').textContent = t.check;
+$('auto-label').textContent = t.auto;
+$('cap-state').textContent = t.capState;
+$('cap-notice').textContent = t.capNotice;
+$('nt').textContent = t.nt;
+$('nb').textContent = t.nb;
+$('open').textContent = t.open;
+$('skip').textContent = t.skip;
+
+let current = 'available';
+function renderState() {
+  $('state').textContent = t.states[current];
+  $('check').disabled = current === 'checking';
+  $('seg').innerHTML = STATES.filter(s => s !== 'idle').map(s =>
+    `<button type="button" data-s="${s}" aria-pressed="${current === s}">${t.states[s]}</button>`).join('');
+  $('notice').hidden = current !== 'available';
+  $('cap-notice').hidden = current !== 'available';
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.s) { current = b.dataset.s; renderState(); }
+  else if (b.id === 'check') { current = 'checking'; renderState(); setTimeout(() => { current = 'latest'; renderState(); }, 900); }
+  else if (b.id === 'auto') { b.setAttribute('aria-checked', String(b.getAttribute('aria-checked') !== 'true')); }
+  else if (b.id === 'nx' || b.id === 'skip') { current = 'idle'; renderState(); }
+});
+renderState();
+
+// Theme toggle: the same dev affordance as the other surfaces, hidden with ?shot.
+const tb = $('tb');
+function applyTheme(v) {
+  document.documentElement.dataset.theme = v;
+  tb.textContent = v === 'dark' ? t.themeLight : t.themeDark;
+}
+applyTheme(location.search.includes('theme=dark') ? 'dark' : 'light');
+tb.onclick = () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+if (new URLSearchParams(location.search).has('shot')) tb.remove();
+</script>
+</body>
+</html>

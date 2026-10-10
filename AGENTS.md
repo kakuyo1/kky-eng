@@ -1,4 +1,4 @@
-## Role & Purpose
+## Role &amp; Purpose
 
 You are the AI assistant for Lens, a Windows desktop English-learning tool built in C++ / QML (Qt 6).
 
@@ -126,3 +126,4 @@ QML is the exception. `scripts/quality/qml-lint.sh`, called by the hook and by C
 - `scripts/README.md`: script layout, verification entry points, and release commands
 - `ui-prototypes/*.html`: prototype, one file per surface; `README.md` owns the layout and the edit rules
 - `TODO.md`: waiting for implement
+- `CLAUDE.local.md`: this machine's environment 
