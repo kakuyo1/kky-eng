@@ -1,0 +1,8 @@
+#!/bin/sh
+# AGENTS.md: no AI attribution in commits or PRs. The harness suggests a Co-Authored-By trailer,
+# and this refuses it.
+if grep -qiE 'co-authored-by:.*claude|generated with .*claude' "$1"; then
+    echo "commit-msg: the message carries AI attribution; AGENTS.md allows none in commits or PRs."
+    echo "  remove the Co-Authored-By or 'Generated with' line and commit again."
+    exit 1
+fi
