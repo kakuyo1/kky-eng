@@ -8,6 +8,12 @@
 
 待办：确定词书来源（自备 txt / 公开词表），落地后把 known-set 预置从 “词频阈值” 改为 “词书集合”。
 
+## 更新源镜像
+
+现状：阶段三的检查更新只用 GitHub Releases，地址写在 `data/update.json`，国内网络需经代理才能访问。
+
+待办：实测国内可达的镜像（版本接口与发布页两处），定下后只改 `data/update.json`，并在 `SECURITY.md` 写明出站地址。
+
 ## 不规则表把 offer 归给了 off
 
 现状（2026-10-04）：`data/irregulars.tsv` 中有 `offer` 到 `off` 的映射，不规则表命中即裁定，选中 `offer` 时请求、缓存、气泡标题与已会标记都按 `off` 处理。`PHASE1.md` §4.1 却把 `offer` 列为安全落回自身的例子，文档与数据矛盾。
