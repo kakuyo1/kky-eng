@@ -21,6 +21,7 @@
 
 namespace {
 
+using lens::app::pet::Outfit;
 using lens::app::pet::PetAssets;
 using lens::app::pet::PetController;
 using lens::app::pet::PetStore;
@@ -64,6 +65,8 @@ private slots:
     void previewRunsTheClockOnlyWhileOpen();
     void aOneShotPreviewGoesBackToTheMachine();
     void accessoryCatalogueAndWornSlotsAreExposed();
+    void restoresOnlyAccessoriesInTheirOwnSlot();
+    void passthroughDefaultsOffAndIsStored();
 };
 
 void TstPetController::eventsDriveTheAction()
@@ -226,6 +229,32 @@ void TstPetController::accessoryCatalogueAndWornSlotsAreExposed()
     QCOMPARE(outfit.count(), 1);
     QCOMPARE(rig.controller.wornIn().value("face").toString(), QStringLiteral("glasses"));
     QCOMPARE(rig.controller.wornIn().value("head").toString(), QString{});
+}
+
+void TstPetController::restoresOnlyAccessoriesInTheirOwnSlot()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig rig{settingsIn(dir), shippedAssets()};
+
+    // Glasses saved in the head slot is bad data: it must not be worn there, and the face slot's glasses still is.
+    rig.petStore.setOutfit(Outfit{std::string{"glasses"}, std::string{"glasses"}, std::nullopt});
+    PetController restored{shippedAssets(), rig.petStore};
+
+    QVERIFY(restored.wornIn().value("head").toString().isEmpty());
+    QCOMPARE(restored.wornIn().value("face").toString(), QStringLiteral("glasses"));
+}
+
+void TstPetController::passthroughDefaultsOffAndIsStored()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig rig{settingsIn(dir), shippedAssets()};
+
+    QVERIFY(!rig.controller.passthrough());
+    rig.controller.setPassthrough(true);
+    QVERIFY(rig.controller.passthrough());
+    QVERIFY(rig.petStore.passthrough());
 }
 
 QTEST_GUILESS_MAIN(TstPetController)

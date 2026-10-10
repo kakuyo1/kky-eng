@@ -15,6 +15,7 @@ namespace {
 
 using lens::app::pet::bottomRightOf;
 using lens::app::pet::fitsWithin;
+using lens::app::pet::indexOfNearestArea;
 using lens::app::pet::placeWithin;
 
 /// A 1920x1040 usable area, starting at the origin.
@@ -49,6 +50,27 @@ TEST(PetPlacement, AWindowKeepsItsSpotWhileAnyScreenStillHoldsIt)
 TEST(PetPlacement, AWindowOnAScreenThatWentAwayMovesToThePrimaryCorner)
 {
     EXPECT_EQ(placeWithin(QPoint{2000, 100}, kPet, {kArea}, kArea), bottomRightOf(kPet, kArea));
+}
+
+TEST(PetPlacement, APointInsideAnAreaIndexesThatArea)
+{
+    QRect const second{1920, 0, 1920, 1040};
+
+    EXPECT_EQ(indexOfNearestArea(QPoint{2000, 100}, {kArea, second}), 1);
+}
+
+TEST(PetPlacement, APointOutsideEveryAreaIndexesTheNearestOne)
+{
+    QRect const second{1920, 0, 1920, 1040};
+
+    // Left of the first screen and above the second: the first is nearer.
+    EXPECT_EQ(indexOfNearestArea(QPoint{-300, 100}, {kArea, second}), 0);
+    EXPECT_EQ(indexOfNearestArea(QPoint{4000, -50}, {kArea, second}), 1);
+}
+
+TEST(PetPlacement, NoAreaIndexesNothing)
+{
+    EXPECT_EQ(indexOfNearestArea(QPoint{10, 10}, {}), -1);
 }
 
 } // namespace

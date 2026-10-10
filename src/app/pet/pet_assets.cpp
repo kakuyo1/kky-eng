@@ -16,6 +16,8 @@
 #include <QImageReader>
 #include <QSize>
 
+#include "app/pet/pet_store.h"
+
 namespace lens::app::pet {
 
 namespace {
@@ -98,8 +100,10 @@ PetAssets PetAssets::load(std::filesystem::path const& directory)
     auto const& layers = pet.at("layers");
 
     PetAssets assets{};
-    assets.canvas          = pet.at("canvas").get<int>();
-    assets.scale           = pet.at("scale").get<int>();
+    assets.canvas = pet.at("canvas").get<int>();
+    assets.scale  = pet.at("scale").get<int>();
+    if (assets.scale < kMinScale or assets.scale > kMaxScale)
+        throw std::runtime_error("pet: scale must be between " + std::to_string(kMinScale) + " and " + std::to_string(kMaxScale));
     assets.layers          = Layers{layers.at("body").get<int>(), layers.at("expression").get<int>(), layers.at("effect").get<int>()};
     assets.expressionSheet = absolutePath(directory, pet.at("expression").get<std::string>());
 

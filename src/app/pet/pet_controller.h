@@ -142,6 +142,8 @@ private:
     std::optional<core::pet::Action> actionNamed(QString const& name) const;
     /// @return Whether `id` is an accessory the catalogue knows.
     bool knownAccessory(QString const& id) const;
+    /// @return Whether the catalogue puts the accessory `id` in `slot`.
+    bool wearsInSlot(std::string const& id, core::pet::Slot slot) const;
     /// @brief Connects a screen's geometry changes to keepOnScreen().
     void watchScreen(QScreen* screen);
     /// @brief Moves the window back into a visible area when the screens changed under it (PHASE3 3.5).

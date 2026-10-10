@@ -39,14 +39,18 @@ bool excludeFromCapture(QWindow const& window)
     return SetWindowDisplayAffinity(handleOf(window), WDA_EXCLUDEFROMCAPTURE) != FALSE;
 }
 
+std::intptr_t passthroughStyle(std::intptr_t style, bool on)
+{
+    // Layered stays on either way: transparency only takes effect on a layered window.
+    if (on) return style | static_cast<std::intptr_t>(WS_EX_LAYERED | WS_EX_TRANSPARENT);
+    return style & ~static_cast<std::intptr_t>(WS_EX_TRANSPARENT);
+}
+
 void setPassthrough(QWindow const& window, bool on)
 {
     auto const hwnd  = handleOf(window);
-    auto const style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
-    // Layered stays on either way: transparency only takes effect on a layered window.
-    auto const updated = on ? (style | WS_EX_LAYERED | WS_EX_TRANSPARENT)
-                            : (style & ~static_cast<LONG_PTR>(WS_EX_TRANSPARENT));
-    SetWindowLongPtrW(hwnd, GWL_EXSTYLE, updated);
+    auto const style = static_cast<std::intptr_t>(GetWindowLongPtrW(hwnd, GWL_EXSTYLE));
+    SetWindowLongPtrW(hwnd, GWL_EXSTYLE, static_cast<LONG_PTR>(passthroughStyle(style, on)));
 }
 
 } // namespace lens::app::pet

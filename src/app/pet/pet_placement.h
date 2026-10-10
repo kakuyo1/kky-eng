@@ -28,4 +28,12 @@ QPoint bottomRightOf(QSize size, QRect available);
  */
 QPoint placeWithin(QPoint at, QSize size, QList<QRect> const& areas, QRect primary);
 
+/**
+ * @brief Finds the screen a point belongs to, or the one nearest to it when the point is off every screen.
+ * @param at A point, such as the top-left of the window when it was dropped.
+ * @param areas The usable area of every screen.
+ * @return The index in `areas` of the area holding `at`, else of the nearest one; -1 when `areas` is empty.
+ */
+int indexOfNearestArea(QPoint at, QList<QRect> const& areas);
+
 } // namespace lens::app::pet

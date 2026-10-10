@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include <QString>
 
 class QScreen;
@@ -28,6 +30,15 @@ QString deviceNameOf(QScreen const& screen);
  * @return False when the OS refuses (before Windows 10 2004). The pet then appears in captures and the caller says so.
  */
 bool excludeFromCapture(QWindow const& window);
+
+/**
+ * @brief The extended window style after pass-through is switched: WS_EX_TRANSPARENT added or removed, with
+ *        WS_EX_LAYERED kept on and every other bit untouched.
+ * @param style The window's current extended style.
+ * @param on True to pass input through.
+ * @return The style to set.
+ */
+std::intptr_t passthroughStyle(std::intptr_t style, bool on);
 
 /**
  * @brief Lets every mouse event fall through the window, by toggling WS_EX_TRANSPARENT over WS_EX_LAYERED.

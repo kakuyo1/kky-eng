@@ -62,6 +62,7 @@ Item {
         }
 
         SwitchRow {
+            objectName: "passthroughSwitch"
             width: parent.width
             label: qsTranslate("SettingsPopup", "Mouse pass-through")
             checked: Pet.passthrough

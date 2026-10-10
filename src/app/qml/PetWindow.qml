@@ -65,11 +65,23 @@ Window {
 
         onReleased: {
             if (petWindow.moved) {
-                Pet.dragEnd();
-                Pet.savePosition(Qt.point(petWindow.x, petWindow.y));
+                petWindow.drop();
             } else {
                 Pet.click();
             }
         }
+
+        // Another item taking the grab mid-drag ends the drag where the window is, so the state machine is not left
+        // holding the pickup.
+        onCanceled: {
+            if (petWindow.moved)
+                petWindow.drop();
+        }
+    }
+
+    function drop() {
+        Pet.dragEnd();
+        Pet.savePosition(Qt.point(petWindow.x, petWindow.y));
+        petWindow.moved = false;
     }
 }

@@ -95,8 +95,8 @@ PetController::PetController(std::optional<PetAssets> assets, PetStore& store, Q
     wardrobe_ = std::make_unique<core::pet::Wardrobe>(assets_->catalogue);
 
     auto const outfit = store_.outfit();
-    for (auto const* slot : {&outfit.head, &outfit.face, &outfit.body}) {
-        if (*slot and knownAccessory(QString::fromStdString(**slot))) wardrobe_->toggle(**slot);
+    for (auto const& [slot, worn] : {std::pair{Slot::Head, outfit.head}, std::pair{Slot::Face, outfit.face}, std::pair{Slot::Body, outfit.body}}) {
+        if (worn and wearsInSlot(*worn, slot)) wardrobe_->toggle(*worn);
     }
     blinkWait_ = kBlinkEvery;
     sync(std::chrono::milliseconds{0});
@@ -359,9 +359,16 @@ QPoint PetController::initialPosition(QSize size) const
 
 void PetController::savePosition(QPoint at)
 {
-    auto const* screen = QGuiApplication::screenAt(at);
-    if (not screen) return;
-    auto const device = deviceNameOf(*screen);
+    auto const screens = QGuiApplication::screens();
+    auto areas         = QList<QRect>{};
+    for (auto const* screen : screens)
+        areas.append(screen->availableGeometry());
+    auto const index = indexOfNearestArea(at, areas);
+    if (index < 0) return;
+
+    // A window dropped half off the edge still belongs to the screen nearest it; its offset may then be negative.
+    auto const* screen = screens.at(index);
+    auto const device  = deviceNameOf(*screen);
     if (device.isEmpty()) return;
     auto const offset = at - screen->availableGeometry().topLeft();
     store_.setPosition(SavedPosition{device.toStdString(), offset.x(), offset.y()});
@@ -387,7 +394,9 @@ void PetController::sync(std::chrono::milliseconds step)
     // The blink runs on the expression layer while the action allows it: a wait, then a short run of expressions.
     auto const& blink      = assets.animations.blink;
     auto const blinkLength = std::chrono::milliseconds{blink.frames * 1000 / blink.fps};
-    if (not assets.animations.actions.at(action).blinks) {
+    // A preview shows an action the machine is not playing, so its blink flag is read from the spec instead.
+    auto const blinks = preview_ ? assets.animations.actions.at(action).blinks : machine_->blinking();
+    if (not blinks) {
         blinkRunning_ = false;
         blinkWait_    = kBlinkEvery;
     } else if (blinkRunning_) {
@@ -458,6 +467,13 @@ std::optional<core::pet::Action> PetController::actionNamed(QString const& name)
         if (QString::fromStdString(actionName(entry.first)) == name) return entry.first;
     }
     return std::nullopt;
+}
+
+bool PetController::wearsInSlot(std::string const& id, Slot slot) const
+{
+    if (not assets_) return false;
+    auto const& catalogue = assets_->catalogue;
+    return std::any_of(catalogue.begin(), catalogue.end(), [&id, slot](auto const& spec) { return spec.id == id and spec.slot == slot; });
 }
 
 bool PetController::knownAccessory(QString const& id) const

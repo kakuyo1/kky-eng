@@ -41,6 +41,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/pet_data_test.cpp
   unit/pet_placement_test.cpp
   unit/pet_store_test.cpp
+  unit/pet_window_style_test.cpp
 )
 target_link_libraries(lens_gtest_unit PRIVATE lens_app lens_core lens_llm lens_util GTest::gtest_main)
 lens_gtest_configure(lens_gtest_unit)
