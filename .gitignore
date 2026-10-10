@@ -29,3 +29,6 @@ i18n/*.qm
 # The /team workflow's handover documents (PLAN/IMPLEMENTATION/REVIEW, watcher state). They live
 # inside the checkout but belong to no commit; ignoring them keeps `git status` clean.
 .orca/
+
+# Per-machine notes for the assistant. Personal to one machine; 
+CLAUDE.local.md
