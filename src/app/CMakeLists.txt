@@ -28,6 +28,8 @@ add_library(lens_app STATIC
   storage_duty.h
   storage_duty.cpp
   system_motion.cpp
+  update_duty.h
+  update_duty.cpp
   app_controller.cpp
   autostart.cpp
   tray.cpp
@@ -39,10 +41,11 @@ target_include_directories(lens_app PUBLIC ${CMAKE_SOURCE_DIR}/src)
 # Qt6::Gui is public because AppController's interface reaches into it: the clipboard and
 # QPoint come from there. Widgets is public for the tray -- QMenu and QSystemTrayIcon.
 # lens_llm is public for the same reason: the constructor takes an LlmClient and a Pricing.
+# lens_update comes along with it: UpdateDuty is a member, and its header is in this one.
 # Quick is public because the QML module below backs this library, and anything linking it is
 # linking the module: that now includes lens_gtest_integration, which used to need no QML.
 target_link_libraries(lens_app
-  PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Quick lens_llm
+  PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets Qt6::Quick lens_llm lens_update
   PRIVATE lens_core lens_util lens_capture
 )
 
@@ -134,6 +137,7 @@ qt_add_qml_module(lens_app
     qml/SelectionBar.qml
     qml/Bubble.qml
     qml/Notice.qml
+    qml/UpdateCard.qml
     qml/Mask.qml
     qml/SettingsPopup.qml
     qml/SettingsCategoryRow.qml
