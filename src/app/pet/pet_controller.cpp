@@ -65,6 +65,20 @@ Outfit outfitOf(core::pet::Wardrobe const& wardrobe)
     return Outfit{wardrobe.wornIn(Slot::Head), wardrobe.wornIn(Slot::Face), wardrobe.wornIn(Slot::Body)};
 }
 
+/// @return The slot's name as the data and the settings page spell it.
+QString slotName(Slot slot)
+{
+    switch (slot) {
+        case Slot::Head:
+            return QStringLiteral("head");
+        case Slot::Face:
+            return QStringLiteral("face");
+        case Slot::Body:
+            return QStringLiteral("body");
+    }
+    return {};
+}
+
 } // namespace
 
 PetController::PetController(std::optional<PetAssets> assets, PetStore& store, QObject* parent)
@@ -157,12 +171,41 @@ QVariantList PetController::wornAccessories() const
     if (not wardrobe_) return worn;
 
     auto const& catalogue = assets_->catalogue;
-    for (auto const& id : wardrobe_->visibleFor(machine_->action())) {
+    for (auto const& id : wardrobe_->visibleFor(shownAction())) {
         auto const spec = std::find_if(catalogue.begin(), catalogue.end(), [&id](auto const& candidate) { return candidate.id == id; });
         if (spec == catalogue.end()) continue;
         auto const& art = assets_->accessories.at(id);
         auto const at   = pointFor(anchors_, spec->slot);
         worn.append(QVariantMap{{"asset", urlOf(art.asset)}, {"zIndex", art.zIndex}, {"x", at.x()}, {"y", at.y()}});
+    }
+    return worn;
+}
+
+QStringList PetController::actions() const
+{
+    auto names = QStringList{};
+    if (not assets_) return names;
+    for (auto const& entry : assets_->animations.actions)
+        names.append(QString::fromStdString(actionName(entry.first)));
+    return names;
+}
+
+QVariantList PetController::accessories() const
+{
+    auto list = QVariantList{};
+    if (not assets_) return list;
+    for (auto const& spec : assets_->catalogue) {
+        list.append(QVariantMap{{"id", QString::fromStdString(spec.id)}, {"slot", slotName(spec.slot)}});
+    }
+    return list;
+}
+
+QVariantMap PetController::wornIn() const
+{
+    auto worn = QVariantMap{};
+    if (not wardrobe_) return worn;
+    for (auto const slot : {Slot::Head, Slot::Face, Slot::Body}) {
+        worn.insert(slotName(slot), QString::fromStdString(wardrobe_->wornIn(slot).value_or(std::string{})));
     }
     return worn;
 }
@@ -201,12 +244,28 @@ void PetController::setScale(int times)
 
 void PetController::setRunning(bool on)
 {
-    if (not machine_) return;
-    if (on) {
-        clock_.start();
-    } else {
-        clock_.stop();
+    desktopRunning_ = on;
+    updateClock();
+}
+
+void PetController::setPreviewing(bool on)
+{
+    previewing_ = on;
+    if (not on and preview_) {
+        preview_.reset();
+        sync(std::chrono::milliseconds{0});
     }
+    updateClock();
+}
+
+void PetController::preview(QString action)
+{
+    auto const picked = actionNamed(action);
+    if (not picked) return;
+    // From the first frame even when it is the action already shown, so a second press plays it again.
+    preview_       = picked;
+    actionElapsed_ = std::chrono::milliseconds{0};
+    sync(std::chrono::milliseconds{0});
 }
 
 void PetController::dragStart()
@@ -230,6 +289,7 @@ void PetController::toggleAccessory(QString id)
     wardrobe_->toggle(id.toStdString());
     store_.setOutfit(outfitOf(*wardrobe_));
     emit frameChanged();
+    emit outfitChanged();
 }
 
 void PetController::setEnabled(bool on)
@@ -253,6 +313,28 @@ void PetController::attachWindow(QObject* object)
     connect(window_, &QObject::destroyed, this, [this] { window_ = nullptr; });
     if (not excludeFromCapture(*window_)) LENS_WARN("the desktop pet can appear in screen captures: Windows refused the exclusion");
     ::lens::app::pet::setPassthrough(*window_, enabled() and store_.passthrough());
+    connect(qGuiApp, &QGuiApplication::screenAdded, this, &PetController::watchScreen);
+    connect(qGuiApp, &QGuiApplication::screenRemoved, this, &PetController::keepOnScreen);
+    for (auto* screen : QGuiApplication::screens())
+        watchScreen(screen);
+}
+
+void PetController::watchScreen(QScreen* screen)
+{
+    connect(screen, &QScreen::geometryChanged, this, &PetController::keepOnScreen);
+    connect(screen, &QScreen::availableGeometryChanged, this, &PetController::keepOnScreen);
+    connect(screen, &QScreen::logicalDotsPerInchChanged, this, &PetController::keepOnScreen);
+}
+
+void PetController::keepOnScreen()
+{
+    if (not window_) return;
+    auto areas = QList<QRect>{};
+    for (auto const* screen : QGuiApplication::screens())
+        areas.append(screen->availableGeometry());
+    auto const at   = window_->position();
+    auto const kept = placeWithin(at, window_->size(), areas, QGuiApplication::primaryScreen()->availableGeometry());
+    if (kept != at) window_->setPosition(kept);
 }
 
 QPoint PetController::cursorPos() const
@@ -265,7 +347,7 @@ QPoint PetController::initialPosition(QSize size) const
     auto const saved = store_.position();
     if (saved) {
         for (auto const* screen : QGuiApplication::screens()) {
-            if (screen->name().toStdString() != saved->screen) continue;
+            if (deviceNameOf(*screen).toStdString() != saved->screen) continue;
             auto const area = screen->availableGeometry();
             auto const at   = area.topLeft() + QPoint{saved->x, saved->y};
             if (fitsWithin(at, size, area)) return at;
@@ -279,8 +361,10 @@ void PetController::savePosition(QPoint at)
 {
     auto const* screen = QGuiApplication::screenAt(at);
     if (not screen) return;
+    auto const device = deviceNameOf(*screen);
+    if (device.isEmpty()) return;
     auto const offset = at - screen->availableGeometry().topLeft();
-    store_.setPosition(SavedPosition{screen->name().toStdString(), offset.x(), offset.y()});
+    store_.setPosition(SavedPosition{device.toStdString(), offset.x(), offset.y()});
 }
 
 void PetController::tick()
@@ -292,7 +376,7 @@ void PetController::tick()
 void PetController::sync(std::chrono::milliseconds step)
 {
     auto const& assets = *assets_;
-    auto const action  = machine_->action();
+    auto const action  = shownAction();
     if (action != shownAction_) {
         shownAction_   = action;
         actionElapsed_ = std::chrono::milliseconds{0};
@@ -303,7 +387,7 @@ void PetController::sync(std::chrono::milliseconds step)
     // The blink runs on the expression layer while the action allows it: a wait, then a short run of expressions.
     auto const& blink      = assets.animations.blink;
     auto const blinkLength = std::chrono::milliseconds{blink.frames * 1000 / blink.fps};
-    if (not machine_->blinking()) {
+    if (not assets.animations.actions.at(action).blinks) {
         blinkRunning_ = false;
         blinkWait_    = kBlinkEvery;
     } else if (blinkRunning_) {
@@ -323,7 +407,13 @@ void PetController::sync(std::chrono::milliseconds step)
     auto const& spec     = assets.animations.actions.at(action);
     auto const& pictures = assets.sheets.at(action);
     auto frame           = static_cast<int>(actionElapsed_.count() * spec.fps / 1000);
-    frame                = spec.loop ? frame % spec.frames : std::min(frame, spec.frames - 1);
+    if (preview_ and not spec.loop and frame >= spec.frames) {
+        // A one-shot preview has played through: the dog goes back to what the machine has it doing.
+        preview_.reset();
+        sync(std::chrono::milliseconds{0});
+        return;
+    }
+    frame = spec.loop ? frame % spec.frames : std::min(frame, spec.frames - 1);
 
     auto expression = 0;
     if (blinkRunning_) {
@@ -344,6 +434,30 @@ void PetController::sync(std::chrono::milliseconds step)
     expression_ = expression;
     anchors_    = assets.anchors.at(action).at(static_cast<std::size_t>(frame));
     if (changed) emit frameChanged();
+}
+
+void PetController::updateClock()
+{
+    if (not machine_) return;
+    if (desktopRunning_ or previewing_) {
+        clock_.start();
+    } else {
+        clock_.stop();
+    }
+}
+
+core::pet::Action PetController::shownAction() const
+{
+    return preview_.value_or(machine_->action());
+}
+
+std::optional<core::pet::Action> PetController::actionNamed(QString const& name) const
+{
+    if (not assets_) return std::nullopt;
+    for (auto const& entry : assets_->animations.actions) {
+        if (QString::fromStdString(actionName(entry.first)) == name) return entry.first;
+    }
+    return std::nullopt;
 }
 
 bool PetController::knownAccessory(QString const& id) const

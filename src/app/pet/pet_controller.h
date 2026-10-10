@@ -8,6 +8,7 @@
 #include <QPoint>
 #include <QSize>
 #include <QString>
+#include <QStringList>
 #include <QTimer>
 #include <QVariantList>
 #include <QVariantMap>
@@ -20,6 +21,7 @@
 
 class QJSEngine;
 class QQmlEngine;
+class QScreen;
 class QWindow;
 
 /**
@@ -29,6 +31,9 @@ class QWindow;
  *
  * The state machine in core chooses the action. This class advances the frame index and the blink, and turns the
  * machine's state into properties for QML. It receives event types only, never text or a selection.
+ *
+ * The one exception is the settings preview: preview() shows a chosen action in place of the machine's, and the
+ * machine keeps running underneath. The same dog is on the desktop, so the preview shows there too while it lasts.
  */
 
 namespace lens::app::pet {
@@ -51,6 +56,9 @@ class PetController : public QObject {
     Q_PROPERTY(int scale READ scale NOTIFY settingsChanged)
     Q_PROPERTY(int minScale READ minScale CONSTANT)
     Q_PROPERTY(int maxScale READ maxScale CONSTANT)
+    Q_PROPERTY(QStringList actions READ actions CONSTANT)
+    Q_PROPERTY(QVariantList accessories READ accessories CONSTANT)
+    Q_PROPERTY(QVariantMap wornIn READ wornIn NOTIFY outfitChanged)
 
 public:
     /**
@@ -84,11 +92,22 @@ public:
     int scale() const;
     int minScale() const;
     int maxScale() const;
+    /// @return Every action the pet can play, in the order of the state machine's enum.
+    QStringList actions() const;
+    /// @return Every accessory in the catalogue as {id, slot}, for the settings page to lay out.
+    QVariantList accessories() const;
+    /// @return The accessory worn in each slot, keyed by slot name; an empty string where the slot is empty.
+    QVariantMap wornIn() const;
 
     /// @brief Stores the magnification the reader picked on the size slider.
     Q_INVOKABLE void setScale(int times);
-    /// @brief Starts or stops the one frame clock. The scene calls it with the window's visibility.
+    /// @brief Runs the desktop window's share of the frame clock. The window calls it with its visibility.
     Q_INVOKABLE void setRunning(bool on);
+    /// @brief Runs the frame clock for the settings preview. Turning it off also ends any preview.
+    Q_INVOKABLE void setPreviewing(bool on);
+    /// @brief Shows an action in place of the machine's, from its first frame. Ignored for an unknown name.
+    /// @param action Name in animations.json, such as "celebrate".
+    Q_INVOKABLE void preview(QString action);
     Q_INVOKABLE void dragStart();
     Q_INVOKABLE void dragEnd();
     Q_INVOKABLE void click();
@@ -108,14 +127,25 @@ public:
 signals:
     void frameChanged();
     void settingsChanged();
+    void outfitChanged();
 
 private:
     /// @brief Moves the state machine on by `step` and refreshes what the scene reads.
     void tick();
-    /// @brief Reads the machine's action and blink into the properties, and emits when the frame they show changed.
+    /// @brief Reads the shown action and blink into the properties, and emits when the frame they show changed.
     void sync(std::chrono::milliseconds step);
+    /// @brief Starts the clock while the window or the preview needs it, and stops it otherwise.
+    void updateClock();
+    /// @return The action on screen: the preview's while one is set, else the machine's.
+    core::pet::Action shownAction() const;
+    /// @return The action called `name` in the data, if there is one.
+    std::optional<core::pet::Action> actionNamed(QString const& name) const;
     /// @return Whether `id` is an accessory the catalogue knows.
     bool knownAccessory(QString const& id) const;
+    /// @brief Connects a screen's geometry changes to keepOnScreen().
+    void watchScreen(QScreen* screen);
+    /// @brief Moves the window back into a visible area when the screens changed under it (PHASE3 3.5).
+    void keepOnScreen();
 
     static PetController* instance_;
 
@@ -125,6 +155,11 @@ private:
     std::unique_ptr<core::pet::Wardrobe> wardrobe_;
     QTimer clock_;
     QWindow* window_ = nullptr;
+    /// The clock runs while either of these is set.
+    bool desktopRunning_{false};
+    bool previewing_{false};
+    /// The action the settings preview shows in place of the machine's, when one is set.
+    std::optional<core::pet::Action> preview_;
 
     /// The action the frame properties were last computed for, and how long it has played.
     core::pet::Action shownAction_{core::pet::Action::Idle};

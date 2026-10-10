@@ -7,7 +7,9 @@
 
 #include <windows.h>
 
+#include <QScreen>
 #include <QWindow>
+#include <QtGui/qscreen_platform.h>
 
 namespace lens::app::pet {
 
@@ -20,6 +22,17 @@ HWND handleOf(QWindow const& window)
 }
 
 } // namespace
+
+QString deviceNameOf(QScreen const& screen)
+{
+    auto const* native = screen.nativeInterface<QNativeInterface::QWindowsScreen>();
+    if (not native) return {};
+
+    auto info   = MONITORINFOEXW{};
+    info.cbSize = sizeof(info);
+    if (GetMonitorInfoW(native->handle(), &info) == FALSE) return {};
+    return QString::fromWCharArray(info.szDevice);
+}
 
 bool excludeFromCapture(QWindow const& window)
 {

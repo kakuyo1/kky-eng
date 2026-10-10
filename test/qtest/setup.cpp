@@ -70,10 +70,14 @@ void installUiFonts()
 
 #include <filesystem>
 #include <memory>
+#include <optional>
 
 #include "app/app_controller.h"
 #include "app/global_hotkey.h"
 #include "app/mouse_selection_hook.h"
+#include "app/pet/pet_assets.h"
+#include "app/pet/pet_controller.h"
+#include "app/pet/pet_store.h"
 #include "app/tray.h"
 #include "core/known_store.h"
 #include "llm/llm_client.h"
@@ -85,6 +89,9 @@ using lens::app::AppController;
 using lens::app::GlobalHotkey;
 using lens::app::MouseSelectionHook;
 using lens::app::Tray;
+using lens::app::pet::PetAssets;
+using lens::app::pet::PetController;
+using lens::app::pet::PetStore;
 using lens::core::KnownStore;
 
 /// @brief The reply every request gets: a failure, delivered on the next event loop turn.
@@ -142,6 +149,8 @@ struct Singletons {
     std::unique_ptr<lens::llm::Pricing> pricing;
     std::unique_ptr<AppController> controller;
     std::unique_ptr<Tray> tray;
+    std::unique_ptr<PetStore> petStore;
+    std::unique_ptr<PetController> pet;
 };
 
 /**
@@ -190,6 +199,14 @@ Singletons& singletons()
             lens::llm::loadLlmProtocol(channel, std::filesystem::path(LENS_DATA_DIR) / "llm");
         built.controller = std::make_unique<AppController>(*built.store, *built.llm, *built.hook, *built.hotkey, *built.pricing);
         built.tray       = std::make_unique<Tray>(*built.controller);
+        // The pet as main() builds it: a refused data directory leaves it off, and the QML still gets a singleton.
+        std::optional<PetAssets> pet;
+        try {
+            pet = PetAssets::load(std::filesystem::path(LENS_DATA_DIR) / "pet");
+        } catch (std::exception const&) {
+        }
+        built.petStore = std::make_unique<PetStore>(*built.store);
+        built.pet      = std::make_unique<PetController>(std::move(pet), *built.petStore);
         return built;
     }();
     return one;
@@ -206,6 +223,7 @@ void LensTestSetup::qmlEngineAvailable(QQmlEngine* engine)
     Singletons& one = singletons();
     AppController::provide(one.controller.get());
     Tray::provide(one.tray.get());
+    PetController::provide(one.pet.get());
 }
 
 #else

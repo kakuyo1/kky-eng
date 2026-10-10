@@ -1,13 +1,26 @@
 #pragma once
 
+#include <QString>
+
+class QScreen;
 class QWindow;
 
 /**
  * @file pet_window_native.h
- * @brief The two window behaviours Qt has no switch for: capture exclusion and mouse pass-through (PHASE3 3.5).
+ * @brief The window behaviours Qt has no switch for: capture exclusion, mouse pass-through, and the monitor's
+ *        device name that the pet records its position against (PHASE3 3.5).
  */
 
 namespace lens::app::pet {
+
+/**
+ * @brief The device name of the monitor behind a screen, such as `\\.\DISPLAY1`.
+ *
+ * This is the identity the saved position uses. QScreen::name() is not: on Windows it is the monitor's
+ * friendly name from its EDID, which PHASE3 3.5 rules out.
+ * @return The name from MONITORINFOEXW::szDevice, or empty when Windows cannot read the monitor.
+ */
+QString deviceNameOf(QScreen const& screen);
 
 /**
  * @brief Keeps the window out of screen capture, so screenshots and the OCR scan's pixel diff never see the pet.

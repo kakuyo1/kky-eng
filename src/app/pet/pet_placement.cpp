@@ -17,4 +17,12 @@ QPoint bottomRightOf(QSize size, QRect available)
     return QPoint{available.right() - size.width() + 1, available.bottom() - size.height() + 1};
 }
 
+QPoint placeWithin(QPoint at, QSize size, QList<QRect> const& areas, QRect primary)
+{
+    for (auto const& area : areas) {
+        if (fitsWithin(at, size, area)) return at;
+    }
+    return bottomRightOf(size, primary);
+}
+
 } // namespace lens::app::pet

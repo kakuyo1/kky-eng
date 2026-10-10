@@ -6,7 +6,7 @@
   "layers": {
     "body": 0,
     "expression": 2,
-    "effect": 5
+    "effect": 6
   },
   "expression": "sprites/expressions/eyes.png"
 }

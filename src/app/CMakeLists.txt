@@ -142,6 +142,7 @@ qt_add_qml_module(lens_app
     qml/Main.qml
     qml/PetWindow.qml
     qml/PetScene.qml
+    qml/PetStage.qml
     qml/SpriteLayer.qml
     qml/TrayMenu.qml
     qml/SelectionBar.qml
@@ -174,6 +175,7 @@ qt_add_qml_module(lens_app
     qml/components/ShadowCard.qml
     qml/components/Segment.qml
     qml/components/Switch.qml
+    qml/components/Chip.qml
     qml/components/StepSlider.qml
     qml/components/SwitchRow.qml
     qml/components/StatRow.qml

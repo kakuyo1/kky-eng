@@ -60,6 +60,10 @@ private slots:
     void wornAccessoriesFollowToggles();
     void sizeIsStoredAndAnnounced();
     void refusedDataLeavesThePetOff();
+    void previewShowsAnActionAndTheMachineKeepsItsOwn();
+    void previewRunsTheClockOnlyWhileOpen();
+    void aOneShotPreviewGoesBackToTheMachine();
+    void accessoryCatalogueAndWornSlotsAreExposed();
 };
 
 void TstPetController::eventsDriveTheAction()
@@ -119,7 +123,7 @@ void TstPetController::wornAccessoriesFollowToggles()
 
     auto const worn = rig.controller.wornAccessories().first().toMap();
     QVERIFY(worn.value("asset").toString().startsWith("file:///"));
-    QCOMPARE(worn.value("zIndex").toInt(), 4);
+    QCOMPARE(worn.value("zIndex").toInt(), 5);
 
     rig.controller.toggleAccessory(QStringLiteral("hat"));
     QCOMPARE(rig.controller.wornAccessories().size(), 0);
@@ -156,6 +160,72 @@ void TstPetController::refusedDataLeavesThePetOff()
     rig.controller.setRunning(true);
     QVERIFY(rig.controller.action().isEmpty());
     QCOMPARE(rig.controller.wornAccessories().size(), 0);
+}
+
+void TstPetController::previewShowsAnActionAndTheMachineKeepsItsOwn()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig rig{settingsIn(dir), shippedAssets()};
+
+    rig.controller.handle(PetEvent::ExplanationShown);
+    QCOMPARE(rig.controller.action(), QStringLiteral("study"));
+
+    rig.controller.preview(QStringLiteral("celebrate"));
+    QCOMPARE(rig.controller.action(), QStringLiteral("celebrate"));
+
+    rig.controller.preview(QStringLiteral("no_such_action"));
+    QCOMPARE(rig.controller.action(), QStringLiteral("celebrate"));
+
+    // Ending the preview hands the dog back to the machine, which was reading the whole time.
+    rig.controller.setPreviewing(false);
+    QCOMPARE(rig.controller.action(), QStringLiteral("study"));
+}
+
+void TstPetController::previewRunsTheClockOnlyWhileOpen()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig rig{settingsIn(dir), shippedAssets()};
+
+    rig.controller.preview(QStringLiteral("celebrate"));
+    QSignalSpy frames(&rig.controller, &PetController::frameChanged);
+
+    rig.controller.setPreviewing(true);
+    QVERIFY(frames.wait(1000));
+
+    rig.controller.setPreviewing(false);
+    QCOMPARE(rig.controller.action(), QStringLiteral("idle"));
+}
+
+void TstPetController::aOneShotPreviewGoesBackToTheMachine()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig rig{settingsIn(dir), shippedAssets()};
+
+    // Celebrate plays eight frames at 10 fps, so it has run through within about a second.
+    rig.controller.preview(QStringLiteral("celebrate"));
+    rig.controller.setPreviewing(true);
+    QTRY_COMPARE_WITH_TIMEOUT(rig.controller.action(), QStringLiteral("idle"), 2000);
+    rig.controller.setPreviewing(false);
+}
+
+void TstPetController::accessoryCatalogueAndWornSlotsAreExposed()
+{
+    QTemporaryDir dir;
+    QVERIFY(dir.isValid());
+    Rig rig{settingsIn(dir), shippedAssets()};
+
+    QCOMPARE(rig.controller.accessories().size(), 7);
+    QCOMPARE(rig.controller.actions().size(), 11);
+    QCOMPARE(rig.controller.actions().first(), QStringLiteral("idle"));
+
+    QSignalSpy outfit(&rig.controller, &PetController::outfitChanged);
+    rig.controller.toggleAccessory(QStringLiteral("glasses"));
+    QCOMPARE(outfit.count(), 1);
+    QCOMPARE(rig.controller.wornIn().value("face").toString(), QStringLiteral("glasses"));
+    QCOMPARE(rig.controller.wornIn().value("head").toString(), QString{});
 }
 
 QTEST_GUILESS_MAIN(TstPetController)

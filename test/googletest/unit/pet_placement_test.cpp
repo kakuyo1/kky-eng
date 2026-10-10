@@ -15,6 +15,7 @@ namespace {
 
 using lens::app::pet::bottomRightOf;
 using lens::app::pet::fitsWithin;
+using lens::app::pet::placeWithin;
 
 /// A 1920x1040 usable area, starting at the origin.
 QRect const kArea{0, 0, 1920, 1040};
@@ -36,6 +37,18 @@ TEST(PetPlacement, TheBottomRightCornerIsInsideTheArea)
 
     EXPECT_EQ(at, (QPoint{1920 - 264, 1040 - 264}));
     EXPECT_TRUE(fitsWithin(at, kPet, kArea));
+}
+
+TEST(PetPlacement, AWindowKeepsItsSpotWhileAnyScreenStillHoldsIt)
+{
+    QRect const second{1920, 0, 1920, 1040};
+
+    EXPECT_EQ(placeWithin(QPoint{2000, 100}, kPet, {kArea, second}, kArea), (QPoint{2000, 100}));
+}
+
+TEST(PetPlacement, AWindowOnAScreenThatWentAwayMovesToThePrimaryCorner)
+{
+    EXPECT_EQ(placeWithin(QPoint{2000, 100}, kPet, {kArea}, kArea), bottomRightOf(kPet, kArea));
 }
 
 } // namespace

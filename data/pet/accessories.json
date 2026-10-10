@@ -4,7 +4,7 @@
       "id": "hat",
       "slot": "head",
       "asset": "sprites/accessories/headwear/hat.png",
-      "zIndex": 4,
+      "zIndex": 5,
       "supportedActions": [
         "idle",
         "study",
@@ -22,7 +22,7 @@
       "id": "beanie",
       "slot": "head",
       "asset": "sprites/accessories/headwear/beanie.png",
-      "zIndex": 4,
+      "zIndex": 5,
       "supportedActions": [
         "idle",
         "study",
@@ -40,7 +40,7 @@
       "id": "sprout",
       "slot": "head",
       "asset": "sprites/accessories/headwear/sprout.png",
-      "zIndex": 4,
+      "zIndex": 5,
       "supportedActions": [
         "idle",
         "study",
@@ -58,7 +58,7 @@
       "id": "crown",
       "slot": "head",
       "asset": "sprites/accessories/headwear/crown.png",
-      "zIndex": 4,
+      "zIndex": 5,
       "supportedActions": [
         "idle",
         "study",
@@ -76,7 +76,7 @@
       "id": "glasses",
       "slot": "face",
       "asset": "sprites/accessories/glasses/glasses.png",
-      "zIndex": 3,
+      "zIndex": 4,
       "supportedActions": [
         "idle",
         "study",
@@ -94,7 +94,7 @@
       "id": "sunglasses",
       "slot": "face",
       "asset": "sprites/accessories/glasses/sunglasses.png",
-      "zIndex": 3,
+      "zIndex": 4,
       "supportedActions": [
         "idle",
         "study",
@@ -112,7 +112,7 @@
       "id": "bowtie",
       "slot": "body",
       "asset": "sprites/accessories/clothing/bowtie.png",
-      "zIndex": 1,
+      "zIndex": 3,
       "supportedActions": [
         "idle",
         "study",
