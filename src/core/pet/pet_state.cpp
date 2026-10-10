@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -83,7 +84,9 @@ void PetStateMachine::advance(std::chrono::milliseconds step)
     }
     if (current == Action::Idle) {
         idle += step;
-        if (idle >= idleWait) request(pickRandomIdle(), Priority::Situational);
+        if (idle >= idleWait) {
+            if (auto const pick = pickRandomIdle()) request(*pick, Priority::Situational);
+        }
         return;
     }
     elapsed += step;
@@ -125,12 +128,20 @@ void PetStateMachine::settle()
     elapsed  = std::chrono::milliseconds{0};
 }
 
-Action PetStateMachine::pickRandomIdle()
+std::optional<Action> PetStateMachine::pickRandomIdle()
 {
-    std::vector<Action> choices;
+    // Only actions with a playback are candidates: stretch may be missing from the table (PHASE3 3.1).
+    std::vector<Action> available;
     for (auto const candidate : kRandomIdle) {
+        if (specs.count(candidate) != 0) available.push_back(candidate);
+    }
+    if (available.empty()) return std::nullopt;
+
+    std::vector<Action> choices;
+    for (auto const candidate : available) {
         if (candidate != lastIdle) choices.push_back(candidate);
     }
+    if (choices.empty()) choices = available; // the only playback left is reused, never skipped
     auto const index = std::min(static_cast<std::size_t>(random() * static_cast<double>(choices.size())),
                                 choices.size() - 1);
     lastIdle         = choices[index];

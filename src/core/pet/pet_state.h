@@ -108,7 +108,8 @@ private:
     void enterIdle();
     /// @brief Ends a one-shot or a held state: back to the state an event asked for, else idle.
     void settle();
-    Action pickRandomIdle();
+    /// @return The next idle action, or nothing when the table has no situational playback.
+    std::optional<Action> pickRandomIdle();
     std::chrono::milliseconds nextIdleWait();
     std::chrono::milliseconds durationOf(Action action) const;
 

@@ -193,6 +193,19 @@ TEST(PetStateMachine, RandomIdleDoesNotRepeatTheLastPick)
     EXPECT_EQ(machine.action(), Action::Stretch);
 }
 
+TEST(PetStateMachine, RandomIdleOnlyPicksActionsThatHaveAPlayback)
+{
+    // Stretch is optional in the first version (PHASE3 3.1), so a table without it must still idle cleanly.
+    auto table = specs();
+    table.erase(Action::Stretch);
+    PetStateMachine machine{table, RandomSource{[] { return 0.0; }}};
+    machine.advance(20s);
+    ASSERT_EQ(machine.action(), Action::LookAround);
+    machine.advance(1s);
+    machine.advance(20s);
+    EXPECT_EQ(machine.action(), Action::LookAround); // the only choice left is reused, not skipped
+}
+
 TEST(PetStateMachine, ThreeMinutesOfQuietYawnsThenSleeps)
 {
     auto machine       = makeMachine(0.999);

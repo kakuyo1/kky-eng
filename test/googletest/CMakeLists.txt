@@ -36,6 +36,7 @@ add_executable(lens_gtest_unit EXCLUDE_FROM_ALL
   unit/util_test.cpp
   unit/capture_test.cpp
   unit/pet_state_test.cpp
+  unit/pet_config_test.cpp
 )
 target_link_libraries(lens_gtest_unit PRIVATE lens_app lens_core lens_llm lens_util GTest::gtest_main)
 lens_gtest_configure(lens_gtest_unit)
