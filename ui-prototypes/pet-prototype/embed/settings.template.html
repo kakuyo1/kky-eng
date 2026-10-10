@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lens · 桌面宠物</title>
+<style>
+:root{
+  --bg:#e9ebef; --panel:#fff; --panel2:#f1f3f7; --line:#d6dae1; --line2:#e6e9ee;
+  --text:#1a1a1f; --muted:#66666f; --faint:#9d9da8;
+  --ok:#2f9e6e;
+  --ink:#1a1a1f; --on:#fff;
+  --r-lg:18px;
+  --sh2:0 2px 6px rgba(20,20,26,.06),0 24px 60px -24px rgba(20,20,26,.24);
+  --f:"Segoe UI Variable","Segoe UI","Microsoft YaHei UI",system-ui,-apple-system,sans-serif;
+}
+html[data-theme=dark]{
+  --bg:#131316; --panel:#1c1c20; --panel2:#242429; --line:#2f2f37; --line2:#26262c;
+  --text:#e9e9ee; --muted:#a3a3ae; --faint:#75757f;
+  --ok:#45c08a;
+  --ink:#e9e9ee; --on:#16161a;
+  --sh2:0 2px 6px rgba(0,0,0,.5),0 24px 60px -24px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--f);color:var(--text);background:var(--bg);min-height:100vh;display:grid;place-items:center;padding:36px 20px;font-size:13px;line-height:1.5}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* 扩展 → 桌面宠物：与设置面板同尺寸、同页头页脚 */
+.settings{width:380px;height:480px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh2);display:flex;flex-direction:column;overflow:hidden}
+.set-h{display:flex;align-items:center;gap:9px;padding:0 20px;min-height:58px;border-bottom:1px solid var(--line2);flex:none}
+.set-back{display:grid;place-items:center;width:26px;height:26px;margin-left:-6px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:20px;line-height:1}
+.set-back:hover{background:var(--panel2);color:var(--text)}
+.set-title{font-size:14px;font-weight:700}
+.set-sep{color:var(--faint);font-size:12px}
+.set-crumb{font-size:12px;color:var(--muted);font-weight:400}
+.set-h .close{margin-left:auto;width:26px;height:26px;border:0;border-radius:8px;background:transparent;color:var(--faint);font-size:18px;line-height:1}
+.set-h .close:hover{background:var(--panel2);color:var(--text)}
+.set-body{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:14px 20px 18px}
+.set-f{display:flex;align-items:center;gap:8px;padding:0 20px;min-height:56px;border-top:1px solid var(--line2);flex:none}
+.status{flex:1;text-align:center;font-size:11px;color:var(--muted)}
+.btn{padding:6px 14px;border-radius:999px;border:1px solid transparent;font-size:12px;font-weight:600}
+.btn.ghost{background:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--text)}
+.btn.ink{background:var(--ink);color:var(--on)}
+.btn.ink:disabled{opacity:.45;cursor:default}
+
+/* 开关行，规格同设置 */
+.swrow{display:flex;align-items:center;gap:12px;min-height:44px}
+.swrow .swlabel{flex:1}
+.swrow.off{color:var(--faint)}
+.swrow.off .switch{opacity:.45}
+.swhelp{font-size:11px;color:var(--muted);margin-top:-2px;margin-bottom:12px}
+.switch{flex:none;width:34px;height:20px;border:0;border-radius:99px;background:var(--line);position:relative;padding:0}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--panel)}
+.switch[aria-checked=true]{background:var(--ink)}
+.switch[aria-checked=true]::after{left:auto;right:2px;background:var(--on)}
+html[data-theme=dark] .switch::after{background:var(--faint)}
+html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
+
+/* Level 1: section title, bold with a divider above it. The first section has none, since the toggle block sits right above. */
+.group-title{font-size:12px;font-weight:700;color:var(--text);margin:16px 0 9px;padding-top:14px;border-top:1px solid var(--line2)}
+#pet-section > .group-title:first-child{margin-top:4px;padding-top:0;border-top:0}
+
+/* 宠物类型：卡片，选中项墨色描边；缩略图是原型的待机第一帧，不播放动作 */
+.pets{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pcard{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:8px 10px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);text-align:left;min-width:0}
+.pcard[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.pcard .pn{font-size:12.5px;font-weight:600;white-space:nowrap}
+.pcard canvas{width:88px;height:88px;flex:none}
+
+/* 预览舞台：一条桌面边线，宠物站在线上；占位美术，不是最终形态。
+   The canvas is the prototype's own, drawn at 2 device pixels a unit: 88 units at 176 px, so the edges stay whole pixels. */
+.stage{position:relative;height:192px;border:1px solid var(--line2);border-radius:12px;background:var(--panel2);overflow:hidden}
+.stage::after{content:"";position:absolute;left:14px;right:14px;bottom:24px;height:1px;background:var(--line)}
+.stage.dim{opacity:.5}
+.stage canvas{position:absolute;left:50%;bottom:16px;width:176px;height:176px;margin-left:-88px;overflow:visible}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);font-size:12px;color:var(--text)}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--on);border-color:var(--ink);font-weight:600}
+/* Level 2: slot label in its own left column, faint, so it reads as a row header rather than a chip. Level 3: the chips. */
+.slot{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.slot:last-child{margin-bottom:0}
+/* Min width sized for the longest label ("Cuerpo"), so every row's chips start at the same x. */
+.slot-h{flex:none;width:52px;font-size:11px;color:var(--faint)}
+.slot .chips{flex:1;min-width:0}
+.themebtn{position:fixed;top:14px;right:16px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-family:var(--f);font-size:11.5px;cursor:pointer}
+.themebtn:hover{color:var(--text)}
+</style>
+</head>
+<body>
+<div class="settings" id="app">
+  <div class="set-h">
+    <button class="set-back" type="button" aria-label="返回">‹</button>
+    <span class="set-title" id="title"></span>
+    <span class="set-sep" aria-hidden="true">/</span>
+    <span class="set-crumb" id="crumb"></span>
+    <button class="close" type="button" aria-label="关闭">×</button>
+  </div>
+  <div class="set-body">
+    <div class="swrow"><span class="swlabel" id="tog-label"></span><button type="button" class="switch" role="switch" id="tog" aria-checked="false"></button></div>
+    <div class="swhelp" id="tog-help"></div>
+    <div class="swrow" id="pass-row"><span class="swlabel" id="pass-label"></span><button type="button" class="switch" role="switch" id="pass" aria-checked="false"></button></div>
+    <div class="swhelp" id="pass-help"></div>
+
+    <!-- Everything below exists only while the pet is on (PHASE3 3.5): type picker, stage, actions, accessories. -->
+    <div id="pet-section" hidden>
+      <div class="group-title" id="pick-title"></div>
+      <div class="pets"><button type="button" class="pcard" aria-pressed="true"><canvas id="thumb" width="88" height="88"></canvas><span class="pn" id="pet-name"></span></button></div>
+
+      <div class="group-title" id="stage-title"></div>
+      <div class="stage" id="stage"><canvas id="pet" width="176" height="176"></canvas></div>
+
+      <div class="group-title" id="act-title"></div>
+      <div class="chips" id="acts"></div>
+      <div class="group-title" id="acc-title"></div>
+      <div id="slots"></div>
+    </div>
+  </div>
+  <div class="set-f">
+    <button class="btn ghost" id="defaults" type="button"></button>
+    <span class="status" id="status" role="status" aria-live="polite"></span>
+    <button class="btn ink" id="save" type="button" disabled></button>
+  </div>
+</div>
+<button class="themebtn" id="tb"></button>
+<!-- Generated by ui-prototypes/pet-prototype/tools/build-pet-html.mjs. Edit the template, not this file. -->
+<script>/*@PET_DATA@*/</script>
+<script>/*@PET_BUNDLE@*/</script>
+<script>
+/// Reader-facing strings, one column per language, same shape as the other prototypes. Character
+/// names, action names and accessory names are strings the application owns (`chars`, `acts`, `accs`).
+const L = {
+  zh: { title: "桌面宠物", crumb: "扩展", tog: "显示桌面宠物", help: "开启后宠物常驻桌面，可拖动。它不读取选区与释义，只接收事件类型。",
+        pass: "鼠标穿透", passHelp: "开启后宠物不接收鼠标，点击落到下层窗口，也不能被拖动。在这里关掉即可恢复互动。",
+        pick: "宠物类型", stage: "预览", act: "动作", acc: "配饰",
+        defaults: "恢复默认", save: "保存", saved: "已保存", reset: "已恢复默认",
+        slots: { head: "头", face: "脸", body: "身" },
+        acts: { idle: "待机", study: "阅读", thinking: "思考", celebrate: "庆祝", encourage: "鼓励", sleep: "睡觉", click_react: "被戳", pickup: "被拎起", look_around: "张望", yawn: "打哈欠", stretch: "伸懒腰" },
+        accs: { hat: "礼帽", beanie: "毛线帽", sprout: "嫩芽", crown: "王冠", glasses: "圆框眼镜", sunglasses: "墨镜", bowtie: "西服领结" },
+        chars: { dog: "白色小狗" },
+        themeDark: "黑夜", themeLight: "白天" },
+  en: { title: "Desktop pet", crumb: "Extensions", tog: "Show desktop pet", help: "When on, the pet stays on the desktop and can be dragged. It never reads your selections or explanations, only event types.",
+        pass: "Mouse passthrough", passHelp: "When on, the pet ignores the mouse: clicks reach the window below and it cannot be dragged. Turn this off here to get interaction back.",
+        pick: "Pet type", stage: "Preview", act: "Actions", acc: "Accessories",
+        defaults: "Restore defaults", save: "Save", saved: "Saved", reset: "Defaults restored",
+        slots: { head: "Head", face: "Face", body: "Body" },
+        acts: { idle: "Idle", study: "Reading", thinking: "Thinking", celebrate: "Celebrate", encourage: "Encourage", sleep: "Sleep", click_react: "Poked", pickup: "Picked up", look_around: "Look around", yawn: "Yawn", stretch: "Stretch" },
+        accs: { hat: "Top hat", beanie: "Beanie", sprout: "Sprout", crown: "Crown", glasses: "Round glasses", sunglasses: "Sunglasses", bowtie: "Bow tie" },
+        chars: { dog: "White dog" },
+        themeDark: "Dark", themeLight: "Light" },
+  ja: { title: "デスクトップペット", crumb: "拡張", tog: "デスクトップペットを表示", help: "オンにするとペットがデスクトップに常駐し、ドラッグで動かせます。選択文や解説は読まず、イベントの種類だけを受け取ります。",
+        pass: "マウス透過", passHelp: "オンにするとペットはマウスを受け取らず、クリックは下のウィンドウに届きます。ドラッグもできません。ここでオフにすると操作を戻せます。",
+        pick: "ペットの種類", stage: "プレビュー", act: "動き", acc: "アクセサリー",
+        defaults: "初期値に戻す", save: "保存", saved: "保存しました", reset: "初期値に戻しました",
+        slots: { head: "頭", face: "顔", body: "体" },
+        acts: { idle: "待機", study: "読書", thinking: "考える", celebrate: "喜ぶ", encourage: "応援", sleep: "おやすみ", click_react: "つつかれた", pickup: "持ち上げられた", look_around: "見回す", yawn: "あくび", stretch: "伸び" },
+        accs: { hat: "シルクハット", beanie: "ニット帽", sprout: "芽", crown: "王冠", glasses: "丸眼鏡", sunglasses: "サングラス", bowtie: "蝶ネクタイ" },
+        chars: { dog: "白い子犬" },
+        themeDark: "ダーク", themeLight: "ライト" },
+  es: { title: "Mascota de escritorio", crumb: "Extensiones", tog: "Mostrar mascota de escritorio", help: "Cuando está activa, la mascota se queda en el escritorio y puedes arrastrarla. Nunca lee tus selecciones ni explicaciones, solo recibe tipos de evento.",
+        pass: "Paso del ratón", passHelp: "Cuando está activo, la mascota no recibe el ratón: los clics llegan a la ventana de debajo y no se puede arrastrar. Desactívalo aquí para recuperar la interacción.",
+        pick: "Tipo de mascota", stage: "Vista previa", act: "Acciones", acc: "Accesorios",
+        defaults: "Restablecer", save: "Guardar", saved: "Guardado", reset: "Valores restablecidos",
+        slots: { head: "Cabeza", face: "Cara", body: "Cuerpo" },
+        acts: { idle: "Reposo", study: "Leer", thinking: "Pensar", celebrate: "Celebrar", encourage: "Animar", sleep: "Dormir", click_react: "Tocada", pickup: "Levantada", look_around: "Mirar alrededor", yawn: "Bostezar", stretch: "Estirarse" },
+        accs: { hat: "Sombrero de copa", beanie: "Gorro de lana", sprout: "Brote", crown: "Corona", glasses: "Gafas redondas", sunglasses: "Gafas de sol", bowtie: "Pajarita" },
+        chars: { dog: "Perrito blanco" },
+        themeDark: "Oscuro", themeLight: "Claro" }
+};
+const asked = (new URLSearchParams(location.search).get('lang') || 'zh').toLowerCase();
+const lang = asked.startsWith('zh') ? 'zh' : (L[asked] ? asked : 'zh');
+const t = L[lang];
+document.documentElement.lang = { en: 'en', zh: 'zh-CN', ja: 'ja', es: 'es' }[lang];
+
+/// The page keeps only what the reader sets: on or off, passthrough, and the worn accessories by slot.
+/// The pet itself (engine, pointer, frames) is the prototype's, mounted from PetPreview below.
+const DEFAULT = { on: false, passthrough: false, worn: {} };
+let state = structuredClone(DEFAULT);
+let saved = structuredClone(DEFAULT);
+let pet = null;
+
+const $ = id => document.getElementById(id);
+const SLOTS = ['head', 'face', 'body'];
+const ACTIONS = Object.keys(PET_MANIFEST.actions);
+
+function renderToggle() {
+  $('tog').setAttribute('aria-checked', String(state.on));
+  // Passthrough only means something while the pet is shown, so its switch greys out with it.
+  $('pass').setAttribute('aria-checked', String(state.passthrough));
+  $('pass').disabled = !state.on;
+  $('pass-row').classList.toggle('off', !state.on);
+}
+
+function renderPanel() {
+  const current = pet ? pet.engine.action : 'idle';
+  $('acts').innerHTML = ACTIONS.map(a =>
+    `<button type="button" class="chip" data-act="${a}" aria-pressed="${current === a}">${t.acts[a]}</button>`).join('');
+  $('slots').innerHTML = SLOTS.map(slot => `
+    <div class="slot"><span class="slot-h">${t.slots[slot]}</span><div class="chips">${
+      PET_MANIFEST.accessories.filter(a => a.slot === slot).map(a =>
+        `<button type="button" class="chip" data-acc="${a.id}" aria-pressed="${state.worn[slot] === a.id}">${t.accs[a.id]}</button>`).join('')
+    }</div></div>`).join('');
+}
+
+function renderAll() {
+  renderToggle();
+  $('pet-section').hidden = !state.on;
+  $('stage').classList.toggle('dim', !state.on);
+  if (pet) pet.setRunning(state.on);
+  renderPanel();
+  $('save').disabled = JSON.stringify(state) === JSON.stringify(saved);
+}
+
+function renderStatic() {
+  $('title').textContent = t.title;
+  $('crumb').textContent = t.crumb;
+  $('tog-label').textContent = t.tog;
+  $('tog-help').textContent = t.help;
+  $('pass-label').textContent = t.pass;
+  $('pass-help').textContent = t.passHelp;
+  $('pick-title').textContent = t.pick;
+  $('pet-name').textContent = t.chars.dog;
+  $('stage-title').textContent = t.stage;
+  $('act-title').textContent = t.act;
+  $('acc-title').textContent = t.acc;
+  $('defaults').textContent = t.defaults;
+  $('save').textContent = t.save;
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.id === 'tog') {
+    state.on = !state.on;
+    if (!state.on && pet) pet.engine.stop();
+  }
+  else if (b.id === 'pass') { state.passthrough = !state.passthrough; }
+  else if (b.dataset.act) { pet.engine.play(b.dataset.act); renderPanel(); return; }
+  else if (b.dataset.acc) {
+    pet.accessories.toggle(b.dataset.acc);
+    state.worn = Object.fromEntries(pet.accessories.worn);
+  }
+  else if (b.id === 'defaults') {
+    state = structuredClone(DEFAULT); saved = structuredClone(DEFAULT);
+    if (pet) { pet.engine.stop(); pet.accessories.worn.clear(); }
+    $('status').textContent = t.reset; renderAll(); return;
+  }
+  else if (b.id === 'save') {
+    saved = structuredClone(state); $('status').textContent = t.saved; renderAll(); return;
+  }
+  else return;
+  $('status').textContent = '';
+  renderAll();
+});
+
+// The chip that matches the action now playing follows it, including the return to idle after a one-shot.
+// Rebuilds only when the action changes, so a click in flight is not swapped out under the pointer.
+let shownAction = null;
+setInterval(() => {
+  if (!pet || !state.on || pet.engine.action === shownAction) return;
+  shownAction = pet.engine.action;
+  renderPanel();
+}, 250);
+
+renderStatic();
+renderAll();
+(async () => {
+  const resolve = path => PET_ASSETS[path];
+  await PetPreview.mountStage($('thumb'), PET_MANIFEST, { scale: 1, resolve, live: false });
+  pet = await PetPreview.mountStage($('pet'), PET_MANIFEST, { scale: 2, resolve, bounds: $('stage') });
+  renderAll();
+})();
+
+// Theme toggle: the same dev affordance as the other surfaces, hidden with ?shot.
+const tb = $('tb');
+function applyTheme(v) {
+  document.documentElement.dataset.theme = v;
+  tb.textContent = v === 'dark' ? t.themeLight : t.themeDark;
+}
+applyTheme(location.search.includes('theme=dark') ? 'dark' : 'light');
+tb.onclick = () => applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+if (new URLSearchParams(location.search).has('shot')) tb.remove();
+</script>
+</body>
+</html>

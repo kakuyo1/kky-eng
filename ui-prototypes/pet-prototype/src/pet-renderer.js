@@ -20,8 +20,11 @@ export class PetRenderer {
     this.images = new Map();
   }
 
-  /** Loads every sheet and accessory PNG the manifest names. Paths are relative to `base`. */
-  async load(base) {
+  /**
+   * Loads every sheet and accessory PNG the manifest names.
+   * @param {(path: string) => string} urlOf Maps a manifest path to the URL the image loads from.
+   */
+  async load(urlOf) {
     const { actions, expression, accessories } = this.manifest;
     const paths = [
       ...Object.values(actions).flatMap(a => [a.sheet, a.effect].filter(Boolean)),
@@ -35,7 +38,7 @@ export class PetRenderer {
         resolve();
       };
       img.onerror = () => reject(new Error(`pet asset missing: ${path}`));
-      img.src = base + path;
+      img.src = urlOf(path);
     })));
   }
 

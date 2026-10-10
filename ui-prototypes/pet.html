@@ -64,57 +64,19 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
 .group-title{font-size:12px;font-weight:700;color:var(--text);margin:16px 0 9px;padding-top:14px;border-top:1px solid var(--line2)}
 #pet-section > .group-title:first-child{margin-top:4px;padding-top:0;border-top:0}
 
-/* 宠物类型：卡片，选中项墨色描边；缩略图静止，不播放动作 */
+/* 宠物类型：卡片，选中项墨色描边；缩略图是原型的待机第一帧，不播放动作 */
 .pets{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.pcard{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);text-align:left;min-width:0}
+.pcard{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:8px 10px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);text-align:left;min-width:0}
 .pcard[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
-.pcard .pn{font-size:12.5px;font-weight:600}
-.pcard .pet-art{width:64px;height:64px;flex:none}
+.pcard .pn{font-size:12.5px;font-weight:600;white-space:nowrap}
+.pcard canvas{width:88px;height:88px;flex:none}
 
-/* 预览舞台：一条桌面边线，宠物站在线上；占位美术，不是最终形态 */
-.stage{position:relative;height:170px;border:1px solid var(--line2);border-radius:12px;background:var(--panel2);overflow:hidden}
+/* 预览舞台：一条桌面边线，宠物站在线上；占位美术，不是最终形态。
+   The canvas is the prototype's own, drawn at 2 device pixels a unit: 88 units at 176 px, so the edges stay whole pixels. */
+.stage{position:relative;height:192px;border:1px solid var(--line2);border-radius:12px;background:var(--panel2);overflow:hidden}
 .stage::after{content:"";position:absolute;left:14px;right:14px;bottom:24px;height:1px;background:var(--line)}
 .stage.dim{opacity:.5}
-/* 64 units at 128px is 2px a unit, so one sprite cell (3 units) is 6px: whole pixels, crisp edges. Bottom 16px puts the feet (unit 60) on the floor line. */
-.stage .pet-art{position:absolute;left:50%;bottom:16px;width:128px;height:128px;margin-left:-64px;overflow:visible;cursor:pointer}
-.pet-art rect{shape-rendering:crispEdges}
-
-/* 动作：只示意节奏，真实动作由 animations.json 的帧数与帧率决定（PHASE3 3.1）。
-   fill-box 让每个部件绕自己的几何中心或底边转，不依赖画布坐标。 */
-.p-pet,.p-head,.p-body,.p-eyes{transform-box:fill-box}
-.p-pet{transform-origin:50% 100%}
-.p-head{transform-origin:50% 100%}
-.p-eyes{transform-origin:50% 50%}
-.live .p-eyes{animation:k-blink 5s infinite}
-.p-zz{display:none;fill:var(--muted);font-size:4px;font-weight:700;font-family:var(--f)}
-.m-idle .p-pet{animation:k-bob 2.4s ease-in-out infinite}
-.m-study .p-head{animation:k-tilt 2.2s ease-in-out infinite}
-.m-thinking .p-head{animation:k-sway 2.4s ease-in-out infinite}
-.m-celebrate .p-pet{animation:k-hop .7s ease-out 1 both}
-.m-encourage .p-pet{animation:k-pump .5s ease-in-out 4}
-.m-sleep .p-pet{animation:k-sink 3s ease-in-out infinite}
-.m-sleep .p-head{animation:k-nod 3s ease-in-out infinite}
-.live.m-sleep .p-eyes{animation:none;transform:scaleY(.1)}
-.m-sleep .p-zz{display:inline}
-.m-click_react .p-pet{animation:k-squash .45s ease-out 1 both}
-.m-pickup .p-pet{animation:k-dangle .6s ease-in-out infinite}
-.m-look_around .p-head{animation:k-look 1.2s ease-in-out 1 both}
-.m-yawn .p-head{animation:k-yawn 1.6s ease-out 1 both}
-.m-stretch .p-pet{animation:k-stretch 1.6s ease-in-out 1 both}
-@keyframes k-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
-@keyframes k-blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
-@keyframes k-tilt{0%,100%{transform:rotate(0)}50%{transform:rotate(-6deg)}}
-@keyframes k-sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
-@keyframes k-hop{0%,70%,100%{transform:translateY(0)}35%{transform:translateY(-14px)}}
-@keyframes k-pump{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-@keyframes k-sink{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
-@keyframes k-nod{0%,100%{transform:rotate(0)}50%{transform:rotate(8deg)}}
-@keyframes k-squash{0%{transform:none}30%{transform:scale(1.12,.86)}60%{transform:scale(.96,1.04)}100%{transform:none}}
-@keyframes k-dangle{0%,100%{transform:translateY(-6px) rotate(0)}50%{transform:translateY(-8px) rotate(3deg)}}
-@keyframes k-look{0%,100%{transform:rotate(0)}40%,70%{transform:rotate(-10deg)}}
-@keyframes k-yawn{0%,100%{transform:rotate(0)}40%,80%{transform:rotate(-14deg)}}
-@keyframes k-stretch{0%,100%{transform:scale(1,1)}50%{transform:scale(1.06,.94)}}
-@media (prefers-reduced-motion:reduce){.p-pet,.p-head,.p-eyes{animation:none!important}}
+.stage canvas{position:absolute;left:50%;bottom:16px;width:176px;height:176px;margin-left:-88px;overflow:visible}
 
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);font-size:12px;color:var(--text)}
@@ -147,10 +109,10 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
     <!-- Everything below exists only while the pet is on (PHASE3 3.5): type picker, stage, actions, accessories. -->
     <div id="pet-section" hidden>
       <div class="group-title" id="pick-title"></div>
-      <div class="pets" id="pets"></div>
+      <div class="pets"><button type="button" class="pcard" aria-pressed="true"><canvas id="thumb" width="88" height="88"></canvas><span class="pn" id="pet-name"></span></button></div>
 
       <div class="group-title" id="stage-title"></div>
-      <div class="stage" id="stage"></div>
+      <div class="stage" id="stage"><canvas id="pet" width="176" height="176"></canvas></div>
 
       <div class="group-title" id="act-title"></div>
       <div class="chips" id="acts"></div>
@@ -165,6 +127,524 @@ html[data-theme=dark] .switch[aria-checked=true]::after{background:var(--on)}
   </div>
 </div>
 <button class="themebtn" id="tb"></button>
+<!-- Generated by ui-prototypes/pet-prototype/tools/build-pet-html.mjs. Edit the template, not this file. -->
+<script>const PET_MANIFEST = {"id":"dog","canvas":88,"height":88,"originY":24,"scale":3,"layers":{"body":0,"expression":2,"effect":5},"expression":"expressions/eyes.png","expressionNames":["睁眼","半闭","闭眼","左看","右看","开心","抬眼","哈欠","无"],"actions":{"idle":{"label":"待机","frames":5,"fps":5,"loop":true,"priority":0,"blink":true,"sheet":"body/idle.png","anchors":[[0,0],[0,0],[0,-3],[0,-3],[0,0]]},"study":{"label":"阅读","frames":6,"fps":4,"loop":true,"priority":50,"blink":true,"expressions":[3,3,0,4,4,0],"sheet":"body/study.png","effect":"effects/study.png","anchors":[[0,0],[0,0],[0,1],[0,1],[0,0],[0,0]]},"thinking":{"label":"思考","frames":4,"fps":3,"loop":true,"priority":50,"blink":true,"expressions":[6,6,6,6],"sheet":"body/thinking.png","effect":"effects/thinking.png","anchors":[[0,0],[1,0],[0,0],[-1,0]]},"celebrate":{"label":"庆祝","frames":8,"fps":10,"loop":false,"priority":50,"expressions":[0,5,5,5,5,5,5,0],"sheet":"body/celebrate.png","effect":"effects/fireworks.png","anchors":[[0,0],[0,-6],[0,-11],[0,-12],[0,-9],[0,-3],[0,0],[0,0]]},"encourage":{"label":"鼓励","frames":5,"fps":8,"loop":false,"priority":50,"expressions":[5,5,5,5,0],"sheet":"body/encourage.png","effect":"effects/encourage.png","anchors":[[0,0],[0,-3],[0,-3],[0,0],[0,-1]]},"click_react":{"label":"被戳","frames":4,"fps":12,"loop":false,"priority":80,"expressions":[2,2,0,0],"sheet":"body/click_react.png","effect":"effects/click_react.png","anchors":[[0,0],[2,1],[-2,-1],[1,0]]},"pickup":{"label":"被拎起","frames":4,"fps":6,"loop":true,"priority":100,"expressions":[6,6,6,6],"sheet":"body/pickup.png","effect":"effects/pickup.png","anchors":[[0,0],[1,2],[-1,1],[0,2]]},"look_around":{"label":"张望","frames":6,"fps":6,"loop":false,"priority":30,"expressions":[0,3,3,0,4,4],"sheet":"body/look_around.png","effect":"effects/look_around.png","anchors":[[0,0],[-2,0],[-2,0],[0,0],[2,0],[2,0]]},"yawn":{"label":"打哈欠","frames":5,"fps":6,"loop":false,"priority":30,"returnTo":"sleep","expressions":[1,7,7,7,2],"sheet":"body/yawn.png","anchors":[[0,0],[0,-1],[0,-2],[0,-2],[0,-1]]},"stretch":{"label":"伸懒腰","frames":6,"fps":6,"loop":false,"priority":30,"expressions":[2,2,5,5,5,0],"sheet":"body/stretch.png","effect":"effects/stretch.png","anchors":[[0,0],[0,-2],[0,-4],[0,-4],[1,-2],[0,0]]},"sleep":{"label":"睡觉","frames":4,"fps":3,"loop":true,"priority":40,"expressions":[8,8,8,8],"sheet":"body/sleep.png","effect":"effects/zzz.png","anchors":[[0,0],[0,-1],[0,-1],[0,0]]}},"accessories":[{"id":"hat","label":"礼帽","slot":"head","asset":"accessories/headwear/hat.png","zIndex":4,"supportedActions":["idle","study","thinking","celebrate","encourage","click_react","pickup","look_around","yawn","stretch"]},{"id":"beanie","label":"毛线帽","slot":"head","asset":"accessories/headwear/beanie.png","zIndex":4,"supportedActions":["idle","study","thinking","celebrate","encourage","click_react","pickup","look_around","yawn","stretch"]},{"id":"sprout","label":"嫩芽","slot":"head","asset":"accessories/headwear/sprout.png","zIndex":4,"supportedActions":["idle","study","thinking","celebrate","encourage","click_react","pickup","look_around","yawn","stretch"]},{"id":"crown","label":"王冠","slot":"head","asset":"accessories/headwear/crown.png","zIndex":4,"supportedActions":["idle","study","thinking","celebrate","encourage","click_react","pickup","look_around","yawn","stretch"]},{"id":"glasses","label":"圆框眼镜","slot":"face","asset":"accessories/glasses/glasses.png","zIndex":3,"supportedActions":["idle","study","thinking","celebrate","encourage","click_react","pickup","look_around","yawn","stretch"]},{"id":"sunglasses","label":"墨镜","slot":"face","asset":"accessories/glasses/sunglasses.png","zIndex":3,"supportedActions":["idle","study","thinking","celebrate","encourage","click_react","pickup","look_around","yawn","stretch"]},{"id":"bowtie","label":"西服领结","slot":"body","asset":"accessories/clothing/bowtie.png","zIndex":1,"supportedActions":["idle","study","thinking","celebrate","encourage","click_react","pickup","look_around","yawn","stretch"]}]};
+const PET_ASSETS = {"body/idle.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbgAAABYCAYAAACH+eKFAAACeklEQVR4nO3dQYrCQBAF0DjkFG4C3v9MQja5xsxKCWKPZuzR7p/3VhImQT5FiioSZxgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqjkMDTgep+/L52WZD/eOP6N07vr4HslXvj1Tv/L9q68/nwkADdPgAIh0aGHtMM/n6/FpOg33jj+jdO76+F7WlfKVb8/Ur3xrMMEBEEmDAyDSODRm61qy1rl7IV/59kz9yncLExwAkTQ4ACI1t6L8DzdPVHoBXL5dUb/y7dn8wfuvCQ6ASBocAJHGFl7e/JRav1fZyu9eyle+r9aN+q2fi3w/l68JDoBIGhwAkXbxFOVaaTW6frpnrTQ6//JbeU2sez5FvvLtmfrNytcEB0AkDQ6ASLtbUdYanZFvS9SvfHs2/9P91wQHQCQNDoBIVpQPtPBCejL5yrdn6rftfE1wAETS4ACIpMEBEEmDAyCSBgdAJA0OgEgaHACRNDgAImlwAETS4ACIpMEBEEmDAyCSBgdAJA0OgEgaHACRNDgAImlwAETyH70rmKbT9fOyzIca10S+76J+5ZtavyY4ACJpcABEeuuKcj0+TtPp+/J5ns/v/Bqx5Cvfnqlf+dZmggMgkgYHQKSxl6dj1korzdLfl2y9TtoqVb7y7Zn6le8jJjgAImlwAEQae3lp73icrk9dPqP0wvXW66S9HCtf+f5WB61Tv/LdUr8mOAAiaXAARBpbe6lz67qk1qrlmeu88j3fTb7yvaV+3R/2dn8wwQEQSYMDIFLTa7aS9ZOQr4zFta6TRr7y7Zn6le+FCQ6ASBocAAAAAAAAAADDIz9AFnK3g8GqKgAAAABJRU5ErkJggg==","body/study.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhAAAABYCAYAAACklM6hAAACzUlEQVR4nO3cQW7CMBAF0FD1FNlY4v5nqpRNrkFXIAvVlBGBeJz3VihqKPoa4dE4eJoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+Mdp6sA8l8v19boup7+uP6N1b339iOQr38zUr3wzmwde3772+scAQF4aCAAgbLfRRz2CWZaf2/VSztNf15/Rure+fpTtDPnKNzP1K9/M5oOsbyYQAECYBgIACPueOhMd62x171HIV76ZqV/5ZrYMtr6ZQAAAYRoIACD/FsY73D2x2sUBHCORr3wzU7/yzWzZcX0zgQAAwjQQAEDfWxitwzX2stV54r2cSy5f+b5aN+p3+1zk+95c5LtfviYQAECYBgIACDvErzBqra2T+unVWmv08+Cs8y7GwXuRr3wzU7/yzWz58PpmAgEAhGkgAICww21hbDX6Qb49Ub/yzUz95szXBAIACNNAAABhtjD+0cOBVyOTr3wzU7/yPXL9mkAAAGEaCAAgTAMBAIRpIACAMA0EABCmgQAAwjQQAECYBgIACNNAAABhGggAIEwDAQCEaSAAgDANBACggQAA3s8EAgAI00AAAGEaCAAg7Dt+C/dKOd9er+tyktC25Pte8pVvZup3v3xNIACAMA0EAND3FkY9/ijlfLm+XpafT36MYclXvpmpX/lmth5wfTOBAADCNBAAwFi/wqif/qy1RkKtv2+Jvs9ooyj5yjcz9SvfzMoA65sJBAAQpoEAAPJvYbQOrZjncnuq9RmtA52i7zPa4SXyle+jOuid+pXvozroXRlsfTOBAADCNBAAQJ4tjNahG9Fx1FajrGfe55XP+Wnyle899ev7wfeD7991w/XNBAIACNNAAABhXY/hW+onTV/ZStjqfUYjX/lmpn7lm9mcaH0zgQAAwjQQAAAAAAAAAAAAwHREvwIQ7+5JweTHAAAAAElFTkSuQmCC","effects/study.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhAAAABYCAYAAACklM6hAAABqUlEQVR4nO3aMQrCQBAF0FU8RZqA9z+TkMZraGe5ZFYN+8l7dULg84shM60BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABjLpWHl2V9tR94PrfSd89CvvJNpr/yTaa/dbc2aNseQ++t6330k6ciX/km01/5JtPffa47nwMA+DBAAADHrTD2rCRGfwMh36Por3yT6a98owcIQ8J/yVe+yfRXvsn0t88KAwAoM0AAAGVuICZnxynfZPor32T62+cGYnJ2cPJNpr/yTaa/fVYYAECZAQIAKHMDMTk7OPkm01/5JtPfPjcQk7ODk28y/ZVvMv3ts8IAAMoMEABAmRuIydnByTeZ/so3mf72uYGYnB2cfJPpr3yT6W+fFQYAUGaAAADKDBAAQJkBAgA47oiyd53K9+T7X/KVbzL9lS8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALcEbT7KzgmyRgAcAAAAASUVORK5CYII=","body/thinking.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWAAAABYCAYAAADLPy04AAACR0lEQVR4nO3d0UrDMAAF0E72FX0J7P+/SejLfkOfHEWMbizuJs05T6O4KpdwSdIUlwUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIOC0dWNfy8fX5et1OP12/R+27++szkq98R7YeuB/eUr8YYHYKGCAkNvXeLwG27f12vZTL8tP1e9S+u78+y3aEfOU7snWSfjADBghRwAAh56Uzjy4rWn13FvKV78i2g/WDGTBAiAIGCOluC+I/fHvi2cUB7CORr3xHtgX7wQwYIEQBA8ywBVE7XJ3S6n3wXt4rl698nx03xu9r+8EMGCBEAQOETHEKYq+29bF/+rlXW3r88q56F8u5FPnKd2Tbi/vBDBggRAEDhEy3BdFq6YF8e2L8jpmvGTBAiAIGCLEF8YceXhg5MvnKd+bxawYMEKKAAUIUMECIAgYIUcAAIQoYIEQBA4QoYIAQBQwQooABQhQwQIgCBghRwAAhChggRAEDhChggBAFDBDiP2I0UMrl9vl63U4t7ol8X8X4zeVrBgwQooABZtiC2E+/S7l8fH32jxnlOwLjV76tmQEDhChggJDzKE8P92pbFrWfr3n0PkfbKpGvfEdWDtAPZsAAIQoYIOQ8yqHldS23UxP3qL0Q8eh9jnZ4Xb7y/W0c9K4crB/MgAFCFDDAbFsQtUPtjy6HWi2l7rnPM3/nq8lXvt8Zv1t3/WAGDBCigAFCul5G1+yfVD6zFdDqPkcjX/mObB2oH8yAAUIUMAAAAAAAACxtfQLdw/VxiFT00gAAAABJRU5ErkJggg==","effects/thinking.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWAAAABYCAYAAADLPy04AAABIklEQVR4nO3cQQrCMBBA0SieopuA9z+TkE2vUS8gFNs00wnv7ZXwCYMm2lIAAAAAAAAAAAAAgGwe0Qu4m2Wp29n3WNemq74h7N9cfV+nVzSh1j6HX1vru+taZqSvvpm1jvPh2WE9ABxgAAMEMYB3vi44UhjXV++xffWO72sAAwRxCXfRYTv/99V7bF+94/v6BAwQxAAGCGIAAwRxBvyDXz5cS199M6v+bAUAAPR50EaPh22gbwT7N19fl3AAAAAAAEzLxYW+mdm/ufu6hAMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKPu+BxdRIBf4wWwAAAAASUVORK5CYII=","body/celebrate.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAsAAAABYCAYAAAD7hUHoAAADRklEQVR4nO3dQW7iUBAEUBP5FN5Y4v5niuQN10hWQZ4IMyAc/PvXeytkDQwq9TClxtjDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABdOQ0NmKb56+fx5bKcbh1/xNZz18cTyVe+lZlf+VZmfuVb2dRxP/s46i8GAIAjKMAAAEQ5bPW8XoEvy+f1+Dyfh1vHH7H13PXxlNMh5CvfysyvfCszv/KtbArpZzbAAABEUYABAIgyDo15dq2+13NTyFe+lZlf+VZmfuVb2dJZP7MBBgAgigIMAECU5k6B+Au/fnHYxAWYeyJf+VZmfuVbmfmVb2XLgf3MBhgAgCgKMAAAUcYWLq58lL3uR93Kfa3lK99X58b87p+LfP82F/nK9wjmt36+NsAAAERRgAEAiBJxFYi1rVMv1r8+XNtavd+5V3YTXycfRb7yrcz8yrcy8yvfypY39zMbYAAAoijAAABEiTsFYq/VO/JtifmVb2XmV76Vmd+a+doAAwAQRQEGACCKUyD+o4UbdvRMvvKtzPzKtzLzK9/k+bUBBgAgigIMAEAUBRgAgCgKMAAAURRgAACiKMAAAERRgAEAiKIAAwAQRQEGACCKAgwAQBQFGACAKAowAABRFGAAAKIowAAARFGAAQCIogADABBFAQYAIMp49BvowTyfr48vl+V06JvpkHzlW5n5lW9l5le+vc6vDTAAAFEUYAAAorz1FIj1+nmez18/j5fl851vo1vylW9l5le+lZlf+VZ2CexnNsAAAERRgAEAiDJW+fXe2tZKfuvPb3n2dXr7KkC+8q3M/Mq3MvMr38rmDvqZDTAAAFEUYAAAooxVLlo8TfP1V4mP2LohxbOv09vFweUr33tz0DrzK997c9A68yvfe3PQurmzfmYDDABAFAUYAIAoY2sXXX7264C9vkp45HVeeZ/vJl/5/mZ+fT74fPD56/+3fz4Tb/6beJb+UDNfG2AAAKIowAAARGn6a/wt618KvrJW3+t1eiNf+VZmfuVbmfmVb2VToX5mAwwAQBQFGAAAAAAAAAAAAAAAAIChVd+k+eprAsIHiAAAAABJRU5ErkJggg==","effects/fireworks.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAsAAAABYCAYAAAD7hUHoAAADn0lEQVR4nO3dsW0bMRQGYDlInSpFxkmVATyBJ0mRSTyBB0iVcVKkygIKrjAgH8ScdSKPj3zfB6gQBJyBZ0r6H8mjTicAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGL6+/PreXnsfR1m8vj857w89r5e24ej/hAA8Qll0C+UAQAdCMBQJwD/fvpxXh57X6etj42vD1DF5VLxp2+/HpS1Tj3XtVTbMVyGspenz9XeD6+B7Mvz94eM9VzXsmZtiUUABoYkEB9fa+E4XyCmXOutOm81EdmajGgEYKigdCOLwEBULcdmacn4nmB2uVQcMTjUahKOajZKM70Ra3sETUOfJuGo61wjAANDzPBqJvqJWPvogbj1DO+RgS3rtogSYXkOAnAylo3VexY1QlmtZePSjSwCQ5t6z9wk7L3OrfU0NmM2CbM0Gy+V3t8tPycE4MTL9MvziDM7MzUUzviM8X94zzL98ny2UHb08vpWwL3lbvr1DO/ogWDkRmPW2rdcXic+ATiJUhATgnMZadm4xx7V2iF4pHqPJls9hbQc4zHbuO5JAIYk1sv0y/OoH7ajbNXZCrjRzvgc5QatW83eaNTeqjNjjfaIfIMW7QnAkEApiEUOwbeIFsi43wzjsheBDLYJwEksAeHaNgjBgdHtmS1eAsK1bRCCw/8d9Xkx+4xur9liN2jV5fNibAJw4hAs/NblLOB6jhib6xDsyyz+WcAlEUJyy3OAjU1G8+gcYKIRetvVM/KJD0tAuLYNIkJw2NKyacsaLFrt5b2s5y0nPtwj22xxz6Zt1vray5uTGWBIYh2CR/0yi/oDGbOeBdzjxrcRa9brHOCeP5CRUSksOwf4LecAQyJRgthswWKUekY78SHCFpMa15mhaYvGaRBvaRpyMgMMhDZCYzGD0kxvtPpn/4GMo8Na1rBcmukt1d85wOMRgIGhRAtkr7IFBO7fPlJje8meQGysEnGv9dF7sQVgADQWyZVmerOGZdsiAAASBOCR9rHPUFM178sMMAAkl3WmFwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4NTCPwHwJ9VycAfkAAAAAElFTkSuQmCC","body/encourage.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbgAAABYCAYAAACH+eKFAAACeklEQVR4nO3dQYrCQBAF0DjkFG4C3v9MQja5xsxKCWKPZuzR7p/3VhImQT5FiioSZxgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqjkMDTgep+/L52WZD/eOP6N07vr4HslXvj1Tv/L9q68/nwkADdPgAIh0aGHtMM/n6/FpOg33jj+jdO76+F7WlfKVb8/Ur3xrMMEBEEmDAyDSODRm61qy1rl7IV/59kz9yncLExwAkTQ4ACI1t6L8DzdPVHoBXL5dUb/y7dn8wfuvCQ6ASBocAJHGFl7e/JRav1fZyu9eyle+r9aN+q2fi3w/l68JDoBIGhwAkXbxFOVaaTW6frpnrTQ6//JbeU2sez5FvvLtmfrNytcEB0AkDQ6ASLtbUdYanZFvS9SvfHs2/9P91wQHQCQNDoBIVpQPtPBCejL5yrdn6rftfE1wAETS4ACIpMEBEEmDAyCSBgdAJA0OgEgaHACRNDgAImlwAETS4ACIpMEBEEmDAyCSBgdAJA0OgEgaHACRNDgAImlwAETyH70rmKbT9fOyzIca10S+76J+5ZtavyY4ACJpcABEeuuKcj0+TtPp+/J5ns/v/Bqx5Cvfnqlf+dZmggMgkgYHQKSxl6dj1korzdLfl2y9TtoqVb7y7Zn6le8jJjgAImlwAEQae3lp73icrk9dPqP0wvXW66S9HCtf+f5WB61Tv/LdUr8mOAAiaXAARBpbe6lz67qk1qrlmeu88j3fTb7yvaV+3R/2dn8wwQEQSYMDIFLTa7aS9ZOQr4zFta6TRr7y7Zn6le+FCQ6ASBocAAAAAAAAAADDIz9AFnK3g8GqKgAAAABJRU5ErkJggg==","effects/encourage.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbgAAABYCAYAAACH+eKFAAABtUlEQVR4nO3avW2DYBQFUGxlCMbLJCk8ScbzFolSpIgEjo344P2cU1O8Bl/fK6YJAAAAAAAAAAAAoKPL2QcAwI/7++1rWjB/flxeeebXdelBAMhOwAFQ0tvZBwCQcwI8ytpN/9HgAChJgwMo3oC6EnAAzd03ToB7e+aPwtrzS0yUAJSkwQFhZJ0AozQg/hJwAE3MO0+AZ9z6yk0CDgrJ2oBgBAEHhBdlAszUgBBwAC3NO0yAR9l6kwYHDSbAKA0IjiTggDAyTYCZGlBXAo5DZW1AUNlc9N0ScFBoAszUgGA0AQeElGkCjHgTAq6crBNglAYE1KHBQdEJMFMDghEEXJEGBJV5t9hCwDURZQLM1ICA3AQcNJgAI94Eowm4ZA0IgOcIuGIyTYCZGhCQj4CDHQhliEfAJW5AAKzz4/xApYAzAQLdXM8+AABGMFE+4CMIgLwEXBNZplSAvZgoAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAad03xBrKqO7hC/gAAAAASUVORK5CYII=","body/click_react.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWAAAABYCAYAAADLPy04AAACR0lEQVR4nO3d0UrDMAAF0E72FX0J7P+/SejLfkOfHEWMbizuJs05T6O4KpdwSdIUlwUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIOC0dWNfy8fX5et1OP12/R+27++szkq98R7YeuB/eUr8YYHYKGCAkNvXeLwG27f12vZTL8tP1e9S+u78+y3aEfOU7snWSfjADBghRwAAh56Uzjy4rWn13FvKV78i2g/WDGTBAiAIGCOluC+I/fHvi2cUB7CORr3xHtgX7wQwYIEQBA8ywBVE7XJ3S6n3wXt4rl698nx03xu9r+8EMGCBEAQOETHEKYq+29bF/+rlXW3r88q56F8u5FPnKd2Tbi/vBDBggRAEDhEy3BdFq6YF8e2L8jpmvGTBAiAIGCLEF8YceXhg5MvnKd+bxawYMEKKAAUIUMECIAgYIUcAAIQoYIEQBA4QoYIAQBQwQooABQhQwQIgCBghRwAAhChggRAEDhChggBAFDBDiP2I0UMrl9vl63U4t7ol8X8X4zeVrBgwQooABZtiC2E+/S7l8fH32jxnlOwLjV76tmQEDhChggJDzKE8P92pbFrWfr3n0PkfbKpGvfEdWDtAPZsAAIQoYIOQ8yqHldS23UxP3qL0Q8eh9jnZ4Xb7y/W0c9K4crB/MgAFCFDDAbFsQtUPtjy6HWi2l7rnPM3/nq8lXvt8Zv1t3/WAGDBCigAFCul5G1+yfVD6zFdDqPkcjX/mObB2oH8yAAUIUMAAAAAAAACxtfQLdw/VxiFT00gAAAABJRU5ErkJggg==","effects/click_react.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWAAAABYCAYAAADLPy04AAABAklEQVR4nO3dsQ2DMBAFUIcBMgANq1BlaKqskoYBWCDpqJAioiRnn98rkZC+Tug3PplSAAAAAAAAAAAyuJROjOP0PHq+ro9uZvBL5mu+nDd88A4AX6CAAYIoYIAgChggiAIGCKKAAYIoYIAgChgAAAAAIK9u7kFwV4H5tsz3m5NDOIAgChgAAAAAAAAAyOFve8DbMu//ZLve7s3tH9eev/Z8reevPV/2/FlZQwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKO+9APslMBrAHiMOAAAAAElFTkSuQmCC","body/pickup.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWAAAABYCAYAAADLPy04AAACR0lEQVR4nO3d0UrDMAAF0E72FX0J7P+/SejLfkOfHEWMbizuJs05T6O4KpdwSdIUlwUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIOC0dWNfy8fX5et1OP12/R+27++szkq98R7YeuB/eUr8YYHYKGCAkNvXeLwG27f12vZTL8tP1e9S+u78+y3aEfOU7snWSfjADBghRwAAh56Uzjy4rWn13FvKV78i2g/WDGTBAiAIGCOluC+I/fHvi2cUB7CORr3xHtgX7wQwYIEQBA8ywBVE7XJ3S6n3wXt4rl698nx03xu9r+8EMGCBEAQOETHEKYq+29bF/+rlXW3r88q56F8u5FPnKd2Tbi/vBDBggRAEDhEy3BdFq6YF8e2L8jpmvGTBAiAIGCLEF8YceXhg5MvnKd+bxawYMEKKAAUIUMECIAgYIUcAAIQoYIEQBA4QoYIAQBQwQooABQhQwQIgCBghRwAAhChggRAEDhChggBAFDBDiP2I0UMrl9vl63U4t7ol8X8X4zeVrBgwQooABZtiC2E+/S7l8fH32jxnlOwLjV76tmQEDhChggJDzKE8P92pbFrWfr3n0PkfbKpGvfEdWDtAPZsAAIQoYIOQ8yqHldS23UxP3qL0Q8eh9jnZ4Xb7y/W0c9K4crB/MgAFCFDDAbFsQtUPtjy6HWi2l7rnPM3/nq8lXvt8Zv1t3/WAGDBCigAFCul5G1+yfVD6zFdDqPkcjX/mObB2oH8yAAUIUMAAAAAAAACxtfQLdw/VxiFT00gAAAABJRU5ErkJggg==","effects/pickup.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWAAAABYCAYAAADLPy04AAABM0lEQVR4nO3dwQ3CIBgG0GocwcmcwNGcwMncQQ/GRKXGEAh/gfdOTQ8cevigXyhdFgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4NsuucOH0+V2f11fz0fPC6hmX28oAHIIYIAgXqn/1A6/qCOAUofiEaCAjp2ZqSAAglgBZ9QO76zcgFICmM1MdiY1ZiOAYWAmtW0TwCu7GuyCAFoQwDShY4eUAIbB6Nj7IYBX+MgCaNGxC2Ca0LFDSgDDAHTsfRLAAEEduwCmOR07PAlgGICOvU8CGCCoY3caGkAQK2AYjI69H/6IAZCh5lkxKgiAIAIYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJZ5PADjHlspYQArGAAAAABJRU5ErkJggg==","body/look_around.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhAAAABYCAYAAACklM6hAAACzUlEQVR4nO3cQW7CMBAF0FD1FNlY4v5nqpRNrkFXIAvVlBGBeJz3VihqKPoa4dE4eJoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+Mdp6sA8l8v19boup7+uP6N1b339iOQr38zUr3wzmwde3772+scAQF4aCAAgbLfRRz2CWZaf2/VSztNf15/Rure+fpTtDPnKNzP1K9/M5oOsbyYQAECYBgIACPueOhMd62x171HIV76ZqV/5ZrYMtr6ZQAAAYRoIACD/FsY73D2x2sUBHCORr3wzU7/yzWzZcX0zgQAAwjQQAEDfWxitwzX2stV54r2cSy5f+b5aN+p3+1zk+95c5LtfviYQAECYBgIACDvErzBqra2T+unVWmv08+Cs8y7GwXuRr3wzU7/yzWz58PpmAgEAhGkgAICww21hbDX6Qb49Ub/yzUz95szXBAIACNNAAABhtjD+0cOBVyOTr3wzU7/yPXL9mkAAAGEaCAAgTAMBAIRpIACAMA0EABCmgQAAwjQQAECYBgIACNNAAABhGggAIEwDAQCEaSAAgDANBACggQAA3s8EAgAI00AAAGEaCAAg7Dt+C/dKOd9er+tyktC25Pte8pVvZup3v3xNIACAMA0EAND3FkY9/ijlfLm+XpafT36MYclXvpmpX/lmth5wfTOBAADCNBAAwFi/wqif/qy1RkKtv2+Jvs9ooyj5yjcz9SvfzMoA65sJBAAQpoEAAPJvYbQOrZjncnuq9RmtA52i7zPa4SXyle+jOuid+pXvozroXRlsfTOBAADCNBAAQJ4tjNahG9Fx1FajrGfe55XP+Wnyle899ev7wfeD7991w/XNBAIACNNAAABhXY/hW+onTV/ZStjqfUYjX/lmpn7lm9mcaH0zgQAAwjQQAAAAAAAAAAAAwHREvwIQ7+5JweTHAAAAAElFTkSuQmCC","effects/look_around.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhAAAABYCAYAAACklM6hAAABKklEQVR4nO3csQ2AMAwEQIOYIg37j0WTNWAE5IY45K4GCb2+sEyUCAAAAAAAAAAAAAAAAAAAAAAq2EZ/AGtq7bzfnun90k/5lqS/8iViFwIAkGWAAADSrIgpuxr2C0O+s9Ff+a7EBgIASDNAAABpR/4V+P5EO/KtSn/luyobCAAgzQABAAAAAAAAAPyBi6QYzuU78p2Z/sp3VQ5RAgBpBggAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACDKeAC7BDVgf6YQEAAAAABJRU5ErkJggg==","body/yawn.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbgAAABYCAYAAACH+eKFAAACeklEQVR4nO3dQYrCQBAF0DjkFG4C3v9MQja5xsxKCWKPZuzR7p/3VhImQT5FiioSZxgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqjkMDTgep+/L52WZD/eOP6N07vr4HslXvj1Tv/L9q68/nwkADdPgAIh0aGHtMM/n6/FpOg33jj+jdO76+F7WlfKVb8/Ur3xrMMEBEEmDAyDSODRm61qy1rl7IV/59kz9yncLExwAkTQ4ACI1t6L8DzdPVHoBXL5dUb/y7dn8wfuvCQ6ASBocAJHGFl7e/JRav1fZyu9eyle+r9aN+q2fi3w/l68JDoBIGhwAkXbxFOVaaTW6frpnrTQ6//JbeU2sez5FvvLtmfrNytcEB0AkDQ6ASLtbUdYanZFvS9SvfHs2/9P91wQHQCQNDoBIVpQPtPBCejL5yrdn6rftfE1wAETS4ACIpMEBEEmDAyCSBgdAJA0OgEgaHACRNDgAImlwAETS4ACIpMEBEEmDAyCSBgdAJA0OgEgaHACRNDgAImlwAETyH70rmKbT9fOyzIca10S+76J+5ZtavyY4ACJpcABEeuuKcj0+TtPp+/J5ns/v/Bqx5Cvfnqlf+dZmggMgkgYHQKSxl6dj1korzdLfl2y9TtoqVb7y7Zn6le8jJjgAImlwAEQae3lp73icrk9dPqP0wvXW66S9HCtf+f5WB61Tv/LdUr8mOAAiaXAARBpbe6lz67qk1qrlmeu88j3fTb7yvaV+3R/2dn8wwQEQSYMDIFLTa7aS9ZOQr4zFta6TRr7y7Zn6le+FCQ6ASBocAAAAAAAAAADDIz9AFnK3g8GqKgAAAABJRU5ErkJggg==","body/stretch.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhAAAABYCAYAAACklM6hAAACzUlEQVR4nO3cQW7CMBAF0FD1FNlY4v5nqpRNrkFXIAvVlBGBeJz3VihqKPoa4dE4eJoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+Mdp6sA8l8v19boup7+uP6N1b339iOQr38zUr3wzmwde3772+scAQF4aCAAgbLfRRz2CWZaf2/VSztNf15/Rure+fpTtDPnKNzP1K9/M5oOsbyYQAECYBgIACPueOhMd62x171HIV76ZqV/5ZrYMtr6ZQAAAYRoIACD/FsY73D2x2sUBHCORr3wzU7/yzWzZcX0zgQAAwjQQAEDfWxitwzX2stV54r2cSy5f+b5aN+p3+1zk+95c5LtfviYQAECYBgIACDvErzBqra2T+unVWmv08+Cs8y7GwXuRr3wzU7/yzWz58PpmAgEAhGkgAICww21hbDX6Qb49Ub/yzUz95szXBAIACNNAAABhtjD+0cOBVyOTr3wzU7/yPXL9mkAAAGEaCAAgTAMBAIRpIACAMA0EABCmgQAAwjQQAECYBgIACNNAAABhGggAIEwDAQCEaSAAgDANBACggQAA3s8EAgAI00AAAGEaCAAg7Dt+C/dKOd9er+tyktC25Pte8pVvZup3v3xNIACAMA0EAND3FkY9/ijlfLm+XpafT36MYclXvpmpX/lmth5wfTOBAADCNBAAwFi/wqif/qy1RkKtv2+Jvs9ooyj5yjcz9SvfzMoA65sJBAAQpoEAAPJvYbQOrZjncnuq9RmtA52i7zPa4SXyle+jOuid+pXvozroXRlsfTOBAADCNBAAQJ4tjNahG9Fx1FajrGfe55XP+Wnyle899ev7wfeD7991w/XNBAIACNNAAABhXY/hW+onTV/ZStjqfUYjX/lmpn7lm9mcaH0zgQAAwjQQAAAAAAAAAAAAwHREvwIQ7+5JweTHAAAAAElFTkSuQmCC","effects/stretch.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAhAAAABYCAYAAACklM6hAAABCElEQVR4nO3dsQ2AMAwEQMMYadh/LJqsAQOQEksvuCtdRa8oVV6uAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAp20xAz5mjONazec8vQHyjef+Zua7t50IAAAAAAAAAAAAIJgf2AAv0RboJd+sfLUwAAAAAAAAAAAAgF/SwgAgmvZFL7swAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgOp3A7NIJAqa1SCBAAAAAElFTkSuQmCC","body/sleep.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWAAAABYCAYAAADLPy04AAACFUlEQVR4nO3dS27CMBQF0FB1FZlE6v7XhOQJ22jFgMpCpAqf8t6LzxlVEQF6G93axsA0AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFDeYUpgnpfvy8+nUzvcOr7F2rn98RHJV76VzTvuh4+oBwYYnQIGCBI29O6nAK0df48vy9d06/gWa+f2x0dZjpCvfCubB+kHI2CAIAoYIMjnlMy904pXnTsK+cq3srazfjACBgiigAGCpFuC+A9Xr3g+vHl7TZZN3VHkK9/KWmA/GAEDBFHAAEEOGTZXZ9Zv0l6TZVO3fOV7zfWbO990a8Bb3unyzLthRidf+Va27Kwf0hXwlsCyh5qZfOVbWdtZP6Qr4L/+o0UEW+mP+Sj5yreypXA/fFQJ9vKLbllzQb4ZuH7lW3oEfC7d68IdYUT6LvKVb2VtB/2QuoArBlqNfOVbWSveD6mXIAD2TAEDBFHAAEEUMEAQBQwQJP0uiApG/NLPd5KvfPd6/RoBAwRRwAAjLEH0w+/+k+e3fKpR797br3nV42YhX/meuX6PZfrBCBggiAIGGG0XxNp0ee02/bc9PPMK+TP3s+V5ZiFf+V5z/bZ0/WAEDBBEAQMESTd13qKfJjwz/X/V/eyNfOVb2VyoH4yAAYIoYAAAAAAAAAAAAACYyvkBLRMBt3vL4rYAAAAASUVORK5CYII=","effects/zzz.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWAAAABYCAYAAADLPy04AAABMElEQVR4nO3aSwqDMBQFUFu6Cifd/7I6cRstAUsFLTG1vvg5Z6QQQRQu8V2bBgAAAAAAAADgCC61bwDgKNr2/nwfd90jm68CGKAgWIemQjatnRO+yXXOIgDmB/W3wAbgRylY/xmudsAAlZgBw4mUlkSUz4BL3JZcDOwrINJ5SUnEurwEOFEA2wED7KQkYl1KOIBKjCDYFJ/Iy5/bkFnvtinhCKEkgjE7YEIoiQAqUxLBhxIOoBIjCEIoiWBMCdcTEEA0AUwIv0MBWUoiIIoSDqASJVzPDBiIZgcMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANDkvQArnV1jJJeSCwAAAABJRU5ErkJggg==","expressions/eyes.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAxgAAABYCAYAAAB2zVGVAAACBklEQVR4nO3dQYqDMBQGYJ3WS3QjzP3PVHDTS5QyxaEpXTghOpb47PetXDwQfl5CQiQ2DQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8NA2G3M69T/p+XIZ2qU1TLteb8/suu7QLq1BvjWksT8M5z97s6SGaePY7/vv7NxaUkM+31xvltQwzfrhvawfmOM4q5rw0sLgvzXIF5g//44bh9wcW1IDNVg/MIcNBqxoXBgkXXdYXAPsTxr7j9OJxTXk8x2Zf9cnXwAAAAAAAAAAAPjVRrkR4pWbS+Qbgf6Vb2T6V76R6V+o66vy+wEAgB2xwQAAAPZ1TW3Jz3H8dE++W6V/5RuZ/pVvZPq3TtYlfM7+2ZxgAAAAq7HBAAAA9nuLlCM4+Uamf+Ubmf6Vb2T6V75shxMMAABgNTYYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADNp7gDYj36hg/8RkMAAAAASUVORK5CYII=","accessories/headwear/hat.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAjklEQVR4nO3YsQlCMRSG0au4gk0aR3IHZ3ECN7TJGlq93if8eCPn9IHkIwRyqwAAAACAzxyqqTEur71r5ny2O8/x1xv4dwKHCRwmcJjAYQKHCRwmcJjAYadq6ny/7l4zb4/qxg0Oa/d335hFsMYNHl9MzVaasnmDAQAAAAAAAAAAAAAAAAAAAAAAAIBa1xtGfQ7iv1ECwAAAAABJRU5ErkJggg==","accessories/headwear/beanie.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAd0lEQVR4nO3Wuw2AMAwFwIQpUBpWYxIKJmE1mogtYAFKony4K13ZLp4dAgAAAAAAAEDHYujEte73W30+tqZnmGo3MDoLBqgntvwhfKXmp+HIFWbBf4iIlJaiEZHzKSJGJSIAAAAAAAAAAAAAAAAAAAAAAACA0LgHFdEMEMWVlcoAAAAASUVORK5CYII=","accessories/headwear/sprout.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAjUlEQVR4nO3UwQ2DMBREwZ+IKrikBHqiAIpJAemJiogoADgtMWRG8skX62nlKgAAAIDzPKphw2da9u7n8d30+1fPXz/g7rq6gaHhpVvwPy94vsAfe8SC2db3r2U91TALDhM4TOAwgcMEDhM4TOAwgcMEDhM4TGAAAAAAAAAAAAAAAAAAAAAAAAAAoK7rC3HuDJDnOK5eAAAAAElFTkSuQmCC","accessories/headwear/crown.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAYklEQVR4nO3UsRGAIAxA0eAAzGTl0FbO5AJQsYGKwHtVitzlLsWPAAAAAAAAAACYU4qfuc+9tDkfV3pz5wtbr8Or8OCVE/EUiZiYRAAAAAAAAAAAAAAAAAAAAAAAAAAAMa4KMhkQC40dYLkAAAAASUVORK5CYII=","accessories/glasses/glasses.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAc0lEQVR4nO3UIRKAMAwEwJThFTX8/1k1/QZYTIfKZNiVyakTFwEAAAAAAAAAAAAAAADJtUii9+te/eYcbTfDwqq8930nk80ZBfTEBX45ooA5R6s6ASUKrkzBf9rgvrG1lfcYAAAAAAAAAAAAAAAAAAAgNj0d9BaqVE4WWQAAAABJRU5ErkJggg==","accessories/glasses/sunglasses.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAbUlEQVR4nO3UsQ2AMAwEQAcxRRr2HyuN14AJQDQIJ7pr7cJ6vRwBAAAAAAAAAAAAAAAAxbUoovfjvJtljvZ2p5rt7wNWt8cE+kNzq5uiwZmjVX0BSwQ8MwF/TMAAAAAAAAAAAAAAAAAAAABRzwU+hw6+bpfxOAAAAABJRU5ErkJggg==","accessories/clothing/bowtie.png":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAABYCAYAAABxlTA0AAAAdUlEQVR4nO3UsQ2AIBBA0cMxaNx/LBvW0NgZCw1qFMx7HQnF5XMhAgAAAAAAAAAAAAAAAAAAAAAAALgpRSdyHuftuZQpXbnzts8HqLEPeKSFuKshOlJOorUStdvA+WSDazb8Lc29+N/+YAAAAAAAAAAAAIiHLRS5HAhzLcORAAAAAElFTkSuQmCC"};</script>
+<script>var PetPreview = (function(exports) {
+	Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
+	//#region src/pet-engine.js
+	/**
+	* Action state machine and frame clock (PHASE3 3.2 and 3.3). Pure logic: no DOM, no CSS, no window, no graphics API.
+	* The renderer reads `state` each frame and draws every layer at the same frame index.
+	*
+	* The rules mirror src/core/pet/pet_state.cpp, which is the specification's implementation.
+	*/
+	/** Duration of one blink step in ms. */
+	var BLINK_STEP_MS = 80;
+	/** Expression sheet indices for one blink: half, closed, half. */
+	var BLINK_SEQUENCE = [
+		1,
+		2,
+		1
+	];
+	/** Quiet time with no event before the dog yawns and falls asleep. */
+	var QUIET_MS = 18e4;
+	/** Idle wait before a random action: this base, plus up to the same again at random. */
+	var IDLE_BASE_MS = 2e4;
+	/** Actions the idle timer picks from. */
+	var RANDOM_IDLE = ["look_around", "stretch"];
+	/** Priority tiers, lowest first. A request at or below the tier of the action now playing is dropped. */
+	var TIER = {
+		idle: 0,
+		situational: 1,
+		event: 2,
+		click: 3,
+		drag: 4
+	};
+	var PetEngine = class {
+		/**
+		* @param {object} manifest Parsed assets/pet/manifest.json (only `actions` is read here).
+		* @param {{blinkEvery?: number, random?: () => number}} [options] Ms between blinks; random source in [0, 1).
+		*/
+		constructor(manifest, { blinkEvery = 4e3, random = Math.random } = {}) {
+			this.actions = manifest.actions;
+			this.blinkEvery = blinkEvery;
+			this.random = random;
+			this.action = "idle";
+			this.priority = TIER.idle;
+			this.frame = 0;
+			this.acc = 0;
+			this.blinkClock = 0;
+			this.blinkT = null;
+			this.paused = false;
+			this.fpsOverride = null;
+			this.dragging = false;
+			/** The looping state an event keeps: reading while an explanation is up, sleep while the budget is paused. */
+			this.held = null;
+			/** Where the current action goes when it ends, from its returnTo. Cleared by any event. */
+			this.pendingReturn = null;
+			this.quietMs = 0;
+			this.idleMs = 0;
+			this.idleWait = this.nextIdleWait();
+			this.lastIdle = null;
+		}
+		get def() {
+			return this.actions[this.action];
+		}
+		get fps() {
+			return this.fpsOverride ?? this.def.fps;
+		}
+		get expression() {
+			if (this.blinkT !== null) return BLINK_SEQUENCE[Math.floor(this.blinkT / BLINK_STEP_MS)];
+			return this.def.expressions?.[this.frame] ?? 0;
+		}
+		get state() {
+			return {
+				action: this.action,
+				frame: this.frame,
+				expression: this.expression,
+				fps: this.fps,
+				paused: this.paused,
+				anchor: this.def.anchors[this.frame]
+			};
+		}
+		/**
+		* Applies one event by its type. Events carry no text (PHASE3 3.2).
+		* @param {'DragStart'|'DragEnd'|'Click'|'SelectionShown'|'ExplanationRequested'|'ExplanationShown'|'ExplanationHidden'|
+		*         'KnownMarked'|'NewWordMarked'|'BudgetPaused'|'BudgetResumed'|'UpdateAvailable'} event
+		*/
+		handle(event) {
+			this.pendingReturn = null;
+			this.quietMs = 0;
+			switch (event) {
+				case "DragStart":
+					if (this.dragging) return;
+					this.dragging = true;
+					this.enter("pickup", TIER.drag);
+					return;
+				case "DragEnd":
+					if (!this.dragging) return;
+					this.dragging = false;
+					this.enter("idle", TIER.idle);
+					return;
+				case "Click":
+					if (!this.dragging) this.request("click_react", TIER.click);
+					return;
+				case "SelectionShown":
+					this.request("look_around", TIER.event);
+					return;
+				case "ExplanationRequested":
+					this.request("thinking", TIER.event);
+					return;
+				case "ExplanationShown":
+					this.held = "study";
+					this.request("study", TIER.event);
+					return;
+				case "ExplanationHidden":
+					if (this.held === "study") this.held = null;
+					if (this.action === "study") this.settle();
+					return;
+				case "KnownMarked":
+				case "UpdateAvailable":
+					this.request("celebrate", TIER.event);
+					return;
+				case "NewWordMarked":
+					this.request("encourage", TIER.event);
+					return;
+				case "BudgetPaused":
+					this.held = "sleep";
+					this.request("sleep", TIER.event);
+					return;
+				case "BudgetResumed":
+					if (this.held === "sleep") this.held = null;
+					if (this.action === "sleep") this.settle();
+					return;
+				default: throw new Error(`unknown pet event: ${event}`);
+			}
+		}
+		/** Debug panel and the settings preview: plays any action now, ignoring priority. */
+		play(name) {
+			this.quietMs = 0;
+			this.enter(name, TIER.event);
+		}
+		/** Ends any action and returns to idle, dropping whatever was held. */
+		stop() {
+			this.held = null;
+			this.dragging = false;
+			this.enter("idle", TIER.idle);
+		}
+		pause() {
+			this.paused = true;
+		}
+		resume() {
+			this.paused = false;
+		}
+		/** Advances one frame, used for frame-by-frame review while paused. */
+		step() {
+			this.advance();
+		}
+		/** @param {number|null} fps Overrides every action's fps; null restores each action's own. */
+		setFps(fps) {
+			this.fpsOverride = fps;
+		}
+		update(deltaMs) {
+			if (this.paused) return;
+			this.tickBlink(deltaMs);
+			this.tick(deltaMs);
+			this.acc += deltaMs;
+			const frameMs = 1e3 / this.fps;
+			while (this.acc >= frameMs) {
+				this.acc -= frameMs;
+				this.advance();
+			}
+		}
+		/**
+		* Starts an action if the priority allows it. The same tier as the action now playing is dropped, so an
+		* event waits for the one-shot before it. Thinking is the wait for an explanation, so any event replaces it.
+		* @returns {boolean} Whether the action started.
+		*/
+		request(name, tier) {
+			const givesWayToThinking = this.action === "thinking" && tier === TIER.event;
+			if (tier <= this.priority && !givesWayToThinking) return false;
+			this.enter(name, tier);
+			return true;
+		}
+		enter(name, tier) {
+			this.action = name;
+			this.priority = tier;
+			this.pendingReturn = this.actions[name].returnTo ?? null;
+			this.frame = 0;
+			this.acc = 0;
+			this.blinkClock = 0;
+			this.blinkT = null;
+			if (name === "idle") {
+				this.idleMs = 0;
+				this.idleWait = this.nextIdleWait();
+			}
+		}
+		/** A one-shot ended, or a held state was released: go to the pending return, else the held state, else idle. */
+		settle() {
+			const next = this.pendingReturn ?? this.held ?? "idle";
+			this.enter(next, next === "idle" ? TIER.idle : TIER.event);
+		}
+		advance() {
+			const def = this.def;
+			if (this.frame + 1 < def.frames) this.frame += 1;
+			else if (def.loop) this.frame = 0;
+			else this.settle();
+		}
+		tickBlink(deltaMs) {
+			if (!this.def.blink) {
+				this.blinkT = null;
+				return;
+			}
+			if (this.blinkT === null) {
+				this.blinkClock += deltaMs;
+				if (this.blinkClock >= this.blinkEvery) {
+					this.blinkClock = 0;
+					this.blinkT = 0;
+				}
+				return;
+			}
+			this.blinkT += deltaMs;
+			if (this.blinkT >= BLINK_SEQUENCE.length * BLINK_STEP_MS) this.blinkT = null;
+		}
+		/** Quiet time yawns the dog into sleep; idle time picks a random situational action. */
+		tick(deltaMs) {
+			this.quietMs += deltaMs;
+			if (this.quietMs >= QUIET_MS) {
+				this.quietMs = 0;
+				this.request("yawn", TIER.situational);
+				return;
+			}
+			if (this.action !== "idle") return;
+			this.idleMs += deltaMs;
+			if (this.idleMs >= this.idleWait) this.request(this.pickRandomIdle(), TIER.situational);
+		}
+		pickRandomIdle() {
+			const choices = RANDOM_IDLE.filter((name) => name !== this.lastIdle);
+			this.lastIdle = choices[Math.min(Math.floor(this.random() * choices.length), choices.length - 1)];
+			return this.lastIdle;
+		}
+		nextIdleWait() {
+			return IDLE_BASE_MS + this.random() * IDLE_BASE_MS;
+		}
+	};
+	//#endregion
+	//#region src/pet-renderer.js
+	/**
+	* Canvas drawing for the pet. Reads the engine state and the visible accessories; it never decides
+	* what plays. Body, expression and accessories follow the action's anchor; effects stay where they were drawn.
+	*/
+	var PetRenderer = class {
+		/**
+		* @param {HTMLCanvasElement} canvas
+		* @param {object} manifest Parsed assets/pet/manifest.json.
+		*/
+		constructor(canvas, manifest) {
+			this.manifest = manifest;
+			this.width = manifest.canvas;
+			this.height = manifest.height;
+			this.scale = manifest.scale;
+			canvas.width = this.width * this.scale;
+			canvas.height = this.height * this.scale;
+			this.ctx = canvas.getContext("2d");
+			this.ctx.imageSmoothingEnabled = false;
+			this.canvas = canvas;
+			this.images = /* @__PURE__ */ new Map();
+		}
+		/**
+		* Loads every sheet and accessory PNG the manifest names.
+		* @param {(path: string) => string} urlOf Maps a manifest path to the URL the image loads from.
+		*/
+		async load(urlOf) {
+			const { actions, expression, accessories } = this.manifest;
+			const paths = [
+				...Object.values(actions).flatMap((a) => [a.sheet, a.effect].filter(Boolean)),
+				expression,
+				...accessories.map((a) => a.asset)
+			];
+			await Promise.all(paths.map((path) => new Promise((resolve, reject) => {
+				const img = new Image();
+				img.onload = () => {
+					this.images.set(path, img);
+					resolve();
+				};
+				img.onerror = () => reject(/* @__PURE__ */ new Error(`pet asset missing: ${path}`));
+				img.src = urlOf(path);
+			})));
+		}
+		/**
+		* @param {{action: string, frame: number, expression: number, anchor: number[]}} state From PetEngine.state.
+		* @param {Array<{asset: string, zIndex: number}>} accessories Worn accessories visible for this action.
+		*/
+		draw(state, accessories) {
+			const { ctx, width, height, scale, manifest } = this;
+			const def = manifest.actions[state.action];
+			const [dx, dy] = state.anchor;
+			const layers = [
+				{
+					z: manifest.layers.body,
+					path: def.sheet,
+					index: state.frame,
+					at: [dx, dy]
+				},
+				{
+					z: manifest.layers.expression,
+					path: manifest.expression,
+					index: state.expression,
+					at: [dx, dy]
+				},
+				...def.effect ? [{
+					z: manifest.layers.effect,
+					path: def.effect,
+					index: state.frame,
+					at: [0, 0]
+				}] : [],
+				...accessories.map((a) => ({
+					z: a.zIndex,
+					path: a.asset,
+					index: 0,
+					at: [dx, dy]
+				}))
+			].sort((p, q) => p.z - q.z);
+			ctx.setTransform(1, 0, 0, 1, 0, 0);
+			ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			ctx.setTransform(scale, 0, 0, scale, 0, 0);
+			for (const { path, index, at } of layers) ctx.drawImage(this.images.get(path), index * width, 0, width, height, at[0], at[1], width, height);
+		}
+	};
+	//#endregion
+	//#region src/accessory-manager.js
+	/**
+	* Worn accessories, one per slot. Knows nothing about the action state machine:
+	* the caller asks which accessories are visible for the current action.
+	*/
+	var AccessoryManager = class {
+		/** @param {Array<{id: string, slot: string, zIndex: number, supportedActions: string[]}>} accessories */
+		constructor(accessories) {
+			this.all = accessories;
+			this.worn = /* @__PURE__ */ new Map();
+		}
+		find(id) {
+			return this.all.find((a) => a.id === id);
+		}
+		/** Puts the accessory on its slot, or takes it off if it is already worn there. */
+		toggle(id) {
+			const { slot } = this.find(id);
+			if (this.worn.get(slot) === id) this.worn.delete(slot);
+			else this.worn.set(slot, id);
+		}
+		isWorn(id) {
+			return this.worn.get(this.find(id).slot) === id;
+		}
+		wornList() {
+			return [...this.worn.values()].map((id) => this.find(id));
+		}
+		/** Worn accessories that support `action`, bottom layer first. */
+		visibleFor(action) {
+			return this.wornList().filter((a) => a.supportedActions.includes(action)).sort((p, q) => p.zIndex - q.zIndex);
+		}
+	};
+	//#endregion
+	//#region src/pet-pointer.js
+	/**
+	* Pointer input for the pet. A press only counts on an opaque pixel; a short press is a poke, and a
+	* press that moves past the threshold lifts the pet. The engine picks the animation; this file moves
+	* the canvas and reports what happened.
+	*/
+	/** Pixels the pointer must travel before a press becomes a drag. */
+	var DRAG_THRESHOLD = 4;
+	/** Largest tilt while carried, in degrees, so a fast flick does not flip the sprite. */
+	var MAX_TILT = 15;
+	/**
+	* @param {HTMLCanvasElement} canvas
+	* @param {{engine: import('./pet-engine.js').PetEngine, renderer: import('./pet-renderer.js').PetRenderer,
+	*          bounds?: HTMLElement}} deps `bounds` keeps the carried sprite inside that element; default is the window.
+	*/
+	function attachPointer(canvas, { engine, renderer, bounds }) {
+		const place = {
+			x: 0,
+			y: 0,
+			tilt: 0
+		};
+		let press = null;
+		/** Canvas pixel under the pointer is opaque, so transparent margins do not grab. */
+		const opaqueAt = (event) => {
+			const r = canvas.getBoundingClientRect();
+			const x = Math.floor((event.clientX - r.left) * canvas.width / r.width);
+			const y = Math.floor((event.clientY - r.top) * canvas.height / r.height);
+			if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return false;
+			return renderer.ctx.getImageData(x, y, 1, 1).data[3] > 0;
+		};
+		const paint = () => {
+			canvas.style.transform = `translate(${place.x}px, ${place.y}px) rotate(${place.tilt}deg)`;
+		};
+		canvas.addEventListener("pointermove", (event) => {
+			if (press) return;
+			canvas.style.cursor = opaqueAt(event) ? "grab" : "default";
+		});
+		canvas.addEventListener("pointerdown", (event) => {
+			if (event.button !== 0 || !opaqueAt(event)) return;
+			canvas.setPointerCapture(event.pointerId);
+			press = {
+				x: event.clientX,
+				y: event.clientY,
+				lastX: event.clientX,
+				startX: place.x,
+				startY: place.y,
+				bounds: canvas.getBoundingClientRect(),
+				dragging: false
+			};
+			event.preventDefault();
+		});
+		canvas.addEventListener("pointermove", (event) => {
+			if (!press) return;
+			const dx = event.clientX - press.x;
+			const dy = event.clientY - press.y;
+			if (!press.dragging) {
+				if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+				press.dragging = true;
+				engine.handle("DragStart");
+				canvas.style.cursor = "grabbing";
+			}
+			const b = press.bounds;
+			const area = bounds ? bounds.getBoundingClientRect() : {
+				left: 0,
+				top: 0,
+				right: window.innerWidth,
+				bottom: window.innerHeight
+			};
+			const clampedX = Math.min(Math.max(dx, area.left - b.left), area.right - b.right);
+			const clampedY = Math.min(Math.max(dy, area.top - b.top), area.bottom - b.bottom);
+			place.x = press.startX + clampedX;
+			place.y = press.startY + clampedY;
+			const swing = (event.clientX - press.lastX) * 1.2;
+			place.tilt = Math.min(Math.max(place.tilt * .6 + swing * .4, -15), MAX_TILT);
+			press.lastX = event.clientX;
+			paint();
+		});
+		const finish = (event, clicked) => {
+			if (!press) return;
+			if (press.dragging) engine.handle("DragEnd");
+			else if (clicked) engine.handle("Click");
+			press = null;
+			place.tilt = 0;
+			paint();
+			canvas.style.cursor = opaqueAt(event) ? "grab" : "default";
+		};
+		canvas.addEventListener("pointerup", (event) => finish(event, true));
+		canvas.addEventListener("pointercancel", (event) => finish(event, false));
+	}
+	//#endregion
+	//#region src/embed.js
+	/**
+	* Settings-page entry: the prototype's own engine, renderer, pointer and accessory manager, bundled as one
+	* script for ui-prototypes/pet.html (tools/build-pet-html.mjs). The page supplies the manifest and the
+	* images as data URLs, because a file:// page can neither fetch nor load modules.
+	*/
+	/**
+	* @param {HTMLCanvasElement} canvas
+	* @param {object} manifest Parsed assets/pet/manifest.json.
+	* @param {{scale: number, resolve: (path: string) => string, live?: boolean, bounds?: HTMLElement}} options
+	*        `live: false` draws the idle frame once with no pointer and no clock, for thumbnails.
+	* @returns {Promise<{engine: PetEngine, accessories: AccessoryManager, setRunning: (on: boolean) => void}>}
+	*          `setRunning` stops the frame clock while the stage is hidden.
+	*/
+	async function mountStage(canvas, manifest, { scale, resolve, live = true, bounds }) {
+		const renderer = new PetRenderer(canvas, {
+			...manifest,
+			scale
+		});
+		await renderer.load(resolve);
+		const engine = new PetEngine(manifest);
+		const accessories = new AccessoryManager(manifest.accessories);
+		if (!live) {
+			renderer.draw({
+				action: "idle",
+				frame: 0,
+				expression: 0,
+				anchor: [0, 0]
+			}, []);
+			return {
+				engine,
+				accessories,
+				setRunning() {}
+			};
+		}
+		attachPointer(canvas, {
+			engine,
+			renderer,
+			bounds
+		});
+		let running = false;
+		let last = 0;
+		let frame = 0;
+		const tick = (now) => {
+			engine.update(Math.min(now - last, 100));
+			last = now;
+			renderer.draw(engine.state, accessories.visibleFor(engine.action));
+			frame = requestAnimationFrame(tick);
+		};
+		const setRunning = (on) => {
+			if (on === running) return;
+			running = on;
+			if (on) {
+				last = performance.now();
+				frame = requestAnimationFrame(tick);
+			} else cancelAnimationFrame(frame);
+		};
+		return {
+			engine,
+			accessories,
+			setRunning
+		};
+	}
+	//#endregion
+	exports.mountStage = mountStage;
+	return exports;
+})({});
+</script>
 <script>
 /// Reader-facing strings, one column per language, same shape as the other prototypes. Character
 /// names, action names and accessory names are strings the application owns (`chars`, `acts`, `accs`).
@@ -175,7 +655,7 @@ const L = {
         defaults: "恢复默认", save: "保存", saved: "已保存", reset: "已恢复默认",
         slots: { head: "头", face: "脸", body: "身" },
         acts: { idle: "待机", study: "阅读", thinking: "思考", celebrate: "庆祝", encourage: "鼓励", sleep: "睡觉", click_react: "被戳", pickup: "被拎起", look_around: "张望", yawn: "打哈欠", stretch: "伸懒腰" },
-        accs: { hat: "小帽子", glasses: "圆框眼镜", scarf: "围巾" },
+        accs: { hat: "礼帽", beanie: "毛线帽", sprout: "嫩芽", crown: "王冠", glasses: "圆框眼镜", sunglasses: "墨镜", bowtie: "西服领结" },
         chars: { dog: "白色小狗" },
         themeDark: "黑夜", themeLight: "白天" },
   en: { title: "Desktop pet", crumb: "Extensions", tog: "Show desktop pet", help: "When on, the pet stays on the desktop and can be dragged. It never reads your selections or explanations, only event types.",
@@ -184,7 +664,7 @@ const L = {
         defaults: "Restore defaults", save: "Save", saved: "Saved", reset: "Defaults restored",
         slots: { head: "Head", face: "Face", body: "Body" },
         acts: { idle: "Idle", study: "Reading", thinking: "Thinking", celebrate: "Celebrate", encourage: "Encourage", sleep: "Sleep", click_react: "Poked", pickup: "Picked up", look_around: "Look around", yawn: "Yawn", stretch: "Stretch" },
-        accs: { hat: "Little hat", glasses: "Round glasses", scarf: "Scarf" },
+        accs: { hat: "Top hat", beanie: "Beanie", sprout: "Sprout", crown: "Crown", glasses: "Round glasses", sunglasses: "Sunglasses", bowtie: "Bow tie" },
         chars: { dog: "White dog" },
         themeDark: "Dark", themeLight: "Light" },
   ja: { title: "デスクトップペット", crumb: "拡張", tog: "デスクトップペットを表示", help: "オンにするとペットがデスクトップに常駐し、ドラッグで動かせます。選択文や解説は読まず、イベントの種類だけを受け取ります。",
@@ -193,7 +673,7 @@ const L = {
         defaults: "初期値に戻す", save: "保存", saved: "保存しました", reset: "初期値に戻しました",
         slots: { head: "頭", face: "顔", body: "体" },
         acts: { idle: "待機", study: "読書", thinking: "考える", celebrate: "喜ぶ", encourage: "応援", sleep: "おやすみ", click_react: "つつかれた", pickup: "持ち上げられた", look_around: "見回す", yawn: "あくび", stretch: "伸び" },
-        accs: { hat: "小さな帽子", glasses: "丸眼鏡", scarf: "マフラー" },
+        accs: { hat: "シルクハット", beanie: "ニット帽", sprout: "芽", crown: "王冠", glasses: "丸眼鏡", sunglasses: "サングラス", bowtie: "蝶ネクタイ" },
         chars: { dog: "白い子犬" },
         themeDark: "ダーク", themeLight: "ライト" },
   es: { title: "Mascota de escritorio", crumb: "Extensiones", tog: "Mostrar mascota de escritorio", help: "Cuando está activa, la mascota se queda en el escritorio y puedes arrastrarla. Nunca lee tus selecciones ni explicaciones, solo recibe tipos de evento.",
@@ -202,7 +682,7 @@ const L = {
         defaults: "Restablecer", save: "Guardar", saved: "Guardado", reset: "Valores restablecidos",
         slots: { head: "Cabeza", face: "Cara", body: "Cuerpo" },
         acts: { idle: "Reposo", study: "Leer", thinking: "Pensar", celebrate: "Celebrar", encourage: "Animar", sleep: "Dormir", click_react: "Tocada", pickup: "Levantada", look_around: "Mirar alrededor", yawn: "Bostezar", stretch: "Estirarse" },
-        accs: { hat: "Gorrito", glasses: "Gafas redondas", scarf: "Bufanda" },
+        accs: { hat: "Sombrero de copa", beanie: "Gorro de lana", sprout: "Brote", crown: "Corona", glasses: "Gafas redondas", sunglasses: "Gafas de sol", bowtie: "Pajarita" },
         chars: { dog: "Perrito blanco" },
         themeDark: "Oscuro", themeLight: "Claro" }
 };
@@ -211,177 +691,16 @@ const lang = asked.startsWith('zh') ? 'zh' : (L[asked] ? asked : 'zh');
 const t = L[lang];
 document.documentElement.lang = { en: 'en', zh: 'zh-CN', ja: 'ja', es: 'es' }[lang];
 
-/// Characters are data. The settings page has no import: a developer adds a character by adding an
-/// entry to this list (in the app, a folder under data/pet/characters/). The picker, the stage, the
-/// action list and the accessory slots are all read from the selected entry.
-///
-/// Sprites are pixel grids. A row is a string: '#' marks a filled cell, '.' an empty one. The outline is
-/// not stored; silhouette() draws it around the filled cells. The dog's grid was sampled from the
-/// reference sprite (6 px art pixels, 18 x 17 cells), so its silhouette matches the reference.
-/// Accessory `rects` are [x, y, w, h, colour] on the same grid; a negative y is allowed (the hat sits
-/// above the ears).
-const CHARACTERS = [{
-  id: 'dog',
-  /// Places the cell grid on the 64-unit canvas (PHASE3 3.1): cell (0, 0) starts at (x, y), and one
-  /// cell is `scale` units wide. With these values the dog and its outline sit centred on the canvas.
-  view: { x: 6, y: 6, scale: 3 },
-  slots: ['head', 'face', 'body'],
-  /// `playable: false` marks an action the pet plays by itself (blinking is on the expression layer).
-  actions: {
-    idle:        { frames: 5, fps: 5,  loop: true,  priority: 0 },
-    blink:       { frames: 3, fps: 10, loop: false, priority: 0, playable: false },
-    study:       { frames: 6, fps: 6,  loop: true,  priority: 50 },
-    thinking:    { frames: 4, fps: 6,  loop: true,  priority: 50 },
-    celebrate:   { frames: 6, fps: 10, loop: false, priority: 50 },
-    encourage:   { frames: 5, fps: 10, loop: false, priority: 50 },
-    sleep:       { frames: 4, fps: 4,  loop: true,  priority: 50 },
-    click_react: { frames: 4, fps: 12, loop: false, priority: 90 },
-    pickup:      { frames: 3, fps: 10, loop: true,  priority: 100 },
-    look_around: { frames: 6, fps: 8,  loop: false, priority: 50 },
-    yawn:        { frames: 5, fps: 6,  loop: false, priority: 10 },
-    stretch:     { frames: 6, fps: 6,  loop: false, priority: 10 }
-  },
-  /// The head (ears, face) and the body (back, tail, legs) are separate, so the head can tilt while the
-  /// body stays put. Eyes blink on their own layer. The mouth and eyes are features: they are drawn in
-  /// ink on the head layer and never outlined, so they move with the head.
-  sprite: {
-    head: [
-      '.#.####.#.........',
-      '.########.........',
-      '.#########........',
-      '##.##.####........',
-      '############......',
-      '..................',
-      '..................',
-      '..................',
-      '..................',
-      '..................',
-      '..................',
-      '..................',
-      '..................',
-      '..................',
-      '..................',
-      '..................',
-      '..................'
-    ],
-    body: [
-      '..................',
-      '..................',
-      '..................',
-      '..................',
-      '.................#',
-      '###..#########...#',
-      '#.#.##.###########',
-      '##....############',
-      '##################',
-      '##################',
-      '##################',
-      '##################',
-      '#################.',
-      '.################.',
-      '.##..##....##..##.',
-      '.#...##....##..#..',
-      '.....#.....#......'
-    ],
-    eyes: [[2, 3], [5, 3]],
-    mouth: [[3, 5], [4, 5], [1, 6], [3, 6], [6, 6], [2, 7], [3, 7], [4, 7], [5, 7]]
-  },
-  /// One slot each. A new accessory is one more entry with its own `id`, `slot` and `rects`.
-  accessories: [
-    { id: 'hat', slot: 'head', rects: [[3, -1, 4, 1, 'accent'], [2, 0, 6, 1, 'accent']] },
-    { id: 'glasses', slot: 'face', rects: [
-        [1, 2, 3, 1, 'ink'], [1, 4, 3, 1, 'ink'], [1, 3, 1, 1, 'ink'], [3, 3, 1, 1, 'ink'],
-        [4, 2, 3, 1, 'ink'], [4, 4, 3, 1, 'ink'], [4, 3, 1, 1, 'ink'], [6, 3, 1, 1, 'ink']] },
-    { id: 'scarf', slot: 'body', rects: [[0, 5, 3, 1, 'accent'], [5, 5, 9, 1, 'accent'], [12, 6, 2, 2, 'accent']] }
-  ]
-}];
-
-/// Pet on or off, the chosen character, and its worn accessories are what the reader sets. `action`
-/// is runtime only: it resets to idle whenever the pet is turned off or another character is chosen.
-const DEFAULT = { on: false, passthrough: false, character: 'dog', worn: {} };
+/// The page keeps only what the reader sets: on or off, passthrough, and the worn accessories by slot.
+/// The pet itself (engine, pointer, frames) is the prototype's, mounted from PetPreview below.
+const DEFAULT = { on: false, passthrough: false, worn: {} };
 let state = structuredClone(DEFAULT);
 let saved = structuredClone(DEFAULT);
-let action = 'idle';
-let timer = 0;
+let pet = null;
 
 const $ = id => document.getElementById(id);
-const active = () => CHARACTERS.find(c => c.id === state.character) ?? CHARACTERS[0];
-
-const COLOR = { ink: '#1a1a1f', dog: '#fbfbfd', accent: 'var(--ok)' };
-const NEIGHBOURS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
-const at = (x, y) => `${x},${y}`;
-
-/// Splits a sprite into its filled cells and the outline around them. Every empty cell that touches a
-/// filled cell (4-way) is outlined, and it belongs to the first part it touches (head before body), so
-/// the outline moves with that part. Features (eyes, mouth) are never outlined. A dark outline keeps the
-/// white dog readable on light and dark stages.
-function silhouette(sprite) {
-  const cellsOf = rows => rows.flatMap((row, y) => [...row].flatMap((ch, x) => ch === '#' ? [[x, y]] : []));
-  const parts = { head: cellsOf(sprite.head), body: cellsOf(sprite.body) };
-  const filled = new Set([...parts.head, ...parts.body].map(([x, y]) => at(x, y)));
-  const features = new Set([...sprite.eyes, ...sprite.mouth].map(([x, y]) => at(x, y)));
-  const seen = new Set();
-  const ring = { head: [], body: [] };
-  for (const name of ['head', 'body']) {
-    for (const [x, y] of parts[name]) {
-      for (const [dx, dy] of NEIGHBOURS) {
-        const k = at(x + dx, y + dy);
-        if (filled.has(k) || features.has(k) || seen.has(k)) continue;
-        seen.add(k);
-        ring[name].push([x + dx, y + dy]);
-      }
-    }
-  }
-  return { parts, ring };
-}
-
-const cell = (x, y, fill) => `<rect x="${x}" y="${y}" width="1" height="1" style="fill:${fill}"/>`;
-const paint = (cells, fill) => cells.map(([x, y]) => cell(x, y, fill)).join('');
-/// Each accessory rect expands to its cells, so an accessory is written as the rectangles it covers.
-const paintRects = rects => rects.flatMap(([x, y, w, h, c]) =>
-  Array.from({ length: w * h }, (_, i) => cell(x + i % w, y + Math.floor(i / w), COLOR[c]))).join('');
-
-/// `cls` decides motion: 'still' for thumbnails, 'live m-<action>' for the stage.
-function petSVG(c, worn, cls) {
-  const { parts, ring } = silhouette(c.sprite);
-  const wearing = slot => c.accessories.find(a => a.id === worn[slot]);
-  const acc = slot => { const a = wearing(slot); return a ? paintRects(a.rects) : ''; };
-  const v = c.view;
-  return `<svg class="pet-art ${cls}" viewBox="0 0 64 64" role="img" aria-label="${t.chars[c.id]}">
-    <g transform="translate(${v.x} ${v.y}) scale(${v.scale})">
-      <g class="p-pet">
-        <g class="p-body">${paint(ring.body, COLOR.ink)}${paint(parts.body, COLOR.dog)}</g>
-        ${acc('body')}
-        <g class="p-head">${paint(ring.head, COLOR.ink)}${paint(parts.head, COLOR.dog)}
-          <g class="p-eyes">${paint(c.sprite.eyes, COLOR.ink)}</g>
-          ${paint(c.sprite.mouth, COLOR.ink)}${acc('head')}${acc('face')}
-        </g>
-        <text class="p-zz" x="13" y="0">z</text>
-      </g>
-    </g></svg>`;
-}
-
-/// One action at a time. A non-looping action returns to idle after its frames have played at its fps.
-function play(name) {
-  clearTimeout(timer);
-  action = name;
-  const def = active().actions[name];
-  renderStage();
-  if (!def.loop) timer = setTimeout(() => play('idle'), def.frames / def.fps * 1000);
-  renderPanel();
-}
-
-function stop() {
-  clearTimeout(timer);
-  action = 'idle';
-}
-
-function choose(id) {
-  if (id === state.character) return;
-  state.character = id;
-  state.worn = {};
-  stop();
-}
+const SLOTS = ['head', 'face', 'body'];
+const ACTIONS = Object.keys(PET_MANIFEST.actions);
 
 function renderToggle() {
   $('tog').setAttribute('aria-checked', String(state.on));
@@ -391,33 +710,22 @@ function renderToggle() {
   $('pass-row').classList.toggle('off', !state.on);
 }
 
-function renderPicker() {
-  $('pets').innerHTML = CHARACTERS.map(c => `
-    <button type="button" class="pcard" data-char="${c.id}" aria-pressed="${state.character === c.id}">${petSVG(c, {}, 'still')}<span class="pn">${t.chars[c.id]}</span></button>`).join('');
-}
-
-function renderStage() {
-  $('stage').classList.toggle('dim', !state.on);
-  $('stage').innerHTML = petSVG(active(), state.worn, `live m-${action}`);
-}
-
 function renderPanel() {
-  const c = active();
-  const playable = Object.keys(c.actions).filter(a => c.actions[a].playable !== false);
-  $('acts').innerHTML = playable.map(a =>
-    `<button type="button" class="chip" data-act="${a}" aria-pressed="${action === a}">${t.acts[a]}</button>`).join('');
-  $('slots').innerHTML = c.slots.map(slot => `
+  const current = pet ? pet.engine.action : 'idle';
+  $('acts').innerHTML = ACTIONS.map(a =>
+    `<button type="button" class="chip" data-act="${a}" aria-pressed="${current === a}">${t.acts[a]}</button>`).join('');
+  $('slots').innerHTML = SLOTS.map(slot => `
     <div class="slot"><span class="slot-h">${t.slots[slot]}</span><div class="chips">${
-      c.accessories.filter(a => a.slot === slot).map(a =>
-        `<button type="button" class="chip" data-acc="${slot}:${a.id}" aria-pressed="${state.worn[slot] === a.id}">${t.accs[a.id]}</button>`).join('')
+      PET_MANIFEST.accessories.filter(a => a.slot === slot).map(a =>
+        `<button type="button" class="chip" data-acc="${a.id}" aria-pressed="${state.worn[slot] === a.id}">${t.accs[a.id]}</button>`).join('')
     }</div></div>`).join('');
 }
 
 function renderAll() {
   renderToggle();
   $('pet-section').hidden = !state.on;
-  renderPicker();
-  renderStage();
+  $('stage').classList.toggle('dim', !state.on);
+  if (pet) pet.setRunning(state.on);
   renderPanel();
   $('save').disabled = JSON.stringify(state) === JSON.stringify(saved);
 }
@@ -430,6 +738,7 @@ function renderStatic() {
   $('pass-label').textContent = t.pass;
   $('pass-help').textContent = t.passHelp;
   $('pick-title').textContent = t.pick;
+  $('pet-name').textContent = t.chars.dog;
   $('stage-title').textContent = t.stage;
   $('act-title').textContent = t.act;
   $('acc-title').textContent = t.acc;
@@ -438,23 +747,21 @@ function renderStatic() {
 }
 
 document.addEventListener('click', e => {
-  if (e.target.closest('.live')) { play('click_react'); return; }
   const b = e.target.closest('button');
   if (!b) return;
   if (b.id === 'tog') {
     state.on = !state.on;
-    if (!state.on) stop();
+    if (!state.on && pet) pet.engine.stop();
   }
   else if (b.id === 'pass') { state.passthrough = !state.passthrough; }
-  else if (b.dataset.char) { choose(b.dataset.char); }
-  else if (b.dataset.act) { play(b.dataset.act); return; }
+  else if (b.dataset.act) { pet.engine.play(b.dataset.act); renderPanel(); return; }
   else if (b.dataset.acc) {
-    const [slot, id] = b.dataset.acc.split(':');
-    state.worn[slot] = state.worn[slot] === id ? null : id;
-    if (!state.worn[slot]) delete state.worn[slot];
+    pet.accessories.toggle(b.dataset.acc);
+    state.worn = Object.fromEntries(pet.accessories.worn);
   }
   else if (b.id === 'defaults') {
-    state = structuredClone(DEFAULT); saved = structuredClone(DEFAULT); stop();
+    state = structuredClone(DEFAULT); saved = structuredClone(DEFAULT);
+    if (pet) { pet.engine.stop(); pet.accessories.worn.clear(); }
     $('status').textContent = t.reset; renderAll(); return;
   }
   else if (b.id === 'save') {
@@ -465,8 +772,23 @@ document.addEventListener('click', e => {
   renderAll();
 });
 
+// The chip that matches the action now playing follows it, including the return to idle after a one-shot.
+// Rebuilds only when the action changes, so a click in flight is not swapped out under the pointer.
+let shownAction = null;
+setInterval(() => {
+  if (!pet || !state.on || pet.engine.action === shownAction) return;
+  shownAction = pet.engine.action;
+  renderPanel();
+}, 250);
+
 renderStatic();
 renderAll();
+(async () => {
+  const resolve = path => PET_ASSETS[path];
+  await PetPreview.mountStage($('thumb'), PET_MANIFEST, { scale: 1, resolve, live: false });
+  pet = await PetPreview.mountStage($('pet'), PET_MANIFEST, { scale: 2, resolve, bounds: $('stage') });
+  renderAll();
+})();
 
 // Theme toggle: the same dev affordance as the other surfaces, hidden with ?shot.
 const tb = $('tb');

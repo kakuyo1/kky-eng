@@ -26,19 +26,19 @@
       "anchors": [[0, 0], [1, 0], [0, 0], [-1, 0]]
     },
     "celebrate": {
-      "label": "庆祝", "frames": 8, "fps": 10, "loop": false, "priority": 50, "returnTo": "idle",
+      "label": "庆祝", "frames": 8, "fps": 10, "loop": false, "priority": 50,
       "expressions": [0, 5, 5, 5, 5, 5, 5, 0],
       "sheet": "body/celebrate.png", "effect": "effects/fireworks.png",
       "anchors": [[0, 0], [0, -6], [0, -11], [0, -12], [0, -9], [0, -3], [0, 0], [0, 0]]
     },
     "encourage": {
-      "label": "鼓励", "frames": 5, "fps": 8, "loop": false, "priority": 50, "returnTo": "idle",
+      "label": "鼓励", "frames": 5, "fps": 8, "loop": false, "priority": 50,
       "expressions": [5, 5, 5, 5, 0],
       "sheet": "body/encourage.png", "effect": "effects/encourage.png",
       "anchors": [[0, 0], [0, -3], [0, -3], [0, 0], [0, -1]]
     },
     "click_react": {
-      "label": "被戳", "frames": 4, "fps": 12, "loop": false, "priority": 80, "returnTo": "idle",
+      "label": "被戳", "frames": 4, "fps": 12, "loop": false, "priority": 80,
       "expressions": [2, 2, 0, 0],
       "sheet": "body/click_react.png", "effect": "effects/click_react.png",
       "anchors": [[0, 0], [2, 1], [-2, -1], [1, 0]]
@@ -50,7 +50,7 @@
       "anchors": [[0, 0], [1, 2], [-1, 1], [0, 2]]
     },
     "look_around": {
-      "label": "张望", "frames": 6, "fps": 6, "loop": false, "priority": 30, "returnTo": "idle",
+      "label": "张望", "frames": 6, "fps": 6, "loop": false, "priority": 30,
       "expressions": [0, 3, 3, 0, 4, 4],
       "sheet": "body/look_around.png", "effect": "effects/look_around.png",
       "anchors": [[0, 0], [-2, 0], [-2, 0], [0, 0], [2, 0], [2, 0]]
@@ -62,7 +62,7 @@
       "anchors": [[0, 0], [0, -1], [0, -2], [0, -2], [0, -1]]
     },
     "stretch": {
-      "label": "伸懒腰", "frames": 6, "fps": 6, "loop": false, "priority": 30, "returnTo": "idle",
+      "label": "伸懒腰", "frames": 6, "fps": 6, "loop": false, "priority": 30,
       "expressions": [2, 2, 5, 5, 5, 0],
       "sheet": "body/stretch.png", "effect": "effects/stretch.png",
       "anchors": [[0, 0], [0, -2], [0, -4], [0, -4], [1, -2], [0, 0]]

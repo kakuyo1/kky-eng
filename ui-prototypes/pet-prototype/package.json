@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "test": "node --test test/*.test.js",
-    "assets": "python tools/build-assets.py"
+    "assets": "python tools/build-assets.py",
+    "embed": "node tools/build-pet-html.mjs"
   },
   "devDependencies": {
     "playwright": "^1.64.0",

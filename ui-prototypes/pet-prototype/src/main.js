@@ -10,7 +10,7 @@ const BASE = '/pet/';
 const manifest = await (await fetch(`${BASE}manifest.json`)).json();
 const canvas = document.querySelector('#pet');
 const renderer = new PetRenderer(canvas, manifest);
-await renderer.load(BASE);
+await renderer.load(path => BASE + path);
 
 const engine = new PetEngine(manifest);
 const accessories = new AccessoryManager(manifest.accessories);

@@ -4,16 +4,17 @@
  * through their public methods.
  */
 
+/** Each button sends one event type, the same names the page sends in the app (PHASE3 3.2). */
 const EVENTS = [
-  { label: '标记已会 → 庆祝', run: e => e.request('celebrate') },
-  { label: '发现新版本 → 庆祝', run: e => e.request('celebrate') },
-  { label: '解释请求 → 思考', run: e => e.request('thinking') },
-  { label: '解释气泡出现 → 阅读', run: e => e.request('study') },
-  { label: '解释气泡消失 → 待机', run: e => { if (e.action === 'study' || e.action === 'thinking') e.stop(); } },
-  { label: '标记新词 → 鼓励', run: e => e.request('encourage') },
-  { label: '选区动作条出现 → 张望', run: e => e.request('look_around') },
-  { label: '预算暂停 → 睡觉', run: e => e.request('sleep') },
-  { label: '预算恢复 → 待机', run: e => { if (e.action === 'sleep') e.stop(); } }
+  { label: '标记已会 → 庆祝', type: 'KnownMarked' },
+  { label: '发现新版本 → 庆祝', type: 'UpdateAvailable' },
+  { label: '解释请求 → 思考', type: 'ExplanationRequested' },
+  { label: '解释气泡出现 → 阅读', type: 'ExplanationShown' },
+  { label: '解释气泡消失 → 待机', type: 'ExplanationHidden' },
+  { label: '标记新词 → 鼓励', type: 'NewWordMarked' },
+  { label: '选区动作条出现 → 张望', type: 'SelectionShown' },
+  { label: '预算暂停 → 睡觉', type: 'BudgetPaused' },
+  { label: '预算恢复 → 待机', type: 'BudgetResumed' }
 ];
 
 const el = (tag, props = {}, ...children) => {
@@ -36,8 +37,8 @@ export function mountDebugPanel(root, { manifest, engine, accessories }) {
     b.dataset.action = name;
     return b;
   });
-  const eventButtons = EVENTS.map(({ label, run }) =>
-    el('button', { type: 'button', textContent: label, onclick: () => run(engine) }));
+  const eventButtons = EVENTS.map(({ label, type }) =>
+    el('button', { type: 'button', textContent: label, onclick: () => engine.handle(type) }));
   const pauseButton = el('button', { type: 'button', onclick: () => (engine.paused ? engine.resume() : engine.pause()) });
   const stepButton = el('button', { type: 'button', textContent: '逐帧', onclick: () => engine.step() });
   const fpsInput = el('input', {

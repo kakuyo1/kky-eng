@@ -1,18 +1,22 @@
 /**
- * Action state machine and frame clock. Pure logic: no DOM, no CSS, no window, no graphics API.
+ * Action state machine and frame clock (PHASE3 3.2 and 3.3). Pure logic: no DOM, no CSS, no window, no graphics API.
  * The renderer reads `state` each frame and draws every layer at the same frame index.
+ *
+ * The rules mirror src/core/pet/pet_state.cpp, which is the specification's implementation.
  */
 
 /** Duration of one blink step in ms. */
 const BLINK_STEP_MS = 80;
 /** Expression sheet indices for one blink: half, closed, half. */
 const BLINK_SEQUENCE = [1, 2, 1];
-/** Quiet time with no request before the dog yawns and falls asleep. */
+/** Quiet time with no event before the dog yawns and falls asleep. */
 const QUIET_MS = 180000;
-/** Idle wait between random actions: this base, plus up to the same again at random. */
+/** Idle wait before a random action: this base, plus up to the same again at random. */
 const IDLE_BASE_MS = 20000;
 /** Actions the idle timer picks from. */
 const RANDOM_IDLE = ['look_around', 'stretch'];
+/** Priority tiers, lowest first. A request at or below the tier of the action now playing is dropped. */
+const TIER = { idle: 0, situational: 1, event: 2, click: 3, drag: 4 };
 
 export class PetEngine {
   /**
@@ -24,12 +28,18 @@ export class PetEngine {
     this.blinkEvery = blinkEvery;
     this.random = random;
     this.action = 'idle';
+    this.priority = TIER.idle;
     this.frame = 0;
     this.acc = 0;
     this.blinkClock = 0;
     this.blinkT = null;
     this.paused = false;
     this.fpsOverride = null;
+    this.dragging = false;
+    /** The looping state an event keeps: reading while an explanation is up, sleep while the budget is paused. */
+    this.held = null;
+    /** Where the current action goes when it ends, from its returnTo. Cleared by any event. */
+    this.pendingReturn = null;
     this.quietMs = 0;
     this.idleMs = 0;
     this.idleWait = this.nextIdleWait();
@@ -60,29 +70,73 @@ export class PetEngine {
     };
   }
 
-  /** Event from the business side. Obeys priority: equal or lower requests are dropped while busy. */
-  request(name) {
+  /**
+   * Applies one event by its type. Events carry no text (PHASE3 3.2).
+   * @param {'DragStart'|'DragEnd'|'Click'|'SelectionShown'|'ExplanationRequested'|'ExplanationShown'|'ExplanationHidden'|
+   *         'KnownMarked'|'NewWordMarked'|'BudgetPaused'|'BudgetResumed'|'UpdateAvailable'} event
+   */
+  handle(event) {
+    this.pendingReturn = null;
     this.quietMs = 0;
-    const next = this.actions[name];
-    if (this.action !== 'idle' && this.def.priority >= next.priority) return false;
-    this.enter(name);
-    return true;
+    switch (event) {
+      case 'DragStart':
+        if (this.dragging) return;
+        this.dragging = true;
+        this.enter('pickup', TIER.drag);
+        return;
+      case 'DragEnd':
+        if (!this.dragging) return;
+        this.dragging = false;
+        this.enter('idle', TIER.idle); // releasing lands on idle, not on what the dog did before the grab
+        return;
+      case 'Click':
+        if (!this.dragging) this.request('click_react', TIER.click);
+        return;
+      case 'SelectionShown':
+        this.request('look_around', TIER.event);
+        return;
+      case 'ExplanationRequested':
+        this.request('thinking', TIER.event);
+        return;
+      case 'ExplanationShown':
+        this.held = 'study';
+        this.request('study', TIER.event);
+        return;
+      case 'ExplanationHidden':
+        if (this.held === 'study') this.held = null;
+        if (this.action === 'study') this.settle();
+        return;
+      case 'KnownMarked':
+      case 'UpdateAvailable':
+        this.request('celebrate', TIER.event);
+        return;
+      case 'NewWordMarked':
+        this.request('encourage', TIER.event);
+        return;
+      case 'BudgetPaused':
+        this.held = 'sleep';
+        this.request('sleep', TIER.event);
+        return;
+      case 'BudgetResumed':
+        if (this.held === 'sleep') this.held = null;
+        if (this.action === 'sleep') this.settle();
+        return;
+      default:
+        throw new Error(`unknown pet event: ${event}`);
+    }
   }
 
-  /** Debug-panel switch and pointer input. Ignores priority. */
+  /** Debug panel and the settings preview: plays any action now, ignoring priority. */
   play(name) {
     this.quietMs = 0;
-    this.enter(name);
+    this.enter(name, TIER.event);
   }
 
-  /** Ends any action and returns to idle. */
+  /** Ends any action and returns to idle, dropping whatever was held. */
   stop() {
-    this.enter('idle');
-  }
-
-  /** Pointer released: a drag ends in idle, not in the action the dog had before it was lifted. */
-  release() {
-    if (this.action === 'pickup') this.stop();
+    this.held = null;
+    this.dragging = false;
+    this.enter('idle', TIER.idle);
   }
 
   pause() {
@@ -106,7 +160,7 @@ export class PetEngine {
   update(deltaMs) {
     if (this.paused) return;
     this.tickBlink(deltaMs);
-    this.tickIdle(deltaMs);
+    this.tick(deltaMs);
     this.acc += deltaMs;
     const frameMs = 1000 / this.fps;
     while (this.acc >= frameMs) {
@@ -115,8 +169,22 @@ export class PetEngine {
     }
   }
 
-  enter(name) {
+  /**
+   * Starts an action if the priority allows it. The same tier as the action now playing is dropped, so an
+   * event waits for the one-shot before it. Thinking is the wait for an explanation, so any event replaces it.
+   * @returns {boolean} Whether the action started.
+   */
+  request(name, tier) {
+    const givesWayToThinking = this.action === 'thinking' && tier === TIER.event;
+    if (tier <= this.priority && !givesWayToThinking) return false;
+    this.enter(name, tier);
+    return true;
+  }
+
+  enter(name, tier) {
     this.action = name;
+    this.priority = tier;
+    this.pendingReturn = this.actions[name].returnTo ?? null;
     this.frame = 0;
     this.acc = 0;
     this.blinkClock = 0;
@@ -127,6 +195,12 @@ export class PetEngine {
     }
   }
 
+  /** A one-shot ended, or a held state was released: go to the pending return, else the held state, else idle. */
+  settle() {
+    const next = this.pendingReturn ?? this.held ?? 'idle';
+    this.enter(next, next === 'idle' ? TIER.idle : TIER.event);
+  }
+
   advance() {
     const def = this.def;
     if (this.frame + 1 < def.frames) {
@@ -134,7 +208,7 @@ export class PetEngine {
     } else if (def.loop) {
       this.frame = 0;
     } else {
-      this.enter(def.returnTo ?? 'idle');
+      this.settle();
     }
   }
 
@@ -155,22 +229,22 @@ export class PetEngine {
     if (this.blinkT >= BLINK_SEQUENCE.length * BLINK_STEP_MS) this.blinkT = null;
   }
 
-  /** Idle only: a random small action after a cooldown, or a yawn after a long quiet spell. */
-  tickIdle(deltaMs) {
+  /** Quiet time yawns the dog into sleep; idle time picks a random situational action. */
+  tick(deltaMs) {
     this.quietMs += deltaMs;
-    if (this.action !== 'idle') return;
     if (this.quietMs >= QUIET_MS) {
       this.quietMs = 0;
-      this.enter('yawn');
+      this.request('yawn', TIER.situational); // the yawn's returnTo is sleep
       return;
     }
+    if (this.action !== 'idle') return;
     this.idleMs += deltaMs;
-    if (this.idleMs >= this.idleWait) this.enter(this.pickRandomIdle());
+    if (this.idleMs >= this.idleWait) this.request(this.pickRandomIdle(), TIER.situational);
   }
 
   pickRandomIdle() {
     const choices = RANDOM_IDLE.filter(name => name !== this.lastIdle);
-    this.lastIdle = choices[Math.floor(this.random() * choices.length)];
+    this.lastIdle = choices[Math.min(Math.floor(this.random() * choices.length), choices.length - 1)];
     return this.lastIdle;
   }
 
