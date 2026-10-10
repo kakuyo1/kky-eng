@@ -137,6 +137,10 @@ signals:
     /// @brief The state, the versions, or the card's visibility changed.
     void updateChanged();
 
+    /// @brief A check found a version the card was not showing before, so the card came up. A recheck of a card
+    ///        already up does not emit it: the desktop pet celebrates a new offer, not each answer (PHASE3 3.2).
+    void newVersionOffered();
+
     /// @brief The download's state, its percentage, or whether it can be downloaded changed.
     void downloadChanged();
 

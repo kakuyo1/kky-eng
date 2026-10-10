@@ -80,6 +80,13 @@ TEST(PetStateMachine, ClickInterruptsReadingAndReturnsToIt)
     EXPECT_EQ(machine.action(), Action::Study);
 }
 
+TEST(PetStateMachine, AnOfferedUpdateMakesTheDogCelebrate)
+{
+    auto machine = makeMachine();
+    machine.handle(PetEvent::UpdateAvailable);
+    EXPECT_EQ(machine.action(), Action::Celebrate);
+}
+
 TEST(PetStateMachine, EqualPriorityEventWaitsUntilTheOneShotEnds)
 {
     auto machine = makeMachine();

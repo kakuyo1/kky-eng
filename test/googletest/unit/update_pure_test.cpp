@@ -706,6 +706,22 @@ TEST(UpdateDuty, ACheckStartedWhileTheCardIsUpLeavesTheCardUp)
     EXPECT_TRUE(one.duty->cardVisible()) << "the same version took the card down";
 }
 
+TEST(UpdateDuty, ACardThatAppearsIsOfferedOnceAndARecheckOfItIsNot)
+{
+    QtApplication qt;
+    DutyFixture one;
+    int offered = 0;
+    QObject::connect(one.duty.get(), &lens::app::UpdateDuty::newVersionOffered, [&offered] { ++offered; });
+
+    one.duty->checkForUpdates();
+    one.answerWithNewer();
+    EXPECT_EQ(offered, 1);
+
+    one.duty->checkForUpdates();
+    one.answerWithNewer();
+    EXPECT_EQ(offered, 1) << "a recheck of a card that is already up is not a new offer";
+}
+
 TEST(UpdateDuty, ACheckThatAnswersThereIsNothingNewTakesTheCardDown)
 {
     QtApplication qt;

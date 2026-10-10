@@ -183,6 +183,9 @@ void UpdateDuty::startCheck(bool manual)
 
 void UpdateDuty::applyResult(update::Release const& release, bool manual)
 {
+    // Before anything below can change it: the card's visibility on entry says whether this answer is a new offer.
+    const bool wasVisible = cardVisible_;
+
     // A transfer belongs to the version it was started for. If this answer names a different
     // one, the transfer is given up on first: its half-written file, its digest and the name it
     // would land under all name the old release, and letting it finish would put a checked
@@ -232,6 +235,7 @@ void UpdateDuty::applyResult(update::Release const& release, bool manual)
     }
 
     LENS_INFO("update check answered: latest {} against {} -- {}", latest_.toStdString(), current_.toStdString(), available ? "newer" : "nothing new");
+    if (cardVisible_ and not wasVisible) emit newVersionOffered();
     emit updateChanged();
 }
 

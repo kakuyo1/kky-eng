@@ -97,6 +97,7 @@ AppController::AppController(core::KnownStore& store,
 
     connect(&updateDuty_, &UpdateDuty::updateChanged, this, &AppController::updateChanged);
     connect(&updateDuty_, &UpdateDuty::downloadChanged, this, &AppController::downloadChanged);
+    connect(&updateDuty_, &UpdateDuty::newVersionOffered, this, [this] { emit petEvent(core::pet::PetEvent::UpdateAvailable); });
     connect(&hotkey_, &GlobalHotkey::pressed, this, &AppController::onTriggerHotkey);
     hotkey_.setKeys(storedHotkey(storage_));
     llm.setExplanationLang(QString::fromStdString(store.explanationLang()));
