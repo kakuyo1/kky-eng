@@ -30,5 +30,9 @@ i18n/*.qm
 # inside the checkout but belong to no commit; ignoring them keeps `git status` clean.
 .orca/
 
-# Per-machine notes for the assistant. Personal to one machine; 
+# Per-machine notes for the assistant. Personal to one machine;
 CLAUDE.local.md
+
+# Art this project no longer ships: the Undertale-derived dog, kept on this machine only. The shipped dog is
+# original (PHASE3 3.1). It stays out of the repository and out of the installer, which reads data/ only.
+assets-private/
