@@ -355,6 +355,9 @@ Window {
         id: updateCard
         onViewRequested: Controller.openReleasePage()
         onSkipRequested: Controller.skipUpdate()
+        onDownloadRequested: Controller.downloadUpdate()
+        onCancelRequested: Controller.cancelDownload()
+        onInstallRequested: Controller.installUpdate()
     }
 
     /// The capture mask, raised by the global trigger key and by nothing else. What it gives back is

@@ -85,6 +85,52 @@ Item {
             compare(shown.card.visible, false);
         }
 
+        /// What the line under the title says for a download state. The states are the duty's,
+        /// and the card draws them as words rather than showing what a transfer said.
+        function test_theDownloadLineMapsEachStateToItsOwnText() {
+            const card = opened().card;
+            compare(card.downloadText("downloading", 42, ""), "Downloading... 42%");
+            compare(card.downloadText("downloading", 0, ""), "Downloading...");
+            compare(card.downloadText("verifying", 0, ""), "Checking the download...");
+            compare(card.downloadText("ready", 100, ""), "The installer is ready to run.");
+            compare(card.downloadText("failed", 0, "generic"), "Download failed. Check your connection.");
+            compare(card.downloadText("failed", 0, "checksum"),
+                    "The download did not match the published checksum. It was deleted.");
+            compare(card.downloadText("failed", 0, "proxy"),
+                    "Downloads from GitHub usually need a proxy in mainland China. Turn on your proxy and try again.");
+            // Nothing to say, and a state nobody wrote yet.
+            compare(card.downloadText("idle", 0, ""), "");
+            compare(card.downloadText("something-new", 0, ""), "");
+            card.visible = false;
+        }
+
+        /// The one primary button: Download while the file can be fetched, Cancel while it is,
+        /// Install once it has been checked, and nothing when this release cannot be downloaded.
+        function test_thePrimaryButtonFollowsTheDownloadState() {
+            const card = opened().card;
+            compare(card.primaryAction("idle", true), "Download");
+            compare(card.primaryAction("idle", false), "", "a release with no checksum is not downloadable");
+            compare(card.primaryAction("downloading", true), "Cancel");
+            compare(card.primaryAction("ready", true), "Install");
+            compare(card.primaryAction("failed", true), "Download", "a failed download can be tried again");
+            compare(card.primaryAction("verifying", true), "", "nothing may be pressed while it is checked");
+            card.visible = false;
+        }
+
+        /// The card shows nothing about a download until one is asked for: the controller is
+        /// idle in this case, so the line is empty and there is no primary button at all.
+        function test_anIdleCardShowsNoDownloadLine() {
+            const card = opened().card;
+            compare(Controller.download.state, "idle");
+            const line = Util.findAll(card, function (object) {
+                return object.objectName === "downloadLine";
+            })[0];
+            verify(line, "the card built no download line");
+            compare(line.text, "");
+            compare(line.visible, false);
+            card.visible = false;
+        }
+
         function test_captureTheCard() {
             if (!lensQaSnapshotDir)
                 skip("Set LENS_QA_SNAPSHOT_DIR (scripts/qa/qml-snapshot.ps1) to save the snapshot");

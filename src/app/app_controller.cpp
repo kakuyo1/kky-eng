@@ -50,7 +50,7 @@ AppController::AppController(core::KnownStore& store,
                              QObject* parent)
     : QObject(parent),
       storage_(store),
-      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, QString::fromUtf8(LENS_VERSION), [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey)
+      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey)
 {
     connect(&capture_, &CaptureDuty::selectionBarRequested, this, &AppController::selectionBarRequested);
     connect(&capture_, &CaptureDuty::selectionActionRequested, this, [this](QString action, QString text) {
@@ -87,6 +87,7 @@ AppController::AppController(core::KnownStore& store,
     });
 
     connect(&updateDuty_, &UpdateDuty::updateChanged, this, &AppController::updateChanged);
+    connect(&updateDuty_, &UpdateDuty::downloadChanged, this, &AppController::downloadChanged);
     connect(&hotkey_, &GlobalHotkey::pressed, this, &AppController::onTriggerHotkey);
     hotkey_.setKeys(storedHotkey(storage_));
     llm.setExplanationLang(QString::fromStdString(store.explanationLang()));
@@ -594,6 +595,26 @@ QVariantMap AppController::cost() const
 QVariantMap AppController::update() const
 {
     return updateDuty_.update();
+}
+
+QVariantMap AppController::download() const
+{
+    return updateDuty_.download();
+}
+
+void AppController::downloadUpdate()
+{
+    updateDuty_.downloadUpdate();
+}
+
+void AppController::cancelDownload()
+{
+    updateDuty_.cancelDownload();
+}
+
+void AppController::installUpdate()
+{
+    updateDuty_.installUpdate();
 }
 
 bool AppController::updateCardVisible() const

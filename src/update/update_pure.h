@@ -1,9 +1,11 @@
 #pragma once
 
+#include <QByteArray>
 #include <QString>
 #include <QUrl>
 
 #include <optional>
+#include <string>
 
 #include "util/semver.h"
 
@@ -85,5 +87,56 @@ bool shouldCheckAutomatically(const StoredUpdate& stored, const QString& today);
  * @param available Whether it is newer than this build at all.
  */
 bool shouldPrompt(const StoredUpdate& stored, const QString& latest, bool available);
+
+/**
+ * @brief The digest a `SHA256SUMS` asset publishes for one file.
+ *
+ * The file is the one `sha256sum` writes: a 64-character lowercase hex digest, two spaces,
+ * and the name. Only an exact name match counts -- no prefix, no suffix -- and anything the
+ * file cannot be read as is refused rather than skipped, because a list this check reads as
+ * "verified" must not be a list it guessed at.
+ *
+ * @param sums     Raw bytes of the asset.
+ * @param fileName The name to look for, exactly as the release names it.
+ * @return The digest as 64 lowercase hex characters, or nothing when the file is not listed,
+ *         when a line is malformed, or when the same name is listed twice with two digests.
+ */
+std::optional<std::string> expectedDigest(const QByteArray& sums, const QString& fileName);
+
+/**
+ * @brief The installer asset's name for a version.
+ *
+ * @param versionText A version that has already passed util::parseTag(); the caller refuses
+ *                    anything else, so this only spells the name the release publishes it under.
+ * @return `Lens-<version>-setup.exe`, or an empty string for an empty version.
+ */
+QString installerName(const QString& versionText);
+
+/**
+ * @brief Whether a download may be requested from this address.
+ *
+ * Three hosts, and only three: the release page itself, and the two asset hosts GitHub hands
+ * out behind it. Everything else is refused, including a lookalike host and an address that
+ * names a different repository, because a redirect this program follows is a request this
+ * program makes with the reader's connection.
+ *
+ * @param url The address a redirect points at, already resolved.
+ * @return True when the address is https, carries no userinfo and no fragment, is on one of
+ *         the three hosts, and -- for `github.com` -- sits under this project's download path.
+ */
+bool isAllowedDownloadUrl(const QUrl& url);
+
+/**
+ * @brief Whether a file on disk hashes to a digest a release published.
+ *
+ * Streamed in chunks: an installer is tens of megabytes and this runs twice, once when the
+ * download lands and once just before it is launched, so neither copy is ever held in memory.
+ *
+ * @param filePath    The file to hash.
+ * @param expectedHex The digest to compare with, compared case-insensitively.
+ * @return True only when the file could be read and its SHA256 is that digest. A missing or
+ *         unreadable file is false, never an error the caller has to handle.
+ */
+bool digestMatches(const QString& filePath, const std::string& expectedHex);
 
 }

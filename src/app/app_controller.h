@@ -145,7 +145,12 @@ public:
     /// @brief Switch the automatic startup check on or off; read back by the settings page.
     Q_INVOKABLE void setAutoUpdateCheck(bool on);
     Q_INVOKABLE bool autoUpdateCheck() const;
-    /// @brief Run the automatic check if today has not had one; called once at startup.
+    /// @brief Fetch the installer for the release on offer, and check it.
+    Q_INVOKABLE void downloadUpdate();
+    /// @brief Stop the transfer and delete the half-written file.
+    Q_INVOKABLE void cancelDownload();
+    /// @brief Run the installer that has been checked, and close Lens.
+    Q_INVOKABLE void installUpdate();
     void checkForUpdatesAtStartup();
 
     QVariantMap bubble() const;
@@ -161,6 +166,8 @@ public:
     QVariantMap cost() const;
     /// @brief The update check's state, versions and release page, as one map.
     QVariantMap update() const;
+    /// @brief The download's state, percentage, availability and failure key, as one map.
+    QVariantMap download() const;
     QString modeLabel() const;
     QString busyLabel() const;
     double dailyBudget() const;
@@ -176,6 +183,7 @@ public:
     Q_PROPERTY(QVariantMap update READ update NOTIFY updateChanged)
     Q_PROPERTY(bool updateCardVisible READ updateCardVisible NOTIFY updateChanged)
     Q_PROPERTY(bool autoUpdateCheck READ autoUpdateCheck NOTIFY updateChanged)
+    Q_PROPERTY(QVariantMap download READ download NOTIFY downloadChanged)
     Q_PROPERTY(QString modeLabel READ modeLabel NOTIFY settingsChanged)
     Q_PROPERTY(QString busyLabel READ busyLabel NOTIFY busyChanged)
     Q_PROPERTY(double dailyBudget READ dailyBudget NOTIFY dailyBudgetChanged)
@@ -197,6 +205,8 @@ signals:
     void dailyBudgetChanged();
     /// @brief The update check's state, or its card's visibility, changed.
     void updateChanged();
+    /// @brief The download's state, its percentage, or its availability changed.
+    void downloadChanged();
 
 private:
     /// @brief Restore provider wire options and persisted connection choices without touching credentials.
@@ -215,6 +225,7 @@ private:
     CaptureDuty capture_;
     ExplanationDuty explanation_;
     update::UpdateClient updateClient_;
+    update::DownloadClient updateDownloader_;
     UpdateDuty updateDuty_;
     llm::LlmClient& llm_;
     GlobalHotkey& hotkey_;

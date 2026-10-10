@@ -1,15 +1,26 @@
 {
   "_comment": [
-    "Where the update check asks, and the limits it asks under. The source is the repository's",
+    "Where the update check asks, and the limits it asks under. `source` is the repository's",
     "release page, which answers with a redirect to the newest tag; that redirect is the whole",
-    "answer and it is not followed, so this check reads no body and asks for no notes. The",
-    "request carries nothing the reader owns: no key, no auth header, no query, no install",
-    "identifier, and no words or selection text. A source that is not https is refused and nothing",
-    "is sent at all. The limits are the ceiling on one answer: a check that hangs or grows",
-    "without bound is a check the reader pays for on every start. Nothing is downloaded,",
-    "installed or run -- the card opens the release page and stops there."
+    "answer and it is not followed. The check sends nothing the reader owns: no key, no auth",
+    "header, no query, no install identifier, and no words or selection text.",
+    "",
+    "The download path is what a reader who presses Download on the card uses. `sumsName` is the",
+    "asset that publishes the SHA256 of the installer; a release without it is not downloadable,",
+    "which is the fail-closed direction. `maxDownloadBytes` caps one installer, `stallTimeoutMs`",
+    "gives up on a transfer that stops moving, `connectTimeoutMs` gives up on one that never",
+    "starts. A download that never got a single byte is reported with the proxy text, and one",
+    "that moved and then stopped is reported without it. A download is written to the reader's own local",
+    "cache and is launched only after its digest has been checked twice: once when it lands and",
+    "once just before it is run.",
+    "",
+    "Nothing is installed silently: the installer is run with no arguments at all."
   ],
   "source": "https://github.com/kakuyo1/lens/releases/latest",
+  "sumsName": "SHA256SUMS",
   "timeoutMs": 10000,
-  "maxBytes": 2097152
+  "maxBytes": 2097152,
+  "maxDownloadBytes": 209715200,
+  "stallTimeoutMs": 30000,
+  "connectTimeoutMs": 15000
 }
