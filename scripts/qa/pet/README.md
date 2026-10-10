@@ -42,5 +42,5 @@ node scripts/qa/pet/pet-interact.mjs
 ## 已知限制
 
 - 这些脚本是无头浏览器检查，不能代替真机验证。抓屏排除、鼠标穿透（`WS_EX_TRANSPARENT`）、
-  多屏和 DPI 行为只能在真实桌面窗口上验证，见 `PHASE3.md` §3.9。
+  多屏和 DPI 行为只能在真实桌面窗口上验证，见 `docs/history/PHASE3.md` §3.9。
 - 对比图只能人工看。脚本不判断动作"对不对"，只检查交互状态和页面错误。
