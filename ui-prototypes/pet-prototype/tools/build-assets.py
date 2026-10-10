@@ -97,13 +97,16 @@ for i in range(manifest["actions"]["sleep"]["frames"]):
     paste_frame(effect, i, draw_z)
 effect.save(ASSETS / manifest["actions"]["sleep"]["effect"])
 
-# Accessories: one full canvas PNG each, rects in grid cells.
+# Accessories: one full canvas PNG each. `rects` are in grid cells; `pixels` are in canvas units for
+# thin parts (glasses frames) that are narrower than one cell.
 for acc in manifest["accessories"]:
-    rects = sprite["accessories"][acc["id"]]["rects"]
+    spec = sprite["accessories"][acc["id"]]
     img = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
-    for x, y, w, h, colour in rects:
+    for x, y, w, h, colour in spec.get("rects", []):
         draw.rectangle(cell_box(x, y, w, h), fill=COLOURS[colour])
+    for x, y, w, h, colour in spec.get("pixels", []):
+        draw.rectangle((x, y, x + w - 1, y + h - 1), fill=COLOURS[colour])
     (ASSETS / acc["asset"]).parent.mkdir(parents=True, exist_ok=True)
     img.save(ASSETS / acc["asset"])
 

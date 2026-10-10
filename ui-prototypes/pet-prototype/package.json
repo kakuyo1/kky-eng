@@ -11,6 +11,7 @@
     "assets": "python tools/build-assets.py"
   },
   "devDependencies": {
+    "playwright": "^1.64.0",
     "vite": "^8.3.4"
   }
 }
