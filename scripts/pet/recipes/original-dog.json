@@ -1,0 +1,21 @@
+{
+  "_comment": "The shipped white dog (1.2.0). Run grid_from_shapes.py on this file to reproduce its head, body, eyes and mouth. Copy it and change the numbers to draw a new body; keep the grid at 18 x 17.",
+  "width": 18,
+  "height": 17,
+  "layers": {
+    "head": [
+      {"op": "add", "shape": "ellipse", "cx": 8.5, "cy": 3.2, "rx": 5.2, "ry": 3.7, "rows": [0, 6]},
+      {"op": "add", "shape": "ellipse", "cx": 2.9, "cy": 4.4, "rx": 1.5, "ry": 2.3, "rows": [0, 7]},
+      {"op": "add", "shape": "ellipse", "cx": 14.1, "cy": 4.4, "rx": 1.5, "ry": 2.3, "rows": [0, 7]}
+    ],
+    "body": [
+      {"op": "add", "shape": "ellipse", "cx": 8.5, "cy": 11.2, "rx": 5.4, "ry": 4.6, "rows": [7, 16]},
+      {"op": "add", "shape": "rect", "cols": [4, 6], "rows": [13, 16]},
+      {"op": "add", "shape": "rect", "cols": [11, 13], "rows": [13, 16]},
+      {"op": "discard", "shape": "rect", "cols": [7, 10], "rows": [15, 16]},
+      {"op": "add", "shape": "ellipse", "cx": 16.3, "cy": 8.6, "rx": 1.2, "ry": 1.2, "cols": [14, 17], "rows": [7, 10]}
+    ]
+  },
+  "eyes": [[7, 3], [10, 3]],
+  "mouth": [[8, 5], [9, 5], [7, 6], [10, 6]]
+}

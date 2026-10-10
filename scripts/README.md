@@ -8,6 +8,7 @@
 | --- | --- |
 | `build/` | Debug、RelWithDebInfo 构建和机器路径读取 |
 | `data/` | 词形数据生成与样例集独立校验 |
+| `pet/` | 桌宠美术流水线：形状配方、网格写入、配饰对位、素材同步与审查图（见其 README 与 `docs/pet-art-pipeline.md`） |
 | `profiling/` | QML profiler、QML 结构指标和 trace 解析 |
 | `qa/` | QML 快照、桌面驱动、截图和鼠标停顿探针；`qa/pet/` 是桌面宠物原型的逐动作对比与交互检查（见其 README） |
 | `quality/` | QML lint、C++ / QML 覆盖率和 AST 指标 |
