@@ -1,9 +1,17 @@
 # Changelog
 
-## Unreleased
+## 1.2.0 - 2026-10-11
+
+Third release of Lens. A desktop companion arrives, off by default, and the app checks for new
+releases and can download the installer once the reader asks for it.
 
 ### Added
 
+- Desktop pet: a white dog that lives on the desktop and plays actions as you study. It is off by
+  default and is switched on in Settings, under Extensions. It takes drags, clicks and three slots
+  of accessories, with a mouse pass-through switch and a size from one to four times. It reacts to
+  event types only and never reads your selections, explanations or screen text.
+- The pet celebrates when a new version is offered on the update card.
 - Update check: Lens asks the project's latest release once a day at startup, or when the
   reader presses "Check for updates" in General settings. A newer version raises a card with
   View and Skip this version; the startup check can be switched off there too.

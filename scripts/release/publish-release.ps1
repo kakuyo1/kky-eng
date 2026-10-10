@@ -14,6 +14,7 @@ $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $previousDirectory = Get-Location
 $notesPath = $null
+$sumsDir = $null
 try {
     Set-Location -LiteralPath $root
     $head = & git rev-parse HEAD
@@ -67,6 +68,14 @@ try {
     $currentHead = & git rev-parse HEAD
     if ($LASTEXITCODE -ne 0 -or $currentHead -ne $head) { throw 'publish-release: HEAD changed during build' }
 
+    # The update card downloads only an installer that this list names, so every release carries one (PHASE3 4.1).
+    # One line, lowercase digest, two spaces: the format the client reads with the checksum parser.
+    $sumsDir = Join-Path ([IO.Path]::GetTempPath()) ('lens-sums-' + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $sumsDir | Out-Null
+    $sumsPath = Join-Path $sumsDir 'SHA256SUMS'
+    $digest = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
+    [IO.File]::WriteAllText($sumsPath, "$digest  $(Split-Path -Leaf $installer)`n", [Text.UTF8Encoding]::new($false))
+
     $notesPath = [IO.Path]::GetTempFileName()
     [IO.File]::WriteAllText($notesPath, $section.Groups[1].Value.Trim(), [Text.UTF8Encoding]::new($false))
     & git push origin "HEAD:refs/heads/$branch"
@@ -75,7 +84,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'publish-release: tag creation failed' }
     & git push origin "refs/tags/$tag"
     if ($LASTEXITCODE -ne 0) { throw 'publish-release: tag push failed; local tag is retained' }
-    $arguments = @('release', 'create', $tag, $installer, '--repo', $repo,
+    $arguments = @('release', 'create', $tag, $installer, $sumsPath, '--repo', $repo,
         '--verify-tag', '--title', "Lens $Version", '--notes-file', $notesPath)
     if ($Draft) { $arguments += '--draft' }
     & gh @arguments
@@ -84,5 +93,6 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'publish-release: cannot verify release' }
 } finally {
     if ($notesPath) { Remove-Item -LiteralPath $notesPath -ErrorAction SilentlyContinue }
+    if ($sumsDir) { Remove-Item -LiteralPath $sumsDir -Recurse -ErrorAction SilentlyContinue }
     Set-Location -LiteralPath $previousDirectory
 }
