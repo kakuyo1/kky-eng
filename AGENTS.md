@@ -128,4 +128,18 @@ QML is the exception. `scripts/quality/qml-lint.sh`, called by the hook and by C
 - `scripts/README.md`: script layout, verification entry points, and release commands
 - `ui-prototypes/*.html`: prototype, one file per surface; `README.md` owns the layout and the edit rules
 - `TODO.md`: waiting for implement
-- `CLAUDE.local.md`: this machine's environment 
+- `CLAUDE.local.md`: this machine's environment
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues in `kakuyo1/lens`, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`. 
