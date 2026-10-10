@@ -89,18 +89,17 @@ Item {
         /// and the card draws them as words rather than showing what a transfer said.
         function test_theDownloadLineMapsEachStateToItsOwnText() {
             const card = opened().card;
-            compare(card.downloadText("downloading", 42, ""), "Downloading... 42%");
-            compare(card.downloadText("downloading", 0, ""), "Downloading...");
-            compare(card.downloadText("verifying", 0, ""), "Checking the download...");
-            compare(card.downloadText("ready", 100, ""), "The installer is ready to run.");
-            compare(card.downloadText("failed", 0, "generic"), "Download failed. Check your connection.");
-            compare(card.downloadText("failed", 0, "checksum"),
+            compare(card.downloadText("downloading", ""), "Downloading...");
+            compare(card.downloadText("verifying", ""), "Checking the download...");
+            compare(card.downloadText("ready", ""), "The installer is ready to run.");
+            compare(card.downloadText("failed", "generic"), "Download failed. Check your connection.");
+            compare(card.downloadText("failed", "checksum"),
                     "The download did not match the published checksum. It was deleted.");
-            compare(card.downloadText("failed", 0, "proxy"),
+            compare(card.downloadText("failed", "proxy"),
                     "Downloads from GitHub usually need a proxy in mainland China. Turn on your proxy and try again.");
             // Nothing to say, and a state nobody wrote yet.
-            compare(card.downloadText("idle", 0, ""), "");
-            compare(card.downloadText("something-new", 0, ""), "");
+            compare(card.downloadText("idle", ""), "");
+            compare(card.downloadText("something-new", ""), "");
             card.visible = false;
         }
 

@@ -53,11 +53,9 @@ Window {
     /// A function of the state, so the surface can never carry a transport's own words: the
     /// failure text is picked from three fixed sentences by key. `idle` with nothing to show
     /// says nothing at all.
-    function downloadText(state, percent, failure) {
+    function downloadText(state, failure) {
         if (state === "downloading")
-            return percent > 0
-                    ? qsTranslate("UpdateCard", "Downloading... %1%").arg(percent)
-                    : qsTranslate("UpdateCard", "Downloading...");
+            return qsTranslate("UpdateCard", "Downloading...");
         if (state === "verifying")
             return qsTranslate("UpdateCard", "Checking the download...");
         if (state === "ready")
@@ -156,7 +154,7 @@ Window {
             Text {
                 objectName: "downloadLine"
                 width: parent.width
-                text: card.downloadText(card.download.state, card.download.percent, card.download.failure)
+                text: card.downloadText(card.download.state, card.download.failure)
                 visible: text !== ""
                 color: card.download.state === "failed" ? Tokens.danger : Tokens.muted
                 font.pixelSize: 12

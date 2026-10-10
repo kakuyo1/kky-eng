@@ -27,6 +27,10 @@ The repository has no published release support window or response-time commitme
 - Before sending, Lens masks URLs, email addresses, and digit strings of six or more digits. This is limited pattern masking, not complete personal-data detection. Names, addresses, source code, short identifiers, and other sensitive content may remain.
 - The API key is stored in the per-user settings file rather than the installation directory. Request and settings logs avoid printing the key itself.
 - Model-list requests use HTTPS, a timeout, and response-size and item-count limits. Model responses are parsed and checked against the expected response shape before use.
+- Update checks make one HTTPS `GET` to this project's latest release page on GitHub and read the version from its redirect. The request carries only a `User-Agent: Lens/<version>` header: no API key, no selected or captured text, and no installation identifier. Redirects are not followed except to GitHub's release download path and its two asset hosts, at most five hops.
+- The download path runs only when the reader presses Download on the update card. It fetches the release's `SHA256SUMS` and the installer for the newer version, writes the installer to `%LOCALAPPDATA%\Lens\updates` as a partial file, and renames it only after its SHA256 matches the published value. The digest is checked again immediately before the installer is started, which runs with no command-line arguments and is never silent.
+- The checksum shows that the file arrived intact. It does not prove who published it: the installer is not code-signed, and a checksum taken from the same release cannot detect a compromised release. Run only releases you trust.
+- Download sizes, stalls and connections are bounded. A checksum list is only read when a newer version is found, and a release that publishes no `SHA256SUMS` is not downloadable.
 - OCR input, output, runtime, and child-process lifetime are bounded. OCR runs locally; the resulting text can still be sent to the selected provider if it passes local filtering and the reader's capture settings allow it.
 
 ## Reader guidance
@@ -34,6 +38,8 @@ The repository has no published release support window or response-time commitme
 - Do not send passwords, private messages, confidential work, personal records, or other material you are not comfortable sharing with your configured provider.
 - Review that provider's privacy and retention terms before entering an API key. A custom HTTPS endpoint receives both the key and request content, so configure only an endpoint you trust.
 - Leave automatic scanning off unless you need it. When enabled, keep its application allowlist narrow.
+- Downloads come from GitHub and may need a proxy from mainland China. Lens does not configure a proxy for them; it uses the system proxy setting, and reports a download that never receives data with a proxy hint.
+- Lens does not run a downloaded installer you have not pressed Install for. Delete `%LOCALAPPDATA%\Lens\updates` at any time; Lens recreates it when needed.
 - Protect access to your Windows account and user profile. Anyone or any software running as your user may be able to read the settings file and logs.
 - To remove local Lens data, exit the application and delete `%APPDATA%\Lens`. This also removes the saved API key, settings, cache, and learning history.
 
