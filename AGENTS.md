@@ -9,7 +9,7 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 - Designing or auditing a UI surface starts by loading the `taste-skill` skill; a surface that has been rendered is checked with `visual-qa`.
 - Keep `GLOSSARY.md`, `PRODUCT.md`, and `UI.md` in sync on any design change; record major trade-offs in `docs/adr/`.
 - Default to Chinese in replies.
-- The API key lives in `%APPDATA%\Lens\settings.json`, the reader's own profile and never the install directory; it is never logged, never echoed in errors, never committed. The repository's gitignored `settings.local.json` is that document's development source, copied over once on a first run (`src/app/main.cpp`).
+- The API key lives in `%APPDATA%\Lens\settings.json`, the reader's own profile and never the install directory; it is never logged, never echoed in errors, never committed, and never copied out of the profile: read it in place. The repository's gitignored `settings.local.json` is that document's development source, copied over once on a first run (`src/app/main.cpp`).
 
 ## Project Structure
 
@@ -17,7 +17,7 @@ You are the AI assistant for Lens, a Windows desktop English-learning tool built
 lens/
 ├── .claude           # project settings: the Qt skill family enabled (settings.json)
 ├── .clang-format     # code format spec
-├── .githooks         # pre-commit: typography budget, clang-format, PROBE, QML, absolute paths
+├── .githooks         # pre-commit and commit-msg; each file's header lists its checks
 ├── cmake             # headers only: the precompiled ones CMakeLists.txt applies
 ├── config            # paths.json — the machine paths; README.md owns the rule and its exemptions
 ├── data              # wordlist + llm/ (wire protocol as data)
@@ -62,8 +62,10 @@ relative to the repository root, and nothing else writes either kind by hand.
 
 Tests live under `test/googletest/` (gtest): `unit/` offline, `integration/` real Windows APIs (human-run), `perf/` measurement, `smoke/` real model, with `e2e/` the name for what comes next. The Qt and QML side is `test/qtest/` (QTest), which needs a window; it is not here.
 
+Set `QT_ROOT` from the `qtRoot` key of `config/paths.json` first; `build.bat` does that for itself.
+
 ```
-PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH QT_FORCE_STDERR_LOGGING=1 \
+PATH="$QT_ROOT/bin:$PATH" QT_FORCE_STDERR_LOGGING=1 \
   ./build-ninja/test/googletest/lens_gtest_unit.exe
 ```
 
@@ -78,8 +80,8 @@ Match the run to the change instead of running the whole matrix every time: a on
 English is the source language: `i18n/lens_en_US.ts` mirrors the source strings, `i18n/lens_zh_CN.ts` carries the Chinese. After adding or changing a reader-facing string:
 
 ```
-PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH lupdate src -ts i18n/lens_en_US.ts i18n/lens_zh_CN.ts
-PATH=/b/qtt/6.9.0/msvc2022_64/bin:$PATH lrelease i18n/lens_en_US.ts i18n/lens_zh_CN.ts
+PATH="$QT_ROOT/bin:$PATH" lupdate src -ts i18n/lens_en_US.ts i18n/lens_zh_CN.ts
+PATH="$QT_ROOT/bin:$PATH" lrelease i18n/lens_en_US.ts i18n/lens_zh_CN.ts
 ```
 
 `lupdate` appends new strings as `unfinished` and leaves existing translations alone, so rerunning is safe. Write the Chinese into `lens_zh_CN.ts` and copy the source text into `lens_en_US.ts`; `lrelease` is the check, and the goal is zero unfinished. The `.qm` files are build output and stay gitignored.

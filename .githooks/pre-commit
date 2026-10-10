@@ -1,5 +1,5 @@
 #!/bin/sh
-# Lens pre-commit: the five checks that are mechanical and cheap.
+# Lens pre-commit: the checks that are mechanical and cheap.
 #
 # 1. Chinese typography, as a ratchet. Several docs carry errors that predate this hook --
 #    English prose tripping Chinese rules, mostly -- so each doc is compared against the
@@ -18,9 +18,21 @@
 #    wrong on the next machine, and this project had the same Qt prefix handwritten in four
 #    places. config/paths.json is the one file allowed to hold them; config/README.md owns the
 #    rule and names every exemption, docs/adr/0006 the reasoning.
+# 6. Font weights. UI.md section 3.2 allows two weights, 400 and 700. A named or numeric weight
+#    outside those in a .qml file is caught here.
+# 7. Phase labels. UI.md and ui-prototypes/ do not name a development phase.
+# 8. Chinese in code. UI.md's i18n section keeps code English; the one Chinese fixture is in test/.
+# 9. File headers. Every src/ C++ file opens with a /** @file block (AGENTS.md, Code Style).
+# 10. QML size. QML.md section 1 caps a .qml file at 32768 characters.
+# 11. API keys. A key-shaped string in a staged file is refused, and only its line number is
+#     printed, so the hook does not echo the key into the log.
 #
 # Only what this commit touches is checked, which keeps a commit hook under a few seconds. The
 # QML check is the exception, and it is the one that only runs when a .qml file is staged.
+#
+# CI runs this same file over the files a push or pull request changes: LENS_CHECK_FILES carries
+# that list, and LENS_SKIP_QML=1 leaves QML to the qml job, which has the build tree. See
+# .github/workflows/ci.yml, job hygiene.
 #
 # Setup, once per clone:  git config core.hooksPath .githooks
 #
@@ -38,6 +50,10 @@
 
 set -u
 
+# The Chinese patterns and grep -P need a UTF-8 locale. Under zh_CN, grep -P exits 2 and the
+# check reads that as a pass.
+export LC_ALL=C.UTF-8
+
 cd "$(git rev-parse --show-toplevel)" || exit 0
 
 # Per-doc error budgets. Ratchet: lower on cleanup, never raise to pass.
@@ -48,10 +64,10 @@ GLOSSARY.md 0
 docs/history/PHASE1.md 0
 docs/history/PHASE2.md 0
 docs/history/PHASE3.md 0
-PRODUCT.md 11
+PRODUCT.md 0
 TEST.md 0
 TODO.md 0
-UI.md 27
+UI.md 0
 docs/QML.md 0
 docs/adr/README.md 0
 docs/adr/0001-mouse-hook-own-thread.md 0
@@ -75,7 +91,8 @@ docs/adr/0018-provider-model-list-contract.md 0
 docs/adr/0019-etymology-outside-the-cache-key.md 0
 ui-prototypes/README.md 0'
 
-staged=$(git diff --cached --name-only --diff-filter=ACM)
+# The files the checks read: what a commit stages, or the list CI hands in through LENS_CHECK_FILES.
+staged=${LENS_CHECK_FILES:-$(git diff --cached --name-only --diff-filter=ACM)}
 
 # One value out of config/paths.json, through the reader the PowerShell scripts and CMake use, so
 # the merge with config/paths.local.json happens the same way everywhere. Through PowerShell
@@ -122,8 +139,17 @@ check_typography() {
 
     status=0
     for doc in $staged; do
+        case "$doc" in
+            *.md) ;;
+            *) continue ;;
+        esac
         limit=$(printf '%s\n' "$BASELINES" | awk -v d="$doc" '$1 == d { print $2 }')
-        [ -n "$limit" ] || continue
+        # AGENTS.md is read by agents, and zhlint is for documents people read.
+        [ "$doc" = AGENTS.md ] && continue
+        if [ -z "$limit" ]; then
+            echo "pre-commit: $doc has no typography budget, so it is not checked; add one to BASELINES"
+            continue
+        fi
 
         # Both streams: zhlint prints the offending lines on stderr and the verdict on
         # stdout. Keeping only stdout counts zero every time, which is a check that always
@@ -185,6 +211,7 @@ EOF
     status=0
     for file in $staged; do
         case "$file" in
+            third_party/*) continue ;;
             *.cpp | *.h | *.hpp | *.cc) ;;
             *) continue ;;
         esac
@@ -230,6 +257,9 @@ check_probes() {
 }
 
 check_qml() {
+    if [ -n "${LENS_SKIP_QML:-}" ]; then
+        return 0
+    fi
     printf '%s\n' "$staged" | grep -q '^src/app/qml/' || return 0
     [ -x scripts/quality/qml-lint.sh ] || { echo "pre-commit: scripts/quality/qml-lint.sh not found, skipping QML lint"; return 0; }
     scripts/quality/qml-lint.sh
@@ -268,6 +298,126 @@ check_absolute_paths() {
     return $status
 }
 
+# UI.md section 3.2: two font weights, Normal (400) and Bold (700). Font.DemiBold, Font.SemiBold
+# and the other named weights, or a numeric font.weight, all break that.
+check_font_weights() {
+    status=0
+    for file in $staged; do
+        case "$file" in
+            *.qml) ;;
+            *) continue ;;
+        esac
+        [ -f "$file" ] || continue
+
+        hits=$(grep -nE 'Font\.(Thin|ExtraLight|Light|Medium|SemiBold|DemiBold|ExtraBold|Black)\b|font\.weight\s*:\s*[0-9]' "$file" || true)
+        [ -n "$hits" ] || continue
+
+        echo "pre-commit: $file uses a font weight other than 400 or 700"
+        printf '%s\n' "$hits" | head -10
+        echo "  UI.md section 3.2 allows Normal and Bold only"
+        status=1
+    done
+    return $status
+}
+
+# UI.md and the prototypes describe the product, and a product surface names no development phase.
+check_phase_labels() {
+    status=0
+    for file in $staged; do
+        case "$file" in
+            UI.md | ui-prototypes/*) ;;
+            *) continue ;;
+        esac
+        [ -f "$file" ] || continue
+
+        hits=$(grep -nE '阶段[一二三四五六七八九十0-9]|PHASE-?[0-9]' "$file" || true)
+        [ -n "$hits" ] || continue
+
+        echo "pre-commit: $file names a development phase"
+        printf '%s\n' "$hits" | head -10
+        echo "  describe what the surface does instead of which phase it belongs to"
+        status=1
+    done
+    return $status
+}
+
+# UI.md's i18n section: code is English, and every string goes through tr(). The one Chinese
+# fixture lives under test/, outside src/, so src/ has no exception.
+check_cjk() {
+    status=0
+    for file in $staged; do
+        case "$file" in
+            src/*.cpp | src/*.h | src/*.hpp | src/*.cc | src/*.qml) ;;
+            *) continue ;;
+        esac
+        [ -f "$file" ] || continue
+
+        hits=$(grep -nP '[\x{4E00}-\x{9FFF}]' "$file" || true)
+        [ -n "$hits" ] || continue
+
+        echo "pre-commit: $file has Chinese in code"
+        printf '%s\n' "$hits" | head -10
+        echo "  write the English source string and let lupdate carry the Chinese (UI.md, i18n)"
+        status=1
+    done
+    return $status
+}
+
+# AGENTS.md, Code Style: every src/ C++ file opens with a /** @file block.
+check_file_headers() {
+    status=0
+    for file in $staged; do
+        case "$file" in
+            src/*.cpp | src/*.h | src/*.hpp | src/*.cc) ;;
+            *) continue ;;
+        esac
+        [ -f "$file" ] || continue
+
+        head -n 20 "$file" | grep -q '@file' && continue
+
+        echo "pre-commit: $file has no /** @file block in its first 20 lines"
+        echo "  AGENTS.md, Code Style: every file opens with one"
+        status=1
+    done
+    return $status
+}
+
+# QML.md section 1: a .qml file over 32768 characters does not parse.
+check_qml_size() {
+    status=0
+    for file in $staged; do
+        case "$file" in
+            *.qml) ;;
+            *) continue ;;
+        esac
+        [ -f "$file" ] || continue
+
+        chars=$(LC_ALL=C.UTF-8 wc -m < "$file")
+        [ "$chars" -le 32768 ] && continue
+
+        echo "pre-commit: $file is $chars characters; QML.md section 1 caps a .qml file at 32768"
+        status=1
+    done
+    return $status
+}
+
+# AGENTS.md: the key lives in the profile's settings.json and nowhere else. Only line numbers are
+# printed: echoing the match would print the key into the terminal and the transcript.
+check_api_keys() {
+    status=0
+    for file in $staged; do
+        [ -f "$file" ] || continue
+
+        lines=$(grep -nIE 'sk-[A-Za-z0-9_-]{20,}' "$file" | cut -d: -f1 | tr '\n' ' ' || true)
+        [ -n "$lines" ] || continue
+
+        echo "pre-commit: $file looks like it holds an API key, at line(s) $lines"
+        echo "  keys stay in the profile's settings.json; remove the value before committing"
+        status=1
+    done
+    return $status
+}
+
 # "fail", not "status": every check below keeps its own running answer in a shell-wide
 # "status", so a dispatcher that used the same name would have an earlier failure wiped out by
 # the next check finishing cleanly. That is not hypothetical -- with "status" here, a document
@@ -279,4 +429,10 @@ check_formatting || fail=1
 check_probes || fail=1
 check_qml || fail=1
 check_absolute_paths || fail=1
+check_font_weights || fail=1
+check_phase_labels || fail=1
+check_cjk || fail=1
+check_file_headers || fail=1
+check_qml_size || fail=1
+check_api_keys || fail=1
 exit $fail

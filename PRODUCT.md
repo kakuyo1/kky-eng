@@ -1,6 +1,7 @@
 # 屏幕英语学习助手 — 原型设计
 
 > 术语见 `GLOSSARY.md`，UI 规格见 `UI.md`。后续改动以本文件 + GLOSSARY 为准，重大取舍记 `docs/adr/`。
+> 原型 `ui-prototypes/` 与 UI 规格 `UI.md` 不一致时，以规格为准；偏离规格之处须在交付说明中列出。
 
 ## 定位
 

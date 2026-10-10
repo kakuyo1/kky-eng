@@ -2,7 +2,7 @@
 # written, but nothing ever ran it -- it held only as long as someone
 # remembered to run it by hand.
 #
-# Five jobs, one concern each, so a red run says what broke instead of naming the one job that
+# Six jobs, one concern each, so a red run says what broke instead of naming the one job that
 # held everything:
 #
 #   unit          the offline gtest suite. The cheapest job in the file: it is the only suite
@@ -15,6 +15,7 @@
 #                 offscreen.
 #   coverage-cpp  the C++ line scan, report only.
 #   coverage-qml  the QML execution scan, report only.
+#   hygiene       the pre-commit hook's checks, over the files this change touches.
 #
 # Every job installs Qt and configures its own tree -- about 45 s of the fixed cost, paid five
 # times. That is the price of not shipping a build tree between jobs: a Debug tree with the PDBs
@@ -199,3 +200,28 @@ jobs:
         with:
           name: coverage-qml
           path: test/records/qmlcov/qml-coverage.json
+
+  hygiene:
+    runs-on: windows-latest
+
+    steps:
+      # The pre-commit hook is the one copy of these rules. CI hands it the files this push or pull
+      # request changed, so a red run names the file; the qml job runs the QML lint instead.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      # 19.1.5 is the version the VS copy ships (config/paths.json), so CI formats the way a
+      # developer's machine does. The hook finds it on PATH.
+      - name: Install clang-format
+        run: pip install clang-format==19.1.5
+
+      # A push to main compares against the previous head. A zero "before" (a brand-new branch)
+      # makes the diff fail, which leaves the file list empty and checks nothing.
+      - name: Text, format and guard checks
+        shell: bash
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          LENS_SKIP_QML: "1"
+        run: |
+          LENS_CHECK_FILES="$(git diff --name-only --diff-filter=ACM "$BASE" HEAD)" sh .githooks/pre-commit
