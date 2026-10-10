@@ -1,10 +1,13 @@
+/**
+ * @file pet_state.cpp
+ * @brief Implementation of PetStateMachine: the priority rules, held states, and the random idle pick.
+ */
+
 #include "core/pet/pet_state.h"
 
 #include <algorithm>
 #include <array>
 #include <cstddef>
-#include <optional>
-#include <utility>
 #include <vector>
 
 namespace lens::core::pet {
@@ -12,32 +15,35 @@ namespace lens::core::pet {
 namespace {
 
 /// Actions the idle timer picks from (PHASE3 3.3: random idle chooses among the situational actions).
-constexpr std::array<Action, 2> kRandomIdle{Action::LookAround, Action::Stretch};
+constexpr std::array<Action, 2> kSituationalIdle{Action::LookAround, Action::Stretch};
 
 } // namespace
 
-PetStateMachine::PetStateMachine(ActionSpecs specs_, RandomSource random_)
-    : specs{std::move(specs_)}, random{std::move(random_)}
+PetStateMachine::PetStateMachine(ActionSpecs const& specs_, RandomSource const& random_)
+    : specs{specs_}, random{random_}
 {
-    idleWait = nextIdleWait();
+    enter(Action::Idle, Priority::Idle);
+}
+
+bool PetStateMachine::blinking() const
+{
+    return specs.at(current).blinks;
 }
 
 void PetStateMachine::handle(PetEvent event)
 {
-    resume.reset();
+    pendingReturn.reset();
     quiet = std::chrono::milliseconds{0};
     switch (event) {
         case PetEvent::DragStart:
             if (dragging) return;
             dragging = true;
-            current  = Action::Pickup;
-            priority = Priority::Drag;
-            elapsed  = std::chrono::milliseconds{0};
+            enter(Action::Pickup, Priority::Drag);
             return;
         case PetEvent::DragEnd:
             if (not dragging) return;
             dragging = false;
-            enterIdle();
+            enter(Action::Idle, Priority::Idle);
             return;
         case PetEvent::Click:
             if (not dragging) request(Action::ClickReact, Priority::Click);
@@ -49,12 +55,10 @@ void PetStateMachine::handle(PetEvent event)
             request(Action::Thinking, Priority::Event);
             return;
         case PetEvent::ExplanationShown:
-            held = Action::Study;
-            request(Action::Study, Priority::Event);
+            hold(Action::Study);
             return;
         case PetEvent::ExplanationHidden:
-            if (held == Action::Study) held.reset();
-            if (current == Action::Study) settle();
+            release(Action::Study);
             return;
         case PetEvent::KnownMarked:
         case PetEvent::UpdateAvailable:
@@ -64,12 +68,10 @@ void PetStateMachine::handle(PetEvent event)
             request(Action::Encourage, Priority::Event);
             return;
         case PetEvent::BudgetPaused:
-            held = Action::Sleep;
-            request(Action::Sleep, Priority::Event);
+            hold(Action::Sleep);
             return;
         case PetEvent::BudgetResumed:
-            if (held == Action::Sleep) held.reset();
-            if (current == Action::Sleep) settle();
+            release(Action::Sleep);
             return;
     }
 }
@@ -83,65 +85,76 @@ void PetStateMachine::advance(std::chrono::milliseconds step)
         return;
     }
     if (current == Action::Idle) {
-        idle += step;
-        if (idle >= idleWait) {
+        idleMs += step;
+        if (idleMs >= idleWait) {
             if (auto const pick = pickRandomIdle()) request(*pick, Priority::Situational);
         }
         return;
     }
     elapsed += step;
+    if (current == Action::Thinking) {
+        if (elapsed >= kThinkingTimeout) settle();
+        return;
+    }
     if (not specs.at(current).loop and elapsed >= durationOf(current)) settle();
 }
 
-bool PetStateMachine::request(Action next, Priority requested)
+void PetStateMachine::request(Action next, Priority requested)
 {
     // Thinking waits for the explanation that the event completes, so any event replaces it.
     auto const givesWayToThinking = current == Action::Thinking and requested == Priority::Event;
-    auto const atOrBelow          = static_cast<std::uint8_t>(requested) <= static_cast<std::uint8_t>(priority);
-    if (atOrBelow and not givesWayToThinking) return false;
-    current  = next;
-    priority = requested;
-    resume   = specs.at(next).returnTo;
-    elapsed  = std::chrono::milliseconds{0};
-    return true;
+    if (requested <= priority and not givesWayToThinking) return;
+    enter(next, requested);
 }
 
-void PetStateMachine::enterIdle()
+void PetStateMachine::enter(Action next, Priority newPriority)
 {
-    current  = Action::Idle;
-    priority = Priority::Idle;
-    elapsed  = std::chrono::milliseconds{0};
-    idle     = std::chrono::milliseconds{0};
-    idleWait = nextIdleWait();
+    current       = next;
+    priority      = newPriority;
+    elapsed       = std::chrono::milliseconds{0};
+    pendingReturn = specs.at(next).returnTo;
+    if (next == Action::Idle) {
+        idleMs   = std::chrono::milliseconds{0};
+        idleWait = nextIdleWait();
+    }
+}
+
+void PetStateMachine::hold(Action state)
+{
+    held = state;
+    request(state, Priority::Event);
+}
+
+void PetStateMachine::release(Action state)
+{
+    if (held == state) held.reset();
+    if (current == state) settle();
 }
 
 void PetStateMachine::settle()
 {
-    auto const next = resume.value_or(held.value_or(Action::Idle));
-    resume.reset();
-    if (next == Action::Idle) {
-        enterIdle();
+    // A yawn's return to sleep is situational, so a learning event can still wake the dog into reading.
+    // A held state returns at event priority, as it started.
+    if (pendingReturn) {
+        enter(*pendingReturn, Priority::Situational);
         return;
     }
-    current  = next;
-    priority = Priority::Event;
-    elapsed  = std::chrono::milliseconds{0};
+    if (held) {
+        enter(*held, Priority::Event);
+        return;
+    }
+    enter(Action::Idle, Priority::Idle);
 }
 
 std::optional<Action> PetStateMachine::pickRandomIdle()
 {
-    // Only actions with a playback are candidates: stretch may be missing from the table (PHASE3 3.1).
-    std::vector<Action> available;
-    for (auto const candidate : kRandomIdle) {
-        if (specs.count(candidate) != 0) available.push_back(candidate);
-    }
-    if (available.empty()) return std::nullopt;
-
+    // Never the action just played, and only actions that have a playback (PHASE3 3.1, 3.3).
     std::vector<Action> choices;
-    for (auto const candidate : available) {
-        if (candidate != lastIdle) choices.push_back(candidate);
+    for (auto const candidate : kSituationalIdle) {
+        if (specs.count(candidate) != 0 and candidate != lastIdle) choices.push_back(candidate);
     }
-    if (choices.empty()) choices = available; // the only playback left is reused, never skipped
+    if (choices.empty()) return std::nullopt;
+
     auto const index = std::min(static_cast<std::size_t>(random() * static_cast<double>(choices.size())),
                                 choices.size() - 1);
     lastIdle         = choices[index];

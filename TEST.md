@@ -38,7 +38,7 @@ test/
 
 | 目标 | 内容 | 何时跑 |
 | --- | --- | --- |
-| `lens_gtest_unit` | 样例集 / KnownStore 与 StatsStore 往返 / LLM 纯函数 / 词汇导出与 app 接缝的纯部分 | 每次改动，可进 CI |
+| `lens_gtest_unit` | 样例集 / KnownStore 与 StatsStore 往返 / LLM 纯函数 / 词汇导出与 app 接缝的纯部分 / 桌面宠物的状态机、数据解析与配饰 | 每次改动，可进 CI |
 | `lens_gtest_integration` | 选区捕获：手势规则 / 终端排除 / 钩子与剪贴板的真机往返 | 动选区入口时，人工执行 |
 | `lens_gtest_perf` | FilterCore 吞吐 + profiling 报告 | 动内核时 |
 | `lens_gtest_smoke` | 1 词真模型往返，一次进程最多 3 次真实调用 | 动 LLM 链路时，人工执行 |

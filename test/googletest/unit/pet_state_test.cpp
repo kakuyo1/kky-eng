@@ -2,11 +2,13 @@
  * @file pet_state_test.cpp
  * @brief PetStateMachine, offline: the clock is stepped by the test and the random source is injected.
  *
- * Covers PHASE3 3.3 and the state-machine rows of 3.9. Expected timings come from the action table
- * in the prototype (assets/pet/manifest.json), so a change there shows up here first.
+ * Covers PHASE3 3.2, 3.3 and the state-machine rows of 3.9. The playback below is copied by hand from the
+ * prototype's assets/pet/manifest.json; this test does not read that file, so a change there must be copied here.
  */
 
 #include <chrono>
+#include <optional>
+#include <type_traits>
 
 #include <gtest/gtest.h>
 
@@ -22,20 +24,25 @@ using lens::core::pet::PetStateMachine;
 using lens::core::pet::RandomSource;
 using namespace std::chrono_literals;
 
+ActionSpec playback(int frames, int fps, bool loop, std::optional<Action> returnTo = std::nullopt, bool blinks = false)
+{
+    return ActionSpec{.frames = frames, .fps = fps, .loop = loop, .returnTo = returnTo, .blinks = blinks};
+}
+
 ActionSpecs specs()
 {
     return {
-        {Action::Idle, ActionSpec{5, 5, true}},
-        {Action::Study, ActionSpec{6, 4, true}},
-        {Action::Thinking, ActionSpec{4, 3, true}},
-        {Action::Celebrate, ActionSpec{8, 10, false}},
-        {Action::Encourage, ActionSpec{5, 8, false}},
-        {Action::Sleep, ActionSpec{4, 3, true}},
-        {Action::ClickReact, ActionSpec{4, 12, false}},
-        {Action::Pickup, ActionSpec{4, 6, true}},
-        {Action::LookAround, ActionSpec{6, 6, false}},
-        {Action::Yawn, ActionSpec{5, 6, false, Action::Sleep}},
-        {Action::Stretch, ActionSpec{6, 6, false}},
+        {Action::Idle, playback(5, 5, true, std::nullopt, true)},
+        {Action::Study, playback(6, 4, true, std::nullopt, true)},
+        {Action::Thinking, playback(4, 3, true, std::nullopt, true)},
+        {Action::Celebrate, playback(8, 10, false)},
+        {Action::Encourage, playback(5, 8, false)},
+        {Action::Sleep, playback(4, 3, true)},
+        {Action::ClickReact, playback(4, 12, false)},
+        {Action::Pickup, playback(4, 6, true)},
+        {Action::LookAround, playback(6, 6, false)},
+        {Action::Yawn, playback(5, 6, false, Action::Sleep)},
+        {Action::Stretch, playback(6, 6, false)},
     };
 }
 
@@ -87,6 +94,15 @@ TEST(PetStateMachine, EqualPriorityEventWaitsUntilTheOneShotEnds)
     EXPECT_EQ(machine.action(), Action::Study);
 }
 
+TEST(PetStateMachine, NewWordAlsoWaitsForReading)
+{
+    // A known-word or new-word event is dropped while reading plays: it is at the same tier.
+    auto machine = makeMachine();
+    machine.handle(PetEvent::ExplanationShown);
+    machine.handle(PetEvent::KnownMarked);
+    EXPECT_EQ(machine.action(), Action::Study);
+}
+
 TEST(PetStateMachine, SelectionDoesNotInterruptAClick)
 {
     auto machine = makeMachine();
@@ -111,6 +127,17 @@ TEST(PetStateMachine, ThinkingGivesWayToTheExplanation)
 
     machine.handle(PetEvent::ExplanationShown);
     EXPECT_EQ(machine.action(), Action::Study);
+}
+
+TEST(PetStateMachine, ThinkingGivesUpAfterItsTimeoutWithoutAnExplanation)
+{
+    auto machine = makeMachine();
+    machine.handle(PetEvent::ExplanationRequested);
+    machine.advance(PetStateMachine::kThinkingTimeout - 1ms);
+    ASSERT_EQ(machine.action(), Action::Thinking);
+
+    machine.advance(1ms);
+    EXPECT_EQ(machine.action(), Action::Idle);
 }
 
 TEST(PetStateMachine, ExplanationHiddenEndsReadingAndReturnsToIdle)
@@ -193,17 +220,42 @@ TEST(PetStateMachine, RandomIdleDoesNotRepeatTheLastPick)
     EXPECT_EQ(machine.action(), Action::Stretch);
 }
 
-TEST(PetStateMachine, RandomIdleOnlyPicksActionsThatHaveAPlayback)
+TEST(PetStateMachine, RandomIdleNeverRepeatsWhenOnlyOneChoiceIsLeft)
 {
-    // Stretch is optional in the first version (PHASE3 3.1), so a table without it must still idle cleanly.
+    // Stretch is optional in the first version (PHASE3 3.1). Without it, look around is the only candidate,
+    // and playing it twice in a row is what 3.3 forbids, so the dog stays idle instead.
     auto table = specs();
     table.erase(Action::Stretch);
     PetStateMachine machine{table, RandomSource{[] { return 0.0; }}};
     machine.advance(20s);
     ASSERT_EQ(machine.action(), Action::LookAround);
+
     machine.advance(1s);
     machine.advance(20s);
-    EXPECT_EQ(machine.action(), Action::LookAround); // the only choice left is reused, not skipped
+    EXPECT_EQ(machine.action(), Action::Idle);
+}
+
+TEST(PetStateMachine, BlinkingOnlyInTheActionsThatDeclareIt)
+{
+    auto machine = makeMachine();
+    EXPECT_TRUE(machine.blinking());
+
+    machine.handle(PetEvent::ExplanationShown);
+    EXPECT_TRUE(machine.blinking());
+
+    machine.handle(PetEvent::Click);
+    EXPECT_FALSE(machine.blinking());
+
+    machine.handle(PetEvent::BudgetPaused);
+    EXPECT_FALSE(machine.blinking());
+}
+
+TEST(PetStateMachine, EventsCarryNoText)
+{
+    // PHASE3 3.9: the event is a bare enum, so no word, selection or explanation text can travel with it.
+    static_assert(std::is_enum_v<PetEvent>);
+    static_assert(std::is_same_v<std::underlying_type_t<PetEvent>, std::uint8_t>);
+    SUCCEED();
 }
 
 TEST(PetStateMachine, ThreeMinutesOfQuietYawnsThenSleeps)
@@ -215,6 +267,18 @@ TEST(PetStateMachine, ThreeMinutesOfQuietYawnsThenSleeps)
 
     machine.advance(833ms); // 5 frames at 6 fps
     EXPECT_EQ(machine.action(), Action::Sleep);
+}
+
+TEST(PetStateMachine, ExplanationWakesTheDogAfterTheYawnIntoSleep)
+{
+    // The yawn's return to sleep is situational: a learning event can still start reading.
+    auto machine = makeMachine(0.999);
+    runUntil(machine, Action::Yawn);
+    machine.advance(833ms);
+    ASSERT_EQ(machine.action(), Action::Sleep);
+
+    machine.handle(PetEvent::ExplanationShown);
+    EXPECT_EQ(machine.action(), Action::Study);
 }
 
 TEST(PetStateMachine, ClickDuringYawnCancelsTheReturnToSleep)

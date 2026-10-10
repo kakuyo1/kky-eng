@@ -5,6 +5,7 @@ add_library(lens_core STATIC
   stats_store.cpp
   pet/pet_state.cpp
   pet/pet_config.cpp
+  pet/accessory.cpp
 )
 
 # src/ is exposed for self-contained "core/xxx.h" includes; third_party/ for nlohmann/json.hpp
