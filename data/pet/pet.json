@@ -1,0 +1,12 @@
+{
+  "id": "dog",
+  "canvas": 88,
+  "height": 88,
+  "scale": 3,
+  "layers": {
+    "body": 0,
+    "expression": 2,
+    "effect": 6
+  },
+  "expression": "sprites/expressions/eyes.png"
+}

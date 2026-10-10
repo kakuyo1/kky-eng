@@ -50,9 +50,11 @@ AppController::AppController(core::KnownStore& store,
                              QObject* parent)
     : QObject(parent),
       storage_(store),
-      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, QString::fromUtf8(LENS_VERSION), [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey)
+      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDownloader_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, updateDownloader_, QString::fromUtf8(LENS_VERSION), Launcher{}, QString{}, [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey)
 {
+    budgetPaused_ = cost_.budgetStatus().exhausted;
     connect(&capture_, &CaptureDuty::selectionBarRequested, this, &AppController::selectionBarRequested);
+    connect(&capture_, &CaptureDuty::selectionBarRequested, this, [this] { emit petEvent(core::pet::PetEvent::SelectionShown); });
     connect(&capture_, &CaptureDuty::selectionActionRequested, this, [this](QString action, QString text) {
         explanation_.runSelectionAction(std::move(action), std::move(text));
     });
@@ -77,6 +79,7 @@ AppController::AppController(core::KnownStore& store,
         emit statsChanged();
         emit yearDaysChanged();
     });
+    connect(&explanation_, &ExplanationDuty::petEvent, this, &AppController::petEvent);
     connect(&cost_, &CostDuty::stateChanged, this, [this] {
         refreshCaptureGates();
         explanation_.resumeQueued();
@@ -84,9 +87,17 @@ AppController::AppController(core::KnownStore& store,
         emit yearDaysChanged();
         emit settingsChanged();
         emit dailyBudgetChanged();
+        // The pet sleeps while the daily budget is spent and wakes once it is not, one event per change.
+        const bool paused = cost_.budgetStatus().exhausted;
+        if (paused != budgetPaused_) {
+            budgetPaused_ = paused;
+            emit petEvent(paused ? core::pet::PetEvent::BudgetPaused : core::pet::PetEvent::BudgetResumed);
+        }
     });
 
     connect(&updateDuty_, &UpdateDuty::updateChanged, this, &AppController::updateChanged);
+    connect(&updateDuty_, &UpdateDuty::downloadChanged, this, &AppController::downloadChanged);
+    connect(&updateDuty_, &UpdateDuty::newVersionOffered, this, [this] { emit petEvent(core::pet::PetEvent::UpdateAvailable); });
     connect(&hotkey_, &GlobalHotkey::pressed, this, &AppController::onTriggerHotkey);
     hotkey_.setKeys(storedHotkey(storage_));
     llm.setExplanationLang(QString::fromStdString(store.explanationLang()));
@@ -594,6 +605,26 @@ QVariantMap AppController::cost() const
 QVariantMap AppController::update() const
 {
     return updateDuty_.update();
+}
+
+QVariantMap AppController::download() const
+{
+    return updateDuty_.download();
+}
+
+void AppController::downloadUpdate()
+{
+    updateDuty_.downloadUpdate();
+}
+
+void AppController::cancelDownload()
+{
+    updateDuty_.cancelDownload();
+}
+
+void AppController::installUpdate()
+{
+    updateDuty_.installUpdate();
 }
 
 bool AppController::updateCardVisible() const

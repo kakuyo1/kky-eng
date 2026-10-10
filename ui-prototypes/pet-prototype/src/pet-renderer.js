@@ -1,6 +1,6 @@
 /**
  * Canvas drawing for the pet. Reads the engine state and the visible accessories; it never decides
- * what plays. Every layer is drawn at the frame index and anchor the engine reports for this tick.
+ * what plays. Body, expression and accessories follow the action's anchor; effects stay where they were drawn.
  */
 export class PetRenderer {
   /**
@@ -9,18 +9,22 @@ export class PetRenderer {
    */
   constructor(canvas, manifest) {
     this.manifest = manifest;
-    this.size = manifest.canvas;
+    this.width = manifest.canvas;
+    this.height = manifest.height;
     this.scale = manifest.scale;
-    canvas.width = this.size * this.scale;
-    canvas.height = this.size * this.scale;
+    canvas.width = this.width * this.scale;
+    canvas.height = this.height * this.scale;
     this.ctx = canvas.getContext('2d');
     this.ctx.imageSmoothingEnabled = false;
     this.canvas = canvas;
     this.images = new Map();
   }
 
-  /** Loads every sheet and accessory PNG the manifest names. Paths are relative to `base`. */
-  async load(base) {
+  /**
+   * Loads every sheet and accessory PNG the manifest names.
+   * @param {(path: string) => string} urlOf Maps a manifest path to the URL the image loads from.
+   */
+  async load(urlOf) {
     const { actions, expression, accessories } = this.manifest;
     const paths = [
       ...Object.values(actions).flatMap(a => [a.sheet, a.effect].filter(Boolean)),
@@ -34,7 +38,7 @@ export class PetRenderer {
         resolve();
       };
       img.onerror = () => reject(new Error(`pet asset missing: ${path}`));
-      img.src = base + path;
+      img.src = urlOf(path);
     })));
   }
 
@@ -43,21 +47,21 @@ export class PetRenderer {
    * @param {Array<{asset: string, zIndex: number}>} accessories Worn accessories visible for this action.
    */
   draw(state, accessories) {
-    const { ctx, size, scale, manifest } = this;
+    const { ctx, width, height, scale, manifest } = this;
     const def = manifest.actions[state.action];
     const [dx, dy] = state.anchor;
     const layers = [
-      { z: manifest.layers.body, path: def.sheet, index: state.frame },
-      { z: manifest.layers.expression, path: manifest.expression, index: state.expression },
-      ...(def.effect ? [{ z: manifest.layers.effect, path: def.effect, index: state.frame }] : []),
-      ...accessories.map(a => ({ z: a.zIndex, path: a.asset, index: 0 }))
+      { z: manifest.layers.body, path: def.sheet, index: state.frame, at: [dx, dy] },
+      { z: manifest.layers.expression, path: manifest.expression, index: state.expression, at: [dx, dy] },
+      ...(def.effect ? [{ z: manifest.layers.effect, path: def.effect, index: state.frame, at: [0, 0] }] : []),
+      ...accessories.map(a => ({ z: a.zIndex, path: a.asset, index: 0, at: [dx, dy] }))
     ].sort((p, q) => p.z - q.z);
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     ctx.setTransform(scale, 0, 0, scale, 0, 0); // draw in canvas units, 1 unit = `scale` device pixels
-    for (const { path, index } of layers) {
-      ctx.drawImage(this.images.get(path), index * size, 0, size, size, dx, dy, size, size);
+    for (const { path, index, at } of layers) {
+      ctx.drawImage(this.images.get(path), index * width, 0, width, height, at[0], at[1], width, height);
     }
   }
 }

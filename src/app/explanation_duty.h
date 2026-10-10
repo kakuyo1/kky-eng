@@ -11,6 +11,7 @@
 #include <optional>
 
 #include "capture_duty.h"
+#include "core/pet/pet_state.h"
 #include "llm/llm_client.h"
 
 /**
@@ -103,6 +104,8 @@ signals:
     void noticeChanged();
     void busyChanged();
     void statsChanged();
+    /// @brief What the desktop pet should react to: a request, a bubble coming or going, a verdict. Carries no text.
+    void petEvent(lens::core::pet::PetEvent event);
 
 private:
     void explain(PendingSelection const& pending);

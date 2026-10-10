@@ -15,6 +15,7 @@
   "systemFonts": "C:/Windows/Fonts",
   "innoSetup": "C:/Program Files (x86)/Inno Setup 6/ISCC.exe",
   "tesseractRoot": "B:/tesseract",
+  "chromeExe": "C:/Program Files/Google/Chrome/Application/chrome.exe",
   "zhlintConfig": "${HOME}/.claude/skills/zhlint/assets/zhlintrc.json",
   "clangFormatFallbacks": [
     "D:/VS 2022/VC/Tools/Llvm/x64/bin/clang-format.exe",

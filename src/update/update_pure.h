@@ -2,8 +2,10 @@
 
 #include <QByteArray>
 #include <QString>
+#include <QUrl>
 
 #include <optional>
+#include <string>
 
 #include "util/semver.h"
 
@@ -12,9 +14,9 @@
  * @brief The network-free core of the update check: read the answer, decide what it means.
  *
  * Everything here is a function of its arguments. The date the once-a-day rule is judged
- * against arrives as a string rather than being read from the clock, so a test pins it; and
- * the response arrives as raw bytes, so the parse is exercised against exactly what the
- * source sends rather than against a struct this program built itself.
+ * against arrives as a string rather than being read from the clock, so a test pins it; and the
+ * answer arrives as one URL rather than as bytes this program would have to take apart, so what
+ * is checked is what is used.
  */
 
 namespace lens::update {
@@ -23,26 +25,25 @@ namespace lens::update {
 struct Release {
     util::SemVer version; ///< The three numbers the tag carries, whatever the tag spelled.
     QString versionText;  ///< The same version written out, e.g. "1.2.0".
-    QString pageUrl;      ///< The release page, https and with a host, or the parse failed.
-    QString notes;        ///< First paragraph of the release body, truncated, or empty.
+    QString pageUrl;      ///< The release page, which is the address the answer redirected to.
+    QString notes;        ///< Always empty: the redirect carries no notes, and none are fetched.
 };
 
 /**
- * @brief Read a `releases/latest` answer, and refuse anything this program cannot use.
+ * @brief Read the address a release page redirects to, and refuse anything else.
  *
- * Required: `tag_name`, which must parse as a plain version, and `html_url`, which must be an
- * https URL with a host. Either missing or of the wrong type rejects the whole answer rather
- * than yielding a half-release: a card that names a version with no page to open is worse than
- * no card. Optional: `body`, which may be null, and whose first paragraph becomes the notes.
+ * The answer is a `Location` header, not a document: the release page's latest address replies
+ * with a redirect to the newest tag, and that redirect is the whole answer. Nothing is fetched
+ * behind it -- no HTML is read and no release body is asked for.
  *
- * Drafts and pre-releases are not in a `latest` answer at all, so nothing here filters them
- * a second time.
+ * Usable means: https, on `github.com`, under `/kakuyo1/lens/releases/tag/`, with a last path
+ * segment that is a plain version. That last rule also covers the repository with no release
+ * yet, which redirects to `/releases` rather than to a tag: no tag, no release, `offline`.
  *
- * @param body           Raw response bytes, treated as untrusted.
- * @param maxNotesChars  Ceiling on the notes, cut with an ellipsis when it bites.
- * @return The release, or nothing when the answer is not one.
+ * @param location The redirect target, already resolved against the request URL.
+ * @return The release, or nothing when the address is not one this program can act on.
  */
-std::optional<Release> parseRelease(const QByteArray& body, int maxNotesChars);
+std::optional<Release> parseReleaseLocation(const QUrl& location);
 
 /**
  * @brief Whether @p latest is newer than the version this build carries.
@@ -86,5 +87,56 @@ bool shouldCheckAutomatically(const StoredUpdate& stored, const QString& today);
  * @param available Whether it is newer than this build at all.
  */
 bool shouldPrompt(const StoredUpdate& stored, const QString& latest, bool available);
+
+/**
+ * @brief The digest a `SHA256SUMS` asset publishes for one file.
+ *
+ * The file is the one `sha256sum` writes: a 64-character lowercase hex digest, two spaces,
+ * and the name. Only an exact name match counts -- no prefix, no suffix -- and anything the
+ * file cannot be read as is refused rather than skipped, because a list this check reads as
+ * "verified" must not be a list it guessed at.
+ *
+ * @param sums     Raw bytes of the asset.
+ * @param fileName The name to look for, exactly as the release names it.
+ * @return The digest as 64 lowercase hex characters, or nothing when the file is not listed,
+ *         when a line is malformed, or when the same name is listed twice with two digests.
+ */
+std::optional<std::string> expectedDigest(const QByteArray& sums, const QString& fileName);
+
+/**
+ * @brief The installer asset's name for a version.
+ *
+ * @param versionText A version that has already passed util::parseTag(); the caller refuses
+ *                    anything else, so this only spells the name the release publishes it under.
+ * @return `Lens-<version>-setup.exe`, or an empty string for an empty version.
+ */
+QString installerName(const QString& versionText);
+
+/**
+ * @brief Whether a download may be requested from this address.
+ *
+ * Three hosts, and only three: the release page itself, and the two asset hosts GitHub hands
+ * out behind it. Everything else is refused, including a lookalike host and an address that
+ * names a different repository, because a redirect this program follows is a request this
+ * program makes with the reader's connection.
+ *
+ * @param url The address a redirect points at, already resolved.
+ * @return True when the address is https, carries no userinfo and no fragment, is on one of
+ *         the three hosts, and -- for `github.com` -- sits under this project's download path.
+ */
+bool isAllowedDownloadUrl(const QUrl& url);
+
+/**
+ * @brief Whether a file on disk hashes to a digest a release published.
+ *
+ * Streamed in chunks: an installer is tens of megabytes and this runs twice, once when the
+ * download lands and once just before it is launched, so neither copy is ever held in memory.
+ *
+ * @param filePath    The file to hash.
+ * @param expectedHex The digest to compare with, compared case-insensitively.
+ * @return True only when the file could be read and its SHA256 is that digest. A missing or
+ *         unreadable file is false, never an error the caller has to handle.
+ */
+bool digestMatches(const QString& filePath, const std::string& expectedHex);
 
 }

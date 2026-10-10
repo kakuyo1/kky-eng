@@ -1,5 +1,5 @@
 {
-  "_comment": "Source grid for the dog. tools/build-assets.py renders every PNG under assets/pet from this file and manifest.json. '#' is a filled cell, '.' an empty one. Cells are view.scale canvas units wide.",
+  "_comment": "Source grid for the dog. tools/build-assets.py renders every PNG under assets/pet from this file and manifest.json. '#' is a filled cell, '.' an empty one. Accessory rects are grid cells; accessory pixels are units of the dog box (0,0 = top-left of the 64x64 dog area, negative y is headroom).",
   "view": { "x": 6, "y": 6, "scale": 3 },
   "head": [
     ".#.####.#.........",
@@ -42,11 +42,18 @@
   "eyes": [[2, 3], [5, 3]],
   "mouth": [[3, 5], [4, 5], [1, 6], [3, 6], [6, 6], [2, 7], [3, 7], [4, 7], [5, 7]],
   "accessories": {
-    "hat": { "rects": [[3, -2, 4, 1, "accent"], [1, -1, 8, 1, "accent"]] },
+    "hat": { "pixels": [[14, -10, 13, 14, "ink"], [14, 0, 13, 2, "accent"], [8, 4, 25, 2, "ink"]] },
+    "beanie": { "rects": [[1, -1, 8, 2, "rose"], [1, 0, 8, 1, "ink"], [4, -3, 2, 1, "rose"]] },
+    "sprout": { "pixels": [[23, -6, 2, 12, "ink"], [15, -12, 8, 4, "accent"], [25, -10, 8, 4, "accent"]] },
+    "crown": { "rects": [[2, -1, 7, 1, "gold"], [2, -2, 1, 1, "gold"], [5, -2, 1, 1, "gold"], [8, -2, 1, 1, "gold"]] },
     "glasses": { "pixels": [
       [10, 13, 7, 1, "ink"], [10, 19, 7, 1, "ink"], [10, 13, 1, 7, "ink"], [16, 13, 1, 7, "ink"],
       [19, 13, 7, 1, "ink"], [19, 19, 7, 1, "ink"], [19, 13, 1, 7, "ink"], [25, 13, 1, 7, "ink"],
       [16, 15, 3, 1, "ink"]] },
-    "scarf": { "rects": [[0, 5, 3, 1, "accent"], [5, 5, 9, 1, "accent"], [12, 6, 2, 2, "accent"]] }
+    "sunglasses": { "pixels": [[10, 13, 7, 7, "ink"], [19, 13, 7, 7, "ink"], [16, 15, 3, 1, "ink"]] },
+    "bowtie": { "pixels": [
+      [18, 31, 4, 1, "ink"], [19, 32, 3, 1, "ink"], [20, 33, 2, 1, "ink"], [19, 34, 3, 1, "ink"], [18, 35, 4, 1, "ink"],
+      [27, 31, 4, 1, "ink"], [27, 32, 3, 1, "ink"], [28, 33, 2, 1, "ink"], [27, 34, 3, 1, "ink"], [27, 35, 4, 1, "ink"],
+      [22, 32, 5, 3, "ink"]] }
   }
 }

@@ -289,6 +289,7 @@ void ExplanationDuty::requestExplanations(QVector<PendingSelection> batch, core:
     }
     busyLabel_ = QCoreApplication::translate("lens::app::AppController", "Explaining…");
     emit busyChanged();
+    emit petEvent(core::pet::PetEvent::ExplanationRequested);
     storage_.save();
     emit statsChanged();
     llm_.explainWords(std::move(inputs));
@@ -354,6 +355,7 @@ void ExplanationDuty::showBubble(llm::Explanation const& explanation, PendingSel
     reviewRaised_ = false;
     clearNotice();
     emit bubbleChanged();
+    emit petEvent(core::pet::PetEvent::ExplanationShown);
 }
 
 void ExplanationDuty::showNotice(QString const& title, QString const& body, QString const& kind, QString const& action, QString const& lemma)
@@ -384,6 +386,7 @@ void ExplanationDuty::clearBubble()
     if (bubble_.isEmpty()) return;
     bubble_.clear();
     emit bubbleChanged();
+    emit petEvent(core::pet::PetEvent::ExplanationHidden);
 }
 
 void ExplanationDuty::mark(QString lemma, bool learned)
@@ -397,6 +400,7 @@ void ExplanationDuty::mark(QString lemma, bool learned)
     if (bubble_.value("title").toString() == lemma) bubble_["status"] = learned ? QStringLiteral("known") : QStringLiteral("new");
     emit bubbleChanged();
     emit statsChanged();
+    emit petEvent(learned ? core::pet::PetEvent::KnownMarked : core::pet::PetEvent::NewWordMarked);
 }
 
 void ExplanationDuty::dismissBubble()

@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Update check: Lens asks the project's latest release once a day at startup, or when the
+  reader presses "Check for updates" in General settings. A newer version raises a card with
+  View and Skip this version; the startup check can be switched off there too.
+- Download from the update card: the newer release's installer is downloaded, checked against
+  the release's `SHA256SUMS`, and run with no arguments only when the reader presses Install.
+  A release without a checksum list is not downloadable. Downloads need a proxy from mainland
+  China; Lens says so when nothing arrives.
+
 ## 1.1.0 - 2026-10-09
 
 Second release of Lens. Capture reaches past the selection to the screen itself, an explanation

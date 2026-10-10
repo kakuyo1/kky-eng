@@ -1,34 +1,86 @@
 {
   "id": "dog",
-  "canvas": 64,
+  "canvas": 88,
+  "height": 88,
+  "originY": 24,
   "scale": 3,
   "layers": { "body": 0, "expression": 2, "effect": 5 },
   "expression": "expressions/eyes.png",
+  "expressionNames": ["睁眼", "半闭", "闭眼", "左看", "右看", "开心", "抬眼", "哈欠", "无"],
   "actions": {
     "idle": {
-      "frames": 5, "fps": 5, "loop": true, "priority": 0, "blink": true,
+      "label": "待机", "frames": 5, "fps": 5, "loop": true, "priority": 0, "blink": true,
       "sheet": "body/idle.png",
       "anchors": [[0, 0], [0, 0], [0, -3], [0, -3], [0, 0]]
     },
     "study": {
-      "frames": 6, "fps": 6, "loop": true, "priority": 50, "blink": true,
-      "sheet": "body/study.png",
-      "anchors": [[0, 0], [0, 0], [0, 0], [0, -3], [0, -3], [0, 0]]
+      "label": "阅读", "frames": 6, "fps": 4, "loop": true, "priority": 50, "blink": true,
+      "expressions": [3, 3, 0, 4, 4, 0],
+      "sheet": "body/study.png", "effect": "effects/study.png",
+      "anchors": [[0, 0], [0, 0], [0, 1], [0, 1], [0, 0], [0, 0]]
+    },
+    "thinking": {
+      "label": "思考", "frames": 4, "fps": 3, "loop": true, "priority": 50, "blink": true,
+      "expressions": [6, 6, 6, 6],
+      "sheet": "body/thinking.png", "effect": "effects/thinking.png",
+      "anchors": [[0, 0], [1, 0], [0, 0], [-1, 0]]
     },
     "celebrate": {
-      "frames": 6, "fps": 10, "loop": false, "priority": 50, "returnTo": "idle",
-      "sheet": "body/celebrate.png",
-      "anchors": [[0, 0], [0, -3], [0, -6], [0, -6], [0, -3], [0, 0]]
+      "label": "庆祝", "frames": 8, "fps": 10, "loop": false, "priority": 50,
+      "expressions": [0, 5, 5, 5, 5, 5, 5, 0],
+      "sheet": "body/celebrate.png", "effect": "effects/fireworks.png",
+      "anchors": [[0, 0], [0, -6], [0, -11], [0, -12], [0, -9], [0, -3], [0, 0], [0, 0]]
+    },
+    "encourage": {
+      "label": "鼓励", "frames": 5, "fps": 8, "loop": false, "priority": 50,
+      "expressions": [5, 5, 5, 5, 0],
+      "sheet": "body/encourage.png", "effect": "effects/encourage.png",
+      "anchors": [[0, 0], [0, -3], [0, -3], [0, 0], [0, -1]]
+    },
+    "click_react": {
+      "label": "被戳", "frames": 4, "fps": 12, "loop": false, "priority": 80,
+      "expressions": [2, 2, 0, 0],
+      "sheet": "body/click_react.png", "effect": "effects/click_react.png",
+      "anchors": [[0, 0], [2, 1], [-2, -1], [1, 0]]
+    },
+    "pickup": {
+      "label": "被拎起", "frames": 4, "fps": 6, "loop": true, "priority": 100,
+      "expressions": [6, 6, 6, 6],
+      "sheet": "body/pickup.png", "effect": "effects/pickup.png",
+      "anchors": [[0, 0], [1, 2], [-1, 1], [0, 2]]
+    },
+    "look_around": {
+      "label": "张望", "frames": 6, "fps": 6, "loop": false, "priority": 30,
+      "expressions": [0, 3, 3, 0, 4, 4],
+      "sheet": "body/look_around.png", "effect": "effects/look_around.png",
+      "anchors": [[0, 0], [-2, 0], [-2, 0], [0, 0], [2, 0], [2, 0]]
+    },
+    "yawn": {
+      "label": "打哈欠", "frames": 5, "fps": 6, "loop": false, "priority": 30, "returnTo": "sleep",
+      "expressions": [1, 7, 7, 7, 2],
+      "sheet": "body/yawn.png",
+      "anchors": [[0, 0], [0, -1], [0, -2], [0, -2], [0, -1]]
+    },
+    "stretch": {
+      "label": "伸懒腰", "frames": 6, "fps": 6, "loop": false, "priority": 30,
+      "expressions": [2, 2, 5, 5, 5, 0],
+      "sheet": "body/stretch.png", "effect": "effects/stretch.png",
+      "anchors": [[0, 0], [0, -2], [0, -4], [0, -4], [1, -2], [0, 0]]
     },
     "sleep": {
-      "frames": 4, "fps": 4, "loop": true, "priority": 50, "expression": "closed",
+      "label": "睡觉", "frames": 4, "fps": 3, "loop": true, "priority": 40,
+      "expressions": [8, 8, 8, 8],
       "sheet": "body/sleep.png", "effect": "effects/zzz.png",
-      "anchors": [[0, 0], [0, 1], [0, 1], [0, 0]]
+      "anchors": [[0, 0], [0, -1], [0, -1], [0, 0]]
     }
   },
   "accessories": [
-    { "id": "hat", "slot": "head", "asset": "accessories/headwear/hat.png", "zIndex": 4, "supportedActions": ["idle", "study", "celebrate"] },
-    { "id": "glasses", "slot": "face", "asset": "accessories/glasses/glasses.png", "zIndex": 3, "supportedActions": ["idle", "study", "celebrate"] },
-    { "id": "scarf", "slot": "body", "asset": "accessories/clothing/scarf.png", "zIndex": 1, "supportedActions": ["idle", "study", "celebrate", "sleep"] }
+    { "id": "hat", "label": "礼帽", "slot": "head", "asset": "accessories/headwear/hat.png", "zIndex": 4, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch"] },
+    { "id": "beanie", "label": "毛线帽", "slot": "head", "asset": "accessories/headwear/beanie.png", "zIndex": 4, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch"] },
+    { "id": "sprout", "label": "嫩芽", "slot": "head", "asset": "accessories/headwear/sprout.png", "zIndex": 4, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch"] },
+    { "id": "crown", "label": "王冠", "slot": "head", "asset": "accessories/headwear/crown.png", "zIndex": 4, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch"] },
+    { "id": "glasses", "label": "圆框眼镜", "slot": "face", "asset": "accessories/glasses/glasses.png", "zIndex": 3, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch"] },
+    { "id": "sunglasses", "label": "墨镜", "slot": "face", "asset": "accessories/glasses/sunglasses.png", "zIndex": 3, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch"] },
+    { "id": "bowtie", "label": "西服领结", "slot": "body", "asset": "accessories/clothing/bowtie.png", "zIndex": 1, "supportedActions": ["idle", "study", "thinking", "celebrate", "encourage", "click_react", "pickup", "look_around", "yawn", "stretch"] }
   ]
 }
