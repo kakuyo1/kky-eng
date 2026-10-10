@@ -74,3 +74,14 @@ target_compile_definitions(lens_qtest_surfaces PRIVATE
   LENS_DATA_DIR="${CMAKE_SOURCE_DIR}/data"
   LENS_SYSTEM_FONTS="${LENS_SYSTEM_FONTS}"
 )
+
+# The pet controller, with no window: the events, the one frame clock, and the stored state. It is a C++
+# object, so this is a QTest rather than a QML case, and it runs without a GUI: no window is created and nothing
+# reaches the desktop. Its settings document lives in a scratch directory.
+add_executable(lens_qtest_pet EXCLUDE_FROM_ALL
+  pet/tst_pet_controller.cpp
+)
+target_link_libraries(lens_qtest_pet PRIVATE lens_app lens_core Qt6::Test)
+target_compile_definitions(lens_qtest_pet PRIVATE
+  LENS_DATA_DIR="${CMAKE_SOURCE_DIR}/data"
+)

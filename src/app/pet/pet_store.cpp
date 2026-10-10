@@ -30,7 +30,7 @@ std::optional<std::string> slotOf(json const& worn, char const* key)
 /// @return The id as JSON, or null for a bare slot.
 json slotJson(std::optional<std::string> const& id)
 {
-    return id ? json{*id} : json{nullptr};
+    return id ? json(*id) : json(nullptr);
 }
 
 } // namespace

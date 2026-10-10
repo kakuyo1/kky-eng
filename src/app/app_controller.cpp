@@ -50,7 +50,9 @@ AppController::AppController(core::KnownStore& store,
       storage_(store),
       cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), explanation_(storage_, llm, cost_, this), llm_(llm), hotkey_(hotkey)
 {
+    budgetPaused_ = cost_.budgetStatus().exhausted;
     connect(&capture_, &CaptureDuty::selectionBarRequested, this, &AppController::selectionBarRequested);
+    connect(&capture_, &CaptureDuty::selectionBarRequested, this, [this] { emit petEvent(core::pet::PetEvent::SelectionShown); });
     connect(&capture_, &CaptureDuty::selectionActionRequested, this, [this](QString action, QString text) {
         explanation_.runSelectionAction(std::move(action), std::move(text));
     });
@@ -75,6 +77,7 @@ AppController::AppController(core::KnownStore& store,
         emit statsChanged();
         emit yearDaysChanged();
     });
+    connect(&explanation_, &ExplanationDuty::petEvent, this, &AppController::petEvent);
     connect(&cost_, &CostDuty::stateChanged, this, [this] {
         refreshCaptureGates();
         explanation_.resumeQueued();
@@ -82,6 +85,12 @@ AppController::AppController(core::KnownStore& store,
         emit yearDaysChanged();
         emit settingsChanged();
         emit dailyBudgetChanged();
+        // The pet sleeps while the daily budget is spent and wakes once it is not, one event per change.
+        const bool paused = cost_.budgetStatus().exhausted;
+        if (paused != budgetPaused_) {
+            budgetPaused_ = paused;
+            emit petEvent(paused ? core::pet::PetEvent::BudgetPaused : core::pet::PetEvent::BudgetResumed);
+        }
     });
 
     connect(&hotkey_, &GlobalHotkey::pressed, this, &AppController::onTriggerHotkey);

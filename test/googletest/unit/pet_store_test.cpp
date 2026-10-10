@@ -26,6 +26,20 @@ TEST(PetStore, ScaleFallsBackUntilTheReaderChoosesOne)
     EXPECT_EQ(pet.scale(3), 3);
 }
 
+TEST(PetStore, OutfitReadsBackAsItWasWritten)
+{
+    auto const path = std::filesystem::temp_directory_path() / "lens-pet-store-outfit.json";
+    auto store      = KnownStore::load(path);
+    auto pet        = PetStore{store};
+
+    pet.setOutfit(lens::app::pet::Outfit{.head = std::string{"hat"}, .face = std::nullopt, .body = std::nullopt});
+
+    auto const worn = pet.outfit();
+    EXPECT_EQ(worn.head, std::optional<std::string>{"hat"});
+    EXPECT_FALSE(worn.face);
+    EXPECT_FALSE(worn.body);
+}
+
 TEST(PetStore, ScaleClampsToTheSliderRange)
 {
     auto const path = std::filesystem::temp_directory_path() / "lens-pet-store-clamp.json";

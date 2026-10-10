@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
     lens::app::pet::PetStore petStore(store);
     lens::app::pet::PetController petController(std::move(petAssets), petStore);
     lens::app::pet::PetController::provide(&petController);
-    QObject::connect(&controller, &AppController::selectionBarRequested, &petController, [&petController] { petController.handle(lens::core::pet::PetEvent::SelectionShown); });
+    QObject::connect(&controller, &AppController::petEvent, &petController, &lens::app::pet::PetController::handle);
 
     Tray tray(controller);
     if (!tray.show())

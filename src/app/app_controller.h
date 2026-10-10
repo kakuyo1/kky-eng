@@ -11,6 +11,7 @@
 #include <QtQml/qqmlregistration.h>
 
 #include "capture_duty.h"
+#include "core/pet/pet_state.h"
 #include "cost_duty.h"
 #include "explanation_duty.h"
 #include "global_hotkey.h"
@@ -157,6 +158,8 @@ public:
 
 signals:
     void selectionBarRequested(QVariantMap payload);
+    /// @brief An event the desktop pet reacts to, forwarded from the duties that raise it. Carries no text.
+    void petEvent(lens::core::pet::PetEvent event);
     void pointerPressed(QPoint at);
     /// @brief The trigger key was pressed and OCR can run: put the capture mask up.
     void captureMaskRequested();
@@ -190,6 +193,8 @@ private:
     llm::LlmClient& llm_;
     GlobalHotkey& hotkey_;
     QTimer gateTimer_;
+    /// Whether the daily budget was spent the last time the cost duty reported, so a pause and a resume each fire once.
+    bool budgetPaused_;
 };
 
 }
