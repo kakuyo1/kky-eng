@@ -4,25 +4,37 @@ import { readFileSync } from 'node:fs';
 
 const root = new URL('../assets/pet/', import.meta.url);
 const manifest = JSON.parse(readFileSync(new URL('manifest.json', root), 'utf8'));
-const pngWidth = path => readFileSync(new URL(path, root)).readUInt32BE(16); // IHDR width
+const pngSize = path => {
+  const buf = readFileSync(new URL(path, root));
+  return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) }; // IHDR width and height
+};
 
-test('every action has one anchor per frame and a sheet of frames x canvas width', () => {
+test('every action has one anchor per frame and a sheet of frames x canvas size', () => {
   for (const [name, a] of Object.entries(manifest.actions)) {
     assert.equal(a.anchors.length, a.frames, `${name}: anchors`);
-    assert.equal(pngWidth(a.sheet), a.frames * manifest.canvas, `${name}: sheet width`);
-    if (a.effect) assert.equal(pngWidth(a.effect), a.frames * manifest.canvas, `${name}: effect width`);
+    assert.deepEqual(pngSize(a.sheet), { width: a.frames * manifest.canvas, height: manifest.height }, `${name}: sheet`);
+    if (a.effect) {
+      assert.deepEqual(pngSize(a.effect), { width: a.frames * manifest.canvas, height: manifest.height }, `${name}: effect`);
+    }
+    if (a.expressions) assert.equal(a.expressions.length, a.frames, `${name}: expressions`);
   }
 });
 
-test('expression sheet has the three eye states', () => {
-  assert.equal(pngWidth(manifest.expression), 3 * manifest.canvas);
+test('expression sheet has one frame per name, and every expression index is named', () => {
+  const { width } = pngSize(manifest.expression);
+  assert.equal(width, manifest.expressionNames.length * manifest.canvas);
+  for (const a of Object.values(manifest.actions)) {
+    for (const e of a.expressions ?? []) assert.ok(e < manifest.expressionNames.length, `expression ${e} out of range`);
+  }
 });
 
-test('accessories point at real files and only at actions that exist', () => {
+test('accessories point at real files, only at actions that exist, and sleep hides them all', () => {
   for (const acc of manifest.accessories) {
-    assert.equal(pngWidth(acc.asset), manifest.canvas, `${acc.id}: asset`);
+    assert.deepEqual(pngSize(acc.asset), { width: manifest.canvas, height: manifest.height }, `${acc.id}: asset`);
+    assert.ok(acc.label, `${acc.id}: label`);
     for (const action of acc.supportedActions) {
       assert.ok(manifest.actions[action], `${acc.id} supports unknown action ${action}`);
+      assert.notEqual(action, 'sleep', `${acc.id} must not show while the dog sleeps`);
     }
   }
 });

@@ -5,7 +5,7 @@ import { AccessoryManager } from '../src/accessory-manager.js';
 const accessories = [
   { id: 'hat', slot: 'head', zIndex: 4, supportedActions: ['idle', 'study', 'celebrate'] },
   { id: 'glasses', slot: 'face', zIndex: 3, supportedActions: ['idle', 'study', 'celebrate'] },
-  { id: 'scarf', slot: 'body', zIndex: 1, supportedActions: ['idle', 'study', 'celebrate', 'sleep'] }
+  { id: 'scarf', slot: 'body', zIndex: 1, supportedActions: ['idle', 'study', 'celebrate'] }
 ];
 
 test('one accessory per slot: toggling a second one in the slot swaps it', () => {
@@ -31,5 +31,5 @@ test('an accessory is hidden for actions it does not support, sorted by zIndex',
   m.toggle('glasses');
   m.toggle('scarf');
   assert.deepEqual(m.visibleFor('idle').map(a => a.id), ['scarf', 'glasses', 'hat']);
-  assert.deepEqual(m.visibleFor('sleep').map(a => a.id), ['scarf']);
+  assert.deepEqual(m.visibleFor('sleep').map(a => a.id), []); // curled up: nothing is shown
 });

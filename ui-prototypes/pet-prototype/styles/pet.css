@@ -25,9 +25,13 @@ body {
 }
 
 #pet {
-  width: 192px;
-  height: 192px;
+  width: 264px;
+  height: 264px;
   image-rendering: pixelated;
+  transform-origin: 50% 100%;
+  touch-action: none;
+  user-select: none;
+  cursor: default;
 }
 
 .panel {
