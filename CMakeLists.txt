@@ -89,6 +89,7 @@ add_subdirectory(src/util)
 add_subdirectory(src/core)
 add_subdirectory(src/capture)
 add_subdirectory(src/llm)
+add_subdirectory(src/update)
 add_subdirectory(src/app)
 
 if(LENS_ENABLE_QML_DEBUG)

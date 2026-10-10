@@ -19,6 +19,7 @@
 
 #include "autostart.h"
 #include "notice.h"
+#include "update/update_client.h"
 #include "util/log.h"
 #include "year_grid.h"
 
@@ -45,10 +46,11 @@ AppController::AppController(core::KnownStore& store,
                              MouseSelectionHook& hook,
                              GlobalHotkey& hotkey,
                              const llm::Pricing& pricing,
+                             const std::filesystem::path& dataDir,
                              QObject* parent)
     : QObject(parent),
       storage_(store),
-      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), explanation_(storage_, llm, cost_, this), llm_(llm), hotkey_(hotkey)
+      cost_(storage_.statsStore(), llm, pricing, [] { return QDate::currentDate(); }, this), capture_(storage_, hook), explanation_(storage_, llm, cost_, this), updateClient_(update::Settings::load(dataDir / "update.json"), nullptr, this), updateDuty_(storage_, updateClient_, QString::fromUtf8(LENS_VERSION), [] { return QDate::currentDate(); }, this), llm_(llm), hotkey_(hotkey)
 {
     connect(&capture_, &CaptureDuty::selectionBarRequested, this, &AppController::selectionBarRequested);
     connect(&capture_, &CaptureDuty::selectionActionRequested, this, [this](QString action, QString text) {
@@ -84,6 +86,7 @@ AppController::AppController(core::KnownStore& store,
         emit dailyBudgetChanged();
     });
 
+    connect(&updateDuty_, &UpdateDuty::updateChanged, this, &AppController::updateChanged);
     connect(&hotkey_, &GlobalHotkey::pressed, this, &AppController::onTriggerHotkey);
     hotkey_.setKeys(storedHotkey(storage_));
     llm.setExplanationLang(QString::fromStdString(store.explanationLang()));
@@ -586,6 +589,51 @@ bool AppController::removeWord(QString lemma)
 QVariantMap AppController::cost() const
 {
     return cost_.cost();
+}
+
+QVariantMap AppController::update() const
+{
+    return updateDuty_.update();
+}
+
+bool AppController::updateCardVisible() const
+{
+    return updateDuty_.cardVisible();
+}
+
+void AppController::checkForUpdates()
+{
+    updateDuty_.checkForUpdates();
+}
+
+void AppController::checkForUpdatesAtStartup()
+{
+    updateDuty_.checkAtStartup();
+}
+
+void AppController::skipUpdate()
+{
+    updateDuty_.skipUpdate();
+}
+
+void AppController::openReleasePage()
+{
+    updateDuty_.openReleasePage();
+}
+
+void AppController::closeUpdateCard()
+{
+    updateDuty_.closeCard();
+}
+
+void AppController::setAutoUpdateCheck(bool on)
+{
+    updateDuty_.setAutoCheck(on);
+}
+
+bool AppController::autoUpdateCheck() const
+{
+    return updateDuty_.autoCheck();
 }
 
 QString AppController::modeLabel() const

@@ -472,7 +472,7 @@ TEST_F(LlmTest, ModelListRefreshKeepsTheUserCacheWhenAResponseIsMalformed)
     manager.modelResponseOverride = QByteArrayLiteral(R"({"data":"malformed"})");
     llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "deepseek-flash"}, &manager};
     auto const pricing = llm::Pricing::load(test::sourceDir() / "data" / "llm" / "pricing.json");
-    app::AppController controller{store, client, hook, hotkey, pricing};
+    app::AppController controller{store, client, hook, hotkey, pricing, test::sourceDir() / "data"};
 
     ASSERT_EQ(controller.models().size(), 1);
     EXPECT_EQ(controller.models().front().toMap().value("value").toString(), "cached-model");
@@ -611,7 +611,7 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     app::GlobalHotkey hotkey;
     Manager manager;
     llm::LlmClient client{{QUrl{"https://example.invalid"}, "fake-test-token", "test-model"}, &manager};
-    app::AppController controller{store, client, hook, hotkey, pricing};
+    app::AppController controller{store, client, hook, hotkey, pricing, test::sourceDir() / "data"};
     int settingsChanges = 0;
     QObject::connect(&controller, &app::AppController::settingsChanged, [&] { ++settingsChanges; });
     auto const initial = controller.settings();
@@ -662,7 +662,7 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     controller.setApiUrl("https://example.invalid/v2");
     auto restored = core::KnownStore::load(path);
     llm::LlmClient restarted{{QUrl{"https://wrong.invalid"}, "fake-test-token", "wrong-model"}, &manager};
-    app::AppController restoredController{restored, restarted, hook, hotkey, pricing};
+    app::AppController restoredController{restored, restarted, hook, hotkey, pricing, test::sourceDir() / "data"};
     auto const restoredBody = request(restarted);
     EXPECT_EQ(restoredBody.value("model").toString(), "gpt-4.1-nano");
     EXPECT_FALSE(restoredBody.contains("thinking"));
@@ -674,7 +674,7 @@ TEST_F(LlmTest, Phase2ControllerAppliesChoicesAndRestoresPersistedWireSettings)
     controller.setModel("custom-model");
     auto customStore = core::KnownStore::load(path);
     llm::LlmClient custom{{QUrl{"https://wrong.invalid"}, "fake-test-token", "wrong-model"}, &manager};
-    app::AppController customController{customStore, custom, hook, hotkey, pricing};
+    app::AppController customController{customStore, custom, hook, hotkey, pricing, test::sourceDir() / "data"};
     auto const customBody = request(custom);
     EXPECT_EQ(customBody.value("model").toString(), "custom-model");
     EXPECT_FALSE(customBody.contains("thinking"));
@@ -696,7 +696,7 @@ TEST_F(LlmTest, Phase2ControllerRejectsAnInsecurePersistedServiceUrl)
     app::GlobalHotkey hotkey;
     llm::LlmClient client{{QUrl{"https://safe.invalid"}, "fake-test-token", "test-model"}};
 
-    app::AppController controller{store, client, hook, hotkey, pricing};
+    app::AppController controller{store, client, hook, hotkey, pricing, test::sourceDir() / "data"};
 
     EXPECT_EQ(client.baseUrl(), QUrl{"https://api.deepseek.com"});
     EXPECT_EQ(controller.settings().value("url").toString(), "https://api.deepseek.com");
