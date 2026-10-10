@@ -31,10 +31,19 @@ add_library(lens_app STATIC
   app_controller.cpp
   autostart.cpp
   tray.cpp
+  pet/pet_assets.cpp
+  pet/pet_controller.cpp
+  pet/pet_placement.cpp
+  pet/pet_store.cpp
+  pet/pet_window_native.cpp
 )
 
 # src/ is exposed for self-contained "app/xxx.h" includes (same as lens_core and lens_llm).
 target_include_directories(lens_app PUBLIC ${CMAKE_SOURCE_DIR}/src)
+
+# The QML type registration includes each module header by its basename, so the headers under pet/
+# must be on the include path for that generated file to find pet_controller.h.
+target_include_directories(lens_app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pet)
 
 # Qt6::Gui is public because AppController's interface reaches into it: the clipboard and
 # QPoint come from there. Widgets is public for the tray -- QMenu and QSystemTrayIcon.
@@ -128,8 +137,12 @@ qt_add_qml_module(lens_app
     app_controller.h
     tray.h
     system_motion.h
+    pet/pet_controller.h
   QML_FILES
     qml/Main.qml
+    qml/PetWindow.qml
+    qml/PetScene.qml
+    qml/SpriteLayer.qml
     qml/TrayMenu.qml
     qml/SelectionBar.qml
     qml/Bubble.qml
@@ -161,6 +174,7 @@ qt_add_qml_module(lens_app
     qml/components/ShadowCard.qml
     qml/components/Segment.qml
     qml/components/Switch.qml
+    qml/components/StepSlider.qml
     qml/components/SwitchRow.qml
     qml/components/StatRow.qml
     qml/components/DropdownField.qml

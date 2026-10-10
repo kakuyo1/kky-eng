@@ -341,6 +341,7 @@ Window {
 
     SelectionBar { id: bar }
     Bubble { id: bubble }
+    PetWindow { }
 
     Notice {
         id: notice

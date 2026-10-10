@@ -120,7 +120,7 @@
 
 ### 3.6 设置与存储
 
-- 设置文档新增键 `PET`：`{ enabled, passthrough, accessories, position }`。`enabled` 与 `passthrough` 默认 `false`。`accessories` 按槽位记录当前配饰（`head` / `face` / `body`，空则为 `null`）。`position` 记录屏幕与相对坐标。
+- 设置文档新增键 `PET`：`{ enabled, passthrough, scale, accessories, position }`。`enabled` 与 `passthrough` 默认 `false`。`scale` 为整数 1–4，默认取 `pet.json` 的缩放倍数（3），由扩展分类的“桌宠大小”滑动条写入，只取整数档以保持像素边缘清晰。`accessories` 按槽位记录当前配饰（`head` / `face` / `body`，空则为 `null`）。`position` 记录屏幕与相对坐标。
 - **文档只有一个所有者**：`PetStore` 与 `StatsStore` 一样，构造时绑定 `KnownStore::document()` 交出的那份文档，只写自己的 `PET` 键，落盘仍由 `KnownStore::save()` 一次写完。沿用 `docs/adr/0012` 与 0013 的规则，不另开文件。
 - 宠物不读取 `KnownStore` 与 `StatsStore` 的数据，也不保存任何计数。
 

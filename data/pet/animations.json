@@ -1,0 +1,165 @@
+{
+  "actions": {
+    "blink": {
+      "frames": 3,
+      "fps": 10,
+      "loop": false,
+      "expressions": [
+        1,
+        2,
+        1
+      ]
+    },
+    "idle": {
+      "frames": 5,
+      "fps": 5,
+      "loop": true,
+      "blink": true,
+      "sheet": "sprites/body/idle.png"
+    },
+    "study": {
+      "frames": 6,
+      "fps": 4,
+      "loop": true,
+      "blink": true,
+      "expressions": [
+        3,
+        3,
+        0,
+        4,
+        4,
+        0
+      ],
+      "sheet": "sprites/body/study.png",
+      "effect": "sprites/effects/study.png"
+    },
+    "thinking": {
+      "frames": 4,
+      "fps": 3,
+      "loop": true,
+      "blink": true,
+      "expressions": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "sheet": "sprites/body/thinking.png",
+      "effect": "sprites/effects/thinking.png"
+    },
+    "celebrate": {
+      "frames": 8,
+      "fps": 10,
+      "loop": false,
+      "expressions": [
+        0,
+        5,
+        5,
+        5,
+        5,
+        5,
+        5,
+        0
+      ],
+      "sheet": "sprites/body/celebrate.png",
+      "effect": "sprites/effects/fireworks.png"
+    },
+    "encourage": {
+      "frames": 5,
+      "fps": 8,
+      "loop": false,
+      "expressions": [
+        5,
+        5,
+        5,
+        5,
+        0
+      ],
+      "sheet": "sprites/body/encourage.png",
+      "effect": "sprites/effects/encourage.png"
+    },
+    "click_react": {
+      "frames": 4,
+      "fps": 12,
+      "loop": false,
+      "expressions": [
+        2,
+        2,
+        0,
+        0
+      ],
+      "sheet": "sprites/body/click_react.png",
+      "effect": "sprites/effects/click_react.png"
+    },
+    "pickup": {
+      "frames": 4,
+      "fps": 6,
+      "loop": true,
+      "expressions": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "sheet": "sprites/body/pickup.png",
+      "effect": "sprites/effects/pickup.png"
+    },
+    "look_around": {
+      "frames": 6,
+      "fps": 6,
+      "loop": false,
+      "expressions": [
+        0,
+        3,
+        3,
+        0,
+        4,
+        4
+      ],
+      "sheet": "sprites/body/look_around.png",
+      "effect": "sprites/effects/look_around.png"
+    },
+    "yawn": {
+      "frames": 5,
+      "fps": 6,
+      "loop": false,
+      "returnTo": "sleep",
+      "expressions": [
+        1,
+        7,
+        7,
+        7,
+        2
+      ],
+      "sheet": "sprites/body/yawn.png"
+    },
+    "stretch": {
+      "frames": 6,
+      "fps": 6,
+      "loop": false,
+      "expressions": [
+        2,
+        2,
+        5,
+        5,
+        5,
+        0
+      ],
+      "sheet": "sprites/body/stretch.png",
+      "effect": "sprites/effects/stretch.png"
+    },
+    "sleep": {
+      "frames": 4,
+      "fps": 3,
+      "loop": true,
+      "expressions": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "sheet": "sprites/body/sleep.png",
+      "effect": "sprites/effects/zzz.png"
+    }
+  }
+}

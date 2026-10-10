@@ -1,0 +1,130 @@
+{
+  "accessories": [
+    {
+      "id": "hat",
+      "slot": "head",
+      "asset": "sprites/accessories/headwear/hat.png",
+      "zIndex": 4,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch"
+      ]
+    },
+    {
+      "id": "beanie",
+      "slot": "head",
+      "asset": "sprites/accessories/headwear/beanie.png",
+      "zIndex": 4,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch"
+      ]
+    },
+    {
+      "id": "sprout",
+      "slot": "head",
+      "asset": "sprites/accessories/headwear/sprout.png",
+      "zIndex": 4,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch"
+      ]
+    },
+    {
+      "id": "crown",
+      "slot": "head",
+      "asset": "sprites/accessories/headwear/crown.png",
+      "zIndex": 4,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch"
+      ]
+    },
+    {
+      "id": "glasses",
+      "slot": "face",
+      "asset": "sprites/accessories/glasses/glasses.png",
+      "zIndex": 3,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch"
+      ]
+    },
+    {
+      "id": "sunglasses",
+      "slot": "face",
+      "asset": "sprites/accessories/glasses/sunglasses.png",
+      "zIndex": 3,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch"
+      ]
+    },
+    {
+      "id": "bowtie",
+      "slot": "body",
+      "asset": "sprites/accessories/clothing/bowtie.png",
+      "zIndex": 1,
+      "supportedActions": [
+        "idle",
+        "study",
+        "thinking",
+        "celebrate",
+        "encourage",
+        "click_react",
+        "pickup",
+        "look_around",
+        "yawn",
+        "stretch"
+      ]
+    }
+  ]
+}

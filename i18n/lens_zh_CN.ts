@@ -5,13 +5,13 @@
     <name>Bubble</name>
     <message>
         <location filename="../src/app/qml/Bubble.qml" line="316"/>
-        <location filename="../src/app/qml/Bubble.qml" line="545"/>
+        <location filename="../src/app/qml/Bubble.qml" line="549"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
         <location filename="../src/app/qml/Bubble.qml" line="316"/>
-        <location filename="../src/app/qml/Bubble.qml" line="572"/>
+        <location filename="../src/app/qml/Bubble.qml" line="576"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
@@ -21,12 +21,12 @@
         <translation>句子</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="474"/>
+        <location filename="../src/app/qml/Bubble.qml" line="478"/>
         <source>Etymology</source>
         <translation>词源</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="594"/>
+        <location filename="../src/app/qml/Bubble.qml" line="598"/>
         <source>Disappears in %1s</source>
         <translation>%1 秒后自动消失</translation>
     </message>
@@ -414,7 +414,7 @@
         <location filename="../src/app/qml/SettingsCatalog.qml" line="44"/>
         <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="16"/>
         <source>Desktop companion</source>
-        <translation>桌面伴侣</translation>
+        <translation>桌面宠物</translation>
     </message>
     <message>
         <location filename="../src/app/qml/SettingsClipboardPage.qml" line="18"/>
@@ -468,22 +468,22 @@
         <translation>未配置</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="528"/>
+        <location filename="../src/app/explanation_duty.cpp" line="541"/>
         <source>Domestic</source>
         <translation>国内</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="529"/>
+        <location filename="../src/app/explanation_duty.cpp" line="542"/>
         <source>International</source>
         <translation>国际</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="530"/>
+        <location filename="../src/app/explanation_duty.cpp" line="543"/>
         <source>Other</source>
         <translation>其他</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="531"/>
+        <location filename="../src/app/explanation_duty.cpp" line="544"/>
         <source>Custom service</source>
         <translation>自定义服务</translation>
     </message>
@@ -501,6 +501,16 @@
         <location filename="../src/app/app_controller.cpp" line="258"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR 运行时不可用</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="24"/>
+        <source>Mouse pass-through</source>
+        <translation>鼠标穿透</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="40"/>
+        <source>Desktop pet size</source>
+        <translation>桌宠大小</translation>
     </message>
 </context>
 <context>
@@ -830,22 +840,22 @@
         <translation>出国考试</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="225"/>
+        <location filename="../src/app/explanation_duty.cpp" line="226"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>当前解释语言下没有已存的释义。</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="227"/>
+        <location filename="../src/app/explanation_duty.cpp" line="228"/>
         <source>Explain now</source>
         <translation>现在解释</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="289"/>
+        <location filename="../src/app/explanation_duty.cpp" line="290"/>
         <source>Explaining…</source>
         <translation>正在解释…</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="367"/>
+        <location filename="../src/app/explanation_duty.cpp" line="368"/>
         <source>Request failed</source>
         <translation>请求失败</translation>
     </message>
@@ -856,7 +866,7 @@
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="250"/>
-        <location filename="../src/app/app_controller.cpp" line="411"/>
+        <location filename="../src/app/app_controller.cpp" line="413"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>今日预算已用尽。</translation>
     </message>
@@ -881,32 +891,32 @@
         <translation>所选区域无法识别。</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="490"/>
+        <location filename="../src/app/app_controller.cpp" line="492"/>
         <source>Today %1</source>
         <translation>今天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="492"/>
+        <location filename="../src/app/app_controller.cpp" line="494"/>
         <source>Yesterday %1</source>
         <translation>昨天 %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="499"/>
+        <location filename="../src/app/app_controller.cpp" line="501"/>
         <source>Known</source>
         <translation>已会</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="501"/>
+        <location filename="../src/app/app_controller.cpp" line="503"/>
         <source>New</source>
         <translation>新词</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="606"/>
+        <location filename="../src/app/app_controller.cpp" line="593"/>
         <source>Auto</source>
         <translation>自动模式</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="606"/>
+        <location filename="../src/app/app_controller.cpp" line="593"/>
         <source>Manual</source>
         <translation>手动模式</translation>
     </message>
@@ -914,12 +924,12 @@
 <context>
     <name>lens::app::ExplanationDuty</name>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="522"/>
+        <location filename="../src/app/explanation_duty.cpp" line="535"/>
         <source>No listed price; recorded cost is zero.</source>
         <translation>未列出价格；记录的花费为 0。</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="523"/>
+        <location filename="../src/app/explanation_duty.cpp" line="536"/>
         <source>Input %1 / Output %2 %3 per %4 tokens</source>
         <translation>输入 %1 / 输出 %2 %3 / 每 %4 个 token</translation>
     </message>
@@ -927,7 +937,7 @@
 <context>
     <name>lens::app::Tray</name>
     <message>
-        <location filename="../src/app/tray.cpp" line="151"/>
+        <location filename="../src/app/tray.cpp" line="136"/>
         <source>Today %1 words</source>
         <translation>今日 %1 词</translation>
     </message>
@@ -1045,18 +1055,18 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="149"/>
+        <location filename="../src/llm/llm_client.cpp" line="121"/>
         <source>There is nothing to look up.</source>
         <translation>没有待查内容。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="157"/>
+        <location filename="../src/llm/llm_client.cpp" line="129"/>
         <source>The API key is missing.</source>
         <translation>未配置 API 密钥。</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="189"/>
-        <location filename="../src/llm/llm_client.cpp" line="194"/>
+        <location filename="../src/llm/llm_client.cpp" line="161"/>
+        <location filename="../src/llm/llm_client.cpp" line="166"/>
         <source>The request could not reach the service: %1</source>
         <translation>请求未能送达服务：%1</translation>
     </message>

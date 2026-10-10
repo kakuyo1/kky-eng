@@ -5,13 +5,13 @@
     <name>Bubble</name>
     <message>
         <location filename="../src/app/qml/Bubble.qml" line="316"/>
-        <location filename="../src/app/qml/Bubble.qml" line="545"/>
+        <location filename="../src/app/qml/Bubble.qml" line="549"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
         <location filename="../src/app/qml/Bubble.qml" line="316"/>
-        <location filename="../src/app/qml/Bubble.qml" line="572"/>
+        <location filename="../src/app/qml/Bubble.qml" line="576"/>
         <source>New</source>
         <translation>New</translation>
     </message>
@@ -21,12 +21,12 @@
         <translation>Sentence</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="474"/>
+        <location filename="../src/app/qml/Bubble.qml" line="478"/>
         <source>Etymology</source>
         <translation>Etymology</translation>
     </message>
     <message>
-        <location filename="../src/app/qml/Bubble.qml" line="594"/>
+        <location filename="../src/app/qml/Bubble.qml" line="598"/>
         <source>Disappears in %1s</source>
         <translation>Disappears in %1s</translation>
     </message>
@@ -468,22 +468,22 @@
         <translation>Not configured</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="528"/>
+        <location filename="../src/app/explanation_duty.cpp" line="541"/>
         <source>Domestic</source>
         <translation>Domestic</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="529"/>
+        <location filename="../src/app/explanation_duty.cpp" line="542"/>
         <source>International</source>
         <translation>International</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="530"/>
+        <location filename="../src/app/explanation_duty.cpp" line="543"/>
         <source>Other</source>
         <translation>Other</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="531"/>
+        <location filename="../src/app/explanation_duty.cpp" line="544"/>
         <source>Custom service</source>
         <translation>Custom service</translation>
     </message>
@@ -501,6 +501,16 @@
         <location filename="../src/app/app_controller.cpp" line="258"/>
         <source>OCR runtime is unavailable</source>
         <translation>OCR runtime is unavailable</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="24"/>
+        <source>Mouse pass-through</source>
+        <translation>Mouse pass-through</translation>
+    </message>
+    <message>
+        <location filename="../src/app/qml/SettingsExtensionsPage.qml" line="40"/>
+        <source>Desktop pet size</source>
+        <translation>Desktop pet size</translation>
     </message>
 </context>
 <context>
@@ -830,22 +840,22 @@
         <translation>Study-abroad exams</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="225"/>
+        <location filename="../src/app/explanation_duty.cpp" line="226"/>
         <source>No explanation is stored for this word in the current language.</source>
         <translation>No explanation is stored for this word in the current language.</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="227"/>
+        <location filename="../src/app/explanation_duty.cpp" line="228"/>
         <source>Explain now</source>
         <translation>Explain now</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="289"/>
+        <location filename="../src/app/explanation_duty.cpp" line="290"/>
         <source>Explaining…</source>
         <translation>Explaining…</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="367"/>
+        <location filename="../src/app/explanation_duty.cpp" line="368"/>
         <source>Request failed</source>
         <translation>Request failed</translation>
     </message>
@@ -856,7 +866,7 @@
     </message>
     <message>
         <location filename="../src/app/app_controller.cpp" line="250"/>
-        <location filename="../src/app/app_controller.cpp" line="411"/>
+        <location filename="../src/app/app_controller.cpp" line="413"/>
         <source>Today&apos;s budget is used up.</source>
         <translation>Today&amp;apos;s budget is used up.</translation>
     </message>
@@ -881,32 +891,32 @@
         <translation>That region could not be read.</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="490"/>
+        <location filename="../src/app/app_controller.cpp" line="492"/>
         <source>Today %1</source>
         <translation>Today %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="492"/>
+        <location filename="../src/app/app_controller.cpp" line="494"/>
         <source>Yesterday %1</source>
         <translation>Yesterday %1</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="499"/>
+        <location filename="../src/app/app_controller.cpp" line="501"/>
         <source>Known</source>
         <translation>Known</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="501"/>
+        <location filename="../src/app/app_controller.cpp" line="503"/>
         <source>New</source>
         <translation>New</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="606"/>
+        <location filename="../src/app/app_controller.cpp" line="593"/>
         <source>Auto</source>
         <translation>Auto</translation>
     </message>
     <message>
-        <location filename="../src/app/app_controller.cpp" line="606"/>
+        <location filename="../src/app/app_controller.cpp" line="593"/>
         <source>Manual</source>
         <translation>Manual</translation>
     </message>
@@ -914,12 +924,12 @@
 <context>
     <name>lens::app::ExplanationDuty</name>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="522"/>
+        <location filename="../src/app/explanation_duty.cpp" line="535"/>
         <source>No listed price; recorded cost is zero.</source>
         <translation>No listed price; recorded cost is zero.</translation>
     </message>
     <message>
-        <location filename="../src/app/explanation_duty.cpp" line="523"/>
+        <location filename="../src/app/explanation_duty.cpp" line="536"/>
         <source>Input %1 / Output %2 %3 per %4 tokens</source>
         <translation>Input %1 / Output %2 %3 per %4 tokens</translation>
     </message>
@@ -927,7 +937,7 @@
 <context>
     <name>lens::app::Tray</name>
     <message>
-        <location filename="../src/app/tray.cpp" line="151"/>
+        <location filename="../src/app/tray.cpp" line="136"/>
         <source>Today %1 words</source>
         <translation>Today %1 words</translation>
     </message>
@@ -1045,18 +1055,18 @@
 <context>
     <name>lens::llm::LlmClient</name>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="149"/>
+        <location filename="../src/llm/llm_client.cpp" line="121"/>
         <source>There is nothing to look up.</source>
         <translation>There is nothing to look up.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="157"/>
+        <location filename="../src/llm/llm_client.cpp" line="129"/>
         <source>The API key is missing.</source>
         <translation>The API key is missing.</translation>
     </message>
     <message>
-        <location filename="../src/llm/llm_client.cpp" line="189"/>
-        <location filename="../src/llm/llm_client.cpp" line="194"/>
+        <location filename="../src/llm/llm_client.cpp" line="161"/>
+        <location filename="../src/llm/llm_client.cpp" line="166"/>
         <source>The request could not reach the service: %1</source>
         <translation>The request could not reach the service: %1</translation>
     </message>
